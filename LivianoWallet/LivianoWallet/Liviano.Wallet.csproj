@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

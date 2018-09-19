@@ -7,7 +7,7 @@ namespace Liviano
     {
         public Wallet()
         {
-            Console.WriteLine($"Key: {new Key().GetWif(Network.Main)}");
+
         }
     }
 }
