@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\LivianoWallet\Liviano.Wallet.csproj" />
+    <ProjectReference Include="..\Liviano.Wallet\Liviano.Wallet.csproj" />
   </ItemGroup>
 
   <ItemGroup>
