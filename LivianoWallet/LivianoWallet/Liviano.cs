@@ -7,7 +7,7 @@ namespace Liviano
     {
         public Wallet()
         {
-
+            Console.WriteLine("Nbitcoin stuff: " + new Key().GetBitcoinSecret(Network.Main).ToWif());
         }
     }
 }
