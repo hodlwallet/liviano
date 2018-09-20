@@ -1,8 +1,11 @@
-run_cli:
+run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1
 
-build_solution:
+build:
 	dotnet build LivianoWallet --framework netcoreapp2.1
+
+test:
+	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
 
 publish_debug:
 	dotnet publish LivianoWallet --framework netcoreapp2.1 --configuration Debug
@@ -18,17 +21,14 @@ publish_release:
 	cp -R /home/igor/Code/LivianoWallet/LivianoWallet/Liviano.Wallet/bin/Release/netcoreapp2.1/publish bin/release/LivianoWallet
 	cp -R /home/igor/Code/LivianoWallet/LivianoWallet/Liviano.CLI/bin/Release/netcoreapp2.1/publish bin/release/LivianoWalletCLI
 
-test:
-	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
-
-submodule_update:
-	git submodule update
-
 submodule_init:
 	git submodule init
+	git submodule update
+
+submodule_update:
 	git submodule update
 
 clean:
 	rm -rf bin/*
 
-all: run_cli
+all: run
