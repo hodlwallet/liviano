@@ -2,11 +2,11 @@
 
 Liviano is a proof of concept light wallet framework for Bitcoin written in C# with NBitcoin. It includes a CLI and a Daemon. Liviano is ideal for running your own node to spin off your own mobile wallet!
 
-# Requirements
+## Requirements
 
 - `.NET Core 2.1`: https://docs.microsoft.com/en-us/dotnet/core/
 
-# Supported Platforms
+## Supported Platforms
 
 We use Xamarin and NBitcoin and support .NET Standard 2.0 which makes this library compatible with the following platforms:
 
@@ -24,19 +24,19 @@ We need NBitcoin we use the latest on their `master` branch.
 make submodule_init
 ```
 
-# Build Instructions
+## Build Instructions
 
 ```
 make build
 ```
 
-# Run Tests
+## Run Tests
 
 ```
 make test
 ```
 
-### Make Commands:
+## Make Commands:
 
 | Command | Description |
 | --- | --- |
