@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
+    <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

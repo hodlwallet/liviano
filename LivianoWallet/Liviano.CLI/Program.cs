@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Liviano;
 
 namespace Liviano.CLI
@@ -7,8 +7,8 @@ namespace Liviano.CLI
     {
         static void Main(string[] args)
         {
-            var wallet = new Wallet();
-            Console.ReadLine();
+            //var wallet = new Wallet();
+            //Console.ReadLine();
         }
     }
 }

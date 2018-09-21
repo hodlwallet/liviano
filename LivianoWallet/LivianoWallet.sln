@@ -15,7 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
