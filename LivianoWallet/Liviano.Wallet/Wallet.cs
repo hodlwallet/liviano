@@ -12,7 +12,8 @@ namespace Liviano
     {
         public Wallet()
         {
-            Console.WriteLine("Nbitcoin stuff: " + new Key().GetBitcoinSecret(Network.Main).ToWif());
+            Console.WriteLine($"NBitcoin Stuff: {new Key().GetBitcoinSecret(Network.Main).ToWif()}");
+
             this.AccountsRoot = new List<AccountRoot>();
         }
 

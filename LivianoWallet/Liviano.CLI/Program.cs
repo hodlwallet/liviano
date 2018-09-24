@@ -7,8 +7,10 @@ namespace Liviano.CLI
     {
         static void Main(string[] args)
         {
-            //var wallet = new Wallet();
-            //Console.ReadLine();
+            var wallet = new Wallet();
+
+            Console.WriteLine("Press any key to continue");
+            Console.ReadLine();
         }
     }
 }
