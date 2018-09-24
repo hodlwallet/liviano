@@ -8,7 +8,7 @@ namespace Liviano
     /// <sumary>
     /// A wallet
     /// </sumary>
-    class HdAccount
+    public class HdAccount
     {
         /// <sumary>
         /// Init
