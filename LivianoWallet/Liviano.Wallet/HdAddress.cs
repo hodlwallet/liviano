@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using NBitcoin;
 
 namespace Liviano
 {
@@ -6,7 +8,9 @@ namespace Liviano
     {
         public HdAddress()
         {
-
+            this.Transactions = new List<TransactionData>();
         }
+
+        public ICollection<TransactionData> Transactions { get; set; }
     }
 }
