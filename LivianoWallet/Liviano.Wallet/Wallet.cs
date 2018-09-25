@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Liviano.Utilities.JsonConverters;
 using NBitcoin;
-using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 
 namespace Liviano
