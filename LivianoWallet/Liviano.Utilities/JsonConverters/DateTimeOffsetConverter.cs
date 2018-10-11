@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Liviano
+namespace Liviano.Utilities.JsonConverters
 {
     public class DateTimeOffsetConverter :JsonConverter
     {

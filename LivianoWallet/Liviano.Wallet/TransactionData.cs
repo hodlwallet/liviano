@@ -1,3 +1,4 @@
+using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ namespace Liviano
         /// Transaction id.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
-        [JsonConverter(typeof(UInt256JsonConverter))]
+        [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 Id { get; set; }
 
         /// <summary>
@@ -46,7 +47,7 @@ namespace Liviano
         /// The hash of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(UInt256JsonConverter))]
+        [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 BlockHash { get; set; }
 
         /// <summary>

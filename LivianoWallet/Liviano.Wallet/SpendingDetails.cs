@@ -1,3 +1,4 @@
+using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ namespace Liviano
         /// The id of the transaction in which the output referenced in this transaction is spent.
         /// </summary>
         [JsonProperty(PropertyName = "transactionId", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(UInt256JsonConverter))]
+        [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 TransactionId { get; set; }
 
         /// <summary>

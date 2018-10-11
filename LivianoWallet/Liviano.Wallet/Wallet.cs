@@ -54,7 +54,7 @@ namespace Liviano
         /// <summary>
         /// Gets or sets the merkle path, locator.
         /// </summary>
-        [JsonProperty(PropertyName = "blockLocator", ItemConverterType = typeof(UInt256JsonConverter))]
+        [JsonProperty(PropertyName = "blockLocator", ItemConverterType = typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public ICollection<uint256> BlockLocator { get; set; }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Liviano
         /// The time this wallet was created.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
+        [JsonConverter(typeof(Utilities.JsonConverters.DateTimeOffsetConverter))]
         public DateTimeOffset CreationTime { get; set; }
 
 
