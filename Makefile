@@ -5,7 +5,7 @@ build:
 	dotnet build LivianoWallet --framework netcoreapp2.1
 
 test:
-	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
+	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 /p:CollectCoverage=true
 
 publish_debug:
 	dotnet publish LivianoWallet --framework netcoreapp2.1 --configuration Debug
