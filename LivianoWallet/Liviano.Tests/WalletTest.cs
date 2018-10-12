@@ -10,7 +10,8 @@ namespace Liviano.Tests
         public void InitTest()
         {
             Wallet w = new Wallet(
-                name: "1st Wallet"
+                name: "1st Wallet",
+                creationTime: new DateTimeOffset(DateTime.Parse("2018-10-12"))
             );
 
             Assert.Equal("1st Wallet", w.Name);
@@ -22,6 +23,7 @@ namespace Liviano.Tests
             Assert.Empty(w.EncryptedSeed);
 
             Assert.True(w.IsExtPubKeyWallet);
+            Assert.Equal(w.CreationTime, new DateTimeOffset(DateTime.Parse("2018-10-12")));
         }
     }
 }

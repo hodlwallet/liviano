@@ -21,6 +21,7 @@ namespace Liviano
         /// <param name="chainCode">The chain code.</param>
         /// <param name="blockLocator">A block locator list.</param>
         /// <param name="network">Main, TestNet, or RegTest.</param>
+        /// <param name="creationTime">Creation time, if not a default</param>
         public Wallet(
                 string name = null,
                 ICollection<AccountRoot> accountsRoot = null,
@@ -28,7 +29,8 @@ namespace Liviano
                 string encryptedSeed = null,
                 byte[] chainCode = null,
                 ICollection<uint256> blockLocator = null,
-                Network network = null)
+                Network network = null,
+                DateTimeOffset creationTime = new DateTimeOffset())
         {
             this.Name = name ?? "";
             this.AccountsRoot = accountsRoot ?? new List<AccountRoot>();
@@ -37,6 +39,7 @@ namespace Liviano
             this.ChainCode = chainCode ?? new byte[0];
             this.BlockLocator = blockLocator ?? new List<uint256>();
             this.Network = network ?? Network.Main;
+            this.CreationTime = creationTime;
         }
 
         /// <summary>
