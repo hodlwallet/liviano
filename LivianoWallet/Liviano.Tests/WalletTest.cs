@@ -1,25 +1,27 @@
 using System;
 using Xunit;
+using NBitcoin;
 
 namespace Liviano.Tests
 {
     public class WalletTest
     {
         [Fact]
-        public void TheTruth()
+        public void InitTest()
         {
-            Assert.Equal(4, Add(2, 2));
-        }
+            Wallet w = new Wallet(
+                name: "1st Wallet"
+            );
 
-        [Fact]
-        public void TheLies()
-        {
-            Assert.NotEqual(5, Add(2, 2));
-        }
+            Assert.Equal("1st Wallet", w.Name);
+            Assert.Equal(Network.Main, w.Network);
 
-        int Add(int x, int y)
-        {
-            return x + y;
+            Assert.Empty(w.AccountsRoot);
+            Assert.Empty(w.BlockLocator);
+            Assert.Empty(w.ChainCode);
+            Assert.Empty(w.EncryptedSeed);
+
+            Assert.True(w.IsExtPubKeyWallet);
         }
     }
 }

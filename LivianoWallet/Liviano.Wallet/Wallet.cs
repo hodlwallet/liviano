@@ -11,13 +11,32 @@ namespace Liviano
 {
     public class Wallet
     {
-        /// <summary>
+        /// <sumary>
         /// Default wallet constructor
-        /// </summary>
-        public Wallet()
+        /// <sumary>
+        /// <param name="name">The name of the wallet.</param>
+        /// <param name="accountsRoot">List of accounts root.</param>
+        /// <param name="isExtPubKeyWallet">Is the wallet an xpub or not.</param>
+        /// <param name="encryptedSeed">The encrypted seed</param>
+        /// <param name="chainCode">The chain code.</param>
+        /// <param name="blockLocator">A block locator list.</param>
+        /// <param name="network">Main, TestNet, or RegTest.</param>
+        public Wallet(
+                string name = null,
+                ICollection<AccountRoot> accountsRoot = null,
+                bool isExtPubKeyWallet = true,
+                string encryptedSeed = null,
+                byte[] chainCode = null,
+                ICollection<uint256> blockLocator = null,
+                Network network = null)
         {
-            Console.WriteLine("Nbitcoin stuff: " + new Key().GetBitcoinSecret(Network.Main).ToWif()); // For testing purposes
-            this.AccountsRoot = new List<AccountRoot>();
+            this.Name = name ?? "";
+            this.AccountsRoot = accountsRoot ?? new List<AccountRoot>();
+            this.IsExtPubKeyWallet = isExtPubKeyWallet;
+            this.EncryptedSeed = encryptedSeed ?? "";
+            this.ChainCode = chainCode ?? new byte[0];
+            this.BlockLocator = blockLocator ?? new List<uint256>();
+            this.Network = network ?? Network.Main;
         }
 
         /// <summary>
