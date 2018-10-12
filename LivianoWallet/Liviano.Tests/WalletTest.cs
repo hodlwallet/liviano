@@ -25,5 +25,11 @@ namespace Liviano.Tests
             Assert.True(w.IsExtPubKeyWallet);
             Assert.Equal(w.CreationTime, new DateTimeOffset(DateTime.Parse("2018-10-12")));
         }
+
+        [Fact]
+        public void IsMaximilist()
+        {
+            Assert.True(CoinType.Bitcoin == 0);
+        }
     }
 }
