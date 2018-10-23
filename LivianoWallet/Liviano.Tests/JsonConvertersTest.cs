@@ -16,9 +16,12 @@ namespace Liviano.Tests
             string jsonError = "this is not valid json";
             JsonTextReader jsonTextReader = new JsonTextReader(new StringReader(jsonError));
 
-            if (innerException != null) {
+            if (innerException != null)
+            {
                 throw new JsonObjectException(innerException, jsonTextReader);
-            } else {
+            }
+            else
+            {
                 throw new JsonObjectException("Error", jsonTextReader);
             }
         }
