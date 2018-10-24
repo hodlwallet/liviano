@@ -12,13 +12,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB38604C-12E8-413D-99C1-F1B933146341}"
 	ProjectSection(SolutionItems) = preProject
 		..\LICENSE = ..\LICENSE
-		..\README.md = ..\README.md
 		..\Makefile = ..\Makefile
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
