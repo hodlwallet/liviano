@@ -69,12 +69,12 @@ namespace Liviano
         public HdAccount GetAccountByName(string accountName)
         {
             if (this.Accounts == null)
-                throw new Exception($"No account with the name {accountName} could be found.");
+                throw new WalletException($"No account with the name {accountName} could be found.");
 
             // get the account
             HdAccount account = this.Accounts.SingleOrDefault(a => a.Name == accountName);
             if (account == null)
-                throw new Exception($"No account with the name {accountName} could be found.");
+                throw new WalletException($"No account with the name {accountName} could be found.");
 
             return account;
         }
