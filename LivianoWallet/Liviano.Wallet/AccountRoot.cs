@@ -127,5 +127,45 @@ namespace Liviano
 
             return newAccount;
         }
+
+        /// <inheritdoc cref="AddNewAccount(string, string, byte[], Network, DateTimeOffset)"/>
+        /// <summary>
+        /// Adds an account to the current account root using extended public key and account index.
+        /// </summary>
+        /// <param name="accountExtPubKey">The extended public key for the account.</param>
+        /// <param name="accountIndex">The zero-based account index.</param>
+        public HdAccount AddNewAccount(ExtPubKey accountExtPubKey, int accountIndex, Network network, DateTimeOffset accountCreationTime)
+        {
+            ICollection<HdAccount> hdAccounts = this.Accounts.ToList();
+
+            if (hdAccounts.Any(a => a.Index == accountIndex))
+            {
+                throw new WalletException("There is already an account in this wallet with index: " + accountIndex);
+            }
+
+            if (hdAccounts.Any(x => x.ExtendedPubKey == accountExtPubKey.ToString(network)))
+            {
+                throw new WalletException("There is already an account in this wallet with this xpubkey: " +
+                                            accountExtPubKey.ToString(network));
+            }
+
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, accountIndex);
+
+            var newAccount = new HdAccount
+            {
+                Index = accountIndex,
+                ExtendedPubKey = accountExtPubKey.ToString(network),
+                ExternalAddresses = new List<HdAddress>(),
+                InternalAddresses = new List<HdAddress>(),
+                Name = $"account {accountIndex}",
+                HdPath = accountHdPath,
+                CreationTime = accountCreationTime
+            };
+
+            hdAccounts.Add(newAccount);
+            this.Accounts = hdAccounts;
+
+            return newAccount;
+        }
     }
 }

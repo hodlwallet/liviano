@@ -22,16 +22,22 @@ namespace Liviano
         /// <param name="blockLocator">A block locator list.</param>
         /// <param name="network">Main, TestNet, or RegTest.</param>
         /// <param name="creationTime">Creation time, if not a default</param>
-        public Wallet(
-                string name = null,
-                ICollection<AccountRoot> accountsRoot = null,
-                bool isExtPubKeyWallet = true,
-                string encryptedSeed = null,
-                byte[] chainCode = null,
-                ICollection<uint256> blockLocator = null,
-                Network network = null,
-                DateTimeOffset creationTime = new DateTimeOffset())
+
+        public Wallet()
         {
+            this.AccountsRoot = new List<AccountRoot>();
+        }
+
+        public Wallet(
+            string name = null,
+            ICollection<AccountRoot> accountsRoot = null,
+            bool isExtPubKeyWallet = true,
+            string encryptedSeed = null,
+            byte[] chainCode = null,
+            ICollection<uint256> blockLocator = null,
+            Network network = null,
+            DateTimeOffset creationTime = new DateTimeOffset())
+       {
             this.Name = name ?? "";
             this.AccountsRoot = accountsRoot ?? new List<AccountRoot>();
             this.IsExtPubKeyWallet = isExtPubKeyWallet;
@@ -51,6 +57,15 @@ namespace Liviano
         /// <summary>
         /// The name of this wallet.
         /// </summary>
+        public Wallet(string name, bool isExtPubKeyWallet, string encryptedSeed, Network network, DateTimeOffset creationTime)
+        {
+            this.Name = name;
+            this.IsExtPubKeyWallet = isExtPubKeyWallet;
+            this.EncryptedSeed = encryptedSeed;
+            this.Network = network;
+            this.CreationTime = creationTime;
+        }
+
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
 
@@ -207,6 +222,26 @@ namespace Liviano
             AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
             return accountRoot.AddNewAccount(password, this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime);
         }
+
+        // <summary>
+        /// Adds an account to the current wallet.
+        /// </summary>
+        /// <remarks>
+        /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
+        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
+        /// </remarks>
+        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/>
+        /// <param name="extPubKey">The extended public key for the wallet<see cref="EncryptedSeed"/>.</param>
+        /// <param name="coinType">The type of coin this account is for.</param>
+        /// <param name="accountIndex">Zero-based index of the account to add.</param>
+        /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <returns>A new HD account.</returns>
+        public HdAccount AddNewAccount(CoinType coinType, ExtPubKey extPubKey, int accountIndex, DateTimeOffset accountCreationTime)
+        {
+            AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
+            return accountRoot.AddNewAccount(extPubKey, accountIndex, this.Network, accountCreationTime);
+        }
+
 
         /// <summary>
         /// Gets the first account that contains no transaction.
