@@ -83,6 +83,42 @@ namespace Liviano
             return extPubKey;
         }
 
+        public static ExtPubKey GetExtendedPublicKey(ExtKey extKey, string hdPath)
+        {
+            Guard.NotNull(extKey, nameof(extKey));
+            Guard.NotEmpty(hdPath, nameof(hdPath));
+
+            ExtKey addressExtKey = extKey.Derive(new KeyPath(hdPath));
+            ExtPubKey extPubKey = addressExtKey.Neuter();
+
+            return extPubKey;
+        }
+
+        public static ExtPubKey GetExtendedPublicKey(string wif, string hdPath, string network = null)
+        {
+            Guard.NotEmpty(wif, nameof(wif));
+            Guard.NotEmpty(hdPath, nameof(hdPath));
+
+            Network bitcoinNetwork = null;
+
+            switch (network)
+            {
+                case "testnet":
+                bitcoinNetwork = Network.TestNet;
+                break;
+                case "regtest":
+                bitcoinNetwork = Network.RegTest;
+                break;
+                default:
+                bitcoinNetwork = Network.Main;
+                break;
+            }
+
+            BitcoinSecret secret = new BitcoinSecret(wif, bitcoinNetwork);
+            ExtKey extKey = new ExtKey(secret.PrivateKey, new ExtKey().ChainCode);
+
+            return GetExtendedPublicKey(extKey, hdPath);
+        }
         /// <summary>
         /// Gets the HD path of an account.
         /// </summary>
