@@ -1,66 +1,17 @@
 using System;
-using Liviano;
-using CommandLine;
 using System.Collections.Generic;
+using CommandLine;
 
+using Liviano;
+
+// Testing imports...
+// NOTE remove later.
 using NBitcoin;
 
 namespace Liviano.CLI
 {
     class Program
     {
-        public class Options
-        {
-            [Option('l', "loglevel", Required = false, HelpText = "Set output log level messages.")]
-            public string Loglevel { get; set; }
-
-            [Option('h', "help", Required = false, HelpText = "See help")]
-            public bool Help { get; set; }
-
-            [Option('t', "testnet", Required = false, HelpText = "Run commands on testnet")]
-            public bool Testnet { get; set; }
-
-            [Option('r', "regtest", Required = false, HelpText = "Run commands on regtest")]
-            public bool Regtest { get; set; }
-
-        }
-
-        static string HelpContent()
-        {
-            string content = @"
-            Liviano CLI Wallet and SPV Node
-            Usage: liviano [runtime-options] [command] [command-options] [arguments]
-
-            Execute a command with Liviano CLI Wallet
-
-            Runtime Options:
-
-            -t|--testnet      Run command on testnet
-            -r|--regtest      Run command on regtest
-            -h|--help         Show help content
-            --version         Display Liviano's version
-            -l|--loglevel     Set log level, options: info, error, warning, debug
-
-            Liviano Commands:
-
-            ".Trim();
-
-            return content;
-        }
-
-        static bool IsValidLogLevel(string logLevel)
-        {
-            List<string> validOptions = new List<string>
-            {
-                "info",
-                "error",
-                "warning",
-                "debug"
-            };
-
-            return !validOptions.Contains(logLevel);
-        }
-
         static void Main(string[] args)
         {
             // Set defaults here
@@ -74,20 +25,20 @@ namespace Liviano.CLI
                     // TODO(igor) Set log level
                     logLevel = o.Loglevel;
 
-                    if (IsValidLogLevel(logLevel))
+                    if (Options.IsValidLogLevel(logLevel))
                     {
                         Console.WriteLine($"Running on log level: {o.Loglevel}");
                     }
                     else
                     {
-                        Console.WriteLine(HelpContent());
+                        Console.WriteLine(Options.HelpContent());
 
                         return;
                     }
                 }
                 else if (o.Help)
                 {
-                    Console.WriteLine($"{HelpContent()}");
+                    Console.WriteLine($"{Options.HelpContent()}");
 
                     return;
                 }
@@ -101,7 +52,7 @@ namespace Liviano.CLI
                 }
                 else
                 {
-                    Console.WriteLine($"{HelpContent()}");
+                    Console.WriteLine($"{Options.HelpContent()}");
 
                     // NOTE: Write your test code here, with no limitations.
                     // Set variables like this:
