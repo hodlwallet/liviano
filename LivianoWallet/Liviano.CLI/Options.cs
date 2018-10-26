@@ -3,53 +3,29 @@ using CommandLine;
 
 namespace Liviano.CLI
 {
-    public class Options
+    [Verb("new-mnemonic", HelpText = "Creates a new nmemonic")]
+    class NewMnemonicOptions
     {
-        [Option('l', "loglevel", Required = false, HelpText = "Set output log level messages.")]
-        public string Loglevel { get; set; }
+        [Option('w', "wordlist", Required = false, HelpText = "Set wordlist, accepted: ChineseSimplified, ChineseTraditional, English, French, Japanese, PortugueseBrazil, Spanish.")]
+        public string Wordlist { get; set; }
 
-        [Option('h', "help", Required = false, HelpText = "See help")]
-        public bool Help { get; set; }
+        [Option('w', "word-count", Required = false, HelpText = "Set wordCount, accepted: 12, 15, 18, 21, 24.")]
+        public int WordCount { get; set; }
+    }
 
-        [Option('t', "testnet", Required = false, HelpText = "Run commands on testnet")]
+    [Verb("get-ext-key", HelpText = "Get extended key from mnemonic")]
+    class GetExtendedKeyOptions
+    {
+        [Option("mnemonic", Required = false, HelpText = "Set mnemonic to get ext priv key")]
+        public string Mnemonic { get; set; }
+
+        [Option("passphrase", Required = false, HelpText = "Set passphrase to recover ext priv key")]
+        public string Passphrase { get; set; }
+
+        [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
-
-        [Option('r', "regtest", Required = false, HelpText = "Run commands on regtest")]
+        
+        [Option('r', "regtest", HelpText = "Run on regnet")]
         public bool Regtest { get; set; }
-        public static bool IsValidLogLevel(string logLevel)
-        {
-            List<string> validOptions = new List<string>
-            {
-                "info",
-                "error",
-                "warning",
-                "debug"
-            };
-
-            return !validOptions.Contains(logLevel);
-        }
-
-        public static string HelpContent()
-        {
-            string content = @"
-            Liviano CLI Wallet and SPV Node
-            Usage: liviano [runtime-options] [command] [command-options] [arguments]
-
-            Execute a command with Liviano CLI Wallet
-
-            Runtime Options:
-
-            -t|--testnet      Run command on testnet
-            -r|--regtest      Run command on regtest
-            -h|--help         Show help content
-            --version         Display Liviano's version
-            -l|--loglevel     Set log level, options: info, error, warning, debug
-
-            Liviano Commands:
-
-            ".Trim();
-
-            return content;
-        }
     }
 }

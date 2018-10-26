@@ -130,7 +130,7 @@ namespace Liviano
 
             switch (network)
             {
-                case "mainnet":
+                case "main":
                 bitcoinNetwork = Network.Main;
                 break;
                 case "testnet":
