@@ -18,7 +18,7 @@ namespace Liviano.CLI
             string network = "mainnet";
             string logLevel = "info";
 
-            Parser.Default.ParseArguments<Options, NewMnemonicOptions>(args)
+            Parser.Default.ParseArguments<Options, NewMnemonicOptions, GetExtendedKeyOptions>(args)
             .WithParsed<Options>(o =>
             {
                 if (o.Loglevel != null)
@@ -64,17 +64,41 @@ namespace Liviano.CLI
                 string wordlist = "english";
                 int wordCount = 24;
 
-                if (o.wordCount != 0)
+                if (o.WordCount != 0)
                 {
-                    wordCount = o.wordCount;
+                    wordCount = o.WordCount;
                 }
 
-                if (o.wordlist != null)
+                if (o.Wordlist != null)
                 {
-                    wordlist = o.wordlist;
+                    wordlist = o.Wordlist;
                 }
 
                 Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
+            })
+            .WithParsed<GetExtendedKeyOptions>(o => {
+                string mnemonic = null;
+                string passphrase = null;
+
+                if (o.Mnemonic != null)
+                {
+                    mnemonic = o.Mnemonic;
+                }
+
+                if (o.Passphrase != null)
+                {
+                    passphrase = o.Passphrase;
+                }
+
+                if (mnemonic == null)
+                {
+                    mnemonic = Console.ReadLine();
+                }
+
+                var extKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
+                var wif = HdOperations.GetWif(extKey, network);
+
+                Console.WriteLine(wif.ToString());
             });
         }
     }

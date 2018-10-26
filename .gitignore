@@ -334,3 +334,6 @@ ASALocalRun/
 
 # Test coverage file
 LivianoWallet/Liviano.Tests/coverage.json
+
+# Binary I copy
+liviano-cli

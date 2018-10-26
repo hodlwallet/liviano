@@ -66,5 +66,12 @@ namespace Liviano
         {
             return new Mnemonic(wordlist, wordCount);
         }
+
+        public static Mnemonic MnemonicFromString(string mnemonic)
+        {
+            Guard.NotEmpty(mnemonic, nameof(mnemonic));
+
+            return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
+        }
     }
 }

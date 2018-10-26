@@ -105,7 +105,7 @@ namespace Liviano
         {
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
 
-            return GetExtendedKey(new Mnemonic(mnemonic), passphrase);
+            return GetExtendedKey(WalletManager.MnemonicFromString(mnemonic), passphrase);
         }
 
         /// <summary>
@@ -120,6 +120,36 @@ namespace Liviano
             Guard.NotNull(mnemonic, nameof(mnemonic));
 
             return mnemonic.DeriveExtKey(passphrase);
+        }
+
+        public static BitcoinExtKey GetWif(ExtKey extKey, string network)
+        {
+            Guard.NotEmpty(network, nameof(network));
+
+            Network bitcoinNetwork = null;
+
+            switch (network)
+            {
+                case "mainnet":
+                bitcoinNetwork = Network.Main;
+                break;
+                case "testnet":
+                bitcoinNetwork = Network.TestNet;
+                break;
+                case "regtest":
+                bitcoinNetwork = Network.RegTest;
+                break;
+                default:
+                bitcoinNetwork = Network.Main;
+                break;
+            }
+
+            return GetWif(extKey, bitcoinNetwork);
+        }
+
+        public static BitcoinExtKey GetWif(ExtKey extKey, Network network)
+        {
+            return extKey.GetWif(network);
         }
 
         /// <summary>
