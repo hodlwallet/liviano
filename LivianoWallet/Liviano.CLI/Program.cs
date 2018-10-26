@@ -18,7 +18,8 @@ namespace Liviano.CLI
             string network = "mainnet";
             string logLevel = "info";
 
-            Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(o =>
+            Parser.Default.ParseArguments<Options, NewMnemonicOptions>(args)
+            .WithParsed<Options>(o =>
             {
                 if (o.Loglevel != null)
                 {
@@ -54,22 +55,26 @@ namespace Liviano.CLI
                 {
                     Console.WriteLine($"{Options.HelpContent()}");
 
-                    // NOTE: Write your test code here, with no limitations.
-                    // Set variables like this:
-                    // logLevel = "debug";
-                    // network = "testnet";
-
-                    Console.WriteLine($"Arguments {args}");
-
-                    Mnemonic mnemo = new Mnemonic(Wordlist.English, WordCount.TwentyFour);
-                    ExtKey hdRoot = mnemo.DeriveExtKey();
-
-                    Console.WriteLine(mnemo);
-
                     return;
                 }
 
                 Console.WriteLine($"Running on \"{network}\"");
+            })
+            .WithParsed<NewMnemonicOptions>(o => {
+                string wordlist = "english";
+                int wordCount = 24;
+
+                if (o.wordCount != 0)
+                {
+                    wordCount = o.wordCount;
+                }
+
+                if (o.wordlist != null)
+                {
+                    wordlist = o.wordlist;
+                }
+
+                Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
             });
         }
     }
