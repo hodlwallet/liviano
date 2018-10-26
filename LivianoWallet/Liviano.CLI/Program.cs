@@ -17,13 +17,12 @@ namespace Liviano.CLI
             // Set defaults here
             string network = "mainnet";
             string logLevel = "info";
+            bool helpShown = false;
 
-            Parser.Default.ParseArguments<Options, NewMnemonicOptions, GetExtendedKeyOptions>(args)
-            .WithParsed<Options>(o =>
+            Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(o =>
             {
                 if (o.Loglevel != null)
                 {
-                    // TODO(igor) Set log level
                     logLevel = o.Loglevel;
 
                     if (Options.IsValidLogLevel(logLevel))
@@ -33,6 +32,7 @@ namespace Liviano.CLI
                     else
                     {
                         Console.WriteLine(Options.HelpContent());
+                        helpShown = true;
 
                         return;
                     }
@@ -40,6 +40,7 @@ namespace Liviano.CLI
                 else if (o.Help)
                 {
                     Console.WriteLine($"{Options.HelpContent()}");
+                    helpShown = true;
 
                     return;
                 }
@@ -51,15 +52,13 @@ namespace Liviano.CLI
                 {
                     network = "regtest";
                 }
-                else
-                {
-                    Console.WriteLine($"{Options.HelpContent()}");
 
-                    return;
-                }
+                // Console.WriteLine($"Running on \"{network}\"");
+            });
 
-                Console.WriteLine($"Running on \"{network}\"");
-            })
+            if (helpShown) return;
+
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                 string wordlist = "english";
                 int wordCount = 24;
