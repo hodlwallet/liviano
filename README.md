@@ -40,7 +40,7 @@ make test
 
 | Command | Description |
 | --- | --- |
-| `make run` | run `Liviano.CLI` project |
+| `make run` | run `Liviano.CLI` project, use `args="--version" make run` to run with argument `--version`  |
 | `make build` | builds `LivianoWallet` solution |
 | `make test` | runs the test project `Liviano.Tests` |
 | `make publish[_debug,_release]` | build to publish `LivianoWallet` solution |

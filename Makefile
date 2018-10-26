@@ -1,8 +1,8 @@
-run:
-	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1
-
 build:
 	dotnet build LivianoWallet --framework netcoreapp2.1
+
+run:
+	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
 test:
 	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 /p:CollectCoverage=true
@@ -41,5 +41,3 @@ submodule_update:
 
 clean:
 	rm -rf bin/*
-
-all: run
