@@ -114,8 +114,7 @@ namespace Liviano
                 break;
             }
 
-            BitcoinSecret secret = new BitcoinSecret(wif, bitcoinNetwork);
-            ExtKey extKey = new ExtKey(secret.PrivateKey, new ExtKey().ChainCode);
+            ExtKey extKey = ExtKey.Parse(wif, bitcoinNetwork);
 
             return GetExtendedPublicKey(extKey, hdPath);
         }
@@ -181,6 +180,36 @@ namespace Liviano
             }
 
             return GetWif(extKey, bitcoinNetwork);
+        }
+
+        public static BitcoinExtPubKey GetWif(ExtPubKey extPubKey, Network network)
+        {
+            return extPubKey.GetWif(network);
+        }
+
+        public static BitcoinExtPubKey GetWif(ExtPubKey extPubKey, string network)
+        {
+            Guard.NotEmpty(network, nameof(network));
+
+            Network bitcoinNetwork = null;
+
+            switch (network)
+            {
+                case "main":
+                bitcoinNetwork = Network.Main;
+                break;
+                case "testnet":
+                bitcoinNetwork = Network.TestNet;
+                break;
+                case "regtest":
+                bitcoinNetwork = Network.RegTest;
+                break;
+                default:
+                bitcoinNetwork = Network.Main;
+                break;
+            }
+
+            return GetWif(extPubKey, bitcoinNetwork);
         }
 
         public static BitcoinExtKey GetWif(ExtKey extKey, Network network)
