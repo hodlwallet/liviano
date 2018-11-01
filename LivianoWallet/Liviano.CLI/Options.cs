@@ -35,7 +35,7 @@ namespace Liviano.CLI
         [Option("wif", HelpText = "Set ext priv key to use (wif format)")]
         public string Wif { get; set; }
 
-        [Option("hd-path", Required = true, HelpText = "Set the HD Path to derive your pub key from")]
+        [Option("hd-path", HelpText = "Set the HD Path to derive your pub key from")]
         public string HdPath { get; set; }
 
         [Option('t', "testnet", HelpText = "Run on testnet")]
