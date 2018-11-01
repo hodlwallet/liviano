@@ -10,7 +10,7 @@ namespace Liviano.CLI
     {
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions>(args)
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                 string wordlist = "english";
                 int wordCount = 24;
@@ -61,7 +61,7 @@ namespace Liviano.CLI
                 Console.WriteLine(wif.ToString());
             })
             .WithParsed<GetExtendedPubKeyOptions>(o => {
-                string wif = null;
+                string wif;
                 string hdPath = o.HdPath;
                 string network = "main";
 
@@ -87,6 +87,48 @@ namespace Liviano.CLI
                 var extPubKeyWif = HdOperations.GetWif(extPubKey, network);
 
                 Console.WriteLine(extPubKeyWif.ToString());
+            })
+            .WithParsed<DeriveAddressOptions>(o => {
+                string wif;
+                int index = 1;
+                bool isChange = false;
+                string network = "main";
+                string type = "p2wpkh";
+
+                if (o.Wif != null)
+                {
+                    wif = o.Wif;
+                }
+                else
+                {
+                    wif = Console.ReadLine();
+                }
+
+                if (o.Index != null)
+                {
+                    index = (int) o.Index;
+                }
+
+                if (o.IsChange)
+                {
+                    isChange = o.IsChange;
+                }
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
+
+                if (o.Type != null)
+                {
+                    type = o.Type;
+                }
+
+                Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
             });
         }
     }

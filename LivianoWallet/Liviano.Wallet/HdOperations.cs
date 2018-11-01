@@ -24,6 +24,38 @@ namespace Liviano
             return extPubKey.PubKey;
         }
 
+        public static BitcoinAddress GetAddress(string extPubKey, int index, bool isChange, string network, string addressType = null)
+        {
+            PubKey pubKey = GeneratePublicKey(extPubKey, index, isChange);
+
+            switch (addressType)
+            {
+                case "p2pkh":
+                return pubKey.Hash.GetAddress(GetNetwork(network));
+                case "p2sh-p2wpkh":
+                return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
+                case "p2wpkh":
+                return pubKey.WitHash.GetAddress(GetNetwork(network));
+                default: // Default to bech32 (p2wpkh)
+                return pubKey.WitHash.GetAddress(GetNetwork(network));
+            }
+        }
+
+        public static Network GetNetwork(string network)
+        {
+            switch (network)
+            {
+                case "main":
+                return Network.Main;
+                case "testnet":
+                return Network.TestNet;
+                case "regtest":
+                return Network.RegTest;
+                default:
+                return Network.Main;
+            }
+        }
+
         /// <summary>
         /// Gets the extended private key for an account.
         /// </summary>
@@ -94,27 +126,12 @@ namespace Liviano
             return extPubKey;
         }
 
-        public static ExtPubKey GetExtendedPublicKey(string wif, string hdPath, string network = null)
+        public static ExtPubKey GetExtendedPublicKey(string wif, string hdPath, string network)
         {
             Guard.NotEmpty(wif, nameof(wif));
             Guard.NotEmpty(hdPath, nameof(hdPath));
 
-            Network bitcoinNetwork = null;
-
-            switch (network)
-            {
-                case "testnet":
-                bitcoinNetwork = Network.TestNet;
-                break;
-                case "regtest":
-                bitcoinNetwork = Network.RegTest;
-                break;
-                default:
-                bitcoinNetwork = Network.Main;
-                break;
-            }
-
-            ExtKey extKey = ExtKey.Parse(wif, bitcoinNetwork);
+            ExtKey extKey = ExtKey.Parse(wif, GetNetwork(network));
 
             return GetExtendedPublicKey(extKey, hdPath);
         }
@@ -161,25 +178,7 @@ namespace Liviano
         {
             Guard.NotEmpty(network, nameof(network));
 
-            Network bitcoinNetwork = null;
-
-            switch (network)
-            {
-                case "main":
-                bitcoinNetwork = Network.Main;
-                break;
-                case "testnet":
-                bitcoinNetwork = Network.TestNet;
-                break;
-                case "regtest":
-                bitcoinNetwork = Network.RegTest;
-                break;
-                default:
-                bitcoinNetwork = Network.Main;
-                break;
-            }
-
-            return GetWif(extKey, bitcoinNetwork);
+            return GetWif(extKey, GetNetwork(network));
         }
 
         public static BitcoinExtPubKey GetWif(ExtPubKey extPubKey, Network network)
@@ -191,25 +190,7 @@ namespace Liviano
         {
             Guard.NotEmpty(network, nameof(network));
 
-            Network bitcoinNetwork = null;
-
-            switch (network)
-            {
-                case "main":
-                bitcoinNetwork = Network.Main;
-                break;
-                case "testnet":
-                bitcoinNetwork = Network.TestNet;
-                break;
-                case "regtest":
-                bitcoinNetwork = Network.RegTest;
-                break;
-                default:
-                bitcoinNetwork = Network.Main;
-                break;
-            }
-
-            return GetWif(extPubKey, bitcoinNetwork);
+            return GetWif(extPubKey, GetNetwork(network));
         }
 
         public static BitcoinExtKey GetWif(ExtKey extKey, Network network)
