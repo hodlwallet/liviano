@@ -66,4 +66,17 @@ namespace Liviano.CLI
         [Option('r', "regtest", HelpText = "Run on regtest")]
         public bool Regtest { get; set; }
     }
+
+    [Verb("address-to-scriptpubkey", HelpText = "Gets a script pub key from an address")]
+    class AddressToScriptPubKeyOptions
+    {
+        [Option("address", HelpText = "Address to get the script pub key from")]
+        public string Address { get; set; }
+
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
+
+        [Option('r', "regtest", HelpText = "Run on regtest")]
+        public bool Regtest { get; set; }
+    }
 }

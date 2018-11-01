@@ -10,7 +10,7 @@ namespace Liviano.CLI
     {
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions>(args)
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                 string wordlist = "english";
                 int wordCount = 24;
@@ -129,6 +129,30 @@ namespace Liviano.CLI
                 }
 
                 Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
+            })
+            .WithParsed<AddressToScriptPubKeyOptions>(o => {
+                string network = "main";
+                string address = null;
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
+
+                if (o.Address != null)
+                {
+                    address = o.Address;
+                }
+                else
+                {
+                    address = Console.ReadLine();
+                }
+
+                Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             });
         }
     }

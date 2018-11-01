@@ -24,21 +24,26 @@ namespace Liviano
             return extPubKey.PubKey;
         }
 
-        public static BitcoinAddress GetAddress(string extPubKey, int index, bool isChange, string network, string addressType = null)
+        public static BitcoinAddress GetAddress(string extPubKeyWif, int index, bool isChange, string network, string addressType = null)
         {
-            PubKey pubKey = GeneratePublicKey(extPubKey, index, isChange);
+            PubKey pubKey = GeneratePublicKey(extPubKeyWif, index, isChange);
 
             switch (addressType)
             {
                 case "p2pkh":
                 return pubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2sh-p2wpkh":
+
                 return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2wpkh":
                 return pubKey.WitHash.GetAddress(GetNetwork(network));
                 default: // Default to bech32 (p2wpkh)
                 return pubKey.WitHash.GetAddress(GetNetwork(network));
             }
+        }
+        public static Script GetScriptPubKey(string address, string network)
+        {
+            return BitcoinAddress.Create(address, GetNetwork(network)).ScriptPubKey;
         }
 
         public static Network GetNetwork(string network)
