@@ -56,8 +56,6 @@ namespace Liviano.Wallet
             Guard.NotEmpty(name, nameof(name));
             Guard.NotNull(passphrase, nameof(passphrase));
 
-            // this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
-
             // Generate the root seed used to generate keys from a mnemonic picked at random
             // and a passphrase optionally provided by the user.
             mnemonic = mnemonic ?? new Mnemonic(Wordlist.English, WordCount.Twelve);
@@ -93,7 +91,6 @@ namespace Liviano.Wallet
             this.SaveWallet(wallet);
             this.Load(wallet);
 
-            // this.logger.LogTrace("(-)");
             return mnemonic;
         }
 
@@ -181,19 +178,16 @@ namespace Liviano.Wallet
             Guard.NotEmpty(name, nameof(name));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
-            // this.logger.LogTrace("({0}:'{1}')", nameof(name), name);
 
             // Check if any wallet file already exists, with case insensitive comparison.
             if (this.Wallets.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
             {
-                // this.logger.LogTrace("(-)[WALLET_ALREADY_EXISTS]");
                 throw new WalletException($"Wallet with name '{name}' already exists.");
             }
 
             List<Wallet> similarWallets = this.Wallets.Where(w => w.EncryptedSeed == encryptedSeed).ToList();
             if (similarWallets.Any())
             {
-                // this.logger.LogTrace("(-)[SAME_PK_ALREADY_EXISTS]");
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
                                                     $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.fileStorage.FolderPath}' and try restoring the wallet again. " +
                                                     "Make sure you have your mnemonic and your password handy!");
@@ -212,7 +206,6 @@ namespace Liviano.Wallet
             // Create a folder if none exists and persist the file.
             this.SaveWallet(walletFile);
 
-            // this.logger.LogTrace("(-)");
             return walletFile;
         }
 
