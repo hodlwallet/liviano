@@ -2,7 +2,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Liviano.Utilities;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security;
+
+using Liviano;
 
 namespace Liviano.Utilities
 {
@@ -111,7 +117,6 @@ namespace Liviano.Utilities
             return Task.Run(async () =>
             {
                 Exception uncaughtException = null;
-                this.logger.LogInformation(this.Name + " starting.");
                 try
                 {
                     if (delayStart != null)
@@ -145,17 +150,10 @@ namespace Liviano.Utilities
                 }
                 finally
                 {
-                    this.logger.LogInformation(this.Name + " stopping.");
                 }
 
                 if (uncaughtException != null)
                 {
-                    // WARNING: Do NOT touch this line unless you want to fix weird AsyncLoop tests.
-                    // The following line has to be called EXACTLY as it is.
-                    this.logger.LogCritical(new EventId(0), uncaughtException, this.Name + " threw an unhandled exception");
-
-                    // You can touch this one.
-                    this.logger.LogError("{0} threw an unhandled exception: {1}", this.Name, uncaughtException.ToString());
                 }
             }, cancellation);
         }
@@ -167,7 +165,6 @@ namespace Liviano.Utilities
         {
             if (!this.RunningTask.IsCanceled)
             {
-                this.logger.LogInformation("Waiting for {0} to finish.", this.Name);
                 this.RunningTask.Wait();
             }
         }

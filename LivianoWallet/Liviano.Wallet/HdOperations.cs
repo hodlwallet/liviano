@@ -1,6 +1,8 @@
 using NBitcoin;
 using System;
 
+using Liviano.Utilities;
+
 namespace Liviano
 {
     public class HdOperations

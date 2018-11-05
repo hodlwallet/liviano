@@ -7,6 +7,8 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 
+using Liviano.Utilities;
+
 namespace Liviano
 {
     public class Wallet

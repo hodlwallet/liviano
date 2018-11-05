@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using NBitcoin;
 
+using Liviano;
 using Liviano.Utilities;
 
 namespace Liviano
@@ -289,7 +290,7 @@ namespace Liviano
         /// <param name="date">The creation date of the block with which to update the wallet.</param>
         private void UpdateWhenChainDownloaded(IEnumerable<Wallet> wallets, DateTime date)
         {
-            this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", this.nodeLifetime.ApplicationStopping,
+            this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", new System.Threading.CancellationToken(),
                 () => this.chain.IsDownloaded(),
                 () =>
                 {

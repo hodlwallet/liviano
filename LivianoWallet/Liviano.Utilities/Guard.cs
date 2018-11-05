@@ -1,6 +1,6 @@
 using System;
 
-namespace Liviano
+namespace Liviano.Utilities
 {
     public class Guard
     {
