@@ -2,7 +2,7 @@ using System;
 
 using NBitcoin;
 
-namespace Liviano.Wallet
+namespace Liviano
 {
     public static class WalletExtensions
     {

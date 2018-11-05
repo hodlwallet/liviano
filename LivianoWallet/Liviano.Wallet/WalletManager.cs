@@ -10,7 +10,7 @@ using NBitcoin;
 
 using Liviano.Utilities;
 
-namespace Liviano.Wallet
+namespace Liviano
 {
     public class WalletManager
     {
@@ -30,6 +30,12 @@ namespace Liviano.Wallet
         /// <summary>The settings for the wallet feature.</summary>
         private readonly WalletSettings walletSettings;
 
+        /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
+        private readonly FileStorage<Wallet> fileStorage;
+
+        /// <summary>File extension for wallet files.</summary>
+        private const string WalletFileExtension = "wallet.json";
+
         /// <summary>
         /// A lock object that protects access to the <see cref="Wallet"/>.
         /// Any of the collections inside Wallet must be synchronized using this lock.
@@ -48,6 +54,9 @@ namespace Liviano.Wallet
 
         /// <summary>The chain of headers.</summary>
         private readonly ConcurrentChain chain;
+
+        /// <summary>Factory for creating background async loop tasks.</summary>
+        private readonly IAsyncLoopFactory asyncLoopFactory;
 
         /// <inheritdoc />
         public Mnemonic CreateWallet(string password, string name, string passphrase, Mnemonic mnemonic = null)
@@ -92,6 +101,33 @@ namespace Liviano.Wallet
             this.Load(wallet);
 
             return mnemonic;
+        }
+
+        /// <inheritdoc />
+        public void SaveWallet(Wallet wallet)
+        {
+            Guard.NotNull(wallet, nameof(wallet));
+
+            lock (this.lockObject)
+            {
+                this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+            }
+        }
+
+        /// <summary>
+        /// Loads the wallet to be used by the manager.
+        /// </summary>
+        /// <param name="wallet">The wallet to load.</param>
+        private void Load(Wallet wallet)
+        {
+            Guard.NotNull(wallet, nameof(wallet));
+
+            if (this.Wallets.Any(w => w.Name == wallet.Name))
+            {
+                return;
+            }
+
+            this.Wallets.Add(wallet);
         }
 
         public static Mnemonic NewMnemonic(string wordlist = "English", int wordCount = 24)
@@ -244,6 +280,37 @@ namespace Liviano.Wallet
             {
                 wallet.SetLastBlockDetailsByCoinType(this.coinType, chainedBlock);
             }
+        }
+
+        /// <summary>
+        /// Updates details of the last block synced in a wallet when the chain of headers finishes downloading.
+        /// </summary>
+        /// <param name="wallets">The wallets to update when the chain has downloaded.</param>
+        /// <param name="date">The creation date of the block with which to update the wallet.</param>
+        private void UpdateWhenChainDownloaded(IEnumerable<Wallet> wallets, DateTime date)
+        {
+            this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", this.nodeLifetime.ApplicationStopping,
+                () => this.chain.IsDownloaded(),
+                () =>
+                {
+                    int heightAtDate = this.chain.GetHeightAtTime(date);
+
+                    foreach (Wallet wallet in wallets)
+                    {
+                        this.UpdateLastBlockSyncedHeight(wallet, this.chain.GetBlock(heightAtDate));
+                        this.SaveWallet(wallet);
+                    }
+                },
+                (ex) =>
+                {
+                    // In case of an exception while waiting for the chain to be at a certain height, we just cut our losses and
+                    // sync from the current height.
+                    foreach (Wallet wallet in wallets)
+                    {
+                        this.UpdateLastBlockSyncedHeight(wallet, this.chain.Tip);
+                    }
+                },
+                TimeSpans.FiveSeconds);
         }
     }
 }

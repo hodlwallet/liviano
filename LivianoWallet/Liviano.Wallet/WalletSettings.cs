@@ -3,7 +3,7 @@ using System.Text;
 using NBitcoin;
 using NBitcoin.Protocol;
 
-namespace Liviano.Wallet
+namespace Liviano
 {
     /// <summary>
     /// Configuration related to the wallet.
