@@ -46,8 +46,10 @@ namespace Liviano
             return BitcoinAddress.Create(address, GetNetwork(network)).ScriptPubKey;
         }
 
-        public static Network GetNetwork(string network)
+        public static Network GetNetwork(string network = null)
         {
+            if (network == null) return Network.Main;
+
             switch (network)
             {
                 case "main":
@@ -57,7 +59,7 @@ namespace Liviano
                 case "regtest":
                 return Network.RegTest;
                 default:
-                return Network.Main;
+                throw new WalletException($"Invalid network {network}");
             }
         }
 

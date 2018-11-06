@@ -2,7 +2,7 @@ using System;
 using Xunit;
 using NBitcoin;
 
-namespace Liviano.Tests
+namespace Liviano.Tests.Liviano
 {
     public class WalletTest
     {
