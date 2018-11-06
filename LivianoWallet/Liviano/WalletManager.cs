@@ -32,7 +32,12 @@ namespace Liviano
         private readonly WalletSettings walletSettings;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
-        private readonly FileStorage<Wallet> fileStorage;
+        //private readonly FileStorage<Wallet> fileStorage; 
+
+
+        ///<summary>An object capable of storing and retreiving <see cref="Wallet"/>s</summary>
+        private readonly IWalletStorageProvider _walletStorage;
+
 
         /// <summary>File extension for wallet files.</summary>
         private const string WalletFileExtension = "wallet.json";
@@ -72,6 +77,8 @@ namespace Liviano
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
 
+
+            
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
@@ -111,7 +118,8 @@ namespace Liviano
 
             lock (this.lockObject)
             {
-                this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+                //this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+                _walletStorage.SaveWallet(wallet);
             }
         }
 
@@ -244,6 +252,36 @@ namespace Liviano
             this.SaveWallet(walletFile);
 
             return walletFile;
+        }
+
+
+        public Wallet LoadWallet(string password)
+        {
+            Guard.NotEmpty(password, nameof(password));
+            //Guard.NotEmpty(name, nameof(name));
+
+            // Load the file from the local system.
+            //Wallet wallet = this.fileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
+            Wallet wallet = _walletStorage.LoadWallet();
+            // Check the password.
+            try
+            {
+                if (!wallet.IsExtPubKeyWallet)
+                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+            }
+            catch (Exception ex)
+            {
+                //TODO : ADD LOGGING PROVIDER
+                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
+                //this.logger.LogTrace("(-)[EXCEPTION]");
+
+                
+                throw new SecurityException(ex.Message);
+            }
+
+            this.Load(wallet);
+
+            return wallet;
         }
 
         /// <summary>
