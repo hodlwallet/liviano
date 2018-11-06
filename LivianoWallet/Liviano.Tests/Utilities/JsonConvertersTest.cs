@@ -7,7 +7,7 @@ using System.IO;
 
 using Liviano.Utilities.JsonConverters;
 
-namespace Liviano.Tests
+namespace Liviano.Tests.Utilities
 {
     public class JsonConvertersTest
     {
