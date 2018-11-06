@@ -11,7 +11,7 @@ publish_debug:
 	dotnet publish LivianoWallet --framework netcoreapp2.1 --configuration Debug
 	mkdir -p bin/debug
 	cp -R NBitcoin/NBitcoin/bin/Debug/netcoreapp2.1/publish bin/debug/NBitcoin
-	cp -R LivianoWallet/Liviano.Wallet/bin/Debug/netcoreapp2.1/publish bin/debug/LivianoWallet
+	cp -R LivianoWallet/Liviano/bin/Debug/netcoreapp2.1/publish bin/debug/LivianoWallet
 	cp -R LivianoWallet/Liviano.CLI/bin/Debug/netcoreapp2.1/publish bin/debug/LivianoWalletCLI
 
 publish_release:
@@ -24,10 +24,10 @@ publish_release:
 	mkdir -p bin/release/LivianoWalletCLI/win-x64
 	mkdir -p bin/release/LivianoWalletCLI/osx-x64
 	mkdir -p bin/release/LivianoWalletCLI/ubuntu-x64
-	cp -R LivianoWallet/Liviano.Wallet/bin/Release/netcoreapp2.1/publish bin/release/LivianoWallet
-	cp -R LivianoWallet/Liviano.Wallet/bin/Release/netcoreapp2.1/win-x64/publish bin/release/LivianoWallet/win-x64
-	cp -R LivianoWallet/Liviano.Wallet/bin/Release/netcoreapp2.1/osx-x64/publish bin/release/LivianoWallet/osx-x64
-	cp -R LivianoWallet/Liviano.Wallet/bin/Release/netcoreapp2.1/ubuntu-x64/publish bin/release/LivianoWallet/ubuntu-x64
+	cp -R LivianoWallet/Liviano/bin/Release/netcoreapp2.1/publish bin/release/LivianoWallet
+	cp -R LivianoWallet/Liviano/bin/Release/netcoreapp2.1/win-x64/publish bin/release/LivianoWallet/win-x64
+	cp -R LivianoWallet/Liviano/bin/Release/netcoreapp2.1/osx-x64/publish bin/release/LivianoWallet/osx-x64
+	cp -R LivianoWallet/Liviano/bin/Release/netcoreapp2.1/ubuntu-x64/publish bin/release/LivianoWallet/ubuntu-x64
 	cp -R LivianoWallet/Liviano.CLI/bin/Release/netcoreapp2.1/win-x64/publish bin/release/LivianoWalletCLI/win-x64
 	cp -R LivianoWallet/Liviano.CLI/bin/Release/netcoreapp2.1/osx-x64/publish bin/release/LivianoWalletCLI/osx-x64
 	cp -R LivianoWallet/Liviano.CLI/bin/Release/netcoreapp2.1/ubuntu-x64/publish bin/release/LivianoWalletCLI/ubuntu-x64
