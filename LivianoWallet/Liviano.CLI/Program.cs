@@ -62,7 +62,7 @@ namespace Liviano.CLI
             })
             .WithParsed<GetExtendedPubKeyOptions>(o => {
                 string wif;
-                string hdPath = "m/44'/0'/0'"; // Default BIP44 / Bitcoin / 1st account
+                string hdPath = "m/44'/0'/0'/0/0"; // Default BIP44 / Bitcoin / 1st account / receive / 1st pubkey
                 string network = "main";
 
                 if (o.Wif != null)

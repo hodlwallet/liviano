@@ -40,5 +40,84 @@ namespace Liviano.Tests.Liviano
                 )
             );
         }
+
+        [Fact]
+        public void GetCointTypeTest()
+        {
+            Assert.Equal(
+                0,
+                HdOperations.GetCoinType("m/44'/0'/0'/0/0")
+            );
+
+            Assert.Throws<WalletException>(() => {
+                HdOperations.GetCoinType("INVALID_HDPATH");
+            });
+        }
+
+        [Fact]
+        public void IsChangeAddressTest()
+        {
+            Assert.True(HdOperations.IsChangeAddress("m/44'/0'/0'/1/0"));
+            Assert.False(HdOperations.IsChangeAddress("m/44'/0'/0'/0/0"));
+        }
+
+        [Fact]
+        public void GetExtendedKeyTest()
+        {
+            string mnemonic = "arrow lesson asthma now shadow immense find parrot maid cry bachelor rough total seed what clarify soda oxygen exist sign sphere until quick donor";
+            string expectedWif = "xprv9s21ZrQH143K34C4e8hDbVV68AbYEzjeqgv6YKT7wb8mugXxzzoZCRToBy823ffGugbedX3bWV4fW8c3Nz8Yf7FP697yVN9o5JJt2cab3Ny";
+            string expectedWifWithPassphrase = "xprv9s21ZrQH143K2qZqvjXNNpuw7JMfTDeSi2gYz1w42jHmqCvHJY1nwzFM5JM39LYGXXGjeYnrBL9KLfp6RMFeSVfBDKVyTjUrn5TVxMt5y4U";
+            string passphrase = "liviano password secured by this random number 7";
+
+            Assert.Equal(
+                expectedWif,
+                HdOperations.GetExtendedKey(mnemonic).GetWif(Network.Main).ToString()
+            );
+
+            Assert.Equal(
+                expectedWifWithPassphrase,
+                HdOperations.GetExtendedKey(mnemonic, passphrase).GetWif(Network.Main).ToString()
+            );
+        }
+
+        [Fact]
+        public void GetExtendedPublicKeyTest()
+        {
+            string wif = "xprv9s21ZrQH143K34C4e8hDbVV68AbYEzjeqgv6YKT7wb8mugXxzzoZCRToBy823ffGugbedX3bWV4fW8c3Nz8Yf7FP697yVN9o5JJt2cab3Ny";
+            string hdPath = "m/44'/0'/0'/0/0";
+            string network = "main";
+            string expectedExtPubKeyWif = "xpub6GvB5UBtkQz8uH4s23mNaU8VMYJn56BaDbow8oqN47WMK7bc4qgLBfGR8uFUcLeYDyBQEafiohbka4HCsoFQaSBKZiuCoKcr8d4nHtCB4P8";
+
+            Assert.Equal(
+                expectedExtPubKeyWif,
+                HdOperations.GetExtendedPublicKey(wif, hdPath, network).GetWif(Network.Main).ToString()
+            );
+        }
+
+        [Fact]
+        public void GetAddressTest()
+        {
+            string wif = "xpub6Bz4z2m4vevKWG5Mzsr2XYPTZCAjM2DvCpiDH88r7c2gnJRLzxUmJQGocXEyx3cJQ1QApm7aZRZuutoqLMSqS7oVorRajQubMJXvkTi7f4F";
+
+            Assert.Equal(
+                "1Cd2SkZ4bUbWk5Etyvq5g2PVJv4gcig1yn",
+                HdOperations.GetAddress(wif, 0, false, "main", "p2pkh").ToString()
+            );
+
+            Assert.Equal(
+                "39k4tnAD4faY5w5GRTKvYCYqQJLQzs94oA",
+                HdOperations.GetAddress(wif, 0, false, "main", "p2sh-p2wpkh").ToString()
+            );
+
+            Assert.Equal(
+                "bc1q0aueqjtnjyyhm7m6unvkkp4c0p3fdt8qjtuq2j",
+                HdOperations.GetAddress(wif, 0, false, "main", "p2wpkh").ToString()
+            );
+
+            Assert.Equal(
+                "bc1q0aueqjtnjyyhm7m6unvkkp4c0p3fdt8qjtuq2j",
+                HdOperations.GetAddress(wif, 0, false, "main").ToString()
+            );
+        }
     }
 }

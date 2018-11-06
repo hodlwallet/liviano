@@ -225,7 +225,7 @@ namespace Liviano
         /// </summary>
         /// <param name="hdPath">The HD path.</param>
         /// <returns>The type of coin. <seealso cref="https://github.com/satoshilabs/slips/blob/master/slip-0044.md"/>.</returns>
-        /// <exception cref="FormatException">An exception is thrown if the HD path is not well-formed.</exception>
+        /// <exception cref="WalletException">An exception is thrown if the HD path is not well-formed.</exception>
         /// <remarks>Refer to <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#path-levels"/> for the format of the HD path.</remarks>
         public static int GetCoinType(string hdPath)
         {
@@ -233,7 +233,7 @@ namespace Liviano
 
             string[] pathElements = hdPath.Split('/');
             if (pathElements.Length < 3)
-                throw new FormatException($"Could not parse CoinType from HdPath {hdPath}.");
+                throw new WalletException($"Could not parse CoinType from HdPath {hdPath}.");
 
             int coinType = 0;
             if (int.TryParse(pathElements[2].Replace("'", string.Empty), out coinType))
@@ -241,7 +241,7 @@ namespace Liviano
                 return coinType;
             }
 
-            throw new FormatException($"Could not parse CoinType from HdPath {hdPath}.");
+            throw new WalletException($"Could not parse CoinType from HdPath {hdPath}.");
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace Liviano
         /// </summary>
         /// <param name="hdPath">The HD path.</param>
         /// <returns>A value indicating if the HD path corresponds to a change address.</returns>
-        /// <exception cref="FormatException">An exception is thrown if the HD path is not well-formed.</exception>
+        /// <exception cref="WalletException">An exception is thrown if the HD path is not well-formed.</exception>
         /// <remarks>Refer to <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#path-levels"/> for the format of the HD path.</remarks>
         public static bool IsChangeAddress(string hdPath)
         {
@@ -257,7 +257,7 @@ namespace Liviano
 
             string[] hdPathParts = hdPath.Split('/');
             if (hdPathParts.Length < 5)
-                throw new FormatException($"Could not parse value from HdPath {hdPath}.");
+                throw new WalletException($"Could not parse value from HdPath {hdPath}.");
 
             int result = 0;
             if (int.TryParse(hdPathParts[4], out result))
