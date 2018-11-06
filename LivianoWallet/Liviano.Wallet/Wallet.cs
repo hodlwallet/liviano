@@ -298,7 +298,7 @@ namespace Liviano
             // Check if the wallet contains the address.
             if (!this.ContainsAddress(address))
             {
-                throw new Exception("Address not found on wallet.");
+                throw new WalletException("Address not found on wallet.");
             }
 
             // get extended private key
