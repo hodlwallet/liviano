@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Wallet", "Liviano.Wallet\Liviano.Wallet.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano", "Liviano\Liviano.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "..\NBitcoin\NBitcoin\NBitcoin.csproj", "{7588A915-8785-4628-8D7B-2D20FE86C6CB}"
 EndProject
