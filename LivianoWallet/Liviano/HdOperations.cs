@@ -35,7 +35,6 @@ namespace Liviano
                 case "p2pkh":
                 return pubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2sh-p2wpkh":
-
                 return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2wpkh":
                 return pubKey.WitHash.GetAddress(GetNetwork(network));

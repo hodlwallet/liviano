@@ -15,7 +15,6 @@ namespace Liviano
 {
     public class WalletManager
     {
-
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
         private readonly Network network;
 
@@ -33,7 +32,6 @@ namespace Liviano
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
         //private readonly FileStorage<Wallet> fileStorage; 
-
 
         ///<summary>An object capable of storing and retreiving <see cref="Wallet"/>s</summary>
         private readonly IWalletStorageProvider _walletStorage;
@@ -55,8 +53,8 @@ namespace Liviano
         private Dictionary<OutPoint, TransactionData> outpointLookup;
         internal Dictionary<Script, HdAddress> keysLookup;
 
-        /// <summary>Gets the list of wallets.</summary>
-        public ConcurrentBag<Wallet> Wallets { get; }
+        /// <summary>Gets the wallet.</summary>
+        public Wallet Wallet { get; set; }
 
         /// <summary>The chain of headers.</summary>
         private readonly ConcurrentChain chain;
@@ -77,8 +75,6 @@ namespace Liviano
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
 
-
-            
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
@@ -118,9 +114,35 @@ namespace Liviano
 
             lock (this.lockObject)
             {
-                //this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
-                _walletStorage.SaveWallet(wallet);
+                //Save the wallet
+                this._walletStorage.SaveWallet(wallet);
             }
+        }
+
+
+        public Wallet LoadWallet(string password)
+        {
+            Guard.NotEmpty(password, nameof(password));
+
+            // Load the the wallet.
+            Wallet wallet = this._walletStorage.LoadWallet();
+            // Check the password.
+            try
+            {
+                if (!wallet.IsExtPubKeyWallet)
+                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+            }
+            catch (Exception ex)
+            {
+                //TODO: ADD ILOGGER
+                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
+                //this.logger.LogTrace("(-)[EXCEPTION]");
+                throw new SecurityException(ex.Message);
+            }
+
+            //this.Load(wallet);
+
+            return wallet;
         }
 
         /// <summary>
@@ -131,12 +153,7 @@ namespace Liviano
         {
             Guard.NotNull(wallet, nameof(wallet));
 
-            if (this.Wallets.Any(w => w.Name == wallet.Name))
-            {
-                return;
-            }
-
-            this.Wallets.Add(wallet);
+            this.Wallet = wallet;
         }
 
         public static Mnemonic NewMnemonic(string wordlist = "English", int wordCount = 24)
@@ -209,6 +226,7 @@ namespace Liviano
             return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
         }
 
+
         /// <summary>
         /// Generates the wallet file.
         /// </summary>
@@ -220,29 +238,18 @@ namespace Liviano
         /// <exception cref="WalletException">Thrown if wallet cannot be created.</exception>
         private Wallet GenerateWalletFile(string name, string encryptedSeed, byte[] chainCode, DateTimeOffset? creationTime = null)
         {
+            // NOTE: @igorgue: Is this needed?
             Guard.NotEmpty(name, nameof(name));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
 
-            //TODO: This will have to be changed when we move from a multiple wallet architecture to a single wallet one.
-
             // Check if any wallet file already exists, with case insensitive comparison.
-            if (this.Wallets.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
-            {
+            if (string.Equals(this.Wallet.Name, name, StringComparison.OrdinalIgnoreCase))
                 throw new WalletException($"Wallet with name '{name}' already exists.");
-            }
-            //TODO: This will have to be changed when we move from a multiple wallet architecture to a single wallet one.
-
-            List<Wallet> similarWallets = this.Wallets.Where(w => w.EncryptedSeed == encryptedSeed).ToList();
-
-
-            if (similarWallets.Any())
-            {
-                throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the wallet named {string.Join(", ", similarWallets.Select(w => w.Name))} and try restoring the wallet again. " +
-                                                    "Make sure you have your mnemonic and your password handy!");
-            }
-
+        
+            if (this.Wallet.EncryptedSeed != encryptedSeed)
+                throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet make sure you have your mnemonic and your password handy!");
+        
             var walletFile = new Wallet
             {
                 Name = name,
@@ -257,36 +264,6 @@ namespace Liviano
             this.SaveWallet(walletFile);
 
             return walletFile;
-        }
-
-
-        public Wallet LoadWallet(string password)
-        {
-            Guard.NotEmpty(password, nameof(password));
-            //Guard.NotEmpty(name, nameof(name));
-
-            // Load the file from the local system.
-            //Wallet wallet = this.fileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
-            Wallet wallet = _walletStorage.LoadWallet();
-            // Check the password.
-            try
-            {
-                if (!wallet.IsExtPubKeyWallet)
-                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
-            }
-            catch (Exception ex)
-            {
-                //TODO : ADD LOGGING PROVIDER
-                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
-                //this.logger.LogTrace("(-)[EXCEPTION]");
-
-                
-                throw new SecurityException(ex.Message);
-            }
-
-            this.Load(wallet);
-
-            return wallet;
         }
 
         /// <summary>
