@@ -8,6 +8,8 @@ namespace Liviano
     {
         Wallet LoadWallet();
 
+        bool WalletExists();
+
         void SaveWallet(Wallet wallet);
     }
 }

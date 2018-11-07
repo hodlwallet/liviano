@@ -135,15 +135,22 @@ namespace Liviano
                 //Save the wallet
                 this._walletStorage.SaveWallet(wallet);
             }
+
         }
 
 
-        public Wallet LoadWallet(string password)
+        public bool LoadWallet(string password, out Wallet wallet)
         {
             Guard.NotEmpty(password, nameof(password));
 
+            if (!_walletStorage.WalletExists())
+            {
+                wallet = null;
+                return false;
+            }
+
             // Load the the wallet.
-            Wallet wallet = this._walletStorage.LoadWallet();
+             wallet = this._walletStorage.LoadWallet();
             // Check the password.
             try
             {
@@ -158,9 +165,8 @@ namespace Liviano
                 throw new SecurityException(ex.Message);
             }
 
-            //this.Load(wallet);
-
-            return wallet;
+            this.Load(wallet);
+            return true;
         }
 
         /// <summary>
