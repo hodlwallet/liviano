@@ -77,8 +77,6 @@ namespace Liviano
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
 
-
-            
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
@@ -223,8 +221,6 @@ namespace Liviano
             Guard.NotEmpty(name, nameof(name));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
-
-            //TODO: This will have to be changed when we move from a multiple wallet architecture to a single wallet one.
 
             // Check if any wallet file already exists, with case insensitive comparison.
             if (this.Wallets.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
