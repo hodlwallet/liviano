@@ -62,6 +62,24 @@ namespace Liviano
         /// <summary>Factory for creating background async loop tasks.</summary>
         private readonly IAsyncLoopFactory asyncLoopFactory;
 
+
+        /// <summary>
+        /// Mehtod to handle <see cref="TransactionBroadcastEntry"/>s as they are published onto the eventhub
+        /// </summary>
+        /// <param name="transactionEntry"></param>
+        private void HandleBroadcastedTransaction(TransactionBroadcastEntry transactionEntry)
+        {
+            if (string.IsNullOrEmpty(transactionEntry.ErrorMessage))
+            {
+                this.ProcessTransaction(transactionEntry.Transaction, null, null, transactionEntry.State == TransactionState.Propagated);
+            }
+            else
+            {
+                //this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
+                //this.logger.LogTrace("(-)[EXCEPTION]");
+            }
+        }
+
         /// <inheritdoc />
         public Mnemonic CreateWallet(string password, string name, string passphrase, Mnemonic mnemonic = null)
         {
@@ -287,8 +305,14 @@ namespace Liviano
             }
         }
 
-        /// <inheritdoc />
-        public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
+
+        public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        {
+            throw new NotImplementedException();
+        }
+
+            /// <inheritdoc />
+            public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
         {
             Guard.NotNull(wallet, nameof(wallet));
             Guard.NotNull(chainedBlock, nameof(chainedBlock));
@@ -302,6 +326,7 @@ namespace Liviano
                 wallet.SetLastBlockDetailsByCoinType(this.coinType, chainedBlock);
             }
         }
+
 
         /// <summary>
         /// Updates details of the last block synced in a wallet when the chain of headers finishes downloading.
