@@ -29,7 +29,7 @@ namespace Liviano
         public static BitcoinAddress GetAddress(string extPubKeyWif, int index, bool isChange, string network, string addressType = null)
         {
             PubKey pubKey = GeneratePublicKey(extPubKeyWif, index, isChange);
-
+            
             switch (addressType)
             {
                 case "p2pkh":

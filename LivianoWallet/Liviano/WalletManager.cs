@@ -7,6 +7,7 @@ using System.Security;
 using System.Threading.Tasks;
 
 using NBitcoin;
+using Serilog;
 
 using Liviano;
 using Liviano.Utilities;
@@ -27,15 +28,11 @@ namespace Liviano
         /// <summary>Provider of time functions.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
         
-        /// <summary>The settings for the wallet feature.</summary>
-        private readonly WalletSettings walletSettings;
-
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
         //private readonly FileStorage<Wallet> fileStorage; 
 
         ///<summary>An object capable of storing and retreiving <see cref="Wallet"/>s</summary>
         private readonly IWalletStorageProvider _walletStorage;
-
 
         /// <summary>File extension for wallet files.</summary>
         private const string WalletFileExtension = "wallet.json";
@@ -62,6 +59,18 @@ namespace Liviano
         /// <summary>Factory for creating background async loop tasks.</summary>
         private readonly IAsyncLoopFactory asyncLoopFactory;
 
+        /// <summary>Instance logger.</summary>
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Size of the buffer of unused addresses maintained in an account.
+        /// </summary>
+        private const int unusedAddressesBuffer = 20;
+
+        public WalletManager(ILogger logger, Network network, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader)
+        {
+
+        }
 
         /// <summary>
         /// Mehtod to handle <see cref="TransactionBroadcastEntry"/>s as they are published onto the eventhub
@@ -101,8 +110,8 @@ namespace Liviano
             for (int i = 0; i < WalletCreationAccountsCount; i++)
             {
                 HdAccount account = wallet.AddNewAccount(password, this.coinType, this.dateTimeProvider.GetTimeOffset());
-                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this.network, this.walletSettings.UnusedAddressesBuffer);
-                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this.network, this.walletSettings.UnusedAddressesBuffer, true);
+                IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this.network, unusedAddressesBuffer);
+                IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this.network, unusedAddressesBuffer, true);
                 this.UpdateKeysLookupLocked(newReceivingAddresses.Concat(newChangeAddresses));
             }
 
@@ -136,7 +145,6 @@ namespace Liviano
                 this._walletStorage.SaveWallet(wallet);
             }
         }
-
 
         public Wallet LoadWallet(string password)
         {

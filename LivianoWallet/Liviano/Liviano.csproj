@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="serilog" Version="2.7.1" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
   </ItemGroup>
 
