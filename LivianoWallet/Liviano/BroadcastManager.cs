@@ -7,6 +7,7 @@ using NBitcoin.Protocol;
 using System.Collections.Concurrent;
 using System.Linq;
 using Liviano.Utilities;
+using Easy.MessageHub;
 
 namespace Liviano
 {
@@ -14,12 +15,14 @@ namespace Liviano
     {
 
         NodesCollection nodes;
+        MessageHub eventHub;
 
         public BroadcastManager(NodesGroup nodeGroup)
         {
             nodes = nodeGroup.ConnectedNodes;
 
             this.Broadcasts = new ConcurrentDictionary<TransactionBroadcastEntry, object>(2, 0);
+            eventHub = MessageHub.Instance;
         }
 
         //Concurrent dictionary ignoring the value
@@ -36,6 +39,7 @@ namespace Liviano
 
                 //TODO : Add eventhub handler for publishing event
                 //this.OnTransactionStateChanged(broadcastEntry);
+                eventHub.Publish(broadcastEntry);
             }
             else if (broadcastEntry.State != state)
             {
@@ -43,6 +47,7 @@ namespace Liviano
 
                 //TODO : Add eventhub handler for publishing event
                 //this.OnTransactionStateChanged(broadcastEntry);
+                eventHub.Publish(broadcastEntry);
             }
         }
 
