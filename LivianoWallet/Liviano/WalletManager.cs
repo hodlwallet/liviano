@@ -36,6 +36,7 @@ namespace Liviano
         ///<summary>An object capable of storing and retreiving <see cref="Wallet"/>s</summary>
         private readonly IWalletStorageProvider _walletStorage;
 
+
         /// <summary>File extension for wallet files.</summary>
         private const string WalletFileExtension = "wallet.json";
 
@@ -113,9 +114,35 @@ namespace Liviano
 
             lock (this.lockObject)
             {
-                // TODO Define this:
-                // this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
+                //Save the wallet
+                this._walletStorage.SaveWallet(wallet);
             }
+        }
+
+
+        public Wallet LoadWallet(string password)
+        {
+            Guard.NotEmpty(password, nameof(password));
+
+            // Load the the wallet.
+            Wallet wallet = this._walletStorage.LoadWallet();
+            // Check the password.
+            try
+            {
+                if (!wallet.IsExtPubKeyWallet)
+                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+            }
+            catch (Exception ex)
+            {
+                //TODO: ADD ILOGGER
+                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
+                //this.logger.LogTrace("(-)[EXCEPTION]");
+                throw new SecurityException(ex.Message);
+            }
+
+            //this.Load(wallet);
+
+            return wallet;
         }
 
         /// <summary>
