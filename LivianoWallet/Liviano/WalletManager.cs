@@ -116,8 +116,7 @@ namespace Liviano
 
             lock (this.lockObject)
             {
-                //this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
-                _walletStorage.SaveWallet(wallet);
+                this.fileStorage.SaveToFile(wallet, $"{wallet.Name}.{WalletFileExtension}");
             }
         }
 
@@ -218,6 +217,7 @@ namespace Liviano
         /// <exception cref="WalletException">Thrown if wallet cannot be created.</exception>
         private Wallet GenerateWalletFile(string name, string encryptedSeed, byte[] chainCode, DateTimeOffset? creationTime = null)
         {
+            // NOTE: @igorgue: Is this needed?
             Guard.NotEmpty(name, nameof(name));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
@@ -253,36 +253,6 @@ namespace Liviano
             this.SaveWallet(walletFile);
 
             return walletFile;
-        }
-
-
-        public Wallet LoadWallet(string password)
-        {
-            Guard.NotEmpty(password, nameof(password));
-            //Guard.NotEmpty(name, nameof(name));
-
-            // Load the file from the local system.
-            //Wallet wallet = this.fileStorage.LoadByFileName($"{name}.{WalletFileExtension}");
-            Wallet wallet = _walletStorage.LoadWallet();
-            // Check the password.
-            try
-            {
-                if (!wallet.IsExtPubKeyWallet)
-                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
-            }
-            catch (Exception ex)
-            {
-                //TODO : ADD LOGGING PROVIDER
-                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
-                //this.logger.LogTrace("(-)[EXCEPTION]");
-
-                
-                throw new SecurityException(ex.Message);
-            }
-
-            this.Load(wallet);
-
-            return wallet;
         }
 
         /// <summary>
