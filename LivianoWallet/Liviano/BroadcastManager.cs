@@ -13,6 +13,7 @@ namespace Liviano
 {
     class BroadcastManager : IBroadcastManager
     {
+        //TODO : Realize hidden abstraction for event aggreation might be bad in the future for extensibility.
 
         NodesCollection nodes;
         MessageHub eventHub;

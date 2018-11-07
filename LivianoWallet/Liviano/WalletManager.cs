@@ -28,11 +28,15 @@ namespace Liviano
         /// <summary>Provider of time functions.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
         
+        /// <summary>The settings for the wallet feature.</summary>
+        private readonly WalletSettings walletSettings;
+
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
         //private readonly FileStorage<Wallet> fileStorage; 
 
         ///<summary>An object capable of storing and retreiving <see cref="Wallet"/>s</summary>
         private readonly IWalletStorageProvider _walletStorage;
+
 
         /// <summary>File extension for wallet files.</summary>
         private const string WalletFileExtension = "wallet.json";
@@ -146,12 +150,19 @@ namespace Liviano
             }
         }
 
-        public Wallet LoadWallet(string password)
+
+        public bool LoadWallet(string password, out Wallet wallet)
         {
             Guard.NotEmpty(password, nameof(password));
 
+            if (!_walletStorage.WalletExists())
+            {
+                wallet = null;
+                return false;
+            }
+
             // Load the the wallet.
-            Wallet wallet = this._walletStorage.LoadWallet();
+             wallet = this._walletStorage.LoadWallet();
             // Check the password.
             try
             {
@@ -166,9 +177,8 @@ namespace Liviano
                 throw new SecurityException(ex.Message);
             }
 
-            //this.Load(wallet);
-
-            return wallet;
+            this.Load(wallet);
+            return true;
         }
 
         /// <summary>
