@@ -224,17 +224,22 @@ namespace Liviano
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
 
+            //TODO: This will have to be changed when we move from a multiple wallet architecture to a single wallet one.
+
             // Check if any wallet file already exists, with case insensitive comparison.
             if (this.Wallets.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new WalletException($"Wallet with name '{name}' already exists.");
             }
+            //TODO: This will have to be changed when we move from a multiple wallet architecture to a single wallet one.
 
             List<Wallet> similarWallets = this.Wallets.Where(w => w.EncryptedSeed == encryptedSeed).ToList();
+
+
             if (similarWallets.Any())
             {
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet from scratch, " +
-                                                    $"please remove the file {string.Join(", ", similarWallets.Select(w => w.Name))}.{WalletFileExtension} from '{this.fileStorage.FolderPath}' and try restoring the wallet again. " +
+                                                    $"please remove the wallet named {string.Join(", ", similarWallets.Select(w => w.Name))} and try restoring the wallet again. " +
                                                     "Make sure you have your mnemonic and your password handy!");
             }
 
