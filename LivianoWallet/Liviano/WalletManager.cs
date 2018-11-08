@@ -93,12 +93,6 @@ namespace Liviano
             this._scriptAddressReader = scriptAddressReader;
             this.dateTimeProvider = dateTimeProvider;
 
-            // register events
-            if (this._broadcastManager != null)
-            {
-                // this._broadcastManager.TransactionStateChanged += this.BroadcasterManager_TransactionStateChanged;
-            }
-
             this.keysLookup = new Dictionary<Script, HdAddress>();
             this.outpointLookup = new Dictionary<OutPoint, TransactionData>();
         }
