@@ -397,5 +397,47 @@ namespace Liviano
                 },
                 TimeSpans.FiveSeconds);
         }
+
+        /// <inheritdoc />
+        public IEnumerable<AccountHistory> GetHistory(string accountName = null)
+        {
+            var accountsHistory = new List<AccountHistory>();
+
+            lock (this.lockObject)
+            {
+                var accounts = new List<HdAccount>();
+                if (!string.IsNullOrEmpty(accountName))
+                {
+                    accounts.Add(Wallet.GetAccountByCoinType(accountName, this.coinType));
+                }
+                else
+                {
+                    accounts.AddRange(Wallet.GetAccountsByCoinType(this.coinType));
+                }
+
+                foreach (HdAccount account in accounts)
+                {
+                    accountsHistory.Add(this.GetHistory(account));
+                }
+            }
+
+            return accountsHistory;
+        }
+
+        /// <inheritdoc />
+        public AccountHistory GetHistory(HdAccount account)
+        {
+            Guard.NotNull(account, nameof(account));
+            FlatHistory[] items;
+            lock (this.lockObject)
+            {
+                // Get transactions contained in the account.
+                items = account.GetCombinedAddresses()
+                    .Where(a => a.Transactions.Any())
+                    .SelectMany(s => s.Transactions.Select(t => new FlatHistory { Address = s, Transaction = t })).ToArray();
+            }
+
+            return new AccountHistory { Account = account, History = items };
+        }
     }
 }
