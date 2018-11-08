@@ -298,6 +298,12 @@ namespace Liviano
         /// <returns></returns>
         public static string[] GenerateGuessWords(string wordToGuess, string language = "english", int amountAround = 9)
         {
+            Guard.NotEmpty(wordToGuess, nameof(wordToGuess));
+            Guard.NotEmpty(language, nameof(language));
+
+            if (amountAround <= 0)
+                throw new WalletException($"It's not allowed to wrap the word around {amountAround} words");
+
             Random rng = new Random();
             List<string> guessWords = new List<string>(amountAround + 1);
             ReadOnlyCollection<string> dictionaryWordlist;
@@ -359,6 +365,7 @@ namespace Liviano
         /// <returns></returns>
         public static bool IsInMnemonicAtIndex(string mnemonic, string word, int index)
         {
+            Guard.NotEmpty(mnemonic, nameof(mnemonic));
             Mnemonic bitcoinMnemonic = new Mnemonic(mnemonic);
 
             return IsInMnemonicAtIndex(bitcoinMnemonic, word, index);
@@ -373,6 +380,12 @@ namespace Liviano
         /// <returns></returns>
         public static bool IsInMnemonicAtIndex(Mnemonic mnemonic, string word, int index)
         {
+            Guard.NotNull(mnemonic, nameof(mnemonic));
+            Guard.NotEmpty(word, nameof(word));
+
+            if (index < 0)
+                throw new WalletException($"An index of {index} is not allowed");
+
             return mnemonic.Words.ElementAt(index).Equals(word);
         }
     }
