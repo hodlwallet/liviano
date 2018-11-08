@@ -1,5 +1,9 @@
-using NBitcoin;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
+using NBitcoin;
 
 using Liviano.Utilities;
 
@@ -283,6 +287,93 @@ namespace Liviano
             Guard.NotNull(network, nameof(network));
 
             return Key.Parse(encryptedSeed, password, network);
+        }
+
+        /// <summary>
+        /// Returns n words back with 1 of the words in the dictionary included from a mnemonic
+        /// </summary>
+        /// <param name="wordToGuess">The word to hide in the dictionary.</param>
+        /// <param name="language">The dictionary language.</param>
+        /// <param name="amountAround">The amount of random words around the word to find</param>
+        /// <returns></returns>
+        public static string[] GenerateGuessWords(string wordToGuess, string language = "english", int amountAround = 9)
+        {
+            Random rng = new Random();
+            List<string> guessWords = new List<string>(amountAround + 1);
+            ReadOnlyCollection<string> dictionaryWordlist;
+
+            switch (language.ToLower())
+            {
+			    case "english":
+                    dictionaryWordlist = Wordlist.English.GetWords();
+                    break;
+                case "spanish":
+                    dictionaryWordlist = Wordlist.Spanish.GetWords();
+                    break;
+                case "chinese_simplified":
+                    dictionaryWordlist = Wordlist.ChineseSimplified.GetWords();
+                    break;
+                case "chinese_traditional":
+                    dictionaryWordlist = Wordlist.ChineseTraditional.GetWords();
+                    break;
+                case "french":
+                    dictionaryWordlist = Wordlist.French.GetWords();
+                    break;
+                case "japanese":
+                    dictionaryWordlist = Wordlist.Japanese.GetWords();
+                    break;
+                case "portuguese_brazil":
+                    dictionaryWordlist = Wordlist.PortugueseBrazil.GetWords();
+                    break;
+                default:
+                    dictionaryWordlist = Wordlist.English.GetWords();
+                    break;
+            }
+
+            int indexOfWord = dictionaryWordlist.IndexOf(wordToGuess);
+
+            // Add the first word
+            guessWords.Add(wordToGuess);
+
+            // Add the rest random words
+            for (int i = 1; i < amountAround + 1; i++)
+            {
+                string randomWord = dictionaryWordlist[rng.Next(0, dictionaryWordlist.Count - 1)];
+                while (randomWord == wordToGuess)
+                {
+                    randomWord = dictionaryWordlist[rng.Next(0, dictionaryWordlist.Count - 1)];
+                }
+
+                guessWords.Add(randomWord);
+            }
+
+            return guessWords.OrderBy(x => (rng.Next(0, amountAround))).ToArray(); // LINQ version
+        }
+
+        /// <summary>
+        /// Verify if the word is in the mnemonic at the index the user says
+        /// </summary>
+        /// <param name="mnemonic">A mnemonic words, these are parsed via NBitcoin Mnemonic</param>
+        /// <param name="word">A word to find</param>
+        /// <param name="index">The index the word is in the mnemonic</param>
+        /// <returns></returns>
+        public static bool IsInMnemonicAtIndex(string mnemonic, string word, int index)
+        {
+            Mnemonic bitcoinMnemonic = new Mnemonic(mnemonic);
+
+            return IsInMnemonicAtIndex(bitcoinMnemonic, word, index);
+        }
+
+        /// <summary>
+        /// Verify if the word is in the mnemonic at the index the user says
+        /// </summary>
+        /// <param name="mnemonic">A mnemonic words, these are parsed via NBitcoin Mnemonic</param>
+        /// <param name="word">A word to find</param>
+        /// <param name="index">The index the word is in the mnemonic</param>
+        /// <returns></returns>
+        public static bool IsInMnemonicAtIndex(Mnemonic mnemonic, string word, int index)
+        {
+            return mnemonic.Words.ElementAt(index).Equals(word);
         }
     }
 }

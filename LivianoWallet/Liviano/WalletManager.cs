@@ -226,10 +226,10 @@ namespace Liviano
                 case "spanish":
                 bitcoinWordlist = Wordlist.Spanish;
                 break;
-                case "chinesesimplified":
+                case "chinese_simplified":
                 bitcoinWordlist = Wordlist.ChineseSimplified;
                 break;
-                case "chinesetraditional":
+                case "chinese_traditional":
                 bitcoinWordlist = Wordlist.ChineseTraditional;
                 break;
                 case "french":
@@ -238,7 +238,7 @@ namespace Liviano
                 case "japanese":
                 bitcoinWordlist = Wordlist.Japanese;
                 break;
-                case "portuguesebrazil":
+                case "portuguese_brazil":
                 bitcoinWordlist = Wordlist.PortugueseBrazil;
                 break;
                 default:

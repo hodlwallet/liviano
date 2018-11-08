@@ -6,7 +6,7 @@ namespace Liviano.CLI
     [Verb("new-mnemonic", HelpText = "Creates a new nmemonic")]
     class NewMnemonicOptions
     {
-        [Option('w', "wordlist", HelpText = "Set wordlist, accepted: ChineseSimplified, ChineseTraditional, English, French, Japanese, PortugueseBrazil, Spanish.")]
+        [Option('w', "wordlist", HelpText = "Set wordlist, accepted: chinese_simplified, chinese_traditional, english, french, japanese, portuguese_brazil, spanish.")]
         public string Wordlist { get; set; }
 
         [Option('w', "word-count", HelpText = "Set wordCount, accepted: 12, 15, 18, 21, 24.")]

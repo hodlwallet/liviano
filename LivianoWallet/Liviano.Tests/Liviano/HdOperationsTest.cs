@@ -119,5 +119,27 @@ namespace Liviano.Tests.Liviano
                 HdOperations.GetAddress(wif, 0, false, "main").ToString()
             );
         }
+
+        [Fact]
+        public void GenerateGuessWordsTest()
+        {
+            string wordToGuess = "float"; // Word in the english dictionary
+            string language = "english";
+            int amountAround = 4; // Total of 5 becaues the word to guess is added
+
+            string[] guessWords = HdOperations.GenerateGuessWords(wordToGuess, language, amountAround);
+
+            Assert.Contains(wordToGuess, guessWords);
+            Assert.Equal(amountAround + 1, guessWords.Length);
+        }
+
+        [Fact]
+        public void IsInMnemonicAtIndexTest()
+        {
+            string mnemonic = "ugly dilemma idle crowd toast virus film funny laundry little gossip pair";
+
+            Assert.True(HdOperations.IsInMnemonicAtIndex(mnemonic, "dilemma", 1));
+            Assert.False(HdOperations.IsInMnemonicAtIndex(mnemonic, "film", 3));
+        }
     }
 }
