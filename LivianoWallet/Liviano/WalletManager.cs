@@ -11,6 +11,7 @@ using Serilog;
 
 using Liviano;
 using Liviano.Utilities;
+using Easy.MessageHub;
 
 namespace Liviano
 {
@@ -18,6 +19,8 @@ namespace Liviano
     {
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
         private readonly Network network;
+
+        private MessageHub eventHub;
 
         /// <summary>Quantity of accounts created in a wallet file when a wallet is created.</summary>
         private const int WalletCreationAccountsCount = 1;
@@ -95,6 +98,11 @@ namespace Liviano
 
             this.keysLookup = new Dictionary<Script, HdAddress>();
             this.outpointLookup = new Dictionary<OutPoint, TransactionData>();
+
+
+
+            eventHub = MessageHub.Instance;
+            eventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
         }
 
         /// <summary>
@@ -351,7 +359,7 @@ namespace Liviano
         }
 
             /// <inheritdoc />
-            public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
+        public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
         {
             Guard.NotNull(wallet, nameof(wallet));
             Guard.NotNull(chainedBlock, nameof(chainedBlock));
