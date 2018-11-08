@@ -439,5 +439,98 @@ namespace Liviano
 
             return new AccountHistory { Account = account, History = items };
         }
+
+        /// <inheritdoc />
+        public HashSet<(uint256, DateTimeOffset)> RemoveAllTransactions()
+        {
+            var removedTransactions = new HashSet<(uint256, DateTimeOffset)>();
+
+            lock (this.lockObject)
+            {
+                IEnumerable<HdAccount> accounts = Wallet.GetAccountsByCoinType(this.coinType);
+                foreach (HdAccount account in accounts)
+                {
+                    foreach (HdAddress address in account.GetCombinedAddresses())
+                    {
+                        removedTransactions.UnionWith(address.Transactions.Select(t => (t.Id, t.CreationTime)));
+                        address.Transactions.Clear();
+                    }
+                }
+            }
+
+            if (removedTransactions.Any())
+            {
+                this.SaveWallet(Wallet);
+            }
+
+            return removedTransactions;
+        }
+
+        /// <inheritdoc />
+        public HashSet<(uint256, DateTimeOffset)> RemoveTransactionsByIdsLocked(IEnumerable<uint256> transactionsIds)
+        {
+            Guard.NotNull(transactionsIds, nameof(transactionsIds));
+
+            List<uint256> idsToRemove = transactionsIds.ToList();
+
+            var result = new HashSet<(uint256, DateTimeOffset)>();
+
+            lock (this.lockObject)
+            {
+                IEnumerable<HdAccount> accounts = Wallet.GetAccountsByCoinType(this.coinType);
+                foreach (HdAccount account in accounts)
+                {
+                    foreach (HdAddress address in account.GetCombinedAddresses())
+                    {
+                        for (int i = 0; i < address.Transactions.Count; i++)
+                        {
+                            TransactionData transaction = address.Transactions.ElementAt(i);
+
+                            // Remove the transaction from the list of transactions affecting an address.
+                            // Only transactions that haven't been confirmed in a block can be removed.
+                            if (!transaction.IsConfirmed() && idsToRemove.Contains(transaction.Id))
+                            {
+                                result.Add((transaction.Id, transaction.CreationTime));
+                                address.Transactions = address.Transactions.Except(new[] { transaction }).ToList();
+                                i--;
+                            }
+
+                            // Remove the spending transaction object containing this transaction id.
+                            if (transaction.SpendingDetails != null && !transaction.SpendingDetails.IsSpentConfirmed() && idsToRemove.Contains(transaction.SpendingDetails.TransactionId))
+                            {
+                                result.Add((transaction.SpendingDetails.TransactionId, transaction.SpendingDetails.CreationTime));
+                                address.Transactions.ElementAt(i).SpendingDetails = null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (result.Any())
+            {
+                this.SaveWallet(Wallet);
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public DateTimeOffset GetOldestWalletCreationTime()
+        {
+            // NOTE: @igorgue for now we gonna keep this, even though it's not gonna be used
+            return Wallet.CreationTime;
+        }
+
+        /// <inheritdoc />
+        public ICollection<uint256> GetFirstWalletBlockLocator()
+        {
+            return Wallet.BlockLocator;
+        }
+
+        /// <inheritdoc />
+        public int? GetEarliestWalletHeight()
+        {
+            return Wallet.AccountsRoot.Min().LastBlockSyncedHeight;
+        }
     }
 }
