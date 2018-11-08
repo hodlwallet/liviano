@@ -27,9 +27,6 @@ namespace Liviano
 
         /// <summary>Provider of time functions.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
-        
-        /// <summary>The settings for the wallet feature.</summary>
-        private readonly WalletSettings walletSettings;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
         //private readonly FileStorage<Wallet> fileStorage; 
@@ -58,22 +55,52 @@ namespace Liviano
         public Wallet Wallet { get; set; }
 
         /// <summary>The chain of headers.</summary>
-        private readonly ConcurrentChain chain;
+        private readonly ConcurrentChain _chain;
 
         /// <summary>Factory for creating background async loop tasks.</summary>
         private readonly IAsyncLoopFactory asyncLoopFactory;
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Size of the buffer of unused addresses maintained in an account.
         /// </summary>
         private const int unusedAddressesBuffer = 20;
 
-        public WalletManager(ILogger logger, Network network, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader)
-        {
+        /// <summary>The settings for the wallet feature.</summary>
+        private readonly IScriptAddressReader _scriptAddressReader;
 
+        /// <summary>The broadcast manager.</summary>
+        private readonly IBroadcastManager _broadcastManager;
+
+        public WalletManager(ILogger logger, Network network, ConcurrentChain chain, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader, IBroadcastManager broadcastManager)
+        {
+            Guard.NotNull(network, nameof(network));
+            Guard.NotNull(_chain, nameof(_chain));
+            Guard.NotNull(asyncLoopFactory, nameof(asyncLoopFactory));
+            Guard.NotNull(scriptAddressReader, nameof(scriptAddressReader));
+
+            this.lockObject = new object();
+
+            this._logger = logger;
+
+            this.network = network;
+            this.coinType = (CoinType)network.Consensus.CoinType;
+            this.asyncLoopFactory = asyncLoopFactory;
+            this._chain = chain;
+            this._broadcastManager = broadcastManager;
+            this._scriptAddressReader = scriptAddressReader;
+            this.dateTimeProvider = dateTimeProvider;
+
+            // register events
+            if (this._broadcastManager != null)
+            {
+                // this._broadcastManager.TransactionStateChanged += this.BroadcasterManager_TransactionStateChanged;
+            }
+
+            this.keysLookup = new Dictionary<Script, HdAddress>();
+            this.outpointLookup = new Dictionary<OutPoint, TransactionData>();
         }
 
         /// <summary>
@@ -122,9 +149,9 @@ namespace Liviano
             // If the chain is downloaded, we set the height of the newly created wallet to it.
             // However, if the chain is still downloading when the user creates a wallet,
             // we wait until it is downloaded in order to set it. Otherwise, the height of the wallet will be the height of the chain at that moment.
-            if (this.chain.IsDownloaded())
+            if (this._chain.IsDownloaded())
             {
-                this.UpdateLastBlockSyncedHeight(wallet, this.chain.Tip);
+                this.UpdateLastBlockSyncedHeight(wallet, this._chain.Tip);
             }
             else
             {
@@ -354,14 +381,14 @@ namespace Liviano
         private void UpdateWhenChainDownloaded(IEnumerable<Wallet> wallets, DateTime date)
         {
             this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", new System.Threading.CancellationToken(),
-                () => this.chain.IsDownloaded(),
+                () => this._chain.IsDownloaded(),
                 () =>
                 {
-                    int heightAtDate = this.chain.GetHeightAtTime(date);
+                    int heightAtDate = this._chain.GetHeightAtTime(date);
 
                     foreach (Wallet wallet in wallets)
                     {
-                        this.UpdateLastBlockSyncedHeight(wallet, this.chain.GetBlock(heightAtDate));
+                        this.UpdateLastBlockSyncedHeight(wallet, this._chain.GetBlock(heightAtDate));
                         this.SaveWallet(wallet);
                     }
                 },
@@ -371,7 +398,7 @@ namespace Liviano
                     // sync from the current height.
                     foreach (Wallet wallet in wallets)
                     {
-                        this.UpdateLastBlockSyncedHeight(wallet, this.chain.Tip);
+                        this.UpdateLastBlockSyncedHeight(wallet, this._chain.Tip);
                     }
                 },
                 TimeSpans.FiveSeconds);
