@@ -221,7 +221,7 @@ namespace Liviano
             this.Wallet = wallet;
         }
 
-        public static Mnemonic NewMnemonic(string wordlist = "English", int wordCount = 24)
+        public static Mnemonic NewMnemonic(string wordlist = "English", int wordCount = 12)
         {
             Wordlist bitcoinWordlist;
             WordCount bitcoinWordCount;
