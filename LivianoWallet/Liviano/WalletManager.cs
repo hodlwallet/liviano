@@ -119,7 +119,7 @@ namespace Liviano
         }
 
         /// <inheritdoc />
-        public Mnemonic CreateWallet(string password, string name, string passphrase, Mnemonic mnemonic = null)
+        public Mnemonic CreateWallet(string password, string name, string passphrase, Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
         {
             Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(name, nameof(name));
@@ -127,7 +127,7 @@ namespace Liviano
 
             // Generate the root seed used to generate keys from a mnemonic picked at random
             // and a passphrase optionally provided by the user.
-            mnemonic = mnemonic ?? new Mnemonic(Wordlist.English, WordCount.Twelve);
+            mnemonic = mnemonic ?? new Mnemonic(HdOperations.WordlistFromString(wordlist), HdOperations.WordCountFromInt(wordCount));
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
 
