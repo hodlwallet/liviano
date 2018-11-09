@@ -22,6 +22,9 @@ namespace Liviano
 
         private MessageHub eventHub;
 
+        /// <summary>Quantity of accounts created in a wallet file when a wallet is restored.</summary>
+        private const int WalletRecoveryAccountsCount = 1;
+
         /// <summary>Quantity of accounts created in a wallet file when a wallet is created.</summary>
         private const int WalletCreationAccountsCount = 1;
 
