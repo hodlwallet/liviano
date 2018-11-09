@@ -175,7 +175,6 @@ namespace Liviano
             }
         }
 
-
         public bool LoadWallet(string password, out Wallet wallet)
         {
             Guard.NotEmpty(password, nameof(password));
@@ -217,60 +216,10 @@ namespace Liviano
             this.Wallet = wallet;
         }
 
-        public static Mnemonic NewMnemonic(string wordlist = "English", int wordCount = 12)
+        public static Mnemonic NewMnemonic(string wordlist = "english", int wordCount = 12)
         {
-            Wordlist bitcoinWordlist;
-            WordCount bitcoinWordCount;
-
-            switch (wordlist.ToLower())
-            {
-                case "english":
-                bitcoinWordlist = Wordlist.English;
-                break;
-                case "spanish":
-                bitcoinWordlist = Wordlist.Spanish;
-                break;
-                case "chinese_simplified":
-                bitcoinWordlist = Wordlist.ChineseSimplified;
-                break;
-                case "chinese_traditional":
-                bitcoinWordlist = Wordlist.ChineseTraditional;
-                break;
-                case "french":
-                bitcoinWordlist = Wordlist.French;
-                break;
-                case "japanese":
-                bitcoinWordlist = Wordlist.Japanese;
-                break;
-                case "portuguese_brazil":
-                bitcoinWordlist = Wordlist.PortugueseBrazil;
-                break;
-                default:
-                bitcoinWordlist = Wordlist.English;
-                break;
-            }
-
-            switch (wordCount)
-            {
-                case 12:
-                bitcoinWordCount = WordCount.Twelve;
-                break;
-                case 15:
-                bitcoinWordCount = WordCount.Fifteen;
-                break;
-                case 18:
-                bitcoinWordCount = WordCount.Eighteen;
-                break;
-                case 21:
-                bitcoinWordCount = WordCount.TwentyOne;
-                break;
-                case 24:
-                bitcoinWordCount = WordCount.TwentyFour;
-                break;
-                default:
-                bitcoinWordCount = WordCount.TwentyFour;
-                break;
-            }
+            Wordlist bitcoinWordlist = HdOperations.WordlistFromString(wordlist);
+            WordCount bitcoinWordCount = HdOperations.WordCountFromInt(wordCount);
 
             return NewMnemonic(bitcoinWordlist, bitcoinWordCount);
         }

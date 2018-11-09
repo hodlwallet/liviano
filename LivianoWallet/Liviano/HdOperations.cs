@@ -388,5 +388,47 @@ namespace Liviano
 
             return mnemonic.Words.ElementAt(index).Equals(word);
         }
+
+        public static Wordlist WordlistFromString(string wordlist = "english")
+        {
+            switch (wordlist.ToLower())
+            {
+                case "english":
+                    return Wordlist.English;
+                case "spanish":
+                    return Wordlist.Spanish;
+                case "chinese_simplified":
+                    return Wordlist.ChineseSimplified;
+                case "chinese_traditional":
+                    return Wordlist.ChineseTraditional;
+                case "french":
+                    return Wordlist.French;
+                case "japanese":
+                    return Wordlist.Japanese;
+                case "portuguese_brazil":
+                    return Wordlist.PortugueseBrazil;
+                default:
+                    return Wordlist.English;
+            }
+        }
+
+        public static WordCount WordCountFromInt(int wordCount = 12)
+        {
+            switch (wordCount)
+            {
+                case 12:
+                    return WordCount.Twelve;
+                case 15:
+                    return WordCount.Fifteen;
+                case 18:
+                    return WordCount.Eighteen;
+                case 21:
+                    return WordCount.TwentyOne;
+                case 24:
+                    return WordCount.TwentyFour;
+                default:
+                    return WordCount.Twelve;
+            }
+        }
     }
 }
