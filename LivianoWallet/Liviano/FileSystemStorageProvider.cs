@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Liviano
 {
-    public class FileSystemWalletStorageProvider : IWalletStorageProvider
+    public class FileSystemStorageProvider : IStorageProvider
     {
         private readonly string id;
 
@@ -15,7 +15,7 @@ namespace Liviano
 
         private readonly string directory = "data";
 
-        public FileSystemWalletStorageProvider(string id = null, string directory = "data")
+        public FileSystemStorageProvider(string id = null, string directory = "data")
         {
             Guard.NotEmpty(directory, nameof(directory));
 

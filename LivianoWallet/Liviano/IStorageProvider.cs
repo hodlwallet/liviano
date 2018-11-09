@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Liviano
 {
-    public interface IWalletStorageProvider
+    public interface IStorageProvider
     {
         Wallet LoadWallet();
 
