@@ -540,5 +540,11 @@ namespace Liviano
         {
             return Wallet.AccountsRoot.Min().LastBlockSyncedHeight;
         }
+
+        /// <inheritdoc />
+        public Wallet GetWalletByName()
+        {
+            return Wallet;
+        }
     }
 }
