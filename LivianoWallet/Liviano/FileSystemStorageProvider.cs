@@ -55,8 +55,8 @@ namespace Liviano
         public void SaveWallet(Wallet wallet, bool saveBackupFile = true)
         {
             string guid = Guid.NewGuid().ToString();
-            string newFilePath = Path.Combine(directory, $"{filePath}.{guid}.new");
-            string tempFilePath = Path.Combine(directory, $"{filePath}.{guid}.temp");
+            string newFilePath = $"{filePath}.{guid}.new";
+            string tempFilePath = $"{filePath}.{guid}.temp";
 
             File.WriteAllText(newFilePath, JsonConvert.SerializeObject(wallet, Formatting.Indented));
 
