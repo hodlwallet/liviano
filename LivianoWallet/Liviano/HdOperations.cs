@@ -12,6 +12,14 @@ namespace Liviano
     public class HdOperations
     {
         /// <summary>
+        /// a list of accepted mnemonic wordlists
+        /// </summary>
+        /// <value>an array of strings</value>
+        public static readonly string[] acceptedMnemonicWordlists = new string[] { "chinese_simplified", "chinese_traditional", "english", "french", "japanese", "portuguese_brazil", "spanish" };
+
+        public static readonly int[] acceptedMnemonicWordCount = new int[] { 12, 15, 18, 21, 24 };
+
+        /// <summary>
         /// Generates an HD public key derived from an extended public key.
         /// </summary>
         /// <param name="accountExtPubKey">The extended public key used to generate child keys.</param>
@@ -307,34 +315,7 @@ namespace Liviano
             Random rng = new Random();
             List<string> guessWords = new List<string>(amountAround + 1);
             ReadOnlyCollection<string> dictionaryWordlist;
-
-            switch (language.ToLower())
-            {
-			    case "english":
-                    dictionaryWordlist = Wordlist.English.GetWords();
-                    break;
-                case "spanish":
-                    dictionaryWordlist = Wordlist.Spanish.GetWords();
-                    break;
-                case "chinese_simplified":
-                    dictionaryWordlist = Wordlist.ChineseSimplified.GetWords();
-                    break;
-                case "chinese_traditional":
-                    dictionaryWordlist = Wordlist.ChineseTraditional.GetWords();
-                    break;
-                case "french":
-                    dictionaryWordlist = Wordlist.French.GetWords();
-                    break;
-                case "japanese":
-                    dictionaryWordlist = Wordlist.Japanese.GetWords();
-                    break;
-                case "portuguese_brazil":
-                    dictionaryWordlist = Wordlist.PortugueseBrazil.GetWords();
-                    break;
-                default:
-                    dictionaryWordlist = Wordlist.English.GetWords();
-                    break;
-            }
+            dictionaryWordlist = WordlistFromString(language).GetWords();
 
             int indexOfWord = dictionaryWordlist.IndexOf(wordToGuess);
 
@@ -408,7 +389,7 @@ namespace Liviano
                 case "portuguese_brazil":
                     return Wordlist.PortugueseBrazil;
                 default:
-                    return Wordlist.English;
+                    throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", acceptedMnemonicWordlists)}");
             }
         }
 
@@ -427,7 +408,7 @@ namespace Liviano
                 case 24:
                     return WordCount.TwentyFour;
                 default:
-                    return WordCount.Twelve;
+                    throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", acceptedMnemonicWordCount)} are valid options.");
             }
         }
     }
