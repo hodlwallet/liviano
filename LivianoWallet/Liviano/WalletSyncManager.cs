@@ -1,6 +1,6 @@
-﻿namespace Liviano
+namespace Liviano
 {
-    public class WalletSyncManager
+    public class WalletSyncManager : IWalletSyncManager
     {
     }
 }
