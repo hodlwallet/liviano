@@ -88,5 +88,24 @@ namespace Liviano.Tests.Liviano
             Assert.Equal("FS Stored Wallet", w2.Name);
             Assert.Equal(Network.Main, w2.Network);
         }
+
+        [Fact]
+        public void WalletExistsTest()
+        {
+            string id = Guid.NewGuid().ToString();
+
+            FileSystemStorageProvider fs = new FileSystemStorageProvider(id: id);
+            Wallet w = new Wallet();
+            w.Name = "FS Stored Wallet";
+            w.Network = Network.Main;
+
+            fs.SaveWallet(w);
+
+            Assert.True(fs.WalletExists());
+
+            File.Delete(Path.Combine("data", $"{id}.json"));
+
+            Assert.False(fs.WalletExists());
+        }
     }
 }
