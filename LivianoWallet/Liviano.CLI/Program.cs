@@ -164,7 +164,7 @@ namespace Liviano.CLI
 
                 string mnemonic = null;
 
-                string name = "";
+                string name = null;
                 string passphrase = "";
                 string password = "";
 

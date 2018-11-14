@@ -257,10 +257,10 @@ namespace Liviano
             Guard.NotNull(chainCode, nameof(chainCode));
 
             // Check if any wallet file already exists, with case insensitive comparison.
-            if (string.Equals(this.Wallet.Name, name, StringComparison.OrdinalIgnoreCase))
+            if (this.Wallet != null && String.Equals(this.Wallet.Name, name, StringComparison.OrdinalIgnoreCase))
                 throw new WalletException($"Wallet with name '{name}' already exists.");
         
-            if (this.Wallet.EncryptedSeed != encryptedSeed)
+            if (this.Wallet != null && this.Wallet.EncryptedSeed != encryptedSeed)
                 throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet make sure you have your mnemonic and your password handy!");
         
             var walletFile = new Wallet
