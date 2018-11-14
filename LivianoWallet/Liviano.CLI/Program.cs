@@ -1,15 +1,13 @@
 using System;
 using CommandLine;
 
-using Liviano;
-
 namespace Liviano.CLI
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions>(args)
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                 string wordlist = "english";
                 int wordCount = 24;
@@ -157,6 +155,57 @@ namespace Liviano.CLI
                 }
 
                 Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
+            }).WithParsed<NewWalletOptions>(o => {
+                string fileName = null;
+
+                string network = "main";
+
+                string mnemonic = null;
+
+                string name = null;
+                string passphrase = "";
+                string password = "";
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
+
+                if (o.Mnemonic != null)
+                {
+                    mnemonic = o.Mnemonic;
+                }
+                else
+                {
+                    mnemonic = Console.ReadLine();
+                }
+
+                if (o.Name != null)
+                {
+                    name = o.Name;
+                }
+                else
+                {
+                    name = Guid.NewGuid().ToString();
+                }
+
+                if (o.Password != null)
+                {
+                    password = o.Password;
+                }
+
+                if (o.Passphrase != null)
+                {
+                    passphrase = o.Passphrase;
+                }
+
+                // TODO: @igorgue: Initialize the WalletManager...
+
+                Console.WriteLine(fileName);
             });
         }
     }
