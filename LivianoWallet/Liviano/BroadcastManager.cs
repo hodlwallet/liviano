@@ -11,7 +11,7 @@ using Easy.MessageHub;
 
 namespace Liviano
 {
-    class BroadcastManager : IBroadcastManager
+    public class BroadcastManager : IBroadcastManager
     {
         //TODO : Realize hidden abstraction for event aggreation might be bad in the future for extensibility.
 
@@ -94,11 +94,15 @@ namespace Liviano
             }
         }
 
-
         protected bool IsPropagated(Transaction transaction)
         {
             TransactionBroadcastEntry broadcastEntry = this.GetTransaction(transaction.GetHash());
             return (broadcastEntry != null) && (broadcastEntry.State == TransactionState.Propagated);
+        }
+
+        public static NodesGroup NewNodesGroup(Network network)
+        {
+            return new NodesGroup(network);
         }
     }
 }

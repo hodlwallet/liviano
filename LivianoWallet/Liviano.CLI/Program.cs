@@ -1,5 +1,9 @@
 using System;
 using CommandLine;
+using Serilog;
+
+using Liviano.Utilities;
+using System.IO;
 
 namespace Liviano.CLI
 {
@@ -156,23 +160,21 @@ namespace Liviano.CLI
 
                 Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             }).WithParsed<NewWalletOptions>(o => {
-                string fileName = null;
-
-                string network = "main";
+                string networkStr = "main";
 
                 string mnemonic = null;
 
-                string name = null;
+                string name = "";
                 string passphrase = "";
                 string password = "";
 
                 if (o.Testnet)
                 {
-                    network = "testnet";
+                    networkStr = "testnet";
                 }
                 else if (o.Regtest)
                 {
-                    network = "regtest";
+                    networkStr = "regtest";
                 }
 
                 if (o.Mnemonic != null)
@@ -203,9 +205,22 @@ namespace Liviano.CLI
                     passphrase = o.Passphrase;
                 }
 
-                // TODO: @igorgue: Initialize the WalletManager...
+                // The Liviano ceremony...
+                var walletFileId = Guid.NewGuid().ToString();
+                var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+                var network = HdOperations.GetNetwork(networkStr);
+                var chain = HdOperations.NewConcurrentChain();
+                var asyncLoopFactory = new AsyncLoopFactory();
+                var dateTimeProvider = new DateTimeProvider();
+                var scriptAddressReader = new ScriptAddressReader();
+                var broadcastManager = new BroadcastManager(BroadcastManager.NewNodesGroup(network));
+                var storageProvider = new FileSystemStorageProvider(id: walletFileId);
 
-                Console.WriteLine(fileName);
+                WalletManager walletManager = new WalletManager(logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, broadcastManager, storageProvider);
+
+                walletManager.CreateWallet(password, name, passphrase, mnemonic);
+
+                Console.WriteLine(Path.GetFullPath(Path.Combine("data", $"{walletFileId}.json")));
             });
         }
     }

@@ -19,6 +19,8 @@ namespace Liviano
 
         public static readonly int[] acceptedMnemonicWordCount = new int[] { 12, 15, 18, 21, 24 };
 
+        public static readonly string[] acceptedNetworks = new string[] { "main", "testnet", "regtest" };
+
         /// <summary>
         /// Generates an HD public key derived from an extended public key.
         /// </summary>
@@ -45,13 +47,13 @@ namespace Liviano
             switch (addressType)
             {
                 case "p2pkh":
-                return pubKey.Hash.GetAddress(GetNetwork(network));
+                    return pubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2sh-p2wpkh":
-                return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2wpkh":
-                return pubKey.WitHash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.GetAddress(GetNetwork(network));
                 default: // Default to bech32 (p2wpkh)
-                return pubKey.WitHash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.GetAddress(GetNetwork(network));
             }
         }
         public static Script GetScriptPubKey(string address, string network)
@@ -59,20 +61,20 @@ namespace Liviano
             return BitcoinAddress.Create(address, GetNetwork(network)).ScriptPubKey;
         }
 
-        public static Network GetNetwork(string network = null)
+        public static Network GetNetwork(string network = "main")
         {
-            if (network == null) return Network.Main;
+            Guard.NotNull(network, nameof(network));
 
-            switch (network)
+            switch (network.ToLower())
             {
                 case "main":
-                return Network.Main;
+                    return Network.Main;
                 case "testnet":
-                return Network.TestNet;
+                    return Network.TestNet;
                 case "regtest":
-                return Network.RegTest;
+                    return Network.RegTest;
                 default:
-                throw new WalletException($"Invalid network {network}");
+                    throw new WalletException($"Invalid network {network}, valid networks are {String.Join(", ", acceptedNetworks)}");
             }
         }
 
@@ -410,6 +412,11 @@ namespace Liviano
                 default:
                     throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", acceptedMnemonicWordCount)} are valid options.");
             }
+        }
+
+        public static ConcurrentChain NewConcurrentChain()
+        {
+            return new ConcurrentChain();
         }
     }
 }
