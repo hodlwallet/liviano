@@ -57,6 +57,8 @@ namespace Liviano
             FalsePositiveRate = 0.000005;
             _Chain = chain;
             _ExplicitChain = chain;
+
+            _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
         }
 
         public override object Clone()
@@ -104,8 +106,12 @@ namespace Liviano
                     throw new InvalidOperationException("A chain should either be passed in the constructor of TrackerBehavior, or a ChainBehavior should be attached on the node");
                 _Chain = chainBehavior.Chain;
             }
-            
-            
+
+
+            Timer timer = new Timer(StartScan, null, 5000, 10000);
+            RegisterDisposable(timer);
+
+
         }
 
         private void MessagedRecivedOnAttachedNode(NBitcoin.Protocol.Node node, NBitcoin.Protocol.IncomingMessage message)

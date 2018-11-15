@@ -181,7 +181,7 @@ namespace Liviano.CLI
 
 
             WalletManager walletManager = new WalletManager(logger,network,chain,asyncLoopFactory,dateTimeProvider,scriptAddressReader,storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager,GetChain());
+            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager,chain);
 
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
@@ -190,9 +190,9 @@ namespace Liviano.CLI
 
 
             var parameters = new NodeConnectionParameters();
-            parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
+            //parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
-            parameters.TemplateBehaviors.Add(new ChainBehavior(GetChain())); //So we don't have to load the chain each time we start
+            parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
             parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager));
             _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
             {
@@ -204,15 +204,16 @@ namespace Liviano.CLI
             var broadcastManager = new BroadcastManager(_Group);
            
 
-            Console.WriteLine(expectedM.DeriveSeed() == m.DeriveSeed()); 
-
-            
+            Console.WriteLine(expectedM.DeriveSeed() == m.DeriveSeed());
 
 
+            walletManager.Start();
+            var ScanLocation = new BlockLocator();
+            ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
+            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 10, 1)));
 
 
-
-            //conparams = parameters;
+            conparams = parameters;
             //WalletCreation creation = new WalletCreation()
             //{
             //    Name = "Test",
@@ -231,24 +232,20 @@ namespace Liviano.CLI
 
             //wallet.Created = new DateTimeOffset(new DateTime(2018, 11, 12));
             //wallet.Rescan(Network.TestNet.GenesisHash);
-            //PeriodicSave(wallet);
+            PeriodicSave();
 
-            //Console.ReadLine();
+            Console.ReadLine();
 
         }
 
-        private static async void PeriodicSave(NBitcoin.SPV.Wallet wallet)
+        private static async void PeriodicSave()
         {
             while (1 == 1)
             {
                 await Task.Delay(50_000);
-                if (wallet.ConnectedNodes > 0)
-                {
-                    await SaveAsync(wallet);
-                    wallet.Rescan(Network.TestNet.GenesisHash);
+             
+                    await SaveAsync();
 
-
-                }
             }
         }
 
@@ -261,6 +258,7 @@ namespace Liviano.CLI
             }
 
             return AddressManager.LoadPeerFile(AddrmanFile(), Network.TestNet);
+            return new AddressManager();
         }
         private static Tracker GetTracker()
         {
@@ -317,7 +315,7 @@ namespace Liviano.CLI
             return Path.Combine(Directory.GetCurrentDirectory(), "chain.dat");
         }
 
-        private static async Task SaveAsync(NBitcoin.SPV.Wallet wallet)
+        private static async Task SaveAsync()
         {
             await Task.Factory.StartNew(() =>
             {
@@ -328,15 +326,10 @@ namespace Liviano.CLI
                     {
                         GetChain().WriteTo(fs);
                     }
-                    using (var fs = File.Open(TrackerFile(), FileMode.OpenOrCreate))
-                    {
-                        GetTracker().Save(fs);
-                    }
-
-                    using (var fs = File.Open(WalletFile(), FileMode.OpenOrCreate))
-                    {
-                        wallet.Save(fs);
-                    }
+                    //using (var fs = File.Open(TrackerFile(), FileMode.OpenOrCreate))
+                    //{
+                    //    GetTracker().Save(fs);
+                    //}
                 }
             });
         }

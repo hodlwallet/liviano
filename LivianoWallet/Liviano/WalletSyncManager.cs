@@ -78,14 +78,28 @@ namespace Liviano
             var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.ScriptPubKey);
 
 
+            Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
+
             foreach (var txin in transaction.Inputs.AsIndexedInputs())
             {
                 var outPointToLookFor = txin.PrevOut;
 
                 if (outPoints.Contains(outPointToLookFor))
                 {
-
+                    Console.WriteLine("Found SOMETHING!!!");
                 }
+            }
+
+
+            foreach (var txout in transaction.Outputs.AsIndexedOutputs())
+            {
+                var scriptToSearchFor = txout.TxOut.ScriptPubKey;
+
+                if (scripts.Contains(scriptToSearchFor))
+                {
+                    Console.WriteLine("Found SOMETHING!!!");
+                }
+
             }
             //List<Operation> operations = null;
             //lock (cs)

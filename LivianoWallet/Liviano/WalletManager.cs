@@ -72,8 +72,11 @@ namespace Liviano
 
         /// <summary>The broadcast manager.</summary>
         private readonly IBroadcastManager broadcastManager;
+        private readonly double WalletSavetimeIntervalInMinutes = 1;
 
+        public uint256 WalletTipHash { get; set; }
 
+        private IAsyncLoop asyncLoop;
 
         public WalletManager(ILogger logger, Network network, ConcurrentChain chain, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader, IStorageProvider storageProvider)
         {
@@ -88,7 +91,7 @@ namespace Liviano
             this.logger = logger;
 
             this.network = network;
-            this.coinType = (CoinType)network.Consensus.CoinType;
+            this.coinType = CoinType.Bitcoin;
             this.asyncLoopFactory = asyncLoopFactory;
             this.chain = chain;
             this.broadcastManager = broadcastManager;
@@ -117,6 +120,99 @@ namespace Liviano
             {
                 //this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
                 //this.logger.LogTrace("(-)[EXCEPTION]");
+            }
+        }
+
+
+        public void Start()
+        {
+            // Find wallets and load them in memory.
+            Wallet = storageProvider.LoadWallet();
+
+
+                foreach (HdAccount account in Wallet.GetAccountsByCoinType(this.coinType))
+                {
+                    this.AddAddressesToMaintainBuffer(account, false);
+                    this.AddAddressesToMaintainBuffer(account, true);
+                }
+
+            // Load data in memory for faster lookups.
+            this.LoadKeysLookupLock();
+
+            // Find the last chain block received by the wallet manager.
+            this.WalletTipHash = this.LastReceivedBlockHash();
+
+            // Save the wallets file every 5 minutes to help against crashes.
+            this.asyncLoop = this.asyncLoopFactory.Run("Wallet persist job", token =>
+            {
+                this.SaveWallet(Wallet);
+                this.logger.Information("Wallets saved to file at {0}.", this.dateTimeProvider.GetUtcNow());
+
+                this.logger.Information("(-)[IN_ASYNC_LOOP]");
+                return Task.CompletedTask;
+            },
+            repeatEvery: TimeSpan.FromMinutes(WalletSavetimeIntervalInMinutes),
+            startAfter: TimeSpan.FromMinutes(WalletSavetimeIntervalInMinutes));
+        }
+
+
+        public uint256 LastReceivedBlockHash()
+        {
+            if (Wallet == null)
+            {
+                uint256 hash = this.chain.Tip.HashBlock;
+                this.logger.Information("(-)[NO_WALLET]:'{0}'", hash);
+                return hash;
+            }
+
+            uint256 lastBlockSyncedHash;
+            lock (this.lockObject)
+            {
+                //lastBlockSyncedHash = this.Wallet
+                //    .Select(w => w.AccountsRoot.SingleOrDefault(a => a.CoinType == this.coinType))
+                //    .Where(w => w != null)
+                //    .OrderBy(o => o.LastBlockSyncedHeight)
+                //    .FirstOrDefault()?.LastBlockSyncedHash;
+
+                 lastBlockSyncedHash = Wallet.AccountsRoot.Where(x => x.CoinType == CoinType.Bitcoin).Where(w => w != null)
+                    .OrderBy(o => o.LastBlockSyncedHeight)
+                    .FirstOrDefault()?.LastBlockSyncedHash;
+
+                // If details about the last block synced are not present in the wallet,
+                // find out which is the oldest wallet and set the last block synced to be the one at this date.
+                if (lastBlockSyncedHash == null)
+                {
+                    this.logger.Warning("There were no details about the last block synced in the wallets.");
+                    DateTimeOffset earliestWalletDate = Wallet.CreationTime;
+                    this.UpdateWhenChainDownloaded(Wallet, earliestWalletDate.DateTime);
+                    lastBlockSyncedHash = this.chain.Tip.HashBlock;
+                }
+            }
+
+            return lastBlockSyncedHash;
+        }
+
+
+        /// <summary>
+        /// Loads the keys and transactions we're tracking in memory for faster lookups.
+        /// </summary>
+        public void LoadKeysLookupLock()
+        {
+            lock (this.lockObject)
+            {
+
+                    IEnumerable<HdAddress> addresses = Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin);
+                    foreach (HdAddress address in addresses)
+                    {
+                        this.keysLookup[address.ScriptPubKey] = address;
+                        if (address.Pubkey != null)
+                            this.keysLookup[address.Pubkey] = address;
+
+                        foreach (TransactionData transaction in address.Transactions)
+                        {
+                            this.outpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
+                        }
+                    }
             }
         }
 
@@ -155,7 +251,7 @@ namespace Liviano
             }
             else
             {
-                this.UpdateWhenChainDownloaded(new[] { wallet }, this.dateTimeProvider.GetUtcNow());
+                this.UpdateWhenChainDownloaded(wallet, this.dateTimeProvider.GetUtcNow());
             }
 
             // Save the changes to the file and add addresses to be tracked.
@@ -608,7 +704,7 @@ namespace Liviano
         /// </summary>
         /// <param name="wallets">The wallets to update when the chain has downloaded.</param>
         /// <param name="date">The creation date of the block with which to update the wallet.</param>
-        private void UpdateWhenChainDownloaded(IEnumerable<Wallet> wallets, DateTime date)
+        private void UpdateWhenChainDownloaded(Wallet wallet, DateTime date)
         {
             this.asyncLoopFactory.RunUntil("WalletManager.DownloadChain", new System.Threading.CancellationToken(),
                 () => this.chain.IsDownloaded(),
@@ -616,20 +712,16 @@ namespace Liviano
                 {
                     int heightAtDate = this.chain.GetHeightAtTime(date);
 
-                    foreach (Wallet wallet in wallets)
-                    {
-                        this.UpdateLastBlockSyncedHeight(wallet, this.chain.GetBlock(heightAtDate));
+                        this.UpdateLastBlockSyncedHeight(Wallet, this.chain.GetBlock(heightAtDate));
                         this.SaveWallet(wallet);
-                    }
                 },
                 (ex) =>
                 {
                     // In case of an exception while waiting for the chain to be at a certain height, we just cut our losses and
                     // sync from the current height.
-                    foreach (Wallet wallet in wallets)
-                    {
+                    
                         this.UpdateLastBlockSyncedHeight(wallet, this.chain.Tip);
-                    }
+                    
                 },
                 TimeSpans.FiveSeconds);
         }
