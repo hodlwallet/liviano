@@ -1,10 +1,13 @@
-using NBitcoin;/
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using NBitcoin.SPV;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Liviano
 {
@@ -12,9 +15,9 @@ namespace Liviano
     {
         IWalletSyncManager _walletSyncManager;
 
-        DateTimeOffset _SkipBefore;
+        DateTimeOffset _SkipBefore { get { return _walletSyncManager.DateToStartScanningFrom; } set { _walletSyncManager.DateToStartScanningFrom = value; } }
 
-        BlockLocator _CurrentPosition;
+        private BlockLocator _CurrentPosition { get { return _walletSyncManager.CurrentPosition; } set { _walletSyncManager.CurrentPosition = value; } }
         private ConcurrentChain _Chain;
         private ConcurrentChain _ExplicitChain;
 
@@ -24,6 +27,10 @@ namespace Liviano
         ConcurrentDictionary<uint256, uint256> _InFlight = new ConcurrentDictionary<uint256, uint256>();
 
         BoundedDictionary<uint256, MerkleBlock> _TransactionsToBlock = new BoundedDictionary<uint256, MerkleBlock>(1000);
+        object locker = new object();
+        volatile PingPayload _PreviousPing;
+        private FilterState _FilterState;
+        private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
 
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
@@ -59,6 +66,30 @@ namespace Liviano
             clone._SkipBefore = _SkipBefore;
             clone._CurrentPosition = _CurrentPosition;
             return clone;
+        }
+
+        public void RefreshBloomFilter()
+        {
+            SetBloomFilter();
+        }
+
+        private void SetBloomFilter()
+        {
+            var node = AttachedNode;
+            if (node != null) //Insure we have a node
+            {
+                _PreviousPing = null; //Set to null
+                var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate); //Create bloom filter
+                _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
+                node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
+                _FilterState = FilterState.Loading; // Set state to loading
+                var ping = new PingPayload() // Create a ping payload
+                {
+                    Nonce = RandomUtils.GetUInt64() // Add a random noonce, we will expect this in the future
+                };
+                _PreviousPing = ping; //The last ping will the one we just created
+                node.SendMessageAsync(ping); // Now send it
+            }
         }
 
         protected override void AttachCore()
@@ -98,7 +129,14 @@ namespace Liviano
 
         private void HandleTxPayload(TxPayload txPayload)
         {
-            throw new NotImplementedException();
+            if (txPayload != null)
+            {
+                var tx = txPayload.Object;
+                MerkleBlock blk;
+                var h = tx.GetHash();
+                _TransactionsToBlock.TryGetValue(h, out blk);
+                NotifyWalletSyncManager(tx, blk);
+            }
         }
 
         private void HandleInvPayload(InvPayload invPayload, Node node)
@@ -117,46 +155,171 @@ namespace Liviano
 
         private void HandleNotFoundPayLoad(NotFoundPayload notFoundPayload)
         {
-            throw new NotImplementedException();
+            if (notFoundPayload != null)
+            {
+                foreach (var txid in notFoundPayload) //These payloads cant be found
+                {
+                    uint256 unusued;
+                    if (_InFlight.TryRemove(txid.Hash, out unusued)) //Remove them from out inflight list 
+                    {
+                        if (_InFlight.Count == 0) //If inflight is zero 
+                            StartScan(null); //Scan
+                    }
+                }
+            }
+        }
+
+        private void StartScan(object p)
+        {
+            var node = AttachedNode;
+            if (_FilterState != FilterState.Loaded)
+            {
+                _ActionsToFireWhenFilterIsLoaded.Add(() => StartScan(p));
+                return;
+            }
+            if (!IsScanning(node))
+            {
+                if (Monitor.TryEnter(locker))
+                {
+                    try
+                    {
+                        if (!IsScanning(node))
+                        {
+                            GetDataPayload payload = new GetDataPayload();
+                            var positionInChain = _Chain.FindFork(_CurrentPosition);
+                            foreach (var block in _Chain
+                                .EnumerateAfter(positionInChain)
+                                .Where(b => b.Header.BlockTime + TimeSpan.FromHours(5.0) > _SkipBefore) //Take 5 more hours, block time might not be right
+                                .Partition(100)
+                                .FirstOrDefault() ?? new List<ChainedBlock>())
+                            {
+                                payload.Inventory.Add(new InventoryVector(InventoryType.MSG_FILTERED_BLOCK, block.HashBlock));
+                                _InFlight.TryAdd(block.HashBlock, block.HashBlock);
+                            }
+                            if (payload.Inventory.Count > 0)
+                                node.SendMessageAsync(payload);
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(locker);
+                    }
+                }
+            }
+        }
+
+        private bool IsScanning(Node node)
+        {
+            return _InFlight.Count != 0 || _CurrentPosition == null || node == null;
         }
 
         private void HandlePongPayload(PongPayload pongPayload)
         {
-            throw new NotImplementedException();
+            if (pongPayload != null) //Make sure pong is valid
+            {
+                var ping = _PreviousPing;
+                if (ping != null && pongPayload.Nonce == ping.Nonce) // If the pong matches our previous Pings noonce
+                {
+                    _PreviousPing = null;
+                    _FilterState = FilterState.Loaded; //We can assume they recieved our filter and its loaded
+                    foreach (var item in _ActionsToFireWhenFilterIsLoaded) //Iterate over items we had to dock
+                    {
+                        item();// Excute them
+                    }
+                    _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>(); //Refresh collection
+                }
+            }
         }
 
         private void HandleMerkleBlockPayload(MerkleBlockPayload merkleBlockPayload)
         {
-            //if (merkleBlockPayload != null)
-            //{
-            //    if (!CheckFPRate(merkleBlockPayload))
-            //    {
-            //        return;
-            //    }
-            //    //merkleBlockPayload.Object.Header.
-            //    foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
-            //    {
-            //        _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
-            //        var tx = _Tracker.GetKnownTransaction(txId);
-            //        if (tx != null)
-            //        {
-            //            Notify(tx, merkleBlockPayload.Object);
-            //        }
-            //    }
+            if (merkleBlockPayload != null)
+            {
+                if (!CheckFPRate(merkleBlockPayload))
+                {
+                    return;
+                }
+                //merkleBlockPayload.Object.Header.
+                foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
+                {
+                    _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
+                    var tx = _walletSyncManager.GetKnownTransaction(txId);
+                    if (tx != null)
+                    {
+                        NotifyWalletSyncManager(tx, merkleBlockPayload.Object);
+                    }
+                }
 
-            //    var h = merkleBlockPayload.Object.Header.GetHash();
-            //    uint256 unused;
-            //    if (_InFlight.TryRemove(h, out unused))
-            //    {
-            //        if (_InFlight.Count == 0)
-            //        {
-            //            UpdateCurrentProgress(h);
-            //            StartScan(unused);
-            //        }
-            //    }
-            //}
+                var h = merkleBlockPayload.Object.Header.GetHash();
+                uint256 unused;
+                if (_InFlight.TryRemove(h, out unused))
+                {
+                    if (_InFlight.Count == 0)
+                    {
+                        UpdateCurrentPosition(h);
+                        StartScan(unused);
+                    }
+                }
+            }
         }
 
+        //public void Scan(BlockLocator locator, DateTimeOffset skipBefore)
+        //{
+        //    lock (locker)
+        //    {
+        //        if (_SkipBefore == default(DateTimeOffset) || skipBefore < _SkipBefore)
+        //            _SkipBefore = skipBefore;
+        //        if (_CurrentPosition == null || EarlierThanCurrentProgress(locator))
+        //            _CurrentPosition = locator;
+        //    }
+        //}
+
+
+        private void UpdateCurrentPosition(uint256 h)
+        {
+            var chained = _Chain.GetBlock(h); // Get block belonging to this hash
+            if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
+            {
+                _CurrentPosition = chained.GetLocator(); //Set the new location
+            }
+        }
+
+
+        private bool EarlierThanCurrentProgress(BlockLocator locator)
+        {
+            return _Chain.FindFork(locator).Height < _Chain.FindFork(_CurrentPosition).Height;
+        }
+
+
+        private bool NotifyWalletSyncManager(Transaction tx, MerkleBlock blk)
+        {
+            bool hit = false;
+            if (blk == null)
+            {
+                hit = _walletSyncManager.ProcessTransaction(tx);
+            }
+            else
+            {
+                var prev = _Chain.GetBlock(blk.Header.HashPrevBlock);
+                if (prev != null)
+                {
+                    var header = new ChainedBlock(blk.Header, null, prev);
+                    Console.WriteLine("Block time: " + blk.Header.BlockTime);
+                    hit = _walletSyncManager.ProcessTransaction(tx, header, blk);
+                }
+                else
+                {
+                    hit = _walletSyncManager.ProcessTransaction(tx);
+                }
+            }
+
+            Interlocked.Increment(ref _TotalReceived);
+            if (!hit)
+            {
+                Interlocked.Increment(ref _FalsePositiveCount);
+            }
+            return hit;
+        }
 
         private bool CheckFPRate(MerkleBlockPayload merkleBlock)
         {
@@ -166,21 +329,40 @@ namespace Liviano
             {
                 var currentBlock = _Chain.GetBlock(merkleBlock.Object.Header.GetHash());
                 if (currentBlock != null && currentBlock.Previous != null)
-                    //UpdateCurrentProgress(currentBlock.Previous.HashBlock);
+                    UpdateCurrentPosition(currentBlock.Previous.HashBlock);
                 this.AttachedNode.DisconnectAsync("The actual false positive rate exceed MaximumFalsePositiveRate");
                 return false;
             }
             return true;
         }
 
-        private void ChangeOfAttachedNodeState(NBitcoin.Protocol.Node node, NBitcoin.Protocol.NodeState oldState)
+        private void ChangeOfAttachedNodeState(Node node, NodeState oldState)
         {
-            throw new NotImplementedException();
+            if (node.State == NodeState.HandShaked)
+            {
+                SetBloomFilter();
+                SendMessageAsync(new MempoolPayload());
+            }
         }
 
         protected override void DetachCore()
         {
-            throw new NotImplementedException();
+            AttachedNode.StateChanged -= ChangeOfAttachedNodeState;
+            AttachedNode.MessageReceived -= MessagedRecivedOnAttachedNode;
+        }
+
+
+        public void SendMessageAsync(Payload payload)
+        {
+            var node = AttachedNode;
+            if (node == null)
+                return;
+            if (_FilterState == FilterState.Loaded)
+                node.SendMessageAsync(payload);
+            else
+            {
+                _ActionsToFireWhenFilterIsLoaded.Add(() => node.SendMessageAsync(payload));
+            }
         }
     }
 }
