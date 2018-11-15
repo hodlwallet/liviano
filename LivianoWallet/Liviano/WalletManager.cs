@@ -120,7 +120,7 @@ namespace Liviano
 
         public Mnemonic CreateWallet(string password, string name, string passphrase, string mnemonic, string wordlist = "english", int wordCount = 12)
         {
-            Mnemonic bitcoinMnemonic = new Mnemonic(mnemonic);
+            Mnemonic bitcoinMnemonic = new Mnemonic(mnemonic, HdOperations.WordlistFromString(wordlist));
 
             return CreateWallet(password, name, passphrase, bitcoinMnemonic);
         }
