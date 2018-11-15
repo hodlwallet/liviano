@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using CommandLine;
 
 using Liviano;
+using Liviano.Utilities;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.SPV;
+using Serilog;
 
 namespace Liviano.CLI
 {
@@ -168,42 +170,70 @@ namespace Liviano.CLI
 
             //    Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             //});
+            var walletFileId = Guid.NewGuid().ToString();
+            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            var network = Network.TestNet;
+            var chain = GetChain();
+            var asyncLoopFactory = new AsyncLoopFactory();
+            var dateTimeProvider = new DateTimeProvider();
+            var scriptAddressReader = new ScriptAddressReader();
+            var storageProvider = new FileSystemStorageProvider(id: walletFileId);
 
+
+            WalletManager walletManager = new WalletManager(logger,network,chain,asyncLoopFactory,dateTimeProvider,scriptAddressReader,storageProvider);
+            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager,GetChain());
+
+
+            var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
+
+            var expectedM = walletManager.CreateWallet("1111", "test", "", m);
 
 
             var parameters = new NodeConnectionParameters();
             parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(GetChain())); //So we don't have to load the chain each time we start
-
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager));
             _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
             });
             _Group.MaximumNodeConnection = 4;
             _Group.Connect();
-            conparams = parameters;
-            WalletCreation creation = new WalletCreation()
-            {
-                Name = "Test",
-                UseP2SH = true,
-                SignatureRequired = 0,
-                RootKeys = new ExtPubKey[] { new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into").DeriveExtKey().Derive(new KeyPath($"m/44'/0'/1'")).GetWif(Network.TestNet).Neuter() },
-                Network = Network.TestNet
-            };
 
-            var wallet = new NBitcoin.SPV.Wallet(creation);
+            var broadcastManager = new BroadcastManager(_Group);
+           
+
+            Console.WriteLine(expectedM.DeriveSeed() == m.DeriveSeed()); 
+
+            
 
 
-            wallet.Configure(_Group);
-            wallet.Connect();
-            Console.WriteLine(wallet.GetNextScriptPubKey().GetDestinationAddress(Network.TestNet));
 
-            wallet.Created = new DateTimeOffset(new DateTime(2018, 11, 12));
-            wallet.Rescan(Network.TestNet.GenesisHash);
-            PeriodicSave(wallet);
 
-            Console.ReadLine();
+
+            //conparams = parameters;
+            //WalletCreation creation = new WalletCreation()
+            //{
+            //    Name = "Test",
+            //    UseP2SH = true,
+            //    SignatureRequired = 0,
+            //    RootKeys = new ExtPubKey[] { new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into").DeriveExtKey().Derive(new KeyPath($"m/44'/0'/1'")).GetWif(Network.TestNet).Neuter() },
+            //    Network = Network.TestNet
+            //};
+
+            //var wallet = new NBitcoin.SPV.Wallet(creation);
+
+
+            //wallet.Configure(_Group);
+            //wallet.Connect();
+            //Console.WriteLine(wallet.GetNextScriptPubKey().GetDestinationAddress(Network.TestNet));
+
+            //wallet.Created = new DateTimeOffset(new DateTime(2018, 11, 12));
+            //wallet.Rescan(Network.TestNet.GenesisHash);
+            //PeriodicSave(wallet);
+
+            //Console.ReadLine();
 
         }
 

@@ -28,6 +28,9 @@ namespace Liviano
         [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsCoinStake { get; set; }
 
+        [JsonProperty(PropertyName = "isCoinBase", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsCoinBase { get; set; }
+
         /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
         /// </summary>
@@ -54,7 +57,7 @@ namespace Liviano
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
+        [JsonConverter(typeof(Liviano.Utilities.JsonConverters.DateTimeOffsetConverter))]
         public DateTimeOffset CreationTime { get; set; }
 
         /// <summary>

@@ -94,6 +94,9 @@ namespace Liviano
 
         protected override void AttachCore()
         {
+            Console.WriteLine("Attached WalletSyncBehavior to a node");
+            AttachedNode.StateChanged += ChangeOfAttachedNodeState;
+            AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;
             if (_Chain == null) //We need to insure we have a valid chain that is being synced constantly.
             {
                 var chainBehavior = AttachedNode.Behaviors.Find<ChainBehavior>();
@@ -101,9 +104,7 @@ namespace Liviano
                     throw new InvalidOperationException("A chain should either be passed in the constructor of TrackerBehavior, or a ChainBehavior should be attached on the node");
                 _Chain = chainBehavior.Chain;
             }
-            AttachedNode.StateChanged += ChangeOfAttachedNodeState;
-            AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;
-
+            
             
         }
 

@@ -11,7 +11,7 @@ using Easy.MessageHub;
 
 namespace Liviano
 {
-    class BroadcastManager : IBroadcastManager
+    public class BroadcastManager : IBroadcastManager
     {
         //TODO : Realize hidden abstraction for event aggreation might be bad in the future for extensibility.
 

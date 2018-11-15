@@ -3,7 +3,7 @@ using System;
 
 namespace Liviano.Utilities.JsonConverters
 {
-    public class DateTimeOffsetConverter :JsonConverter
+    public class DateTimeOffsetConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

@@ -73,7 +73,9 @@ namespace Liviano
         /// <summary>The broadcast manager.</summary>
         private readonly IBroadcastManager broadcastManager;
 
-        public WalletManager(ILogger logger, Network network, ConcurrentChain chain, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader, IBroadcastManager broadcastManager, IStorageProvider storageProvider)
+
+
+        public WalletManager(ILogger logger, Network network, ConcurrentChain chain, IAsyncLoopFactory asyncLoopFactory, IDateTimeProvider dateTimeProvider, IScriptAddressReader scriptAddressReader, IStorageProvider storageProvider)
         {
             Guard.NotNull(network, nameof(network));
             Guard.NotNull(chain, nameof(chain));
@@ -254,12 +256,17 @@ namespace Liviano
             Guard.NotNull(chainCode, nameof(chainCode));
 
             // Check if any wallet file already exists, with case insensitive comparison.
-            if (string.Equals(this.Wallet.Name, name, StringComparison.OrdinalIgnoreCase))
-                throw new WalletException($"Wallet with name '{name}' already exists.");
-        
-            if (this.Wallet.EncryptedSeed != encryptedSeed)
-                throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet make sure you have your mnemonic and your password handy!");
-        
+
+            if (Wallet != null) //On start wallet is null
+            {
+                if (string.Equals(this.Wallet.Name, name, StringComparison.OrdinalIgnoreCase))
+                    throw new WalletException($"Wallet with name '{name}' already exists.");
+
+                if (this.Wallet.EncryptedSeed != encryptedSeed)
+                    throw new WalletException("Cannot create this wallet as a wallet with the same private key already exists. If you want to restore your wallet make sure you have your mnemonic and your password handy!");
+
+            }
+
             var walletFile = new Wallet
             {
                 Name = name,
@@ -275,7 +282,7 @@ namespace Liviano
 
             return walletFile;
         }
-
+        
         /// <summary>
         /// Update the keys and transactions we're tracking in memory for faster lookups.
         /// </summary>
@@ -297,13 +304,287 @@ namespace Liviano
             }
         }
 
+        private void AddInputKeysLookupLocked(TransactionData transactionData)
+        {
+            Guard.NotNull(transactionData, nameof(transactionData));
+
+            lock (this.lockObject)
+            {
+                this.outpointLookup[new OutPoint(transactionData.Id, transactionData.Index)] = transactionData;
+            }
+        }
+
 
         public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
         {
-            throw new NotImplementedException();
+            Guard.NotNull(transaction, nameof(transaction));
+            uint256 hash = transaction.GetHash();
+
+            bool foundReceivingTrx = false, foundSendingTrx = false;
+
+            lock (this.lockObject)
+            {
+                // Check the outputs.
+                foreach (TxOut utxo in transaction.Outputs)
+                {
+                    // Check if the outputs contain one of our addresses.
+                    if (this.keysLookup.TryGetValue(utxo.ScriptPubKey, out HdAddress _))
+                    {
+                        this.AddTransactionToWallet(transaction, utxo, blockHeight, block, isPropagated);
+                        foundReceivingTrx = true;
+                    }
+                }
+
+                // Check the inputs - include those that have a reference to a transaction containing one of our scripts and the same index.
+                foreach (TxIn input in transaction.Inputs)
+                {
+                    if (!this.outpointLookup.TryGetValue(input.PrevOut, out TransactionData tTx))
+                    {
+                        continue;
+                    }
+
+                    // Get the details of the outputs paid out.
+                    IEnumerable<TxOut> paidOutTo = transaction.Outputs.Where(o =>
+                    {
+                        // If script is empty ignore it.
+                        if (o.Value == 0)
+                            return false;
+
+                        // Check if the destination script is one of the wallet's.
+                        bool found = this.keysLookup.TryGetValue(o.ScriptPubKey, out HdAddress addr);
+
+                        // Include the keys not included in our wallets (external payees).
+                        if (!found)
+                            return true;
+
+                        // Include the keys that are in the wallet but that are for receiving
+                        // addresses (which would mean the user paid itself).
+                        // We also exclude the keys involved in a staking transaction.
+                        return !addr.IsChangeAddress();/* && !transaction.IsCoinStake;*/
+                    });
+
+                    this.AddSpendingTransactionToWallet(transaction, paidOutTo, tTx.Id, tTx.Index, blockHeight, block);
+                    foundSendingTrx = true;
+                }
+            }
+
+
+            // Figure out what to do when this transaction is found to affect the wallet.
+            if (foundSendingTrx || foundReceivingTrx)
+            {
+                // Save the wallet when the transaction was not included in a block.
+                if (blockHeight == null)
+                {
+                    this.SaveWallet(Wallet);
+                }
+            }
+
+            return foundSendingTrx || foundReceivingTrx;
         }
 
-            /// <inheritdoc />
+
+        /// <summary>
+        /// Mark an output as spent, the credit of the output will not be used to calculate the balance.
+        /// The output will remain in the wallet for history (and reorg).
+        /// </summary>
+        /// <param name="transaction">The transaction from which details are added.</param>
+        /// <param name="paidToOutputs">A list of payments made out</param>
+        /// <param name="spendingTransactionId">The id of the transaction containing the output being spent, if this is a spending transaction.</param>
+        /// <param name="spendingTransactionIndex">The index of the output in the transaction being referenced, if this is a spending transaction.</param>
+        /// <param name="blockHeight">Height of the block.</param>
+        /// <param name="block">The block containing the transaction to add.</param>
+        private void AddSpendingTransactionToWallet(Transaction transaction, IEnumerable<TxOut> paidToOutputs,
+            uint256 spendingTransactionId, int? spendingTransactionIndex, int? blockHeight = null, Block block = null)
+        {
+            Guard.NotNull(transaction, nameof(transaction));
+            Guard.NotNull(paidToOutputs, nameof(paidToOutputs));
+
+            // Get the transaction being spent.
+            TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
+                .SingleOrDefault(t => (t.Id == spendingTransactionId) && (t.Index == spendingTransactionIndex));
+            if (spentTransaction == null)
+            {
+                // Strange, why would it be null?
+                this.logger.Information("(-)[TX_NULL]");
+                return;
+            }
+
+            // If the details of this spending transaction are seen for the first time.
+            if (spentTransaction.SpendingDetails == null)
+            {
+                this.logger.Information("Spending UTXO '{0}-{1}' is new.", spendingTransactionId, spendingTransactionIndex);
+
+                var payments = new List<PaymentDetails>();
+                foreach (TxOut paidToOutput in paidToOutputs)
+                {
+                    // Figure out how to retrieve the destination address.
+                    string destinationAddress = this.scriptAddressReader.GetAddressFromScriptPubKey(this.network, paidToOutput.ScriptPubKey);
+                    if (destinationAddress == string.Empty)
+                        if (this.keysLookup.TryGetValue(paidToOutput.ScriptPubKey, out HdAddress destination))
+                            destinationAddress = destination.Address;
+
+                    payments.Add(new PaymentDetails
+                    {
+                        DestinationScriptPubKey = paidToOutput.ScriptPubKey,
+                        DestinationAddress = destinationAddress,
+                        Amount = paidToOutput.Value
+                    });
+                }
+
+                var spendingDetails = new SpendingDetails
+                {
+                    TransactionId = transaction.GetHash(),
+                    Payments = payments,
+                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.BlockTime.Ticks ?? 0/*?? transaction.Time*/),
+                    BlockHeight = blockHeight,
+                    Hex = true ? transaction.ToHex() : null,
+                    IsCoinStake = /*transaction.IsCoinStake ==*/ false /*? (bool?)null : true*/
+                };
+
+                spentTransaction.SpendingDetails = spendingDetails;
+                spentTransaction.MerkleProof = null;
+            }
+            else // If this spending transaction is being confirmed in a block.
+            {
+                this.logger.Information("Spending transaction ID '{0}' is being confirmed, updating.", spendingTransactionId);
+
+                // Update the block height.
+                if (spentTransaction.SpendingDetails.BlockHeight == null && blockHeight != null)
+                {
+                    spentTransaction.SpendingDetails.BlockHeight = blockHeight;
+                }
+
+                // Update the block time to be that of the block in which the transaction is confirmed.
+                if (block != null)
+                {
+                    spentTransaction.SpendingDetails.CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.BlockTime.Ticks);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a transaction that credits the wallet with new coins.
+        /// This method is can be called many times for the same transaction (idempotent).
+        /// </summary>
+        /// <param name="transaction">The transaction from which details are added.</param>
+        /// <param name="utxo">The unspent output to add to the wallet.</param>
+        /// <param name="blockHeight">Height of the block.</param>
+        /// <param name="block">The block containing the transaction to add.</param>
+        /// <param name="isPropagated">Propagation state of the transaction.</param>
+        private void AddTransactionToWallet(Transaction transaction, TxOut utxo, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        {
+            Guard.NotNull(transaction, nameof(transaction));
+            Guard.NotNull(utxo, nameof(utxo));
+
+            uint256 transactionHash = transaction.GetHash();
+
+            // Get the collection of transactions to add to.
+            Script script = utxo.ScriptPubKey;
+            this.keysLookup.TryGetValue(script, out HdAddress address);
+            ICollection<TransactionData> addressTransactions = address.Transactions;
+
+            // Check if a similar UTXO exists or not (same transaction ID and same index).
+            // New UTXOs are added, existing ones are updated.
+            int index = transaction.Outputs.IndexOf(utxo);
+            Money amount = utxo.Value;
+            TransactionData foundTransaction = addressTransactions.FirstOrDefault(t => (t.Id == transactionHash) && (t.Index == index));
+            if (foundTransaction == null)
+            {
+                this.logger.Information("UTXO '{0}-{1}' not found, creating.", transactionHash, index);
+                var newTransaction = new TransactionData
+                {
+                    Amount = amount,
+                    IsCoinBase = transaction.IsCoinBase == false ? (bool?)null : true,
+                    IsCoinStake =  false/*transaction.IsCoinStake == false ? (bool?)null : true*/,
+                    BlockHeight = blockHeight,
+                    BlockHash = block?.GetHash(),
+                    Id = transactionHash,
+                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.BlockTime.Ticks ?? 0),
+                    Index = index,
+                    ScriptPubKey = script,
+                    Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
+                    IsPropagated = isPropagated
+                };
+
+                // Add the Merkle proof to the (non-spending) transaction.
+                if (block != null)
+                {
+                    newTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                }
+
+                addressTransactions.Add(newTransaction);
+                this.AddInputKeysLookupLocked(newTransaction);
+            }
+            else
+            {
+                this.logger.Information("Transaction ID '{0}' found, updating.", transactionHash);
+
+                // Update the block height and block hash.
+                if ((foundTransaction.BlockHeight == null) && (blockHeight != null))
+                {
+                    foundTransaction.BlockHeight = blockHeight;
+                    foundTransaction.BlockHash = block?.GetHash();
+                }
+
+                // Update the block time.
+                if (block != null)
+                {
+                    foundTransaction.CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.BlockTime.Ticks);
+                }
+
+                // Add the Merkle proof now that the transaction is confirmed in a block.
+                if ((block != null) && (foundTransaction.MerkleProof == null))
+                {
+                    foundTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                }
+
+                if (isPropagated)
+                    foundTransaction.IsPropagated = true;
+            }
+
+            this.TransactionFoundInternal(script);
+        }
+
+
+        public virtual void TransactionFoundInternal(Script script)
+        {
+
+                foreach (HdAccount account in Wallet.GetAccountsByCoinType(this.coinType))
+                {
+                    bool isChange;
+                    if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
+                    {
+                        isChange = false;
+                    }
+                    else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
+                    {
+                        isChange = true;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    IEnumerable<HdAddress> newAddresses = this.AddAddressesToMaintainBuffer(account, isChange);
+
+                    this.UpdateKeysLookupLocked(newAddresses);
+                }
+            
+        }
+
+        private IEnumerable<HdAddress> AddAddressesToMaintainBuffer(HdAccount account, bool isChange)
+        {
+            HdAddress lastUsedAddress = account.GetLastUsedAddress(isChange);
+            int lastUsedAddressIndex = lastUsedAddress?.Index ?? -1;
+            int addressesCount = isChange ? account.InternalAddresses.Count() : account.ExternalAddresses.Count();
+            int emptyAddressesCount = addressesCount - lastUsedAddressIndex - 1;
+            int addressesToAdd = unusedAddressesBuffer - emptyAddressesCount;
+
+            return addressesToAdd > 0 ? account.CreateAddresses(this.network, addressesToAdd, isChange) : new List<HdAddress>();
+        }
+
+
+        /// <inheritdoc />
         public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
         {
             Guard.NotNull(wallet, nameof(wallet));
@@ -318,6 +599,8 @@ namespace Liviano
                 wallet.SetLastBlockDetailsByCoinType(this.coinType, chainedBlock);
             }
         }
+
+
 
 
         /// <summary>
