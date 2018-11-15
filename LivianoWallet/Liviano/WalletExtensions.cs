@@ -12,6 +12,8 @@ namespace Liviano
         /// <param name="chain">The chain.</param>
         public static bool IsDownloaded(this ConcurrentChain chain)
         {
+            if (chain.Tip == null) return false;
+
             return chain.Tip.Header.BlockTime.ToUnixTimeSeconds() > (DateTimeOffset.UtcNow.ToUnixTimeSeconds() - TimeSpan.FromHours(1).TotalSeconds);
         }
 

@@ -235,7 +235,7 @@ namespace Liviano
             {
                 // Generate a new address.
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
-                BitcoinPubKeyAddress address = pubkey.GetAddress(network);
+                BitcoinWitPubKeyAddress address = pubkey.GetSegwitAddress(network);
 
                 // Add the new address details to the list of addresses.
                 var newAddress = new HdAddress

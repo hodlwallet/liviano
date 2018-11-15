@@ -94,11 +94,15 @@ namespace Liviano
             }
         }
 
-
         protected bool IsPropagated(Transaction transaction)
         {
             TransactionBroadcastEntry broadcastEntry = this.GetTransaction(transaction.GetHash());
             return (broadcastEntry != null) && (broadcastEntry.State == TransactionState.Propagated);
+        }
+
+        public static NodesGroup NewNodesGroup(Network network)
+        {
+            return new NodesGroup(network);
         }
     }
 }

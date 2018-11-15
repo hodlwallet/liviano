@@ -79,4 +79,26 @@ namespace Liviano.CLI
         [Option('r', "regtest", HelpText = "Run on regtest")]
         public bool Regtest { get; set; }
     }
+
+    [Verb("new-wallet", HelpText = "Creates a new wallet with a mnemonic")]
+    class NewWalletOptions
+    {
+        [Option("mnemonic", HelpText = "Set mnemonic to create wallet")]
+        public string Mnemonic { get; set; }
+
+        [Option("name", HelpText = "Set name to create wallet")]
+        public string Name { get; set; }
+
+        [Option("password", HelpText = "Set password to create wallet (get encrypted key)")]
+        public string Password { get; set; }
+
+        [Option("passphrase", HelpText = "Set passphrase to create wallet (get passphrase)")]
+        public string Passphrase { get; set; }
+
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
+
+        [Option('r', "regtest", HelpText = "Run on regtest")]
+        public bool Regtest { get; set; }
+    }
 }

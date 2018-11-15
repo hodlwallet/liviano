@@ -47,4 +47,7 @@ submodule_update:
 	git submodule update
 
 clean:
+	dotnet clean LivianoWallet --framework netcoreapp2.1
+	rm -rf data/*
+	rm -rf LivianoWallet/Liviano.CLI/data/*
 	rm -rf bin/*

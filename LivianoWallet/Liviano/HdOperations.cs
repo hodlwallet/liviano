@@ -12,6 +12,16 @@ namespace Liviano
     public class HdOperations
     {
         /// <summary>
+        /// a list of accepted mnemonic wordlists
+        /// </summary>
+        /// <value>an array of strings</value>
+        public static readonly string[] acceptedMnemonicWordlists = new string[] { "chinese_simplified", "chinese_traditional", "english", "french", "japanese", "portuguese_brazil", "spanish" };
+
+        public static readonly int[] acceptedMnemonicWordCount = new int[] { 12, 15, 18, 21, 24 };
+
+        public static readonly string[] acceptedNetworks = new string[] { "main", "testnet", "regtest" };
+
+        /// <summary>
         /// Generates an HD public key derived from an extended public key.
         /// </summary>
         /// <param name="accountExtPubKey">The extended public key used to generate child keys.</param>
@@ -37,13 +47,13 @@ namespace Liviano
             switch (addressType)
             {
                 case "p2pkh":
-                return pubKey.Hash.GetAddress(GetNetwork(network));
+                    return pubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2sh-p2wpkh":
-                return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
                 case "p2wpkh":
-                return pubKey.WitHash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.GetAddress(GetNetwork(network));
                 default: // Default to bech32 (p2wpkh)
-                return pubKey.WitHash.GetAddress(GetNetwork(network));
+                    return pubKey.WitHash.GetAddress(GetNetwork(network));
             }
         }
         public static Script GetScriptPubKey(string address, string network)
@@ -51,20 +61,20 @@ namespace Liviano
             return BitcoinAddress.Create(address, GetNetwork(network)).ScriptPubKey;
         }
 
-        public static Network GetNetwork(string network = null)
+        public static Network GetNetwork(string network = "main")
         {
-            if (network == null) return Network.Main;
+            Guard.NotNull(network, nameof(network));
 
-            switch (network)
+            switch (network.ToLower())
             {
                 case "main":
-                return Network.Main;
+                    return Network.Main;
                 case "testnet":
-                return Network.TestNet;
+                    return Network.TestNet;
                 case "regtest":
-                return Network.RegTest;
+                    return Network.RegTest;
                 default:
-                throw new WalletException($"Invalid network {network}");
+                    throw new WalletException($"Invalid network {network}, valid networks are {String.Join(", ", acceptedNetworks)}");
             }
         }
 
@@ -307,34 +317,7 @@ namespace Liviano
             Random rng = new Random();
             List<string> guessWords = new List<string>(amountAround + 1);
             ReadOnlyCollection<string> dictionaryWordlist;
-
-            switch (language.ToLower())
-            {
-			    case "english":
-                    dictionaryWordlist = Wordlist.English.GetWords();
-                    break;
-                case "spanish":
-                    dictionaryWordlist = Wordlist.Spanish.GetWords();
-                    break;
-                case "chinese_simplified":
-                    dictionaryWordlist = Wordlist.ChineseSimplified.GetWords();
-                    break;
-                case "chinese_traditional":
-                    dictionaryWordlist = Wordlist.ChineseTraditional.GetWords();
-                    break;
-                case "french":
-                    dictionaryWordlist = Wordlist.French.GetWords();
-                    break;
-                case "japanese":
-                    dictionaryWordlist = Wordlist.Japanese.GetWords();
-                    break;
-                case "portuguese_brazil":
-                    dictionaryWordlist = Wordlist.PortugueseBrazil.GetWords();
-                    break;
-                default:
-                    dictionaryWordlist = Wordlist.English.GetWords();
-                    break;
-            }
+            dictionaryWordlist = WordlistFromString(language).GetWords();
 
             int indexOfWord = dictionaryWordlist.IndexOf(wordToGuess);
 
@@ -408,7 +391,7 @@ namespace Liviano
                 case "portuguese_brazil":
                     return Wordlist.PortugueseBrazil;
                 default:
-                    return Wordlist.English;
+                    throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", acceptedMnemonicWordlists)}");
             }
         }
 
@@ -427,8 +410,13 @@ namespace Liviano
                 case 24:
                     return WordCount.TwentyFour;
                 default:
-                    return WordCount.Twelve;
+                    throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", acceptedMnemonicWordCount)} are valid options.");
             }
+        }
+
+        public static ConcurrentChain NewConcurrentChain()
+        {
+            return new ConcurrentChain();
         }
     }
 }
