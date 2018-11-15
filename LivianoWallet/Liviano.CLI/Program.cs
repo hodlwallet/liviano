@@ -165,7 +165,7 @@ namespace Liviano.CLI
                 string mnemonic = null;
 
                 string name = null;
-                string passphrase = "";
+                string passphrase = null;
                 string password = "";
 
                 if (o.Testnet)
