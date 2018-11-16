@@ -170,7 +170,7 @@ namespace Liviano.CLI
 
             //    Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             //});
-            var walletFileId = Guid.NewGuid().ToString();
+            var walletFileId = "c5cfc267-b75a-41bc-bdb5-8b67299d04f4";
             var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             var network = Network.TestNet;
             var chain = GetChain();
@@ -185,9 +185,9 @@ namespace Liviano.CLI
 
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
-
-            var expectedM = walletManager.CreateWallet("1111", "test", "", m);
-
+            walletManager.CreateWallet("1111","test",m);
+            //wallet.AddNewAccount("1111", CoinType.Bitcoin, DateTimeOffset.Now);
+            //walletManager.SaveWallet(wallet);
 
             var parameters = new NodeConnectionParameters();
             //parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
@@ -204,13 +204,12 @@ namespace Liviano.CLI
             var broadcastManager = new BroadcastManager(_Group);
            
 
-            Console.WriteLine(expectedM.DeriveSeed() == m.DeriveSeed());
 
 
             walletManager.Start();
             var ScanLocation = new BlockLocator();
             ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
-            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 10, 1)));
+            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 11, 10)));
 
 
             conparams = parameters;

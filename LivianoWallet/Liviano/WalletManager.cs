@@ -217,17 +217,17 @@ namespace Liviano
         }
 
         /// <inheritdoc />
-        public Mnemonic CreateWallet(string password, string name, string passphrase, Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
+        public Mnemonic CreateWallet(string password, string name, Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
         {
             Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(name, nameof(name));
-            Guard.NotNull(passphrase, nameof(passphrase));
+           // Guard.NotNull(passphrase, nameof(passphrase));
 
             // Generate the root seed used to generate keys from a mnemonic picked at random
             // and a passphrase optionally provided by the user.
             mnemonic = mnemonic ?? new Mnemonic(HdOperations.WordlistFromString(wordlist), HdOperations.WordCountFromInt(wordCount));
 
-            ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
+            ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic);
 
             // Create a wallet file.
             string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this.network).ToWif();

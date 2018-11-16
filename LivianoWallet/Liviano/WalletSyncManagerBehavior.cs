@@ -16,7 +16,7 @@ namespace Liviano
         IWalletSyncManager _walletSyncManager;
 
         DateTimeOffset _SkipBefore { get { return _walletSyncManager.DateToStartScanningFrom; } set { _walletSyncManager.DateToStartScanningFrom = value; } }
-
+        int purgeCount = 0;
         private BlockLocator _CurrentPosition { get { return _walletSyncManager.CurrentPosition; } set { _walletSyncManager.CurrentPosition = value; } }
         private ConcurrentChain _Chain;
         private ConcurrentChain _ExplicitChain;
@@ -130,49 +130,14 @@ namespace Liviano
                 HandleTxPayload(messagePayload as TxPayload);
             else
             {
-                //Who cares!
-            }
-        }
-
-        private void HandleTxPayload(TxPayload txPayload)
-        {
-            if (txPayload != null)
-            {
-                var tx = txPayload.Object;
-                MerkleBlock blk;
-                var h = tx.GetHash();
-                _TransactionsToBlock.TryGetValue(h, out blk);
-                NotifyWalletSyncManager(tx, blk);
-            }
-        }
-
-        private void HandleInvPayload(InvPayload invPayload, Node node)
-        {
-            if (invPayload != null)
-            {
-                foreach (var inv in invPayload)
-                {
-                    if ((inv.Type & InventoryType.MSG_BLOCK) != 0)
-                        node.SendMessageAsync(new GetDataPayload(new InventoryVector(InventoryType.MSG_FILTERED_BLOCK, inv.Hash)));
-                    if ((inv.Type & InventoryType.MSG_TX) != 0)
-                        node.SendMessageAsync(new GetDataPayload(inv));
-                }
-            }
-        }
-
-        private void HandleNotFoundPayLoad(NotFoundPayload notFoundPayload)
-        {
-            if (notFoundPayload != null)
-            {
-                foreach (var txid in notFoundPayload) //These payloads cant be found
-                {
-                    uint256 unusued;
-                    if (_InFlight.TryRemove(txid.Hash, out unusued)) //Remove them from out inflight list 
+                message.Message.IfPayloadIs<PingPayload>((x) =>{
+                    purgeCount++;
+                    if (purgeCount > 2)
                     {
-                        if (_InFlight.Count == 0) //If inflight is zero 
-                            StartScan(null); //Scan
+                        AttachedNode.DisconnectAsync("Disconnecting because of deadlock");
                     }
-                }
+                });
+                
             }
         }
 
@@ -217,6 +182,7 @@ namespace Liviano
 
         private bool IsScanning(Node node)
         {
+            Console.WriteLine("Purge Count:" + purgeCount);
             return _InFlight.Count != 0 || _CurrentPosition == null || node == null;
         }
 
@@ -238,6 +204,52 @@ namespace Liviano
             }
         }
 
+        private void HandleTxPayload(TxPayload txPayload)
+        {
+            if (txPayload != null)
+            {
+                var tx = txPayload.Object;
+                MerkleBlock blk;
+                var h = tx.GetHash();
+                _TransactionsToBlock.TryGetValue(h, out blk);
+                if (blk != null)
+                {
+                    Console.WriteLine("Found a transaction bounded to a block");
+                }
+                NotifyWalletSyncManager(tx, blk);
+            }
+        }
+
+        private void HandleInvPayload(InvPayload invPayload, Node node)
+        {
+            if (invPayload != null)
+            {
+                foreach (var inv in invPayload)
+                {
+                    if ((inv.Type & InventoryType.MSG_BLOCK) != 0)
+                        node.SendMessageAsync(new GetDataPayload(new InventoryVector(InventoryType.MSG_FILTERED_BLOCK, inv.Hash)));
+                    if ((inv.Type & InventoryType.MSG_TX) != 0)
+                        node.SendMessageAsync(new GetDataPayload(inv));
+                }
+            }
+        }
+
+        private void HandleNotFoundPayLoad(NotFoundPayload notFoundPayload)
+        {
+            if (notFoundPayload != null)
+            {
+                foreach (var txid in notFoundPayload) //These payloads cant be found
+                {
+                    uint256 unusued;
+                    if (_InFlight.TryRemove(txid.Hash, out unusued)) //Remove them from out inflight list 
+                    {
+                        if (_InFlight.Count == 0) //If inflight is zero 
+                            StartScan(null); //Scan
+                    }
+                }
+            }
+        }
+
         private void HandleMerkleBlockPayload(MerkleBlockPayload merkleBlockPayload)
         {
             if (merkleBlockPayload != null)
@@ -246,7 +258,8 @@ namespace Liviano
                 {
                     return;
                 }
-                //merkleBlockPayload.Object.Header.
+                purgeCount = 0;
+                Console.WriteLine("Merkle block payload block time: " + merkleBlockPayload.Object.Header.BlockTime);
                 foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
                 {
                     _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
@@ -288,6 +301,7 @@ namespace Liviano
             if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
             {
                 _CurrentPosition = chained.GetLocator(); //Set the new location
+                Console.WriteLine("Updated current position: " + _Chain.FindFork(_CurrentPosition).Height);
             }
         }
 
@@ -300,6 +314,7 @@ namespace Liviano
 
         private bool NotifyWalletSyncManager(Transaction tx, MerkleBlock blk)
         {
+
             bool hit = false;
             if (blk == null)
             {
@@ -307,11 +322,11 @@ namespace Liviano
             }
             else
             {
+
                 var prev = _Chain.GetBlock(blk.Header.HashPrevBlock);
                 if (prev != null)
                 {
                     var header = new ChainedBlock(blk.Header, null, prev);
-                    Console.WriteLine("Block time: " + blk.Header.BlockTime);
                     hit = _walletSyncManager.ProcessTransaction(tx, header, blk);
                 }
                 else
