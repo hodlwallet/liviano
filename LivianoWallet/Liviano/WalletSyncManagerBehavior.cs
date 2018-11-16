@@ -16,7 +16,6 @@ namespace Liviano
         IWalletSyncManager _walletSyncManager;
 
         DateTimeOffset _SkipBefore { get { return _walletSyncManager.DateToStartScanningFrom; } set { _walletSyncManager.DateToStartScanningFrom = value; } }
-        int purgeCount = 0;
         private BlockLocator _CurrentPosition { get { return _walletSyncManager.CurrentPosition; } set { _walletSyncManager.CurrentPosition = value; } }
         private ConcurrentChain _Chain;
         private ConcurrentChain _ExplicitChain;
@@ -129,15 +128,7 @@ namespace Liviano
             else if (messagePayload is TxPayload)
                 HandleTxPayload(messagePayload as TxPayload);
             else
-            {
-                message.Message.IfPayloadIs<PingPayload>((x) =>{
-                    purgeCount++;
-                    if (purgeCount > 2)
-                    {
-                        AttachedNode.DisconnectAsync("Disconnecting because of deadlock");
-                    }
-                });
-                
+            {   
             }
         }
 
@@ -182,7 +173,6 @@ namespace Liviano
 
         private bool IsScanning(Node node)
         {
-            Console.WriteLine("Purge Count:" + purgeCount);
             return _InFlight.Count != 0 || _CurrentPosition == null || node == null;
         }
 
@@ -258,7 +248,6 @@ namespace Liviano
                 {
                     return;
                 }
-                purgeCount = 0;
                 Console.WriteLine("Merkle block payload block time: " + merkleBlockPayload.Object.Header.BlockTime);
                 foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
                 {
