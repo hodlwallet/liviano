@@ -22,10 +22,16 @@ namespace Liviano
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
-        [JsonProperty(PropertyName = "scriptPubKey")]
+        [JsonProperty(PropertyName = "P2WPKHScriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script ScriptPubKey { get; set; }
+        public Script P2WPKH_ScriptPubKey { get; set; }
 
+        /// <summary>
+        /// The script pub key for this address.
+        /// </summary>
+        [JsonProperty(PropertyName = "P2PKHScriptPubKey")]
+        [JsonConverter(typeof(ScriptJsonConverter))]
+        public Script P2PKH_ScriptPubKey { get; set; }
         /// <summary>
         /// The script pub key for this address.
         /// </summary>

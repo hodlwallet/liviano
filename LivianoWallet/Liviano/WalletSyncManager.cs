@@ -75,7 +75,7 @@ namespace Liviano
 
             var interesting = false;
             var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
-            var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.ScriptPubKey);
+            var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.P2wpkhScriptPubKey);
 
 
             Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
@@ -163,7 +163,7 @@ namespace Liviano
         private IEnumerable<byte[]> GetDataToTrack()
         {
 
-            var allScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(c => c.IsChangeAddress() == false).SelectMany(x => x.ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var allScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(c => c.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
             var allOutPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint().ToBytes());
 
 
