@@ -177,13 +177,22 @@ namespace Liviano
         {
             List<HdAccount> accounts = this.GetAccountsByCoinType(coinType).ToList();
 
-            foreach (Script script in accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2PKH_ScriptPubKey).Concat(accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2WPKH_ScriptPubKey)))
+            List<Script> externalScripts = new List<Script>();
+            externalScripts.Concat(accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2PKH_ScriptPubKey));
+            externalScripts.Concat(accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2WPKH_ScriptPubKey));
+            externalScripts.Concat(accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2SH_P2WPKH_ScriptPubKey));
+
+            foreach (Script script in externalScripts)
             {
                 yield return script;
             }
 
-            foreach (Script script in accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2PKH_ScriptPubKey).Concat(accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2WPKH_ScriptPubKey)))
+            List<Script> internalScripts = new List<Script>();
+            internalScripts.Concat(accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2PKH_ScriptPubKey));
+            internalScripts.Concat(accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2WPKH_ScriptPubKey));
+            internalScripts.Concat(accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2SH_P2WPKH_ScriptPubKey));
 
+            foreach (Script script in internalScripts)
             {
                 yield return script;
             }

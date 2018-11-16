@@ -32,6 +32,14 @@ namespace Liviano
         [JsonProperty(PropertyName = "P2PKHScriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
         public Script P2PKH_ScriptPubKey { get; set; }
+
+        /// <summary>
+        /// The script pub key for this address.
+        /// </summary>
+        [JsonProperty(PropertyName = "P2SHP2WPKHScriptPubKey")]
+        [JsonConverter(typeof(ScriptJsonConverter))]
+        public Script P2SH_P2WPKH_ScriptPubKey { get; set; }
+
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
@@ -50,6 +58,12 @@ namespace Liviano
         /// </summary>
         [JsonProperty(PropertyName = "legacyAddress")]
         public string LegacyAddress { get; set; }
+
+                /// <summary>
+        /// The Base58 representation of this address.
+        /// </summary>
+        [JsonProperty(PropertyName = "compatibilityAddress")]
+        public string CompatilibityAddress { get; set; }
 
         /// <summary>
         /// A path to the address as defined in BIP44.

@@ -237,6 +237,7 @@ namespace Liviano
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
                 BitcoinWitPubKeyAddress segwitAddress = pubkey.GetSegwitAddress(network);
                 BitcoinAddress legacyAddress = pubkey.GetAddress(network);
+                BitcoinAddress compatibilityAddress = pubkey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(network);
 
                 // Add the new address details to the list of addresses.
                 var newAddress = new HdAddress
@@ -245,9 +246,11 @@ namespace Liviano
                     HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i),
                     P2WPKH_ScriptPubKey = segwitAddress.ScriptPubKey,
                     P2PKH_ScriptPubKey = legacyAddress.ScriptPubKey,
+                    P2SH_P2WPKH_ScriptPubKey = compatibilityAddress.ScriptPubKey,
                     Pubkey = pubkey.ScriptPubKey,
                     Address = segwitAddress.ToString(),
                     LegacyAddress = legacyAddress.ToString(),
+                    CompatilibityAddress = compatibilityAddress.ToString(),
                     Transactions = new List<TransactionData>()
                 };
 
