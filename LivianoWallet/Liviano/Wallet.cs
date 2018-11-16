@@ -177,12 +177,13 @@ namespace Liviano
         {
             List<HdAccount> accounts = this.GetAccountsByCoinType(coinType).ToList();
 
-            foreach (Script script in accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.ScriptPubKey))
+            foreach (Script script in accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2PKH_ScriptPubKey).Concat(accounts.SelectMany(x => x.ExternalAddresses).Select(x => x.P2WPKH_ScriptPubKey)))
             {
                 yield return script;
             }
 
-            foreach (Script script in accounts.SelectMany(x => x.InternalAddresses).Select(x => x.ScriptPubKey))
+            foreach (Script script in accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2PKH_ScriptPubKey).Concat(accounts.SelectMany(x => x.InternalAddresses).Select(x => x.P2WPKH_ScriptPubKey)))
+
             {
                 yield return script;
             }

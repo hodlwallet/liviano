@@ -75,7 +75,7 @@ namespace Liviano
 
             var interesting = false;
             var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
-            var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.P2wpkhScriptPubKey);
+            var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.P2WPKH_ScriptPubKey);
 
 
             Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
