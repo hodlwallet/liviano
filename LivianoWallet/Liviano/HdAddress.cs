@@ -48,7 +48,7 @@ namespace Liviano
         /// <summary>
         /// The Base58 representation of this address.
         /// </summary>
-        [JsonProperty(PropertyName = "address")]
+        [JsonProperty(PropertyName = "legacyAddress")]
         public string LegacyAddress { get; set; }
 
         /// <summary>
