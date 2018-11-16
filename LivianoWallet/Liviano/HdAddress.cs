@@ -44,6 +44,12 @@ namespace Liviano
         /// </summary>
         [JsonProperty(PropertyName = "address")]
         public string Address { get; set; }
+        
+        /// <summary>
+        /// The Base58 representation of this address.
+        /// </summary>
+        [JsonProperty(PropertyName = "address")]
+        public string LegacyAddress { get; set; }
 
         /// <summary>
         /// A path to the address as defined in BIP44.

@@ -207,7 +207,7 @@ namespace Liviano
                         this.keysLookup[address.P2PKH_ScriptPubKey] = address;
                         this.keysLookup[address.P2WPKH_ScriptPubKey] = address; //Changed
                         if (address.Pubkey != null)
-                        this.keysLookup[address.Pubkey] = address;
+                            this.keysLookup[address.Pubkey] = address;
 
                         foreach (TransactionData transaction in address.Transactions)
                         {
@@ -394,8 +394,7 @@ namespace Liviano
             {
                 foreach (HdAddress address in addresses)
                 {
-                    this.keysLookup[address.P2PKH_ScriptPubKey] = address;
-                    this.keysLookup[address.P2WPKH_ScriptPubKey] = address;
+                    this.keysLookup[address.ScriptPubKey] = address;
                     if (address.Pubkey != null)
                         this.keysLookup[address.Pubkey] = address;
                 }
@@ -650,11 +649,11 @@ namespace Liviano
                 foreach (HdAccount account in Wallet.GetAccountsByCoinType(this.coinType))
                 {
                     bool isChange;
-                    if (account.ExternalAddresses.Any(address => address.P2WPKH_ScriptPubKey == script || address.P2PKH_ScriptPubKey == script)) //Changed
+                    if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
                     {
                         isChange = false;
                     }
-                    else if (account.InternalAddresses.Any(address => address.P2WPKH_ScriptPubKey == script || address.P2PKH_ScriptPubKey == script)) //Changed
+                    else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
                     {
                         isChange = true;
                     }

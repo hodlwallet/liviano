@@ -247,6 +247,7 @@ namespace Liviano
                     P2PKH_ScriptPubKey = legacyAddress.ScriptPubKey,
                     Pubkey = pubkey.ScriptPubKey,
                     Address = segwitAddress.ToString(),
+                    LegacyAddress = legacyAddress.ToString(),
                     Transactions = new List<TransactionData>()
                 };
 

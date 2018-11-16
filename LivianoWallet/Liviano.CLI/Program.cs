@@ -170,7 +170,7 @@ namespace Liviano.CLI
 
             //    Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             //});
-            var walletFileId = "c5cfc267-b75a-41bc-bdb5-8b67299d04f4";
+            var walletFileId = Guid.NewGuid().ToString(); //"c5cfc267-b75a-41bc-bdb5-8b67299d04f4";
             var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             var network = Network.TestNet;
             var chain = GetChain();
