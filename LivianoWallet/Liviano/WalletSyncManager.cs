@@ -75,7 +75,9 @@ namespace Liviano
 
             var interesting = false;
             var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
-            var scripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Select(x => x.P2WPKH_ScriptPubKey);
+            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false).Select(x => x.P2WPKH_ScriptPubKey);
+            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).Select(x => x.P2WPKH_ScriptPubKey);
+            var scripts = legacyScripts.Concat(segWitScripts);
 
 
             Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
@@ -163,11 +165,14 @@ namespace Liviano
         private IEnumerable<byte[]> GetDataToTrack()
         {
 
-            var allScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(c => c.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var scripts = legacyScripts.Concat(segWitScripts);
+
             var allOutPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint().ToBytes());
 
 
-            return allScripts.Concat(allOutPoints).Where(b => b != null);
+            return scripts.Concat(allOutPoints).Where(b => b != null);
         }
 
         private void UpdateTweak()
