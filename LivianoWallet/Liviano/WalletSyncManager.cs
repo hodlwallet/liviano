@@ -71,16 +71,19 @@ namespace Liviano
                     throw new InvalidOperationException("The MerkleBlock does not have the expected merkle root");
                 if (!proof.PartialMerkleTree.GetMatchedTransactions().Contains(transaction.GetHash()))
                     throw new InvalidOperationException("The MerkleBlock does not contains the input transaction");
+
+                Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
+
+
             }
 
             var interesting = false;
             var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
             var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false).Select(x => x.P2WPKH_ScriptPubKey);
-            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).Select(x => x.P2WPKH_ScriptPubKey);
+            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).Select(x => x.P2PKH_ScriptPubKey);
             var scripts = legacyScripts.Concat(segWitScripts);
 
 
-            Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
 
             foreach (var txin in transaction.Inputs.AsIndexedInputs())
             {
