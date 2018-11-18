@@ -417,7 +417,7 @@ namespace Liviano
         }
 
 
-        public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        public bool ProcessTransaction(Transaction transaction, int? blockHeight = null, MerkleBlock block = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
             uint256 hash = transaction.GetHash();
@@ -496,7 +496,7 @@ namespace Liviano
         /// <param name="blockHeight">Height of the block.</param>
         /// <param name="block">The block containing the transaction to add.</param>
         private void AddSpendingTransactionToWallet(Transaction transaction, IEnumerable<TxOut> paidToOutputs,
-            uint256 spendingTransactionId, int? spendingTransactionIndex, int? blockHeight = null, Block block = null)
+            uint256 spendingTransactionId, int? spendingTransactionIndex, int? blockHeight = null, MerkleBlock block = null)
         {
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(paidToOutputs, nameof(paidToOutputs));
@@ -544,7 +544,7 @@ namespace Liviano
                 };
 
                 spentTransaction.SpendingDetails = spendingDetails;
-                spentTransaction.MerkleProof = null;
+                spentTransaction.MerkleProof = block.PartialMerkleTree;
             }
             else // If this spending transaction is being confirmed in a block.
             {
@@ -573,10 +573,11 @@ namespace Liviano
         /// <param name="blockHeight">Height of the block.</param>
         /// <param name="block">The block containing the transaction to add.</param>
         /// <param name="isPropagated">Propagation state of the transaction.</param>
-        private void AddTransactionToWallet(Transaction transaction, TxOut utxo, int? blockHeight = null, Block block = null, bool isPropagated = true)
+        private void AddTransactionToWallet(Transaction transaction, TxOut utxo, int? blockHeight = null, MerkleBlock block = null, bool isPropagated = true)
         {
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(utxo, nameof(utxo));
+
 
             uint256 transactionHash = transaction.GetHash();
 
@@ -599,9 +600,9 @@ namespace Liviano
                     IsCoinBase = transaction.IsCoinBase == false ? (bool?)null : true,
                     IsCoinStake =  false/*transaction.IsCoinStake == false ? (bool?)null : true*/,
                     BlockHeight = blockHeight,
-                    BlockHash = block?.GetHash(),
+                    //BlockHash = block?.GetHash(),
                     Id = transactionHash,
-                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.BlockTime.Ticks ?? 0),
+                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(0), //TODO: TIME
                     Index = index,
                     ScriptPubKey = script,
                     Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
@@ -611,7 +612,8 @@ namespace Liviano
                 // Add the Merkle proof to the (non-spending) transaction.
                 if (block != null)
                 {
-                    newTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    //newTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    newTransaction.MerkleProof = block.PartialMerkleTree;
                 }
 
                 addressTransactions.Add(newTransaction);
@@ -625,19 +627,21 @@ namespace Liviano
                 if ((foundTransaction.BlockHeight == null) && (blockHeight != null))
                 {
                     foundTransaction.BlockHeight = blockHeight;
-                    foundTransaction.BlockHash = block?.GetHash();
+                    //foundTransaction.BlockHash = block?.GetHash();
                 }
 
                 // Update the block time.
                 if (block != null)
                 {
-                    foundTransaction.CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.BlockTime.Ticks);
+                    foundTransaction.CreationTime = DateTimeOffset.FromUnixTimeSeconds(0);
                 }
 
                 // Add the Merkle proof now that the transaction is confirmed in a block.
                 if ((block != null) && (foundTransaction.MerkleProof == null))
                 {
-                    foundTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    //foundTransaction.MerkleProof = new MerkleBlock(block, new[] { transactionHash }).PartialMerkleTree;
+                    foundTransaction.MerkleProof = block.PartialMerkleTree;
+
                 }
 
                 if (isPropagated)

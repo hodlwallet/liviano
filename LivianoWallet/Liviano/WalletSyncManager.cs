@@ -92,6 +92,7 @@ namespace Liviano
                 if (outPoints.Contains(outPointToLookFor))
                 {
                     Console.WriteLine("Found SOMETHING!!!");
+                    _walletManager.ProcessTransaction(transaction, null, proof);
                 }
             }
 
@@ -102,6 +103,7 @@ namespace Liviano
 
                 if (scripts.Contains(scriptToSearchFor))
                 {
+                    _walletManager.ProcessTransaction(transaction, null, proof);
                     Console.WriteLine("Found SOMETHING!!!");
                 }
 
@@ -168,9 +170,10 @@ namespace Liviano
         private IEnumerable<byte[]> GetDataToTrack()
         {
 
-            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
             var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
-            var scripts = legacyScripts.Concat(segWitScripts);
+            //var compatabilityScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2SH_P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
+            var scripts = legacyScripts.Concat(segWitScripts); //Concat(compatabilityScripts);
 
             var allOutPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint().ToBytes());
 
