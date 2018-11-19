@@ -209,7 +209,7 @@ namespace Liviano.CLI
             walletManager.Start();
             var ScanLocation = new BlockLocator();
             ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
-            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 11, 10)));
+            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 11, 1)));
 
 
             conparams = parameters;
