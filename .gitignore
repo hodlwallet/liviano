@@ -341,3 +341,6 @@ liviano-cli
 # Data directory where the wallet is stored on my tests
 data
 LivianoWallet/Liviano.CLI/data/
+
+addrman.dat
+chain.dat
