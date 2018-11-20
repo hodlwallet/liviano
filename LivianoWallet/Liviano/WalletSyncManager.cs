@@ -171,16 +171,17 @@ namespace Liviano
 
         private IEnumerable<byte[]> GetDataToTrack()
         {
+            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
+            var spendableTransactions = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height);
 
-            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
-            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
-            var compatabilityScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).SelectMany(x => x.P2SH_P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData).Where(o => o != null));
-            var scripts = legacyScripts.Concat(segWitScripts).Concat(compatabilityScripts);
+            var data = addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData));
+            data = data.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
 
-            var allOutPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint().ToBytes());
+            data = data.Concat(spendableTransactions.Select(x => x.ToOutPoint().ToBytes()));
 
+            data = data.Where(x => x != null);
 
-            return scripts.Concat(allOutPoints).Where(b => b != null);
+            return data;
         }
 
         private void UpdateTweak()
