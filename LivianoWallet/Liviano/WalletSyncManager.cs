@@ -20,7 +20,7 @@ namespace Liviano
         public BlockLocator CurrentPosition { get; set; }
         public DateTimeOffset DateToStartScanningFrom { get; set; }
 
-        public BloomFilter CreateBloomFilter(double Fp, BloomFlags flags = BloomFlags.UPDATE_ALL)
+        public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes ,  BloomFlags flags = BloomFlags.UPDATE_ALL)
         {
 
             var scriptCount = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
@@ -28,7 +28,7 @@ namespace Liviano
 
 
 
-            var toTrack = GetDataToTrack().ToArray();
+            var toTrack = GetDataToTrack(scriptTypes).ToArray();
             foreach (var data in toTrack)
                 filter.Insert(data);
             return filter;
@@ -169,19 +169,33 @@ namespace Liviano
             return _chain.FindFork(locator).Height < _chain.FindFork(CurrentPosition).Height;
         }
 
-        private IEnumerable<byte[]> GetDataToTrack()
+        private IEnumerable<byte[]> GetDataToTrack(ScriptTypes scriptType)
         {
             var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
             var spendableTransactions = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height);
 
-            var data = addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData));
-            data = data.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes());
 
-            data = data.Concat(spendableTransactions.Select(x => x.ToOutPoint().ToBytes()));
+            switch (scriptType)
+            {
+                case ScriptTypes.Legacy:
+                    dataToTrack.Concat(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    break;
+                case ScriptTypes.Segwit:
+                    dataToTrack.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    break;
+                case ScriptTypes.SegwitAndLegacy:
+                    dataToTrack.Concat(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    dataToTrack.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes),scriptType)}");
+            }
 
-            data = data.Where(x => x != null);
+            //Kill the null entries
+            dataToTrack = dataToTrack.Where(x => x != null);
 
-            return data;
+            return dataToTrack;
         }
 
         private void UpdateTweak()

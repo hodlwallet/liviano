@@ -30,6 +30,7 @@ namespace Liviano
         volatile PingPayload _PreviousPing;
         private FilterState _FilterState;
         private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
+        private ScriptTypes _ScriptType;
 
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
@@ -50,19 +51,19 @@ namespace Liviano
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.Legacy ,ConcurrentChain chain = null)
         {
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
             _Chain = chain;
             _ExplicitChain = chain;
-
+            _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
         }
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _ExplicitChain);
+            var clone = new WalletSyncManagerBehavior(_walletSyncManager,_ScriptType,_ExplicitChain);
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;
             clone._CurrentPosition = _CurrentPosition;
@@ -80,7 +81,7 @@ namespace Liviano
             if (node != null) //Insure we have a node
             {
                 _PreviousPing = null; //Set to null
-                var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate); //Create bloom filter
+                var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate,_ScriptType); //Create bloom filter
                 _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
                 node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
                 _FilterState = FilterState.Loading; // Set state to loading
