@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -113,6 +114,21 @@ namespace Liviano
             long total = allTransactions.Sum(t => t.SpendableAmount(false));
 
             return (confirmed, total - confirmed);
+        }
+
+        public IEnumerable<byte[]> GetTrackableAddressData(ScriptTypes scriptType)
+        {
+            switch (scriptType)
+            {
+                case ScriptTypes.Legacy:
+                    return this.P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData);
+                case ScriptTypes.Segwit:
+                    return this.P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData);
+                case ScriptTypes.SegwitAndLegacy:
+                    return this.P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData).Concat(this.P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData));
+                default:
+                    throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes), scriptType)}");
+            }
         }
     }
 }

@@ -172,29 +172,8 @@ namespace Liviano
         private IEnumerable<byte[]> GetDataToTrack(ScriptTypes scriptType)
         {
             var spendableTransactions = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height);
-            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).ToList();
-            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).ToList();
-
-
-            switch (scriptType)
-            {
-                case ScriptTypes.Legacy:
-                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
-
-                    break;
-                case ScriptTypes.Segwit:
-                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
-                    break;
-                case ScriptTypes.SegwitAndLegacy:
-                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
-                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
-                    break;
-                default:
-                    throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes),scriptType)}");
-            }
-
-            //Kill the null entries
-            dataToTrack = dataToTrack.Where(x => x != null).ToList();
+            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
+            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).Concat(addresses.SelectMany(x => x.GetTrackableAddressData(scriptType))).Where(x => x != null);
 
             return dataToTrack;
         }
