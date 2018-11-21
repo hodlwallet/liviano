@@ -62,7 +62,7 @@ namespace Liviano
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null, ILogger logger = null)
+        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ILogger logger, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
         {
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
@@ -75,7 +75,7 @@ namespace Liviano
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _ScriptType, _ExplicitChain, _Logger);
+            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _Logger, _ScriptType, _ExplicitChain);
 
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;

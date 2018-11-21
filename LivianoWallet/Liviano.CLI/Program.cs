@@ -17,8 +17,13 @@ namespace Liviano.CLI
     class Program
     {
         private static NodesGroup _Group;
+
         private static object locker = new object();
+
         private static NodeConnectionParameters conparams;
+
+        private static ILogger _Logger;
+
         static void Main(string[] args)
         {
             //Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions>(args)
@@ -171,7 +176,7 @@ namespace Liviano.CLI
             //    Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             //});
             var walletFileId = "c5cfc267-b75a-41bc-bdb5-8b67299d04f4"; //"c5cfc267-b75a-41bc-bdb5-8b67299d04f4";
-            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             var network = Network.TestNet;
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
@@ -180,12 +185,12 @@ namespace Liviano.CLI
             var storageProvider = new FileSystemStorageProvider(id: walletFileId);
 
 
-            WalletManager walletManager = new WalletManager(logger,network,chain,asyncLoopFactory,dateTimeProvider,scriptAddressReader,storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, logger);
+            WalletManager walletManager = new WalletManager(_Logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, _Logger);
 
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
-            walletManager.CreateWallet("1111","test",m);
+            walletManager.CreateWallet("1111", "test", m);
            // walletManager.Wallet.AddNewAccount("1111", CoinType.Bitcoin, DateTimeOffset.Now);
             //walletManager.SaveWallet(walletManager.Wallet);
 
@@ -193,7 +198,7 @@ namespace Liviano.CLI
             //parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager, logger: logger));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager, _Logger));
             _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
