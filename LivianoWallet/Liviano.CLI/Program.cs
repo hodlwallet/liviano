@@ -186,8 +186,8 @@ namespace Liviano.CLI
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
             walletManager.CreateWallet("1111","test",m);
-            //wallet.AddNewAccount("1111", CoinType.Bitcoin, DateTimeOffset.Now);
-            //walletManager.SaveWallet(wallet);
+            walletManager.Wallet.AddNewAccount("1111", CoinType.Bitcoin, DateTimeOffset.Now);
+            walletManager.SaveWallet(walletManager.Wallet);
 
             var parameters = new NodeConnectionParameters();
             //parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same

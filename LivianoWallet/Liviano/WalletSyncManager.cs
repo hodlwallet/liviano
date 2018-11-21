@@ -171,29 +171,30 @@ namespace Liviano
 
         private IEnumerable<byte[]> GetDataToTrack(ScriptTypes scriptType)
         {
-            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
             var spendableTransactions = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height);
+            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).ToList();
+            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).ToList();
 
-            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes());
 
             switch (scriptType)
             {
                 case ScriptTypes.Legacy:
-                    dataToTrack.Concat(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
+
                     break;
                 case ScriptTypes.Segwit:
-                    dataToTrack.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
                     break;
                 case ScriptTypes.SegwitAndLegacy:
-                    dataToTrack.Concat(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
-                    dataToTrack.Concat(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)));
+                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2PKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
+                    dataToTrack.AddRange(addresses.SelectMany(x => x.P2WPKH_ScriptPubKey.ToOps().Select(o => o.PushData)).ToList());
                     break;
                 default:
                     throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes),scriptType)}");
             }
 
             //Kill the null entries
-            dataToTrack = dataToTrack.Where(x => x != null);
+            dataToTrack = dataToTrack.Where(x => x != null).ToList();
 
             return dataToTrack;
         }

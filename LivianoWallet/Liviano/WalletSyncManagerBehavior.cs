@@ -51,7 +51,7 @@ namespace Liviano
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.Legacy ,ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy ,ConcurrentChain chain = null)
         {
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
