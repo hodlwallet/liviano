@@ -2,35 +2,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using Serilog;
 
 namespace Liviano
 {
     public class WalletSyncManager : IWalletSyncManager
     {
         WalletManager _walletManager;
+
         ConcurrentChain _chain;
+
         private uint _Tweak;
 
-        public WalletSyncManager(WalletManager walletManager, ConcurrentChain chain)
+        private ILogger _Logger;
+
+        public WalletSyncManager(WalletManager walletManager, ConcurrentChain chain, ILogger logger)
         {
             _chain = chain;
             _walletManager = walletManager;
+            _Logger = logger;
         }
 
         public BlockLocator CurrentPosition { get; set; }
+
         public DateTimeOffset DateToStartScanningFrom { get; set; }
 
-        public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes ,  BloomFlags flags = BloomFlags.UPDATE_ALL)
+        public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes, BloomFlags flags = BloomFlags.UPDATE_ALL)
         {
 
             var scriptCount = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
             var filter = new BloomFilter(scriptCount == 0 ? 1 : scriptCount, Fp, _Tweak, flags);
 
-
-
             var toTrack = GetDataToTrack(scriptTypes).ToArray();
             foreach (var data in toTrack)
                 filter.Insert(data);
+
             return filter;
         }
 
@@ -72,9 +78,7 @@ namespace Liviano
                 if (!proof.PartialMerkleTree.GetMatchedTransactions().Contains(transaction.GetHash()))
                     throw new InvalidOperationException("The MerkleBlock does not contains the input transaction");
 
-                Console.WriteLine("Processing block time of: " + proof.Header.BlockTime);
-
-
+                _Logger.Information("Processing block time of: {0}", proof.Header.BlockTime);
             }
 
             var interesting = false;
@@ -94,7 +98,8 @@ namespace Liviano
 
                 if (outPoints.Contains(outPointToLookFor))
                 {
-                    Console.WriteLine("Found SOMETHING!!!");
+                    _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
+
                     _walletManager.ProcessTransaction(transaction, null, proof);
                 }
             }
@@ -105,8 +110,9 @@ namespace Liviano
 
                 if (scripts.Contains(scriptToSearchFor))
                 {
+                    _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
+
                     _walletManager.ProcessTransaction(transaction, null, proof);
-                    Console.WriteLine("Found SOMETHING!!!");
                 }
 
             }

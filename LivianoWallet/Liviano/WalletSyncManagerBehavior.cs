@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.SPV;
+using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,21 +17,31 @@ namespace Liviano
         IWalletSyncManager _walletSyncManager;
 
         DateTimeOffset _SkipBefore { get { return _walletSyncManager.DateToStartScanningFrom; } set { _walletSyncManager.DateToStartScanningFrom = value; } }
+
         private BlockLocator _CurrentPosition { get { return _walletSyncManager.CurrentPosition; } set { _walletSyncManager.CurrentPosition = value; } }
+
         private ConcurrentChain _Chain;
+
         private ConcurrentChain _ExplicitChain;
 
         long _FalsePositiveCount = 0;
+
         long _TotalReceived = 0;
 
         ConcurrentDictionary<uint256, uint256> _InFlight = new ConcurrentDictionary<uint256, uint256>();
 
         BoundedDictionary<uint256, MerkleBlock> _TransactionsToBlock = new BoundedDictionary<uint256, MerkleBlock>(1000);
         object locker = new object();
+
         volatile PingPayload _PreviousPing;
+
         private FilterState _FilterState;
+
         private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
+
         private ScriptTypes _ScriptType;
+
+        private ILogger _Logger;
 
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
@@ -51,7 +62,7 @@ namespace Liviano
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy ,ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null, ILogger logger = null)
         {
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
@@ -59,14 +70,17 @@ namespace Liviano
             _ExplicitChain = chain;
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
+            _Logger = logger;
         }
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_walletSyncManager,_ScriptType,_ExplicitChain);
+            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _ScriptType, _ExplicitChain, _Logger);
+
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;
             clone._CurrentPosition = _CurrentPosition;
+
             return clone;
         }
 
@@ -96,7 +110,8 @@ namespace Liviano
 
         protected override void AttachCore()
         {
-            Console.WriteLine("Attached WalletSyncBehavior to a node");
+            _Logger.Information("Attached WalletSyncBehavior to a node");
+
             AttachedNode.StateChanged += ChangeOfAttachedNodeState;
             AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;
             if (_Chain == null) //We need to insure we have a valid chain that is being synced constantly.
@@ -205,7 +220,7 @@ namespace Liviano
                 _TransactionsToBlock.TryGetValue(h, out blk);
                 if (blk != null)
                 {
-                    Console.WriteLine("Found a transaction bounded to a block");
+                    _Logger.Information("Found a transaction bounded to a block");
                 }
                 NotifyWalletSyncManager(tx, blk);
             }
@@ -249,7 +264,7 @@ namespace Liviano
                 {
                     return;
                 }
-                Console.WriteLine("Merkle block payload block time: " + merkleBlockPayload.Object.Header.BlockTime);
+                _Logger.Information("Merkle block payload block time: {blockTime}", merkleBlockPayload.Object.Header.BlockTime);
                 foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
                 {
                     _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
@@ -291,7 +306,7 @@ namespace Liviano
             if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
             {
                 _CurrentPosition = chained.GetLocator(); //Set the new location
-                Console.WriteLine("Updated current position: " + _Chain.FindFork(_CurrentPosition).Height);
+                _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
             }
         }
 
