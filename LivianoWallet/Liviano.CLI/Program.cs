@@ -256,9 +256,16 @@ namespace Liviano.CLI
 
             }
 
-            return AddressManager.LoadPeerFile(AddrmanFile(), Network.TestNet);
-            return new AddressManager();
+            if (File.Exists(AddrmanFile()))
+            {
+                return AddressManager.LoadPeerFile(AddrmanFile(), Network.TestNet);
+            }
+            else
+            {
+                return new AddressManager();
+            }
         }
+
         private static Tracker GetTracker()
         {
             lock (locker)
@@ -301,17 +308,22 @@ namespace Liviano.CLI
 
         private static string AddrmanFile()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "addrman.dat");
+            return Path.Combine(Directory.GetCurrentDirectory(), "data", "addrman.dat");
         }
 
         private static string TrackerFile()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "tracker.dat");
+            return Path.Combine(Directory.GetCurrentDirectory(), "data", "tracker.dat");
         }
 
         private static string ChainFile()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "chain.dat");
+            return Path.Combine(Directory.GetCurrentDirectory(), "data", "chain.dat");
+        }
+
+        private static string WalletFile()
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), "data", "wallet.dat");
         }
 
         private static async Task SaveAsync()
@@ -331,11 +343,6 @@ namespace Liviano.CLI
                     //}
                 }
             });
-        }
-
-        private static string WalletFile()
-        {
-            return Path.Combine(Directory.GetCurrentDirectory(), "wallet.dat");
         }
     }
 }

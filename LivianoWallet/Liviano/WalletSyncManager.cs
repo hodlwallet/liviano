@@ -78,14 +78,15 @@ namespace Liviano
             }
 
             var interesting = false;
+
+            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
             var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
-            var legacyScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false).Select(x => x.P2WPKH_ScriptPubKey);
-            var segWitScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).Select(x => x.P2PKH_ScriptPubKey);
-            var compatabilityScripts = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false).Select(x => x.P2SH_P2WPKH_ScriptPubKey);
+
+            var legacyScripts = addresses.Select(x => x.P2WPKH_ScriptPubKey);
+            var segWitScripts = addresses.Select(x => x.P2PKH_ScriptPubKey);
+            var compatabilityScripts = addresses.Select(x => x.P2SH_P2WPKH_ScriptPubKey);
 
             var scripts = legacyScripts.Concat(segWitScripts).Concat(compatabilityScripts);
-
-
 
             foreach (var txin in transaction.Inputs.AsIndexedInputs())
             {
@@ -97,7 +98,6 @@ namespace Liviano
                     _walletManager.ProcessTransaction(transaction, null, proof);
                 }
             }
-
 
             foreach (var txout in transaction.Outputs.AsIndexedOutputs())
             {
