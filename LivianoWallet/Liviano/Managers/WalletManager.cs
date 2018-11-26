@@ -270,6 +270,7 @@ namespace Liviano.Managers
             lock (this.lockObject)
             {
                 //Save the wallet
+                this.logger.Information("Saving wallet {walletName} to storage provider", wallet.Name);
                 this.storageProvider.SaveWallet(wallet);
             }
         }
@@ -295,11 +296,12 @@ namespace Liviano.Managers
             catch (Exception ex)
             {
                 //TODO: ADD ILOGGER
-                //this.logger.LogTrace("Exception occurred: {0}", ex.ToString());
-                //this.logger.LogTrace("(-)[EXCEPTION]");
+                this.logger.Error("Exception occurred: {0}", ex.ToString());
+                this.logger.Error("(-)[EXCEPTION]");
                 throw new SecurityException(ex.Message);
             }
 
+            logger.Information("Wallet {walletName} loaded from the storage provider", wallet.Name);
             this.Load(wallet);
             return true;
         }
@@ -311,7 +313,7 @@ namespace Liviano.Managers
         private void Load(Wallet wallet)
         {
             Guard.NotNull(wallet, nameof(wallet));
-
+            this.logger.Information("Wallet {walletName} has been loaded into the WalletManager", wallet.Name);
             this.Wallet = wallet;
         }
 
@@ -373,6 +375,8 @@ namespace Liviano.Managers
                 Network = this.network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this.coinType } },
             };
+
+            this.logger.Information("Wallet file created for wallet {walletName}", walletFile.Name);
 
             // Create a folder if none exists and persist the file.
             this.SaveWallet(walletFile);
@@ -704,6 +708,7 @@ namespace Liviano.Managers
 
             lock (this.lockObject)
             {
+                this.logger.Information("Updating last block synced for wallet {walletName} to {height}", wallet.Name, chainedBlock.Height);
                 wallet.SetLastBlockDetailsByCoinType(this.coinType, chainedBlock);
             }
         }
