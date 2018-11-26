@@ -513,6 +513,7 @@ namespace Liviano
             // If the details of this spending transaction are seen for the first time.
             if (spentTransaction.SpendingDetails == null)
             {
+                //TODO: Event - Add event to notify new spending transcation found
                 this.logger.Information("Spending UTXO '{0}-{1}' is new.", spendingTransactionId, spendingTransactionIndex);
 
                 var payments = new List<PaymentDetails>();
@@ -547,6 +548,7 @@ namespace Liviano
             }
             else // If this spending transaction is being confirmed in a block.
             {
+                //TODO: Event - Add event to notify of spentTransaction being updated
                 this.logger.Information("Spending transaction ID '{0}' is being confirmed, updating.", spendingTransactionId);
 
                 // Update the block height.
@@ -615,11 +617,13 @@ namespace Liviano
                     newTransaction.MerkleProof = block.PartialMerkleTree;
                 }
 
+                //TODO: Event - Add event to notify of new transaction added to wallet
                 addressTransactions.Add(newTransaction);
                 this.AddInputKeysLookupLocked(newTransaction);
             }
             else
             {
+                //TODO: Event - Add event to notify updating of transaction in wallet
                 this.logger.Information("Transaction ID '{0}' found, updating.", transactionHash);
 
                 // Update the block height and block hash.
