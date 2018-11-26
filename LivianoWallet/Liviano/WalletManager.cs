@@ -603,7 +603,7 @@ namespace Liviano
                     BlockHeight = blockHeight,
                     //BlockHash = block?.GetHash(),
                     Id = transactionHash,
-                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(0), //TODO: TIME
+                    CreationTime = block.Header.BlockTime, //TODO: TIME
                     Index = index,
                     ScriptPubKey = script,
                     Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
@@ -636,7 +636,7 @@ namespace Liviano
                 // Update the block time.
                 if (block != null)
                 {
-                    foundTransaction.CreationTime = DateTimeOffset.FromUnixTimeSeconds(0);
+                    foundTransaction.CreationTime = block.Header.BlockTime;
                 }
 
                 // Add the Merkle proof now that the transaction is confirmed in a block.
