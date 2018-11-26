@@ -313,7 +313,7 @@ namespace Liviano.Behaviors
                 _CurrentPosition = chained.GetLocator(); //Set the new location
 
 
-                var eventToPublish = new WalletPostionUpdatedEventArgs()
+                var eventToPublish = new WalletPositionUpdatedEventArgs()
                 {
                     PreviousPosition = chained.Previous,
                     NewPosition = chained
