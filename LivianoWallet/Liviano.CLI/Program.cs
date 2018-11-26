@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 
@@ -187,6 +188,7 @@ namespace Liviano.CLI
 
             WalletManager walletManager = new WalletManager(_Logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
             WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, _Logger);
+            walletSyncManager.OnWalletPositionUpdate += WalletSyncManager_OnWalletPositionUpdate;
 
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
@@ -215,7 +217,7 @@ namespace Liviano.CLI
             var ScanLocation = new BlockLocator();
             ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
             walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 11, 1)));
-
+            
 
             conparams = parameters;
             //WalletCreation creation = new WalletCreation()
@@ -238,9 +240,21 @@ namespace Liviano.CLI
             //wallet.Rescan(Network.TestNet.GenesisHash);
             PeriodicSave();
 
+            //while (1 == 1)
+            //{
+            //    Thread.Sleep(1000);
+            //    Console.WriteLine(walletSyncManager.IsSynced);
+            //}
+
             Console.ReadLine();
 
         }
+
+        private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPostionUpdatedEventArgs e)
+        {
+            //Yeet
+        }
+
 
         private static async void PeriodicSave()
         {

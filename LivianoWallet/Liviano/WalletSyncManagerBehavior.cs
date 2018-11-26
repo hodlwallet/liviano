@@ -1,3 +1,4 @@
+using Easy.MessageHub;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -43,6 +44,8 @@ namespace Liviano
 
         private ILogger _Logger;
 
+        private MessageHub _messageHub;
+
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
         /// </summary>
@@ -71,6 +74,9 @@ namespace Liviano
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
             _Logger = logger;
+
+            _messageHub = MessageHub.Instance;
+
         }
 
         public override object Clone()
@@ -164,13 +170,21 @@ namespace Liviano
                     {
                         if (!IsScanning(node))
                         {
+                            if (!_Chain.IsDownloaded())
+                            {
+                                _Logger.Warning("Attemped to create GetDataPayload failed, still downloading headers. TIP: {currentChainTip}",_Chain.Tip.Height);
+                                return;
+                            }
+
                             GetDataPayload payload = new GetDataPayload();
                             var positionInChain = _Chain.FindFork(_CurrentPosition);
-                            foreach (var block in _Chain
+
+                            var blocks = _Chain
                                 .EnumerateAfter(positionInChain)
                                 .Where(b => b.Header.BlockTime + TimeSpan.FromHours(5.0) > _SkipBefore) //Take 5 more hours, block time might not be right
-                                .Partition(100)
-                                .FirstOrDefault() ?? new List<ChainedBlock>())
+                                .Partition(100).FirstOrDefault() ?? new List<ChainedBlock>();
+
+                            foreach (var block in blocks)
                             {
                                 payload.Inventory.Add(new InventoryVector(InventoryType.MSG_FILTERED_BLOCK, block.HashBlock));
                                 _InFlight.TryAdd(block.HashBlock, block.HashBlock);
@@ -288,24 +302,21 @@ namespace Liviano
             }
         }
 
-        //public void Scan(BlockLocator locator, DateTimeOffset skipBefore)
-        //{
-        //    lock (locker)
-        //    {
-        //        if (_SkipBefore == default(DateTimeOffset) || skipBefore < _SkipBefore)
-        //            _SkipBefore = skipBefore;
-        //        if (_CurrentPosition == null || EarlierThanCurrentProgress(locator))
-        //            _CurrentPosition = locator;
-        //    }
-        //}
-
-
         private void UpdateCurrentPosition(uint256 h)
         {
             var chained = _Chain.GetBlock(h); // Get block belonging to this hash
             if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
             {
                 _CurrentPosition = chained.GetLocator(); //Set the new location
+
+
+                var eventToPublish = new WalletPostionUpdatedEventArgs()
+                {
+                    PreviousPosition = chained.Previous,
+                    NewPosition = chained
+                };
+
+                _messageHub.Publish(eventToPublish);
                 _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
             }
         }

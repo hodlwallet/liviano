@@ -94,7 +94,6 @@ namespace Liviano
             this.coinType = CoinType.Bitcoin;
             this.asyncLoopFactory = asyncLoopFactory;
             this.chain = chain;
-            this.broadcastManager = broadcastManager;
             this.scriptAddressReader = scriptAddressReader;
             this.dateTimeProvider = dateTimeProvider;
             this.storageProvider = storageProvider;

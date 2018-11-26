@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Easy.MessageHub;
 using NBitcoin;
 using Serilog;
 
@@ -8,24 +9,42 @@ namespace Liviano
 {
     public class WalletSyncManager : IWalletSyncManager
     {
+        //WalletFinishedSyncing
+        //WalletUpdatedCurrentPosition
+        //
+
         WalletManager _walletManager;
 
         ConcurrentChain _chain;
 
+        private bool isSyncedToChainTip;
+
         private uint _Tweak;
 
         private ILogger _Logger;
+
+        private MessageHub _MessageHub;
 
         public WalletSyncManager(WalletManager walletManager, ConcurrentChain chain, ILogger logger)
         {
             _chain = chain;
             _walletManager = walletManager;
             _Logger = logger;
+            _MessageHub = MessageHub.Instance;
+
+
+            _MessageHub.Subscribe<WalletPostionUpdatedEventArgs>(HandleUpdatedWalletPosition);
+        }
+
+        private void HandleUpdatedWalletPosition(WalletPostionUpdatedEventArgs obj)
+        {
+            OnWalletPositionUpdated(obj);
         }
 
         public BlockLocator CurrentPosition { get; set; }
 
         public DateTimeOffset DateToStartScanningFrom { get; set; }
+        public bool IsSynced { get => isSyncedToChainTip; }
 
         public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes, BloomFlags flags = BloomFlags.UPDATE_ALL)
         {
@@ -101,6 +120,8 @@ namespace Liviano
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
                     _walletManager.ProcessTransaction(transaction, null, proof);
+
+                    interesting = true;
                 }
             }
 
@@ -113,52 +134,13 @@ namespace Liviano
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
                     _walletManager.ProcessTransaction(transaction, null, proof);
+
+                    interesting = true;
                 }
 
             }
-            //List<Operation> operations = null;
-            //lock (cs)
-            //{
-            //    foreach (var txin in transaction.Inputs.AsIndexedInputs())
-            //    {
-            //        var key = TrackedOutpoint.GetId(txin.PrevOut);
-            //        TrackedOutpoint match;
-            //        if (_TrackedOutpoints.TryGetValue(key, out match))
-            //        {
-            //            TrackedScript parentMetadata;
-            //            if (_TrackedScripts.TryGetValue(match.TrackedScriptId, out parentMetadata))
-            //            {
-            //                interesting = true;
-            //                var op = Spent(parentMetadata, txin, match.Coin, chainedBlock, proof);
-            //                if (op != null)
-            //                {
-            //                    operations = operations ?? new List<Operation>();
-            //                    operations.Add(op);
-            //                }
-            //            }
 
-            //        }
-            //    }
-            //    foreach (var txout in transaction.Outputs.AsIndexedOutputs())
-            //    {
-            //        var key = TrackedScript.GetId(txout.TxOut.ScriptPubKey);
-            //        TrackedScript match;
-            //        if (_TrackedScripts.TryGetValue(key, out match))
-            //        {
-            //            interesting = true;
-            //            var op = Received(match, txout, chainedBlock, proof);
-            //            if (op != null)
-            //            {
-            //                operations = operations ?? new List<Operation>();
-            //                operations.Add(op);
-            //            }
-            //        }
-            //    }
-            //}
-            //if (operations != null)
-            //{
-            //    FireCallbacks(operations);
-            //}
+
             return interesting;
         }
 
@@ -187,6 +169,23 @@ namespace Liviano
         private void UpdateTweak()
         {
             _Tweak = RandomUtils.GetUInt32();
+        }
+
+        public event EventHandler<WalletPostionUpdatedEventArgs> OnWalletPositionUpdate;
+
+        protected virtual void OnWalletPositionUpdated(WalletPostionUpdatedEventArgs e)
+        {
+            if (e.NewPosition.Height == _chain.Tip.Height)
+            {
+                _Logger.Information("Wallet synced to tip of chain");
+                isSyncedToChainTip = true;
+            }
+            else
+            {
+                isSyncedToChainTip = false;
+            }
+
+            OnWalletPositionUpdate.Invoke(this, e);
         }
     }
 }
