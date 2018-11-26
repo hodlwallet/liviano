@@ -49,6 +49,8 @@ namespace Liviano.Behaviors
 
         private MessageHub _messageHub;
 
+        private object CurrentPositionlocker = new object();
+
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
         /// </summary>
@@ -307,21 +309,25 @@ namespace Liviano.Behaviors
 
         private void UpdateCurrentPosition(uint256 h)
         {
-            var chained = _Chain.GetBlock(h); // Get block belonging to this hash
-            if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
+            lock (CurrentPositionlocker)
             {
-                _CurrentPosition = chained.GetLocator(); //Set the new location
-
-
-                var eventToPublish = new WalletPostionUpdatedEventArgs()
+                var chained = _Chain.GetBlock(h); // Get block belonging to this hash
+                if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
                 {
-                    PreviousPosition = chained.Previous,
-                    NewPosition = chained
-                };
+                    _CurrentPosition = chained.GetLocator(); //Set the new location
 
-                _messageHub.Publish(eventToPublish);
-                _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
+
+                    var eventToPublish = new WalletPostionUpdatedEventArgs()
+                    {
+                        PreviousPosition = chained.Previous,
+                        NewPosition = chained
+                    };
+
+                    _messageHub.Publish(eventToPublish);
+                    _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
+                }
             }
+            
         }
 
 

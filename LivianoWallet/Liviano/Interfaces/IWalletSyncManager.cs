@@ -19,6 +19,9 @@ namespace Liviano.Interfaces
 
         event EventHandler<WalletPostionUpdatedEventArgs> OnWalletPositionUpdate;
 
+         event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
+
+
     }
 
 }

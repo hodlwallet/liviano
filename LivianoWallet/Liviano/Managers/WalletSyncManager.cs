@@ -12,10 +12,6 @@ namespace Liviano.Managers
 {
     public class WalletSyncManager : IWalletSyncManager
     {
-        //WalletFinishedSyncing
-        //WalletUpdatedCurrentPosition
-        //
-
         WalletManager _walletManager;
 
         ConcurrentChain _chain;
@@ -175,6 +171,7 @@ namespace Liviano.Managers
         }
 
         public event EventHandler<WalletPostionUpdatedEventArgs> OnWalletPositionUpdate;
+        public event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
 
         protected virtual void OnWalletPositionUpdated(WalletPostionUpdatedEventArgs e)
         {
@@ -182,6 +179,7 @@ namespace Liviano.Managers
             {
                 _Logger.Information("Wallet synced to tip of chain");
                 isSyncedToChainTip = true;
+                WalletSyncedToTipOfChain.Invoke(this, e.NewPosition);
             }
             else
             {

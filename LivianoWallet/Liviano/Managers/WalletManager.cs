@@ -606,7 +606,7 @@ namespace Liviano.Managers
                     BlockHeight = blockHeight,
                     //BlockHash = block?.GetHash(),
                     Id = transactionHash,
-                    CreationTime = block.Header.BlockTime, //TODO: TIME
+                    CreationTime = block != null ? block.Header.BlockTime: DateTimeOffset.Now, //TODO: TIME
                     Index = index,
                     ScriptPubKey = script,
                     Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
