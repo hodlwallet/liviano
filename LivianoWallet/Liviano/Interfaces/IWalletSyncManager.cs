@@ -17,7 +17,7 @@ namespace Liviano.Interfaces
         BlockLocator CurrentPosition { get; set; }
         DateTimeOffset DateToStartScanningFrom { get; set; }
 
-        event EventHandler<WalletPostionUpdatedEventArgs> OnWalletPositionUpdate;
+        event EventHandler<WalletPositionUpdatedEventArgs> OnWalletPositionUpdate;
 
          event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
 

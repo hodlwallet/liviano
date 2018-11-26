@@ -253,7 +253,7 @@ namespace Liviano.CLI
 
         }
 
-        private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPostionUpdatedEventArgs e)
+        private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs e)
         {
             //Yeet
         }
