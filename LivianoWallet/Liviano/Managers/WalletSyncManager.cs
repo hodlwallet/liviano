@@ -32,10 +32,10 @@ namespace Liviano.Managers
             _MessageHub = MessageHub.Instance;
 
 
-            _MessageHub.Subscribe<WalletPostionUpdatedEventArgs>(HandleUpdatedWalletPosition);
+            _MessageHub.Subscribe<WalletPositionUpdatedEventArgs>(HandleUpdatedWalletPosition);
         }
 
-        private void HandleUpdatedWalletPosition(WalletPostionUpdatedEventArgs obj)
+        private void HandleUpdatedWalletPosition(WalletPositionUpdatedEventArgs obj)
         {
             OnWalletPositionUpdated(obj);
         }
@@ -170,10 +170,10 @@ namespace Liviano.Managers
             _Tweak = RandomUtils.GetUInt32();
         }
 
-        public event EventHandler<WalletPostionUpdatedEventArgs> OnWalletPositionUpdate;
+        public event EventHandler<WalletPositionUpdatedEventArgs> OnWalletPositionUpdate;
         public event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
 
-        protected virtual void OnWalletPositionUpdated(WalletPostionUpdatedEventArgs e)
+        protected virtual void OnWalletPositionUpdated(WalletPositionUpdatedEventArgs e)
         {
             if (e.NewPosition.Height == _chain.Tip.Height)
             {

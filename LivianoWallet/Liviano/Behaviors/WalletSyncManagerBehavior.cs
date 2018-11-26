@@ -49,7 +49,7 @@ namespace Liviano.Behaviors
 
         private MessageHub _messageHub;
 
-        private object CurrentPositionlocker = new object();
+        private object _CurrentPositionlocker = new object();
 
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
@@ -309,7 +309,7 @@ namespace Liviano.Behaviors
 
         private void UpdateCurrentPosition(uint256 h)
         {
-            lock (CurrentPositionlocker)
+            lock (_CurrentPositionlocker)
             {
                 var chained = _Chain.GetBlock(h); // Get block belonging to this hash
                 if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
@@ -317,7 +317,7 @@ namespace Liviano.Behaviors
                     _CurrentPosition = chained.GetLocator(); //Set the new location
 
 
-                    var eventToPublish = new WalletPostionUpdatedEventArgs()
+                    var eventToPublish = new WalletPositionUpdatedEventArgs()
                     {
                         PreviousPosition = chained.Previous,
                         NewPosition = chained
