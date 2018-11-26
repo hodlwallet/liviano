@@ -1,7 +1,9 @@
+using Liviano.Enums;
+using Liviano.Models;
 using NBitcoin;
 using System;
 
-namespace Liviano
+namespace Liviano.Interfaces
 {
     public interface IWalletSyncManager
     {

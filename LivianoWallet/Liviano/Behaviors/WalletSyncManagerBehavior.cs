@@ -1,4 +1,7 @@
 using Easy.MessageHub;
+using Liviano.Enums;
+using Liviano.Interfaces;
+using Liviano.Models;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -11,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Liviano
+namespace Liviano.Behaviors
 {
     public class WalletSyncManagerBehavior : NodeBehavior
     {

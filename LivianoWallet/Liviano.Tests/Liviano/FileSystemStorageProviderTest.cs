@@ -4,6 +4,7 @@ using System.IO;
 using Xunit;
 using Xunit.Sdk;
 using NBitcoin;
+using Liviano.Models;
 
 namespace Liviano.Tests.Liviano
 {

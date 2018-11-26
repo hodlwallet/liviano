@@ -1,4 +1,4 @@
-namespace Liviano
+namespace Liviano.Enums
 {
     public enum TransactionState
     {

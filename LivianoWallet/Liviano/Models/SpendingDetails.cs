@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class SpendingDetails
     {

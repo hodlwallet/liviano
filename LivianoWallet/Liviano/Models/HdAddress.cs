@@ -1,3 +1,4 @@
+using Liviano.Enums;
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
@@ -5,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class HdAddress
     {

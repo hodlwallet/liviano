@@ -1,6 +1,6 @@
 using System;
 
-namespace Liviano
+namespace Liviano.Exceptions
 {
     public class WalletException : Exception
     {

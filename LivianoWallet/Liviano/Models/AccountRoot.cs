@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Liviano.Utilities;
+using Liviano.Exceptions;
 
 namespace Liviano.Models
 {

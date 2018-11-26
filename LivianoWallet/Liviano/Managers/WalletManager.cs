@@ -8,8 +8,11 @@ using Serilog;
 using Liviano.Utilities;
 using Easy.MessageHub;
 using Liviano.Models;
+using Liviano.Interfaces;
+using Liviano.Enums;
+using Liviano.Exceptions;
 
-namespace Liviano
+namespace Liviano.Managers
 {
     public class WalletManager
     {

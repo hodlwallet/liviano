@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Easy.MessageHub;
+using Liviano.Enums;
+using Liviano.Interfaces;
+using Liviano.Models;
 using NBitcoin;
 using Serilog;
 
-namespace Liviano
+namespace Liviano.Managers
 {
     public class WalletSyncManager : IWalletSyncManager
     {

@@ -1,6 +1,7 @@
+using Liviano.Enums;
 using System;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class TransactionBroadcastEntry
     {

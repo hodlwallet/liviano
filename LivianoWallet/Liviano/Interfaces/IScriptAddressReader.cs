@@ -1,6 +1,6 @@
 using NBitcoin;
 
-namespace Liviano
+namespace Liviano.Interfaces
 {
     /// <summary>
     /// A reader for extracting an address from a Script

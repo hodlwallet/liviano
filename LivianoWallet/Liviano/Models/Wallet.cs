@@ -9,8 +9,9 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities;
 using Liviano.Models;
+using Liviano.Exceptions;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class Wallet
     {

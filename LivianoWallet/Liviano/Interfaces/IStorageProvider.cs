@@ -1,8 +1,9 @@
+using Liviano.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Liviano
+namespace Liviano.Interfaces
 {
     public interface IStorageProvider
     {

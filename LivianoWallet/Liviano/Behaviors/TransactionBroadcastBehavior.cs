@@ -1,3 +1,6 @@
+using Liviano.Enums;
+using Liviano.Interfaces;
+using Liviano.Models;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -6,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Liviano
+namespace Liviano.Behaviors
 {
     class TransactionBroadcastBehavior : NodeBehavior
     {

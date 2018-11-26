@@ -8,7 +8,7 @@ using System.Text;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class HdAccount
     {

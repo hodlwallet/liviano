@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class WalletPostionUpdatedEventArgs
     {

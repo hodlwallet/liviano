@@ -6,6 +6,8 @@ using System.Linq;
 using NBitcoin;
 
 using Liviano.Utilities;
+using Liviano.Exceptions;
+using Liviano.Managers;
 
 namespace Liviano
 {

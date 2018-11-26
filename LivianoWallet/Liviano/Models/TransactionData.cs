@@ -4,7 +4,7 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using System;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class TransactionData
     {

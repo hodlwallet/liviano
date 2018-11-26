@@ -2,7 +2,7 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class PaymentDetails
     {

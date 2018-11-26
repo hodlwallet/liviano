@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using NBitcoin;
+using Liviano.Exceptions;
 
 namespace Liviano.Tests.Liviano
 {
