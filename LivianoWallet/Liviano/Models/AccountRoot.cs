@@ -7,7 +7,7 @@ using System.Linq;
 
 using Liviano.Utilities;
 
-namespace Liviano
+namespace Liviano.Models
 {
     public class AccountRoot
     {

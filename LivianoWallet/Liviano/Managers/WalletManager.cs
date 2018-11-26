@@ -1,17 +1,13 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading.Tasks;
-
 using NBitcoin;
 using Serilog;
-
-using Liviano;
 using Liviano.Utilities;
 using Easy.MessageHub;
+using Liviano.Models;
 
 namespace Liviano
 {

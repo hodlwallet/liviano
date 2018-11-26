@@ -8,6 +8,7 @@ using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 
 using Liviano.Utilities;
+using Liviano.Models;
 
 namespace Liviano
 {

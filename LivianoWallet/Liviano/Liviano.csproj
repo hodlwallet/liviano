@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Wallet.cs">
+    <Compile Update="Models\Wallet.cs">
       <Generator>e</Generator>
     </Compile>
   </ItemGroup>
