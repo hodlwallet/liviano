@@ -370,7 +370,7 @@ namespace Liviano.Managers
                 Name = name,
                 EncryptedSeed = encryptedSeed,
                 ChainCode = chainCode,
-                CreationTime = creationTime ?? this.dateTimeProvider.GetTimeOffset(),
+                CreationTime = creationTime ?? DateTimeOffset.Now,
                 Network = this.network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this.coinType } },
             };
@@ -539,7 +539,7 @@ namespace Liviano.Managers
                 {
                     TransactionId = transaction.GetHash(),
                     Payments = payments,
-                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block?.Header.BlockTime.Ticks ?? 0/*?? transaction.Time*/),
+                    CreationTime = block != null ? block.Header.BlockTime : new DateTimeOffset(DateTime.Now),
                     BlockHeight = blockHeight,
                     Hex = true ? transaction.ToHex() : null,
                     IsCoinStake = /*transaction.IsCoinStake ==*/ false /*? (bool?)null : true*/
@@ -562,7 +562,7 @@ namespace Liviano.Managers
                 // Update the block time to be that of the block in which the transaction is confirmed.
                 if (block != null)
                 {
-                    spentTransaction.SpendingDetails.CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.BlockTime.Ticks);
+                    spentTransaction.SpendingDetails.CreationTime = block.Header.BlockTime;
                 }
             }
         }
@@ -580,7 +580,6 @@ namespace Liviano.Managers
         {
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(utxo, nameof(utxo));
-
 
             uint256 transactionHash = transaction.GetHash();
 
@@ -605,7 +604,7 @@ namespace Liviano.Managers
                     BlockHeight = blockHeight,
                     //BlockHash = block?.GetHash(),
                     Id = transactionHash,
-                    CreationTime = block != null ? block.Header.BlockTime: DateTimeOffset.Now, //TODO: TIME
+                    CreationTime = block != null ? block.Header.BlockTime: new DateTimeOffset(DateTime.Now), //TODO: TIME
                     Index = index,
                     ScriptPubKey = script,
                     Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
