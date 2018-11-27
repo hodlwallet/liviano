@@ -295,7 +295,6 @@ namespace Liviano.Managers
             }
             catch (Exception ex)
             {
-                //TODO: ADD ILOGGER
                 this.logger.Error("Exception occurred: {0}", ex.ToString());
                 this.logger.Error("(-)[EXCEPTION]");
                 throw new SecurityException(ex.Message);

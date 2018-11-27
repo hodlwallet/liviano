@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
-
 using Liviano;
 using Liviano.Behaviors;
 using Liviano.Managers;
@@ -217,37 +217,18 @@ namespace Liviano.CLI
 
 
             walletManager.Start();
+
             var ScanLocation = new BlockLocator();
-            ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
-            walletSyncManager.Scan(ScanLocation, new DateTimeOffset(new DateTime(2018, 11, 1)));
+
+            ScanLocation.Blocks.AddRange(walletManager.Wallet.BlockLocator);
+            walletManager.Wallet.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
+            walletSyncManager.Scan(ScanLocation, walletManager.Wallet.CreationTime);
             
 
             conparams = parameters;
-            //WalletCreation creation = new WalletCreation()
-            //{
-            //    Name = "Test",
-            //    UseP2SH = true,
-            //    SignatureRequired = 0,
-            //    RootKeys = new ExtPubKey[] { new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into").DeriveExtKey().Derive(new KeyPath($"m/44'/0'/1'")).GetWif(Network.TestNet).Neuter() },
-            //    Network = Network.TestNet
-            //};
+           
 
-            //var wallet = new NBitcoin.SPV.Wallet(creation);
-
-
-            //wallet.Configure(_Group);
-            //wallet.Connect();
-            //Console.WriteLine(wallet.GetNextScriptPubKey().GetDestinationAddress(Network.TestNet));
-
-            //wallet.Created = new DateTimeOffset(new DateTime(2018, 11, 12));
-            //wallet.Rescan(Network.TestNet.GenesisHash);
             PeriodicSave();
-
-            //while (1 == 1)
-            //{
-            //    Thread.Sleep(1000);
-            //    Console.WriteLine(walletSyncManager.IsSynced);
-            //}
 
             Console.ReadLine();
 

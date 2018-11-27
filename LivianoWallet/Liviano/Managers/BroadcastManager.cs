@@ -16,7 +16,6 @@ namespace Liviano.Managers
 {
     public class BroadcastManager : IBroadcastManager
     {
-        //TODO : Realize hidden abstraction for event aggreation might be bad in the future for extensibility.
 
         NodesCollection nodes;
         MessageHub eventHub;
@@ -32,6 +31,8 @@ namespace Liviano.Managers
         //Concurrent dictionary ignoring the value
         public ConcurrentDictionary<TransactionBroadcastEntry,object> Broadcasts { get; }
 
+        public EventHandler<TransactionBroadcastEntry> TransactionStateChanged;
+
         public void AddOrUpdate(Transaction transaction, TransactionState state, string errorMessage = "")
         {
             TransactionBroadcastEntry broadcastEntry = this.Broadcasts.Keys.FirstOrDefault(x => x.Transaction.GetHash() == transaction.GetHash());
@@ -40,19 +41,15 @@ namespace Liviano.Managers
             {
                 broadcastEntry = new TransactionBroadcastEntry(transaction, state, errorMessage);
                 this.Broadcasts.TryAdd(broadcastEntry,new object());
-
-                //TODO : Add eventhub handler for publishing event
-                //this.OnTransactionStateChanged(broadcastEntry);
-                eventHub.Publish(broadcastEntry);
             }
             else if (broadcastEntry.State != state)
             {
                 broadcastEntry.State = state;
-
-                //TODO : Add eventhub handler for publishing event
-                //this.OnTransactionStateChanged(broadcastEntry);
-                eventHub.Publish(broadcastEntry);
             }
+
+            TransactionStateChanged?.Invoke(this, broadcastEntry);
+            eventHub.Publish(broadcastEntry);
+
         }
 
         public async Task BroadcastTransactionAsync(Transaction transaction)
