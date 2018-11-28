@@ -15,6 +15,7 @@ using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.SPV;
 using Serilog;
+using Easy.MessageHub;
 
 namespace Liviano.CLI
 {
@@ -220,18 +221,19 @@ namespace Liviano.CLI
 
             var ScanLocation = new BlockLocator();
 
-            ScanLocation.Blocks.AddRange(walletManager.Wallet.BlockLocator);
+            ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
             walletManager.Wallet.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
             walletSyncManager.Scan(ScanLocation, walletManager.Wallet.CreationTime);
             
 
             conparams = parameters;
-           
-
+            
             PeriodicSave();
 
-            Console.ReadLine();
+            walletSyncManager.OnWalletSyncedToTipOfChain += (sender, argv) => { Console.WriteLine($"!!!!! IGOR {sender} + {argv}"); };
+            walletSyncManager.OnWalletPositionUpdate += (sender, argv) => { Console.WriteLine($"!!!! IGOR {sender} + {argv}"); };
 
+            Console.ReadLine();
         }
 
         private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs e)

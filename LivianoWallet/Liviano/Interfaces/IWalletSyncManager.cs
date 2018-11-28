@@ -1,7 +1,9 @@
+using System;
+
+using NBitcoin;
+
 using Liviano.Enums;
 using Liviano.Models;
-using NBitcoin;
-using System;
 
 namespace Liviano.Interfaces
 {
@@ -13,15 +15,11 @@ namespace Liviano.Interfaces
         bool ProcessTransaction(Transaction tx, ChainedBlock header, MerkleBlock blk);
         void Scan(BlockLocator locator, DateTimeOffset dateToStartOn);
 
-
         BlockLocator CurrentPosition { get; set; }
         DateTimeOffset DateToStartScanningFrom { get; set; }
 
         event EventHandler<WalletPositionUpdatedEventArgs> OnWalletPositionUpdate;
 
-         event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
-
-
+         event EventHandler<ChainedBlock> OnWalletSyncedToTipOfChain;
     }
-
 }

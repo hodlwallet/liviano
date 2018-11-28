@@ -47,8 +47,8 @@ namespace Liviano.Models
             this.IsExtPubKeyWallet = isExtPubKeyWallet;
             this.EncryptedSeed = encryptedSeed ?? "";
             this.ChainCode = chainCode ?? new byte[0];
-            this.BlockLocator = blockLocator ?? new List<uint256>();
             this.Network = network ?? Network.Main;
+            this.BlockLocator = blockLocator ?? new List<uint256>() { this.Network.GenesisHash };
             this.CreationTime = creationTime;
         }
 

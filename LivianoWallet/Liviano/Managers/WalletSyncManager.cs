@@ -12,11 +12,11 @@ namespace Liviano.Managers
 {
     public class WalletSyncManager : IWalletSyncManager
     {
-        WalletManager _walletManager;
+        WalletManager _WalletManager;
 
-        ConcurrentChain _chain;
+        ConcurrentChain _Chain;
 
-        private bool isSyncedToChainTip;
+        private bool _IsSyncedToChainTip;
 
         private uint _Tweak;
 
@@ -26,11 +26,10 @@ namespace Liviano.Managers
 
         public WalletSyncManager(WalletManager walletManager, ConcurrentChain chain, ILogger logger)
         {
-            _chain = chain;
-            _walletManager = walletManager;
+            _Chain = chain;
+            _WalletManager = walletManager;
             _Logger = logger;
             _MessageHub = MessageHub.Instance;
-
 
             _MessageHub.Subscribe<WalletPositionUpdatedEventArgs>(HandleUpdatedWalletPosition);
         }
@@ -43,12 +42,11 @@ namespace Liviano.Managers
         public BlockLocator CurrentPosition { get; set; }
 
         public DateTimeOffset DateToStartScanningFrom { get; set; }
-        public bool IsSynced { get => isSyncedToChainTip; }
+        public bool IsSynced { get => _IsSyncedToChainTip; }
 
         public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes, BloomFlags flags = BloomFlags.UPDATE_ALL)
         {
-
-            var scriptCount = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
+            var scriptCount = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
             var filter = new BloomFilter(scriptCount == 0 ? 1 : scriptCount, Fp, _Tweak, flags);
 
             var toTrack = GetDataToTrack(scriptTypes).ToArray();
@@ -60,7 +58,7 @@ namespace Liviano.Managers
 
         public Transaction GetKnownTransaction(uint256 txId)
         {
-            var transactionData =_walletManager.Wallet.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
+            var transactionData =_WalletManager.Wallet.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
             if (transactionData == null)
             {
                 return null;
@@ -74,6 +72,7 @@ namespace Liviano.Managers
         {
             if (chainedBlock == null)
                 return ProcessTransaction(transaction);
+
             return ProcessTransaction(transaction, chainedBlock, new MerkleBlock(block, new uint256[] { transaction.GetHash() }));
         }
 
@@ -81,7 +80,6 @@ namespace Liviano.Managers
         {
             return ProcessTransaction(transaction, null, null as MerkleBlock);
         }
-
 
         public bool ProcessTransaction(Transaction transaction, ChainedBlock chainedBlock, MerkleBlock proof)
         {
@@ -101,8 +99,8 @@ namespace Liviano.Managers
 
             var interesting = false;
 
-            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
-            var outPoints = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height).Select(x => x.ToOutPoint());
+            var addresses = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
+            var outPoints = _WalletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height).Select(x => x.ToOutPoint());
 
             var legacyScripts = addresses.Select(x => x.P2WPKH_ScriptPubKey);
             var segWitScripts = addresses.Select(x => x.P2PKH_ScriptPubKey);
@@ -118,7 +116,7 @@ namespace Liviano.Managers
                 {
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
-                    _walletManager.ProcessTransaction(transaction, null, proof);
+                    _WalletManager.ProcessTransaction(transaction, null, proof);
 
                     interesting = true;
                 }
@@ -132,13 +130,12 @@ namespace Liviano.Managers
                 {
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
-                    _walletManager.ProcessTransaction(transaction, null, proof);
+                    _WalletManager.ProcessTransaction(transaction, null, proof);
 
                     interesting = true;
                 }
 
             }
-
 
             return interesting;
         }
@@ -153,13 +150,13 @@ namespace Liviano.Managers
 
         private bool EarlierThanCurrentProgress(BlockLocator locator)
         {
-            return _chain.FindFork(locator).Height < _chain.FindFork(CurrentPosition).Height;
+            return _Chain.FindFork(locator).Height < _Chain.FindFork(CurrentPosition).Height;
         }
 
         private IEnumerable<byte[]> GetDataToTrack(ScriptTypes scriptType)
         {
-            var spendableTransactions = _walletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _chain.Tip.Height);
-            var addresses = _walletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
+            var spendableTransactions = _WalletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height);
+            var addresses = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
             var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).Concat(addresses.SelectMany(x => x.GetTrackableAddressData(scriptType))).Where(x => x != null);
 
             return dataToTrack;
@@ -172,19 +169,19 @@ namespace Liviano.Managers
 
         public event EventHandler<WalletPositionUpdatedEventArgs> OnWalletPositionUpdate;
 
-        public event EventHandler<ChainedBlock> WalletSyncedToTipOfChain;
+        public event EventHandler<ChainedBlock> OnWalletSyncedToTipOfChain;
 
         protected virtual void OnWalletPositionUpdated(WalletPositionUpdatedEventArgs e)
         {
-            if (e.NewPosition.Height == _chain.Tip.Height)
+            if (e.NewPosition.Height == _Chain.Tip.Height)
             {
                 _Logger.Information("Wallet synced to tip of chain");
-                isSyncedToChainTip = true;
-                WalletSyncedToTipOfChain?.Invoke(this, e.NewPosition);
+                _IsSyncedToChainTip = true;
+                OnWalletSyncedToTipOfChain?.Invoke(this, e.NewPosition);
             }
             else
             {
-                isSyncedToChainTip = false;
+                _IsSyncedToChainTip = false;
             }
 
             OnWalletPositionUpdate?.Invoke(this, e);
