@@ -101,4 +101,11 @@ namespace Liviano.CLI
         [Option('r', "regtest", HelpText = "Run on regtest")]
         public bool Regtest { get; set; }
     }
+
+    [Verb("start", HelpText = "Starts the SPV node and sync loaded wallet")]
+    class StartOptions
+    {
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
+    }
 }

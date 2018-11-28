@@ -1,6 +1,9 @@
 using System;
-using Xunit;
+using System.Linq;
+
 using NBitcoin;
+using Xunit;
+
 using Liviano.Models;
 
 namespace Liviano.Tests.Liviano
@@ -17,9 +20,10 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal("1st Wallet", w.Name);
             Assert.Equal(Network.Main, w.Network);
+            Assert.Equal(w.BlockLocator.OfType<uint256>().First(), Network.Main.GenesisHash);
+            Assert.Equal(1, w.BlockLocator.Count);
 
             Assert.Empty(w.AccountsRoot);
-            Assert.Empty(w.BlockLocator);
             Assert.Empty(w.ChainCode);
             Assert.Empty(w.EncryptedSeed);
 
