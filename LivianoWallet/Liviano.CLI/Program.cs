@@ -181,30 +181,29 @@ namespace Liviano.CLI
             //    Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             //});
             var walletFileId = "c5cfc267-b75a-41bc-bdb5-8b67299d04f4"; //"c5cfc267-b75a-41bc-bdb5-8b67299d04f4";
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             var network = Network.TestNet;
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
             var dateTimeProvider = new DateTimeProvider();
             var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(id: walletFileId);
+            var storageProvider = new FileSystemStorageProvider(walletFileId);
 
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
+            _Logger.Information("Starting wallet for file: {waleltFileId} on {network}", walletFileId, network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
             WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, _Logger);
-            walletSyncManager.OnWalletPositionUpdate += WalletSyncManager_OnWalletPositionUpdate;
-
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
             walletManager.CreateWallet("1111", "test", m);
-           // walletManager.Wallet.AddNewAccount("1111", CoinType.Bitcoin, DateTimeOffset.Now);
-            //walletManager.SaveWallet(walletManager.Wallet);
 
             var parameters = new NodeConnectionParameters();
-            //parameters.TemplateBehaviors.Add(new TrackerBehavior(GetTracker())); //Tracker knows which scriptPubKey and outpoints to track, it monitors all your wallets at the same
+
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
             parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager, _Logger));
+
             _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
@@ -213,9 +212,6 @@ namespace Liviano.CLI
             _Group.Connect();
 
             var broadcastManager = new BroadcastManager(_Group);
-           
-
-
 
             walletManager.Start();
 
@@ -224,21 +220,29 @@ namespace Liviano.CLI
             ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
             walletManager.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
             walletSyncManager.Scan(ScanLocation, walletManager.CreationTime);
-            
 
             conparams = parameters;
-            
+
             PeriodicSave();
 
-            walletSyncManager.OnWalletSyncedToTipOfChain += (sender, argv) => { Console.WriteLine($"!!!!! IGOR {sender} + {argv}"); };
-            walletSyncManager.OnWalletPositionUpdate += (sender, argv) => { Console.WriteLine($"!!!! IGOR {sender} + {argv}"); };
+            // Events examples
+            // With static methods
+            walletSyncManager.OnWalletPositionUpdate += WalletSyncManager_OnWalletPositionUpdate;
 
+            // With lambdas
+            walletSyncManager.OnWalletSyncedToTipOfChain += (sender, chainedBlock) => { _Logger.Information("Change tip to {tip}", chainedBlock.Height); };
+            walletManager.OnNewTransaction += (sender, transactionData) => { _Logger.Information("New tx: {txId}", transactionData.Id); };
+            walletManager.OnUpdateTransaction += (sender, transactionData) => { _Logger.Information("Updated tx: {txId}", transactionData.Id); };
+            walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
+            walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
+
+            Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
         }
 
-        private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs e)
+        private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs walletPositionUpdate)
         {
-            //Yeet
+            _Logger.Information("Position updated to: {height}", walletPositionUpdate.NewPosition.Height);
         }
 
 

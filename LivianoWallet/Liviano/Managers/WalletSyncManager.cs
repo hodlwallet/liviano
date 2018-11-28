@@ -42,6 +42,7 @@ namespace Liviano.Managers
         public BlockLocator CurrentPosition { get; set; }
 
         public DateTimeOffset DateToStartScanningFrom { get; set; }
+
         public bool IsSynced { get => _IsSyncedToChainTip; }
 
         public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes, BloomFlags flags = BloomFlags.UPDATE_ALL)
