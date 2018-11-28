@@ -17,15 +17,15 @@ namespace Liviano.Managers
     public class BroadcastManager : IBroadcastManager
     {
 
-        NodesCollection nodes;
-        MessageHub eventHub;
+        NodesCollection _Nodes;
+        MessageHub _EventHub;
 
         public BroadcastManager(NodesGroup nodeGroup)
         {
-            nodes = nodeGroup.ConnectedNodes;
+            _Nodes = nodeGroup.ConnectedNodes;
 
             this.Broadcasts = new ConcurrentDictionary<TransactionBroadcastEntry, object>(2, 0);
-            eventHub = MessageHub.Instance;
+            _EventHub = MessageHub.Instance;
         }
 
         //Concurrent dictionary ignoring the value
@@ -48,7 +48,7 @@ namespace Liviano.Managers
             }
 
             TransactionStateChanged?.Invoke(this, broadcastEntry);
-            eventHub.Publish(broadcastEntry);
+            _EventHub.Publish(broadcastEntry);
 
         }
 
@@ -60,7 +60,7 @@ namespace Liviano.Managers
                 return;
 
 
-            await this.PropagateTransactionToPeersAsync(transaction, this.nodes).ConfigureAwait(false);
+            await this.PropagateTransactionToPeersAsync(transaction, this._Nodes).ConfigureAwait(false);
         }
 
         public TransactionBroadcastEntry GetTransaction(uint256 transactionHash)

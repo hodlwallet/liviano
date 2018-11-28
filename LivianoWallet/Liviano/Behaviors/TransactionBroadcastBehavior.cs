@@ -14,16 +14,16 @@ namespace Liviano.Behaviors
     class TransactionBroadcastBehavior : NodeBehavior
     {
 
-        IBroadcastManager _broadcastManager;
+        IBroadcastManager _BroadcastManager;
 
         public TransactionBroadcastBehavior(IBroadcastManager broadcastManager)
         {
-            _broadcastManager = broadcastManager;
+            _BroadcastManager = broadcastManager;
         }
 
         public override object Clone()
         {
-            return new TransactionBroadcastBehavior(_broadcastManager);
+            return new TransactionBroadcastBehavior(_BroadcastManager);
         }
 
         protected override void AttachCore()
@@ -58,10 +58,10 @@ namespace Liviano.Behaviors
             // if node has transaction we broadcast
             foreach (InventoryVector inv in invPayload.Inventory.Where(x => x.Type == InventoryType.MSG_TX))
             {
-                TransactionBroadcastEntry txEntry = _broadcastManager.GetTransaction(inv.Hash);
+                TransactionBroadcastEntry txEntry = _BroadcastManager.GetTransaction(inv.Hash);
                 if (txEntry != null)
                 {
-                    _broadcastManager.AddOrUpdate(txEntry.Transaction, TransactionState.Propagated);
+                    _BroadcastManager.AddOrUpdate(txEntry.Transaction, TransactionState.Propagated);
                 }
             }
         }
@@ -71,13 +71,13 @@ namespace Liviano.Behaviors
             // If node asks for transaction we want to broadcast.
             foreach (InventoryVector inv in getDataPayload.Inventory.Where(x => x.Type == InventoryType.MSG_TX))
             {
-                TransactionBroadcastEntry txEntry = _broadcastManager.GetTransaction(inv.Hash);
+                TransactionBroadcastEntry txEntry = _BroadcastManager.GetTransaction(inv.Hash);
                 if ((txEntry != null) && (txEntry.State != TransactionState.CantBroadcast))
                 {
                     await node.SendMessageAsync(new TxPayload(txEntry.Transaction)).ConfigureAwait(false);
                     if (txEntry.State == TransactionState.ToBroadcast)
                     {
-                        _broadcastManager.AddOrUpdate(txEntry.Transaction, TransactionState.Broadcasted);
+                        _BroadcastManager.AddOrUpdate(txEntry.Transaction, TransactionState.Broadcasted);
                     }
                 }
             }
