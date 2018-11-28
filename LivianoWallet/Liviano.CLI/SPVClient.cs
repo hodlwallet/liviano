@@ -11,6 +11,8 @@ using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Managers;
 using Liviano.Behaviors;
+using System.Linq;
+using System.Diagnostics;
 
 namespace Liviano.CLI
 {
@@ -79,11 +81,6 @@ namespace Liviano.CLI
         private static string AddrmanFile()
         {
             return Path.Combine(Directory.GetCurrentDirectory(), "data", "addrman.dat");
-        }
-
-        private static string TrackerFile()
-        {
-            return Path.Combine(Directory.GetCurrentDirectory(), "data", "tracker.dat");
         }
 
         private static string ChainFile()
@@ -169,21 +166,62 @@ namespace Liviano.CLI
             walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
             walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
 
-            WaitUntilCtrlC();
+            _Logger.Information("Liviano SPV client started");
+
+            WaitUntilEscapeIsPressed();
         }
 
-        private static void WaitUntilCtrlC()
+        private static void WaitUntilEscapeIsPressed()
         {
             bool quit = false;
 
-            _Logger.Information("Press CTRL+C to stop SPV client...");
+            _Logger.Information("Press ESC to stop SPV client...");
             
             while(!quit)
             {
                 var keyInfo = Console.ReadKey();
 
-                quit = keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control;
+                quit = keyInfo.Key == ConsoleKey.Escape;
             }
+
+            Cleanup();
+            Exit();
+        }
+
+        private static void Cleanup()
+        {
+            // Include here cleanup stuff, maybe last time to save the file?
+
+            // Example last time to save a file.
+            _Logger.Information("Saving chain state...");
+            lock (_Lock)
+            {
+                GetAddressManager().SavePeerFile(AddrmanFile(), Network.TestNet);
+                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                {
+                    GetChain().WriteTo(fs);
+                }
+            }
+        }
+
+        private static void Exit()
+        {
+            var process = System.Diagnostics.Process.GetCurrentProcess();
+
+            foreach (ProcessThread thread in process.Threads.OfType<ProcessThread>())
+            {
+                if (thread.Id == process.Id)
+                    continue;
+
+                thread.Dispose();
+
+                _Logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
+            }
+
+            _Logger.Information("Closing thread with pid: {pid}", process.Id);
+            _Logger.Information("bye!");
+
+            process.Kill();
         }
     }
 }

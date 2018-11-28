@@ -21,14 +21,6 @@ namespace Liviano.CLI
 {
     class Program
     {
-        private static NodesGroup _Group;
-
-        private static object _Lock = new object();
-
-        private static NodeConnectionParameters _ConParams;
-
-        private static ILogger _Logger;
-
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, StartOptions>(args)
