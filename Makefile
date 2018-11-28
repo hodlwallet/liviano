@@ -39,6 +39,13 @@ ubuntu_debug_build:
 	rm -rf ./liviano-cli
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
 
+osx_debug_build:
+	dotnet publish LivianoWallet --framework netcoreapp2.1 --configuration Debug --runtime osx-x64
+	mkdir -p bin/osx_debug_build
+	cp -R LivianoWallet/Liviano.CLI/bin/Debug/netcoreapp2.1/osx-x64/publish bin/osx_debug_build
+	rm -rf ./liviano-cli
+	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano-cli
+
 submodule_init:
 	git submodule init
 	git submodule update

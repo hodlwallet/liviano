@@ -46,3 +46,5 @@ make test
 | `make publish[_debug,_release]` | build to publish `LivianoWallet` solution |
 | `make submodule[_init,_update]` | handles `NBitcoin` submodule |
 | `make clean` | removes executables from `bin` |
+| `make ubuntu_debug_build` | creates a debug build for Ubuntu installed in ./liviano-cli |
+| `make osx_debug_build` | creates a debug build for Ubuntu installed in ./liviano-cli |
