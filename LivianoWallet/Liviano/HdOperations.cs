@@ -17,11 +17,11 @@ namespace Liviano
         /// a list of accepted mnemonic wordlists
         /// </summary>
         /// <value>an array of strings</value>
-        public static readonly string[] acceptedMnemonicWordlists = new string[] { "chinese_simplified", "chinese_traditional", "english", "french", "japanese", "portuguese_brazil", "spanish" };
+        public static readonly string[] AcceptedMnemonicWordlists = new string[] { "chinese_simplified", "chinese_traditional", "english", "french", "japanese", "portuguese_brazil", "spanish" };
 
-        public static readonly int[] acceptedMnemonicWordCount = new int[] { 12, 15, 18, 21, 24 };
+        public static readonly int[] AcceptedMnemonicWordCount = new int[] { 12, 15, 18, 21, 24 };
 
-        public static readonly string[] acceptedNetworks = new string[] { "main", "testnet", "regtest" };
+        public static readonly string[] AcceptedNetworks = new string[] { "main", "testnet", "regtest" };
 
         /// <summary>
         /// Generates an HD public key derived from an extended public key.
@@ -58,6 +58,7 @@ namespace Liviano
                     return pubKey.WitHash.GetAddress(GetNetwork(network));
             }
         }
+
         public static Script GetScriptPubKey(string address, string network)
         {
             return BitcoinAddress.Create(address, GetNetwork(network)).ScriptPubKey;
@@ -76,7 +77,7 @@ namespace Liviano
                 case "regtest":
                     return Network.RegTest;
                 default:
-                    throw new WalletException($"Invalid network {network}, valid networks are {String.Join(", ", acceptedNetworks)}");
+                    throw new WalletException($"Invalid network {network}, valid networks are {String.Join(", ", AcceptedNetworks)}");
             }
         }
 
@@ -393,7 +394,7 @@ namespace Liviano
                 case "portuguese_brazil":
                     return Wordlist.PortugueseBrazil;
                 default:
-                    throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", acceptedMnemonicWordlists)}");
+                    throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", AcceptedMnemonicWordlists)}");
             }
         }
 
@@ -412,7 +413,7 @@ namespace Liviano
                 case 24:
                     return WordCount.TwentyFour;
                 default:
-                    throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", acceptedMnemonicWordCount)} are valid options.");
+                    throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", AcceptedMnemonicWordCount)} are valid options.");
             }
         }
 

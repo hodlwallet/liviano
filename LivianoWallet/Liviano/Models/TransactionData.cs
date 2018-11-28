@@ -98,7 +98,7 @@ namespace Liviano.Models
         /// </summary>
         public bool IsConfirmed()
         {
-            return this.BlockHeight != null;
+            return BlockHeight != null;
         }
 
         /// <summary>
@@ -106,22 +106,22 @@ namespace Liviano.Models
         /// </summary>
         public bool IsSpendable()
         {
-            return this.SpendingDetails == null;
+            return SpendingDetails == null;
         }
 
         public Money SpendableAmount(bool confirmedOnly)
         {
             // This method only returns a UTXO that has no spending output.
             // If a spending output exists (even if its not confirmed) this will return as zero balance.
-            if (this.IsSpendable())
+            if (IsSpendable())
             {
                 // If the 'confirmedOnly' flag is set check that the UTXO is confirmed.
-                if (confirmedOnly && !this.IsConfirmed())
+                if (confirmedOnly && !IsConfirmed())
                 {
                     return Money.Zero;
                 }
 
-                return this.Amount;
+                return Amount;
             }
 
             return Money.Zero;

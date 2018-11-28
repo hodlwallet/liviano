@@ -11,7 +11,7 @@ namespace Liviano.Models
     {
         public SpendingDetails()
         {
-            this.Payments = new List<PaymentDetails>();
+            Payments = new List<PaymentDetails>();
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Liviano.Models
         /// </summary>
         public bool IsSpentConfirmed()
         {
-            return this.BlockHeight != null;
+            return BlockHeight != null;
         }
     }
 }

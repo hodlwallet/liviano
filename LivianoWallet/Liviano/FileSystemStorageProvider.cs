@@ -10,13 +10,13 @@ namespace Liviano
 {
     public class FileSystemStorageProvider : IStorageProvider
     {
-        private readonly string id;
+        private readonly string _Id;
 
-        private readonly string filePath;
+        private readonly string _FilePath;
 
-        private const string extension = "json";
+        private const string _Extension = "json";
 
-        private readonly string directory = "data";
+        private readonly string _Directory = "data";
 
         public FileSystemStorageProvider(string id = null, string directory = "data")
         {
@@ -24,29 +24,29 @@ namespace Liviano
 
             if (id != null)
             {
-                this.id = id;
+                _Id = id;
             }
             else
             {
-                this.id = Guid.NewGuid().ToString();
+                _Id = Guid.NewGuid().ToString();
             }
 
-            this.directory = directory;
+            _Directory = directory;
 
-            filePath = GetFilePath();
+            _FilePath = GetFilePath();
 
-            Directory.CreateDirectory(this.directory);
+            Directory.CreateDirectory(_Directory);
         }
 
         public Wallet LoadWallet()
         {
-            if (File.Exists(filePath))
+            if (File.Exists(_FilePath))
             {
-                return JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(filePath));
+                return JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(_FilePath));
             }
             else
             {
-                throw new WalletException($"Wallet file with name '{filePath}' could not be found.");
+                throw new WalletException($"Wallet file with name '{_FilePath}' could not be found.");
             }
         }
 
@@ -58,19 +58,19 @@ namespace Liviano
         public void SaveWallet(Wallet wallet, bool saveBackupFile = true)
         {
             string guid = Guid.NewGuid().ToString();
-            string newFilePath = $"{filePath}.{guid}.new";
-            string tempFilePath = $"{filePath}.{guid}.temp";
+            string newFilePath = $"{_FilePath}.{guid}.new";
+            string tempFilePath = $"{_FilePath}.{guid}.temp";
 
             File.WriteAllText(newFilePath, JsonConvert.SerializeObject(wallet, Formatting.Indented));
 
             // If the file does not exist yet, create it.
-            if (!File.Exists(filePath))
+            if (!File.Exists(_FilePath))
             {
-                File.Move(newFilePath, filePath);
+                File.Move(newFilePath, _FilePath);
 
                 if (saveBackupFile)
                 {
-                    File.Copy(filePath, $"{filePath}.bak", true);
+                    File.Copy(_FilePath, $"{_FilePath}.bak", true);
                 }
 
                 return;
@@ -78,12 +78,12 @@ namespace Liviano
 
             if (saveBackupFile)
             {
-                File.Copy(filePath, $"{filePath}.bak", true);
+                File.Copy(_FilePath, $"{_FilePath}.bak", true);
             }
 
             // Delete the file and rename the temp file to that of the target file.
-            File.Move(filePath, tempFilePath);
-            File.Move(newFilePath, filePath);
+            File.Move(_FilePath, tempFilePath);
+            File.Move(newFilePath, _FilePath);
 
             try
             {
@@ -92,7 +92,7 @@ namespace Liviano
             catch (IOException)
             {
                 // Marking the file for deletion in the future.
-                File.Move(tempFilePath, $"{filePath}.{guid}.del");
+                File.Move(tempFilePath, $"{_FilePath}.{guid}.del");
             }
         }
 
@@ -103,7 +103,7 @@ namespace Liviano
 
         private string GetFilePath()
         {
-            return Path.Combine(directory, $"{id}.{extension}");
+            return Path.Combine(_Directory, $"{_Id}.{_Extension}");
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Liviano.Models
         /// <returns>The corresponding <see cref="OutPoint"/>.</returns>
         public OutPoint ToOutPoint()
         {
-            return new OutPoint(this.Transaction.Id, (uint)this.Transaction.Index);
+            return new OutPoint(Transaction.Id, (uint)Transaction.Index);
         }
     }
 }

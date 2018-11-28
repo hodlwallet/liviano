@@ -12,7 +12,7 @@ namespace Liviano.Models
     {
         public HdAddress()
         {
-            this.Transactions = new List<TransactionData>();
+            Transactions = new List<TransactionData>();
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Liviano.Models
         /// </returns>
         public bool IsChangeAddress()
         {
-            return HdOperations.IsChangeAddress(this.HdPath);
+            return HdOperations.IsChangeAddress(HdPath);
         }
 
         /// <summary>
@@ -96,12 +96,12 @@ namespace Liviano.Models
         /// <returns></returns>
         public IEnumerable<TransactionData> UnspentTransactions()
         {
-            if (this.Transactions == null)
+            if (Transactions == null)
             {
                 return new List<TransactionData>();
             }
 
-            return this.Transactions.Where(t => t.IsSpendable());
+            return Transactions.Where(t => t.IsSpendable());
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Liviano.Models
         /// </summary>
         public (Money confirmedAmount, Money unConfirmedAmount) GetSpendableAmount()
         {
-            List<TransactionData> allTransactions = this.Transactions.ToList();
+            List<TransactionData> allTransactions = Transactions.ToList();
 
             long confirmed = allTransactions.Sum(t => t.SpendableAmount(true));
             long total = allTransactions.Sum(t => t.SpendableAmount(false));
@@ -122,11 +122,11 @@ namespace Liviano.Models
             switch (scriptType)
             {
                 case ScriptTypes.Legacy:
-                    return this.P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData);
+                    return P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData);
                 case ScriptTypes.Segwit:
-                    return this.P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData);
+                    return P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData);
                 case ScriptTypes.SegwitAndLegacy:
-                    return this.P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData).Concat(this.P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData));
+                    return P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData).Concat(P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData));
                 default:
                     throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes), scriptType)}");
             }

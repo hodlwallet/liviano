@@ -42,14 +42,14 @@ namespace Liviano.Models
             Network network = null,
             DateTimeOffset creationTime = new DateTimeOffset())
        {
-            this.Name = name ?? "";
-            this.AccountsRoot = accountsRoot ?? new List<AccountRoot>();
-            this.IsExtPubKeyWallet = isExtPubKeyWallet;
-            this.EncryptedSeed = encryptedSeed ?? "";
-            this.ChainCode = chainCode ?? new byte[0];
-            this.Network = network ?? Network.Main;
-            this.BlockLocator = blockLocator ?? new List<uint256> { this.Network.GenesisHash };
-            this.CreationTime = creationTime;
+            Name = name ?? "";
+            AccountsRoot = accountsRoot ?? new List<AccountRoot>();
+            IsExtPubKeyWallet = isExtPubKeyWallet;
+            EncryptedSeed = encryptedSeed ?? "";
+            ChainCode = chainCode ?? new byte[0];
+            Network = network ?? Network.Main;
+            BlockLocator = blockLocator ?? new List<uint256> { Network.GenesisHash };
+            CreationTime = creationTime;
         }
 
         /// <summary>
@@ -63,11 +63,11 @@ namespace Liviano.Models
         /// </summary>
         public Wallet(string name, bool isExtPubKeyWallet, string encryptedSeed, Network network, DateTimeOffset creationTime)
         {
-            this.Name = name;
-            this.IsExtPubKeyWallet = isExtPubKeyWallet;
-            this.EncryptedSeed = encryptedSeed;
-            this.Network = network;
-            this.CreationTime = creationTime;
+            Name = name;
+            IsExtPubKeyWallet = isExtPubKeyWallet;
+            EncryptedSeed = encryptedSeed;
+            Network = network;
+            CreationTime = creationTime;
         }
 
         [JsonProperty(PropertyName = "name")]
@@ -120,7 +120,7 @@ namespace Liviano.Models
         /// <returns>The accounts in the wallet corresponding to this type of coin.</returns>
         public IEnumerable<HdAccount> GetAccountsByCoinType(CoinType coinType)
         {
-            return this.AccountsRoot.Where(a => a.CoinType == coinType).SelectMany(a => a.Accounts);
+            return AccountsRoot.Where(a => a.CoinType == coinType).SelectMany(a => a.Accounts);
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace Liviano.Models
         /// <returns>The requested account.</returns>
         public HdAccount GetAccountByCoinType(string accountName, CoinType coinType)
         {
-            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            AccountRoot accountRoot = AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
             return accountRoot?.GetAccountByName(accountName);
         }
 
@@ -142,7 +142,7 @@ namespace Liviano.Models
         /// <param name="block">The block whose details are used to update the wallet.</param>
         public void SetLastBlockDetailsByCoinType(CoinType coinType, ChainedBlock block)
         {
-            AccountRoot accountRoot = this.AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
+            AccountRoot accountRoot = AccountsRoot.SingleOrDefault(a => a.CoinType == coinType);
 
             if (accountRoot == null) return;
 

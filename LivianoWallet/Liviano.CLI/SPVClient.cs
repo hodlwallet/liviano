@@ -174,18 +174,33 @@ namespace Liviano.CLI
         private static void WaitUntilEscapeIsPressed()
         {
             bool quit = false;
+            bool quitHandledByIDE = false;
 
             _Logger.Information("Press ESC to stop SPV client...");
             
             while(!quit)
             {
-                var keyInfo = Console.ReadKey();
+                try
+                {
+                    var keyInfo = Console.ReadKey();
 
-                quit = keyInfo.Key == ConsoleKey.Escape;
+                    quit = keyInfo.Key == ConsoleKey.Escape;
+                }
+                catch (InvalidOperationException e)
+                {
+                    _Logger.Error("{error}", e);
+                    _Logger.Information("Stop handled by IDE", e);
+
+                    quitHandledByIDE = true;
+                    quit = true;
+                }
             }
 
-            Cleanup();
-            Exit();
+            if (!quitHandledByIDE)
+            {
+                Cleanup();
+                Exit();
+            }
         }
 
         private static void Cleanup()

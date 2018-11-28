@@ -13,9 +13,9 @@ namespace Liviano.Models
 
         public TransactionBroadcastEntry(NBitcoin.Transaction transaction, TransactionState state, string errorMessage)
         {
-            this.Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
-            this.State = state;
-            this.ErrorMessage = errorMessage;
+            Transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+            State = state;
+            ErrorMessage = errorMessage;
         }
     }
 }

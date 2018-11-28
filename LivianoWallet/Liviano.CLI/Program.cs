@@ -4,18 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using CommandLine;
+using Serilog;
+using Easy.MessageHub;
+
 using Liviano;
 using Liviano.Behaviors;
 using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.SPV;
-using Serilog;
-using Easy.MessageHub;
 
 namespace Liviano.CLI
 {
