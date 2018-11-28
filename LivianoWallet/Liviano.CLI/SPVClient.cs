@@ -169,8 +169,21 @@ namespace Liviano.CLI
             walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
             walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
 
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadLine();
+            WaitUntilCtrlC();
+        }
+
+        private static void WaitUntilCtrlC()
+        {
+            bool quit = false;
+
+            _Logger.Information("Press CTRL+C to stop SPV client...");
+            
+            while(!quit)
+            {
+                var keyInfo = Console.ReadKey();
+
+                quit = keyInfo.Key == ConsoleKey.C && keyInfo.Modifiers == ConsoleModifiers.Control;
+            }
         }
     }
 }
