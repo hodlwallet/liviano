@@ -46,7 +46,7 @@ namespace Liviano.Managers
 
         public BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptTypes, BloomFlags flags = BloomFlags.UPDATE_ALL)
         {
-            var scriptCount = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
+            var scriptCount = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Count(c => c.IsChangeAddress() == false);
             var filter = new BloomFilter(scriptCount == 0 ? 1 : scriptCount, Fp, _Tweak, flags);
 
             var toTrack = GetDataToTrack(scriptTypes).ToArray();
@@ -58,7 +58,7 @@ namespace Liviano.Managers
 
         public Transaction GetKnownTransaction(uint256 txId)
         {
-            var transactionData =_WalletManager.Wallet.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
+            var transactionData =_WalletManager.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
             if (transactionData == null)
             {
                 return null;
@@ -99,8 +99,8 @@ namespace Liviano.Managers
 
             var interesting = false;
 
-            var addresses = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
-            var outPoints = _WalletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height).Select(x => x.ToOutPoint());
+            var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
+            var outPoints = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height).Select(x => x.ToOutPoint());
 
             var legacyScripts = addresses.Select(x => x.P2WPKH_ScriptPubKey);
             var segWitScripts = addresses.Select(x => x.P2PKH_ScriptPubKey);
@@ -155,8 +155,8 @@ namespace Liviano.Managers
 
         private IEnumerable<byte[]> GetDataToTrack(ScriptTypes scriptType)
         {
-            var spendableTransactions = _WalletManager.Wallet.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height);
-            var addresses = _WalletManager.Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
+            var spendableTransactions = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height);
+            var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
             var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).Concat(addresses.SelectMany(x => x.GetTrackableAddressData(scriptType))).Where(x => x != null);
 
             return dataToTrack;

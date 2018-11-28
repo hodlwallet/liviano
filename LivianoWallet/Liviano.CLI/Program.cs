@@ -222,8 +222,8 @@ namespace Liviano.CLI
             var ScanLocation = new BlockLocator();
 
             ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
-            walletManager.Wallet.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
-            walletSyncManager.Scan(ScanLocation, walletManager.Wallet.CreationTime);
+            walletManager.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
+            walletSyncManager.Scan(ScanLocation, walletManager.CreationTime);
             
 
             conparams = parameters;
