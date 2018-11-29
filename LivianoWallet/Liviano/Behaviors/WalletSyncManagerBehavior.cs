@@ -73,23 +73,23 @@ namespace Liviano.Behaviors
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ILogger logger, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
         {
+            _Logger = logger;
+
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
-            _Logger = logger;
 
             _messageHub = MessageHub.Instance;
-
         }
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _Logger, _ScriptType, _ExplicitChain);
+            var clone = new WalletSyncManagerBehavior(_Logger, _walletSyncManager, _ScriptType, _ExplicitChain);
 
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;

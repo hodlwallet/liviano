@@ -123,7 +123,7 @@ namespace Liviano.CLI
             _Logger.Information("Starting wallet for file: {waleltFileId} on {network}", walletFileId, network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, _Logger);
+            WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
             walletManager.CreateWallet("1111", "test", m);
@@ -132,7 +132,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager, _Logger));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager));
 
             _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
             {

@@ -24,7 +24,7 @@ namespace Liviano.Managers
 
         private MessageHub _MessageHub;
 
-        public WalletSyncManager(WalletManager walletManager, ConcurrentChain chain, ILogger logger)
+        public WalletSyncManager(ILogger logger, WalletManager walletManager, ConcurrentChain chain)
         {
             _Chain = chain;
             _WalletManager = walletManager;
