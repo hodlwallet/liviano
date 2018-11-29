@@ -67,9 +67,6 @@ namespace Liviano.Managers
         /// <summary>The settings for the wallet feature.</summary>
         private readonly IScriptAddressReader _ScriptAddressReader;
 
-        /// <summary>The broadcast manager.</summary>
-        private readonly IBroadcastManager _BroadcastManager;
-
         private readonly double _WalletSavetimeIntervalInMinutes = 1;
 
         private IAsyncLoop _AsyncLoop;
@@ -80,6 +77,8 @@ namespace Liviano.Managers
         public uint256 WalletTipHash { get; set; }
 
         public DateTimeOffset CreationTime { get { return _Wallet.CreationTime; } set { _Wallet.CreationTime = value; } }
+
+        public Network Network { get { return _Network; } }
 
         public event EventHandler<TransactionData> OnNewSpendingTransaction;
 

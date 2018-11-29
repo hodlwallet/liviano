@@ -26,6 +26,8 @@ namespace Liviano.CLI
 
         private static ILogger _Logger;
 
+        private static Network _Network;
+
         private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs walletPositionUpdate)
         {
             _Logger.Information("Position updated to: {height}", walletPositionUpdate.NewPosition.Height);
@@ -52,7 +54,7 @@ namespace Liviano.CLI
 
             if (File.Exists(AddrmanFile()))
             {
-                return AddressManager.LoadPeerFile(AddrmanFile(), Network.TestNet);
+                return AddressManager.LoadPeerFile(AddrmanFile(), _Network);
             }
             else
             {
@@ -68,7 +70,7 @@ namespace Liviano.CLI
                 {
                     return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain;
                 }
-                var chain = new ConcurrentChain(Network.TestNet);
+                var chain = new ConcurrentChain(_Network);
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     chain.Load(fs);
@@ -94,7 +96,7 @@ namespace Liviano.CLI
             {
                 lock (_Lock)
                 {
-                    GetAddressManager().SavePeerFile(AddrmanFile(), Network.TestNet);
+                    GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                     using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
                         GetChain().WriteTo(fs);
@@ -106,11 +108,12 @@ namespace Liviano.CLI
         public static void Start(string walletFileId, string network)
         {
             Network bitcoinNetwork = HdOperations.GetNetwork(network);
+            _Network = bitcoinNetwork;
 
-            Start(walletFileId, bitcoinNetwork);
+            Start(walletFileId);
         }
 
-        public static void Start(string walletFileId, Network network)
+        public static void Start(string walletFileId)
         {
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
@@ -120,10 +123,10 @@ namespace Liviano.CLI
 
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            _Logger.Information("Starting wallet for file: {waleltFileId} on {network}", walletFileId, network.Name);
+            _Logger.Information("Starting wallet for file: {waleltFileId} on {network}", walletFileId, _Network.Name);
 
-            WalletManager walletManager = new WalletManager(_Logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(walletManager, chain, _Logger);
+            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
 
             var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
             walletManager.CreateWallet("1111", "test", m);
@@ -132,9 +135,9 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(walletSyncManager, _Logger));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager));
 
-            _Group = new NodesGroup(Network.TestNet, parameters, new NodeRequirement()
+            _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
             });
@@ -147,7 +150,7 @@ namespace Liviano.CLI
 
             var ScanLocation = new BlockLocator();
 
-            ScanLocation.Blocks.Add(Network.TestNet.GenesisHash);
+            ScanLocation.Blocks.Add(_Network.GenesisHash);
             walletManager.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10));
             walletSyncManager.Scan(ScanLocation, walletManager.CreationTime);
 
@@ -211,7 +214,7 @@ namespace Liviano.CLI
             _Logger.Information("Saving chain state...");
             lock (_Lock)
             {
-                GetAddressManager().SavePeerFile(AddrmanFile(), Network.TestNet);
+                GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     GetChain().WriteTo(fs);

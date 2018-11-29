@@ -39,7 +39,10 @@ namespace Liviano.Behaviors
 
         volatile PingPayload _PreviousPing;
 
+// Suppresses warnings for obsolete use of SPV code
+#pragma warning disable 612, 618
         private FilterState _FilterState;
+#pragma warning restore 612, 618
 
         private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
 
@@ -70,23 +73,23 @@ namespace Liviano.Behaviors
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(IWalletSyncManager walletSyncManager, ILogger logger, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
         {
+            _Logger = logger;
+
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000005;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
-            _Logger = logger;
 
             _messageHub = MessageHub.Instance;
-
         }
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_walletSyncManager, _Logger, _ScriptType, _ExplicitChain);
+            var clone = new WalletSyncManagerBehavior(_Logger, _walletSyncManager, _ScriptType, _ExplicitChain);
 
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;
@@ -107,7 +110,11 @@ namespace Liviano.Behaviors
             {
                 _PreviousPing = null; //Set to null
                 var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate,_ScriptType); //Create bloom filter
+
+#pragma warning disable 612, 618
                 _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
+#pragma warning disable 612, 618
+
                 node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
                 _FilterState = FilterState.Loading; // Set state to loading
                 var ping = new PingPayload() // Create a ping payload
@@ -404,7 +411,11 @@ namespace Liviano.Behaviors
             var node = AttachedNode;
             if (node == null)
                 return;
+
+#pragma warning disable 612, 618
             if (_FilterState == FilterState.Loaded)
+#pragma warning restore 612, 618
+
                 node.SendMessageAsync(payload);
             else
             {
