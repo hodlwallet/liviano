@@ -58,3 +58,4 @@ clean:
 	rm -rf data/*
 	rm -rf LivianoWallet/Liviano.CLI/data/*
 	rm -rf bin/*
+	rm ./liviano-cli
