@@ -89,7 +89,7 @@ namespace Liviano.CLI
         [Option("name", HelpText = "Set name to create wallet")]
         public string Name { get; set; }
 
-        [Option("password", HelpText = "Set password to create wallet (get encrypted key)")]
+        [Option('p', "password", HelpText = "Set password to create wallet (get encrypted key)", Required = true)]
         public string Password { get; set; }
 
         [Option("passphrase", HelpText = "Set passphrase to create wallet (get passphrase)")]
@@ -97,9 +97,6 @@ namespace Liviano.CLI
 
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
-
-        [Option('r', "regtest", HelpText = "Run on regtest")]
-        public bool Regtest { get; set; }
     }
 
     [Verb("start", HelpText = "Starts the SPV node and sync loaded wallet")]
@@ -107,5 +104,11 @@ namespace Liviano.CLI
     {
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
+
+        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        public string Password { get; set; }
+
+        [Option("wallet-id", HelpText = "Wallet name to use")]
+        public string WalletId { get; set; }
     }
 }
