@@ -40,11 +40,10 @@ make test
 
 | Command | Description |
 | --- | --- |
-| `make run` | run `Liviano.CLI` project, use `args="--version" make run` to run with argument `--version`  |
-| `make build` | builds `LivianoWallet` solution |
-| `make test` | runs the test project `Liviano.Tests` |
-| `make publish[_debug,_release]` | build to publish `LivianoWallet` solution |
-| `make submodule[_init,_update]` | handles `NBitcoin` submodule |
-| `make clean` | removes executables from `bin` |
-| `make ubuntu_debug_build` | creates a debug build for Ubuntu installed in ./liviano-cli |
-| `make osx_debug_build` | creates a debug build for Ubuntu installed in ./liviano-cli |
+| `run` | run `Liviano.CLI` project, use `args="--version" make run` to run with argument `--version`  |
+| `build` | builds `LivianoWallet` solution |
+| `test` | runs the test project `Liviano.Tests` |
+| `publish[_debug,_release]` | build to publish `LivianoWallet` solution |
+| `submodule[_init,_update]` | handles `NBitcoin` submodule |
+| `clean` | removes executables from `bin` |
+| `[ubuntu,osx]_debug_build` | creates a debug build for an specific OS installed in ./liviano-cli |
