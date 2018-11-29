@@ -39,7 +39,10 @@ namespace Liviano.Behaviors
 
         volatile PingPayload _PreviousPing;
 
+// Suppresses warnings for obsolete use of SPV code
+#pragma warning disable 612, 618
         private FilterState _FilterState;
+#pragma warning restore 612, 618
 
         private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
 
@@ -107,7 +110,11 @@ namespace Liviano.Behaviors
             {
                 _PreviousPing = null; //Set to null
                 var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate,_ScriptType); //Create bloom filter
+
+#pragma warning disable 612, 618
                 _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
+#pragma warning disable 612, 618
+
                 node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
                 _FilterState = FilterState.Loading; // Set state to loading
                 var ping = new PingPayload() // Create a ping payload
@@ -404,7 +411,11 @@ namespace Liviano.Behaviors
             var node = AttachedNode;
             if (node == null)
                 return;
+
+#pragma warning disable 612, 618
             if (_FilterState == FilterState.Loaded)
+#pragma warning restore 612, 618
+
                 node.SendMessageAsync(payload);
             else
             {

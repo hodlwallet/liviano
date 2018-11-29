@@ -64,7 +64,7 @@ namespace Liviano.Managers
             {
                 return null;
             }
-            Transaction tx = new Transaction(transactionData.Hex);
+            Transaction tx = Transaction.Parse(transactionData.Hex, _WalletManager.Network);
 
             return tx;
         }
