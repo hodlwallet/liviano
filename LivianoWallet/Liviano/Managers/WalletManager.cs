@@ -361,6 +361,39 @@ namespace Liviano.Managers
             return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
         }
 
+        public IEnumerable<AccountBalance> GetBalances(string accountName = null)
+        {
+            var balances = new List<AccountBalance>();
+
+            lock (this._Lock)
+            {
+
+                var accounts = new List<HdAccount>();
+                if (!string.IsNullOrEmpty(accountName))
+                {
+                    accounts.Add(_Wallet.GetAccountByCoinType(accountName, this._CoinType));
+                }
+                else
+                {
+                    accounts.AddRange(_Wallet.GetAccountsByCoinType(this._CoinType));
+                }
+
+                foreach (HdAccount account in accounts)
+                {
+                    (Money amountConfirmed, Money amountUnconfirmed) result = account.GetSpendableAmount();
+
+                    balances.Add(new AccountBalance
+                    {
+                        Account = account,
+                        AmountConfirmed = result.amountConfirmed,
+                        AmountUnconfirmed = result.amountUnconfirmed
+                    });
+                }
+            }
+
+            return balances;
+        }
+
 
         /// <summary>
         /// Generates the wallet file.
