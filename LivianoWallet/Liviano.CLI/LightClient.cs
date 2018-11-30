@@ -78,9 +78,6 @@ namespace Liviano.CLI
 
                 }
 
-                if(chain.Tip == null)
-                    return new ConcurrentChain();
-
                 return chain;
             }
         }
