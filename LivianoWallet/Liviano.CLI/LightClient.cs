@@ -204,10 +204,10 @@ namespace Liviano.CLI
 
             _Logger.Information("Liviano SPV client started");
 
-            WaitUntilEscapeIsPressed();
+            WaitUntilEscapeIsPressed(walletManager);
         }
 
-        private static void WaitUntilEscapeIsPressed()
+        private static void WaitUntilEscapeIsPressed(WalletManager walletManager)
         {
             bool quit = false;
             bool quitHandledByIDE = false;
@@ -235,15 +235,17 @@ namespace Liviano.CLI
             if (quitHandledByIDE)
             {
                 Console.ReadLine();
+
+                Cleanup(walletManager);
             }
             else
             {
-                Cleanup();
+                Cleanup(walletManager);
                 Exit();
             }
         }
 
-        private static void Cleanup()
+        private static void Cleanup(WalletManager walletManager)
         {
             // Include here cleanup stuff, maybe last time to save the file?
 
@@ -256,6 +258,8 @@ namespace Liviano.CLI
                 {
                     GetChain().WriteTo(fs);
                 }
+
+                walletManager.SaveWallet();
             }
         }
 

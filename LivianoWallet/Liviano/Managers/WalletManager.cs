@@ -327,6 +327,11 @@ namespace Liviano.Managers
             }
         }
 
+        public void SaveWallet()
+        {
+            SaveWallet(_Wallet);
+        }
+
         public bool LoadWallet(string password)
         {
             Guard.NotEmpty(password, nameof(password));
