@@ -207,6 +207,7 @@ namespace Liviano.Managers
                     this._Logger.Warning("There were no details about the last block synced in the wallets.");
                     DateTimeOffset earliestWalletDate = _Wallet.CreationTime;
                     this.UpdateWhenChainDownloaded(_Wallet, earliestWalletDate.DateTime);
+
                     lastBlockSyncedHash = this._Chain.Tip.HashBlock;
                 }
             }
@@ -246,7 +247,13 @@ namespace Liviano.Managers
         {
             Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(name, nameof(name));
-           // Guard.NotNull(passphrase, nameof(passphrase));
+
+            if (_StorageProvider.WalletExists())
+            {
+                _Logger.Error("Cannot create wallet because with name {name} it already exists, please load the wallet", name);
+
+                throw new WalletException($"Wallet with name {name} already exists");
+            }
 
             // Generate the root seed used to generate keys from a mnemonic picked at random
             // and a passphrase optionally provided by the user.
@@ -299,18 +306,18 @@ namespace Liviano.Managers
             }
         }
 
-        public bool LoadWallet(string password, out Wallet wallet)
+        public bool LoadWallet(string password)
         {
             Guard.NotEmpty(password, nameof(password));
 
             if (!_StorageProvider.WalletExists())
             {
-                wallet = null;
                 return false;
             }
 
             // Load the the wallet.
-             wallet = this._StorageProvider.LoadWallet();
+            Wallet wallet = this._StorageProvider.LoadWallet();
+
             // Check the password.
             try
             {

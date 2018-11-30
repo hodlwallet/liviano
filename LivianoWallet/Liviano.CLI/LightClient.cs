@@ -13,10 +13,11 @@ using Liviano.Managers;
 using Liviano.Behaviors;
 using System.Linq;
 using System.Diagnostics;
+using Liviano.Exceptions;
 
 namespace Liviano.CLI
 {
-    public class SPVClient
+    public class LightClient
     {
         private static NodesGroup _Group;
 
@@ -76,18 +77,24 @@ namespace Liviano.CLI
                     chain.Load(fs);
 
                 }
+
                 return chain;
             }
         }
 
+        private static string GetConfigFile(string fileName)
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), "data", fileName);
+        }
+
         private static string AddrmanFile()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "data", "addrman.dat");
+            return GetConfigFile("addrman.dat");
         }
 
         private static string ChainFile()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "data", "chain.dat");
+            return GetConfigFile("chain.dat");
         }
 
         private static async Task SaveAsync()
@@ -105,31 +112,48 @@ namespace Liviano.CLI
             });
         }
 
-        public static void Start(string walletFileId, string network)
+        public static void CreateWallet(Config config, string password, string mnemonic)
         {
-            Network bitcoinNetwork = HdOperations.GetNetwork(network);
-            _Network = bitcoinNetwork;
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            _Network = HdOperations.GetNetwork(config.Network);
 
-            Start(walletFileId);
-        }
-
-        public static void Start(string walletFileId)
-        {
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
             var dateTimeProvider = new DateTimeProvider();
             var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(walletFileId);
+            var storageProvider = new FileSystemStorageProvider(config.WalletId);
 
+            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+
+            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            
+            walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
+        }
+
+        public static void Start(Config config, string password)
+        {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            _Network = HdOperations.GetNetwork(config.Network);
 
-            _Logger.Information("Starting wallet for file: {waleltFileId} on {network}", walletFileId, _Network.Name);
+            var chain = GetChain();
+            var asyncLoopFactory = new AsyncLoopFactory();
+            var dateTimeProvider = new DateTimeProvider();
+            var scriptAddressReader = new ScriptAddressReader();
+            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+
+            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
             WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
 
-            var m = new Mnemonic("october wish legal icon nest forget jeans elite cream account drum into");
-            walletManager.CreateWallet("1111", "test", m);
+            if (!storageProvider.WalletExists())
+            {
+                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
+
+                throw new WalletException($"Error creating wallet from wallet id");
+            }
+
+            walletManager.LoadWallet(password);
 
             var parameters = new NodeConnectionParameters();
 
@@ -199,7 +223,11 @@ namespace Liviano.CLI
                 }
             }
 
-            if (!quitHandledByIDE)
+            if (quitHandledByIDE)
+            {
+                Console.ReadLine();
+            }
+            else
             {
                 Cleanup();
                 Exit();
