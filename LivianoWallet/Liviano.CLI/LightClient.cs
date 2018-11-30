@@ -114,14 +114,14 @@ namespace Liviano.CLI
 
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            _Network = HdOperations.GetNetwork(config.Network);
+
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
             var dateTimeProvider = new DateTimeProvider();
             var scriptAddressReader = new ScriptAddressReader();
             var storageProvider = new FileSystemStorageProvider(config.WalletId);
-
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-            _Network = HdOperations.GetNetwork(config.Network);
 
             _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
@@ -132,14 +132,14 @@ namespace Liviano.CLI
 
         public static void Start(Config config, string password)
         {
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            _Network = HdOperations.GetNetwork(config.Network);
+
             var chain = GetChain();
             var asyncLoopFactory = new AsyncLoopFactory();
             var dateTimeProvider = new DateTimeProvider();
             var scriptAddressReader = new ScriptAddressReader();
             var storageProvider = new FileSystemStorageProvider(config.WalletId);
-
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-            _Network = HdOperations.GetNetwork(config.Network);
 
             _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
