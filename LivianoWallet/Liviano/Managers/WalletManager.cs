@@ -8,9 +8,10 @@ using Serilog;
 using Liviano.Utilities;
 using Easy.MessageHub;
 using Liviano.Models;
-using Liviano.Interfaces;
+using Liviano.Managers;
 using Liviano.Enums;
 using Liviano.Exceptions;
+using Liviano.Interfaces;
 
 namespace Liviano.Managers
 {
@@ -163,9 +164,11 @@ namespace Liviano.Managers
             );
         }
 
-        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType bitcoin, int height)
+
+        
+        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType bitcoin, int height, int confirmations = 0)
         {
-            return _Wallet.GetAllSpendableTransactions(bitcoin, height);
+            return _Wallet.GetAllSpendableTransactions(bitcoin, height, confirmations);
         }
 
         public IEnumerable<TransactionData> GetAllTransactionsByCoinType(CoinType bitcoin)

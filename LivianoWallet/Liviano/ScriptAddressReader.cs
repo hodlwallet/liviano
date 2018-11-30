@@ -1,4 +1,5 @@
 using Liviano.Interfaces;
+using Liviano.Managers;
 using NBitcoin;
 
 namespace Liviano

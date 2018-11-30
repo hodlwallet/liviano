@@ -1,6 +1,7 @@
 using Easy.MessageHub;
 using Liviano.Enums;
 using Liviano.Interfaces;
+using Liviano.Managers;
 using Liviano.Models;
 using NBitcoin;
 using NBitcoin.Protocol;
