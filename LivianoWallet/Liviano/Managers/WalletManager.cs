@@ -76,7 +76,7 @@ namespace Liviano.Managers
 
         public uint256 WalletTipHash { get; set; }
 
-        public DateTimeOffset CreationTime { get { return _Wallet.CreationTime; } set { _Wallet.CreationTime = value; } }
+        public DateTimeOffset CreationTime { get { return _Wallet.CreationTime; } }
 
         public Network Network { get { return _Network; } }
 
@@ -286,6 +286,9 @@ namespace Liviano.Managers
                 this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
             }
 
+            // The creation date of the wallet.
+            wallet.CreationTime = _DateTimeProvider.GetTimeOffset();
+
             // Save the changes to the file and add addresses to be tracked.
             this.SaveWallet(wallet);
             this.Load(wallet);
@@ -434,7 +437,7 @@ namespace Liviano.Managers
                 Name = name,
                 EncryptedSeed = encryptedSeed,
                 ChainCode = chainCode,
-                CreationTime = creationTime ?? this._DateTimeProvider.GetTimeOffset(),
+                CreationTime = creationTime ?? _DateTimeProvider.GetTimeOffset(),
                 Network = _Network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this._CoinType } },
             };

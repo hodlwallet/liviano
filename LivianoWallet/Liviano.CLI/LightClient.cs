@@ -175,7 +175,6 @@ namespace Liviano.CLI
             var ScanLocation = new BlockLocator();
 
             ScanLocation.Blocks.Add(_Network.GenesisHash);
-            walletManager.CreationTime = new DateTimeOffset(new DateTime(2018, 11, 10)); // TODO remove this
             walletSyncManager.Scan(ScanLocation, walletManager.CreationTime);
 
             _ConParams = parameters;
