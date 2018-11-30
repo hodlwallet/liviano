@@ -1,12 +1,11 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Liviano;
 
@@ -62,7 +61,7 @@ namespace Liviano.Utilities
         /// Application defined task that will be called and awaited in the async loop.
         /// The task is given a cancellation token that allows it to recognize that the caller wishes to cancel it.
         /// </summary>
-        private readonly Func<CancellationToken, Task> loopAsync;
+        private readonly Func<CancellationToken, Task> _LoopAsync;
 
         /// <inheritdoc />
         public string Name { get; }
@@ -83,8 +82,8 @@ namespace Liviano.Utilities
             Guard.NotEmpty(name, nameof(name));
             Guard.NotNull(loop, nameof(loop));
 
-            this.Name = name;
-            this.loopAsync = loop;
+            Name = name;
+            this._LoopAsync = loop;
             this.RepeatEvery = TimeSpan.FromMilliseconds(1000);
         }
 
@@ -114,7 +113,7 @@ namespace Liviano.Utilities
         /// <param name="delayStart">Delay before the first run of the task, or null if no startup delay is required.</param>
         private Task StartAsync(CancellationToken cancellation, TimeSpan? delayStart = null)
         {
-            return Task.Run(async () =>
+            return Task.Run(async() =>
             {
                 Exception uncaughtException = null;
                 try
@@ -127,14 +126,14 @@ namespace Liviano.Utilities
                         if (cancellation.IsCancellationRequested)
                             return;
 
-                        await this.loopAsync(cancellation).ConfigureAwait(false);
+                        await this._LoopAsync(cancellation).ConfigureAwait(false);
 
                         return;
                     }
 
                     while (!cancellation.IsCancellationRequested)
                     {
-                        await this.loopAsync(cancellation).ConfigureAwait(false);
+                        await this._LoopAsync(cancellation).ConfigureAwait(false);
                         if (!cancellation.IsCancellationRequested)
                             await Task.Delay(this.RepeatEvery, cancellation).ConfigureAwait(false);
                     }
@@ -148,13 +147,9 @@ namespace Liviano.Utilities
                 {
                     uncaughtException = ex;
                 }
-                finally
-                {
-                }
+                finally {}
 
-                if (uncaughtException != null)
-                {
-                }
+                if (uncaughtException != null) {}
             }, cancellation);
         }
 

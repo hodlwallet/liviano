@@ -50,7 +50,7 @@ namespace Liviano.Utilities
         public static IDateTimeProvider Default { get; }
 
         /// <summary>UTC adjusted timestamp, or null if no adjusted time is set.</summary>
-        private TimeSpan adjustedTimeOffset;
+        private TimeSpan _AdjustedTimeOffset;
 
         /// <summary>
         /// Initializes a default instance of the object.
@@ -65,7 +65,7 @@ namespace Liviano.Utilities
         /// </summary>
         public DateTimeProvider()
         {
-            this.adjustedTimeOffset = TimeSpan.Zero;
+            _AdjustedTimeOffset = TimeSpan.Zero;
         }
 
         /// <inheritdoc />
@@ -89,7 +89,7 @@ namespace Liviano.Utilities
         /// <inheritdoc />
         public DateTime GetAdjustedTime()
         {
-            return this.GetUtcNow().Add(this.adjustedTimeOffset);
+            return this.GetUtcNow().Add(this._AdjustedTimeOffset);
         }
 
         /// <inheritdoc />
@@ -101,7 +101,7 @@ namespace Liviano.Utilities
         /// <inheritdoc />
         public void SetAdjustedTimeOffset(TimeSpan adjustedTimeOffset)
         {
-            this.adjustedTimeOffset = adjustedTimeOffset;
+            _AdjustedTimeOffset = adjustedTimeOffset;
         }
     }
 }

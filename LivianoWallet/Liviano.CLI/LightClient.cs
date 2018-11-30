@@ -1,19 +1,19 @@
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
-using Serilog;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using Serilog;
 
+using Liviano.Behaviors;
+using Liviano.Exceptions;
+using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
-using Liviano.Managers;
-using Liviano.Behaviors;
-using System.Linq;
-using System.Diagnostics;
-using Liviano.Exceptions;
 
 namespace Liviano.CLI
 {
@@ -25,7 +25,7 @@ namespace Liviano.CLI
 
         private static NodeConnectionParameters _ConParams;
 
-        private static ILogger _Logger;
+        private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
         private static Network _Network;
 
@@ -39,8 +39,8 @@ namespace Liviano.CLI
             while (1 == 1)
             {
                 await Task.Delay(50_000);
-             
-                    await SaveAsync();
+
+                await SaveAsync();
 
             }
         }
@@ -65,14 +65,14 @@ namespace Liviano.CLI
 
         private static ConcurrentChain GetChain()
         {
-            lock (_Lock)
+            lock(_Lock)
             {
                 if (_ConParams != null)
                 {
                     return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain;
                 }
                 var chain = new ConcurrentChain(_Network);
-                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     chain.Load(fs);
 
@@ -101,10 +101,10 @@ namespace Liviano.CLI
         {
             await Task.Factory.StartNew(() =>
             {
-                lock (_Lock)
+                lock(_Lock)
                 {
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                    using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                    using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
                         GetChain().WriteTo(fs);
                     }
@@ -114,7 +114,6 @@ namespace Liviano.CLI
 
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             _Network = HdOperations.GetNetwork(config.Network);
 
             var chain = GetChain();
@@ -126,13 +125,12 @@ namespace Liviano.CLI
             _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-            
+
             walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
         }
 
         public static void Start(Config config, string password)
         {
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             _Network = HdOperations.GetNetwork(config.Network);
 
             var chain = GetChain();
@@ -172,10 +170,14 @@ namespace Liviano.CLI
 
             walletManager.Start();
 
-            var ScanLocation = new BlockLocator();
+            var scanLocation = new BlockLocator();
+            var walletBlockLocator = walletManager.GetWalletBlockLocator();
 
-            ScanLocation.Blocks.Add(_Network.GenesisHash);
-            walletSyncManager.Scan(ScanLocation, walletManager.CreationTime);
+            scanLocation.Blocks.Add(_Network.GenesisHash);
+            scanLocation.Blocks.AddRange(walletBlockLocator);
+
+            var lastSyncedBlock = chain.GetBlock(walletBlockLocator.FirstOrDefault());
+            walletSyncManager.Scan(scanLocation, lastSyncedBlock.Header.BlockTime);
 
             _ConParams = parameters;
 
@@ -203,8 +205,8 @@ namespace Liviano.CLI
             bool quitHandledByIDE = false;
 
             _Logger.Information("Press ESC to stop SPV client...");
-            
-            while(!quit)
+
+            while (!quit)
             {
                 try
                 {
@@ -239,10 +241,10 @@ namespace Liviano.CLI
 
             // Example last time to save a file.
             _Logger.Information("Saving chain state...");
-            lock (_Lock)
+            lock(_Lock)
             {
                 GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     GetChain().WriteTo(fs);
                 }
