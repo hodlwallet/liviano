@@ -157,7 +157,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.Segwit));
 
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
@@ -172,12 +172,20 @@ namespace Liviano.CLI
 
             var scanLocation = new BlockLocator();
             var walletBlockLocator = walletManager.GetWalletBlockLocator();
+            DateTimeOffset timeToStartOn;
 
-            scanLocation.Blocks.Add(_Network.GenesisHash);
-            scanLocation.Blocks.AddRange(walletBlockLocator);
+            if (walletBlockLocator != null) //Can be null if a wallet is new
+            {
+                scanLocation.Blocks.AddRange(walletBlockLocator); // Set starting scan location to wallet's last blockLocator position
+                timeToStartOn = chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+            }
+            else
+            {
+                scanLocation.Blocks.Add(_Network.GenesisHash); //Set starting scan location to begining of network chain
+                timeToStartOn = walletManager.CreationTime != null ? walletManager.CreationTime : _Network.GetGenesis().Header.BlockTime; //Skip all time before, start of BIP32
+            }
 
-            var lastSyncedBlock = chain.GetBlock(walletBlockLocator.FirstOrDefault());
-            walletSyncManager.Scan(scanLocation, lastSyncedBlock.Header.BlockTime);
+            walletSyncManager.Scan(scanLocation, timeToStartOn);
 
             _ConParams = parameters;
 

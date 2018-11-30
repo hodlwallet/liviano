@@ -20,6 +20,12 @@ namespace Liviano.Models
             this.Accounts = new List<HdAccount>();
         }
 
+        public AccountRoot(CoinType coinType, ICollection<HdAccount> accounts)
+        {
+            CoinType = coinType;
+            Accounts = accounts;
+        }
+
         /// <summary>
         /// The type of coin, Bitcoin or Stratis.
         /// </summary>
@@ -43,7 +49,7 @@ namespace Liviano.Models
         /// The accounts used in the wallet.
         /// </summary>
         [JsonProperty(PropertyName = "accounts")]
-        public ICollection<HdAccount> Accounts { get; set; }
+        public ICollection<HdAccount> Accounts { get; private set; }
 
         /// <summary>
         /// Gets the first account that contains no transaction.

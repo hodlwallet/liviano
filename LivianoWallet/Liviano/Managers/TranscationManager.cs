@@ -1,4 +1,5 @@
 using Liviano.Interfaces;
+using Liviano.Models;
 using NBitcoin;
 using NBitcoin.Policy;
 using System;
@@ -24,7 +25,8 @@ namespace Liviano.Managers
 
         public Transaction CreateTransaction(string desinationAddress, Money amount, int satoshisPerByte)
         {
-           // var coins = _WalletManager.GetAllSpendableTransactions(_WalletManager)
+            //_WalletManager.CreatAc
+            //var coins = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin,_Chain.Height)
 
 
             throw new NotImplementedException();

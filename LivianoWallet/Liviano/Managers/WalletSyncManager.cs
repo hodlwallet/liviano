@@ -174,6 +174,8 @@ namespace Liviano.Managers
 
         protected virtual void OnWalletPositionUpdated(WalletPositionUpdatedEventArgs e)
         {
+            _WalletManager.UpdateLastBlockSyncedHeight(e.NewPosition);
+
             if (e.NewPosition.Height == _Chain.Tip.Height)
             {
                 _Logger.Information("Wallet synced to tip of chain");

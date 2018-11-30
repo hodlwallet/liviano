@@ -147,7 +147,7 @@ namespace Liviano.Managers
             LoadKeysLookupLock();
 
             // Find the last chain block received by the wallet manager.
-            WalletTipHash = LastReceivedBlockHash();
+            WalletTipHash = _Chain.Tip.HashBlock;
 
             // Save the wallets file every 5 minutes to help against crashes.
             _AsyncLoop = _AsyncLoopFactory.Run("Wallet persist job", token =>
@@ -181,13 +181,17 @@ namespace Liviano.Managers
             return _Wallet.GetAllAddressesByCoinType(bitcoin);
         }
 
+        public IEnumerable<HdAccount> GetAllAccountsByCoinType(CoinType bitcoin)
+        {
+            return _Wallet.GetAccountsByCoinType(bitcoin);
+        }
+
+
         public uint256 LastReceivedBlockHash()
         {
             if (_Wallet == null)
             {
-                uint256 hash = this._Chain.Tip.HashBlock;
-                this._Logger.Information("(-)[NO_WALLET]:'{0}'", hash);
-                return hash;
+                throw new InvalidOperationException();
             }
 
             uint256 lastBlockSyncedHash;
@@ -203,16 +207,26 @@ namespace Liviano.Managers
                     .OrderBy(o => o.LastBlockSyncedHeight)
                     .FirstOrDefault()?.LastBlockSyncedHash;
 
+
+                var height = _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHeight).FirstOrDefault();
+
+
+                if (lastBlockSyncedHash == null && height.HasValue)
+                {
+
+                    return _Chain.GetBlock(height.Value).HashBlock;
+                }
+
                 // If details about the last block synced are not present in the wallet,
                 // find out which is the oldest wallet and set the last block synced to be the one at this date.
-                if (lastBlockSyncedHash == null)
-                {
-                    this._Logger.Warning("There were no details about the last block synced in the wallets.");
-                    DateTimeOffset earliestWalletDate = _Wallet.CreationTime;
-                    this.UpdateWhenChainDownloaded(_Wallet, earliestWalletDate.DateTime);
+                //if (lastBlockSyncedHash == null)
+                //{
+                //    this._Logger.Warning("There were no details about the last block synced in the wallets.");
+                //    DateTimeOffset earliestWalletDate = _Wallet.CreationTime;
+                //    this.UpdateWhenChainDownloaded(_Wallet, earliestWalletDate.DateTime);
 
-                    lastBlockSyncedHash = this._Chain.Tip.HashBlock;
-                }
+                //    lastBlockSyncedHash = this._Chain.Tip.HashBlock;
+                //}
             }
 
             return lastBlockSyncedHash;
@@ -280,14 +294,15 @@ namespace Liviano.Managers
             // If the chain is downloaded, we set the height of the newly created wallet to it.
             // However, if the chain is still downloading when the user creates a wallet,
             // we wait until it is downloaded in order to set it. Otherwise, the height of the wallet will be the height of the chain at that moment.
-            if (this._Chain.IsDownloaded())
-            {
-                this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
-            }
-            else
-            {
-                this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
-            }
+            
+            //if (this._Chain.IsDownloaded())
+            //{
+            //    this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
+            //}
+            //else
+            //{
+            //    this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
+            //}
 
             // The creation date of the wallet.
             wallet.CreationTime = _DateTimeProvider.GetTimeOffset();
@@ -442,7 +457,7 @@ namespace Liviano.Managers
                 ChainCode = chainCode,
                 CreationTime = creationTime ?? _DateTimeProvider.GetTimeOffset(),
                 Network = _Network,
-                AccountsRoot = new List<AccountRoot> { new AccountRoot() { Accounts = new List<HdAccount>(), CoinType = this._CoinType } },
+                AccountsRoot = new List<AccountRoot> { new AccountRoot(_CoinType, new List<HdAccount>()){}},
             };
 
             this._Logger.Information("Wallet file created for wallet {walletName}", walletFile.Name);
@@ -769,19 +784,18 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
+        public void UpdateLastBlockSyncedHeight(ChainedBlock chainedBlock)
         {
-            Guard.NotNull(wallet, nameof(wallet));
             Guard.NotNull(chainedBlock, nameof(chainedBlock));
 
             // The block locator will help when the wallet
             // needs to rewind this will be used to find the fork.
-            wallet.BlockLocator = chainedBlock.GetLocator().Blocks;
+            _Wallet.BlockLocator = chainedBlock.GetLocator().Blocks;
 
             lock (this._Lock)
             {
-                this._Logger.Information("Updating last block synced for wallet {walletName} to {height}", wallet.Name, chainedBlock.Height);
-                wallet.SetLastBlockDetailsByCoinType(this._CoinType, chainedBlock);
+                this._Logger.Information("Updating last block synced for wallet {walletName} to {height}",_Wallet.Name, chainedBlock.Height);
+                _Wallet.SetLastBlockDetailsByCoinType(this._CoinType, chainedBlock);
             }
         }
 
@@ -790,27 +804,27 @@ namespace Liviano.Managers
         /// </summary>
         /// <param name="wallets">The wallets to update when the chain has downloaded.</param>
         /// <param name="date">The creation date of the block with which to update the wallet.</param>
-        private void UpdateWhenChainDownloaded(Wallet wallet, DateTime date)
-        {
-            this._AsyncLoopFactory.RunUntil("WalletManager.DownloadChain", new System.Threading.CancellationToken(),
-                () => this._Chain.IsDownloaded(),
-                () =>
-                {
-                    int heightAtDate = this._Chain.GetHeightAtTime(date);
+        //private void UpdateWhenChainDownloaded(Wallet wallet, DateTime date)
+        //{
+        //    this._AsyncLoopFactory.RunUntil("WalletManager.DownloadChain", new System.Threading.CancellationToken(),
+        //        () => this._Chain.IsDownloaded(),
+        //        () =>
+        //        {
+        //            int heightAtDate = this._Chain.GetHeightAtTime(date);
 
-                        this.UpdateLastBlockSyncedHeight(_Wallet, this._Chain.GetBlock(heightAtDate));
-                        this.SaveWallet(wallet);
-                },
-                (ex) =>
-                {
-                    // In case of an exception while waiting for the chain to be at a certain height, we just cut our losses and
-                    // sync from the current height.
+        //                this.UpdateLastBlockSyncedHeight(this._Chain.GetBlock(heightAtDate));
+        //                this.SaveWallet(wallet);
+        //        },
+        //        (ex) =>
+        //        {
+        //            // In case of an exception while waiting for the chain to be at a certain height, we just cut our losses and
+        //            // sync from the current height.
                     
-                        this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
+        //                this.UpdateLastBlockSyncedHeight(this._Chain.Tip);
                     
-                },
-                TimeSpans.FiveSeconds);
-        }
+        //        },
+        //        TimeSpans.FiveSeconds);
+        //}
 
         /// <inheritdoc />
         public IEnumerable<AccountHistory> GetHistory(string accountName = null)
