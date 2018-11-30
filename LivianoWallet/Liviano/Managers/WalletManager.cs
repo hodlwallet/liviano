@@ -765,7 +765,6 @@ namespace Liviano.Managers
             return addressesToAdd > 0 ? account.CreateAddresses(this._Network, addressesToAdd, isChange) : new List<HdAddress>();
         }
 
-
         /// <inheritdoc />
         public void UpdateLastBlockSyncedHeight(Wallet wallet, ChainedBlock chainedBlock)
         {
@@ -782,9 +781,6 @@ namespace Liviano.Managers
                 wallet.SetLastBlockDetailsByCoinType(this._CoinType, chainedBlock);
             }
         }
-
-
-
 
         /// <summary>
         /// Updates details of the last block synced in a wallet when the chain of headers finishes downloading.
@@ -930,26 +926,26 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public DateTimeOffset GetOldestWalletCreationTime()
+        public DateTimeOffset GetWalletCreationTime()
         {
             // NOTE: @igorgue for now we gonna keep this, even though it's not gonna be used
             return _Wallet.CreationTime;
         }
 
         /// <inheritdoc />
-        public ICollection<uint256> GetFirstWalletBlockLocator()
+        public ICollection<uint256> GetWalletBlockLocator()
         {
             return _Wallet.BlockLocator;
         }
 
         /// <inheritdoc />
-        public int? GetEarliestWalletHeight()
+        public int? GetWalletHeight()
         {
             return _Wallet.AccountsRoot.Min().LastBlockSyncedHeight;
         }
 
         /// <inheritdoc />
-        public Wallet GetWalletByName()
+        public Wallet GetWallet()
         {
             return _Wallet;
         }
