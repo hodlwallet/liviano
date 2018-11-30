@@ -253,7 +253,7 @@ namespace Liviano.CLI
                 {
                     config = Config.Load();
 
-                    if (!config.HasWallet(walletId))
+                    if (walletId != null && !config.HasWallet(walletId))
                     {
                         _Logger.Error("Please create a new wallet for {walletId}", walletId);
 
