@@ -163,7 +163,7 @@ namespace Liviano.CLI
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
             });
-            _Group.MaximumNodeConnection = 4;
+            _Group.MaximumNodeConnection = config.NodesToConnect;
             _Group.Connect();
 
             var broadcastManager = new BroadcastManager(_Group);

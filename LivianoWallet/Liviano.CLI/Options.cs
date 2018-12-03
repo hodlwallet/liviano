@@ -110,5 +110,8 @@ namespace Liviano.CLI
 
         [Option("wallet-id", HelpText = "Wallet name to use")]
         public string WalletId { get; set; }
+
+        [Option('n', "nodes-to-connect", HelpText = "Number of nodes to connect")]
+        public int NodesToConnect { get;  set; }
     }
 }

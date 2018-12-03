@@ -21,6 +21,9 @@ namespace Liviano.CLI
         [JsonProperty(PropertyName = "network")]
         public string Network { get; set; }
 
+        [JsonProperty(PropertyName = "nodesToConnect")]
+        public int NodesToConnect { get; set; }
+
         /// <summary>
         /// Stores wallet ids to find them
         /// </summary>
@@ -28,11 +31,12 @@ namespace Liviano.CLI
         [JsonProperty(PropertyName = "wallets")]
         public List<string> Wallets { get; set; }
 
-        public Config(string walletId, string network)
+        public Config(string walletId, string network, int nodesToConnect = 4)
         {
             // Initializing with wallet id and network
             WalletId = walletId;
             Network = network;
+            NodesToConnect = nodesToConnect;
 
             Wallets = new List<string> { walletId };
         }
@@ -48,6 +52,7 @@ namespace Liviano.CLI
 
             WalletId = loadedConfig.WalletId;
             Network = loadedConfig.Network;
+            NodesToConnect = loadedConfig.NodesToConnect;
             Wallets = loadedConfig.Wallets;
         }
 

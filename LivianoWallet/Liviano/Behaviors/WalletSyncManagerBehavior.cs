@@ -129,7 +129,12 @@ namespace Liviano.Behaviors
 
         protected override void AttachCore()
         {
-            _Logger.Information("Attached WalletSyncBehavior to a node");
+            _Logger.Information(
+                "Connected to: {host}:{port} ({version})",
+                AttachedNode.RemoteSocketAddress.ToString(),
+                AttachedNode.RemoteSocketPort,
+                AttachedNode.Version
+            );
 
             AttachedNode.StateChanged += ChangeOfAttachedNodeState;
             AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;

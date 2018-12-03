@@ -274,8 +274,18 @@ namespace Liviano.CLI
                     network = "testnet";
                     config.Network = network;
 
-                    config.SaveChanges();
                 }
+
+                if (o.NodesToConnect != 0)
+                {
+                    config.NodesToConnect = o.NodesToConnect;
+                }
+                else
+                {
+                    config.NodesToConnect = 4; // safe default.
+                }
+
+                config.SaveChanges();
 
                 LightClient.Start(config, o.Password);
             });
