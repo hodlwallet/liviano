@@ -131,7 +131,7 @@ namespace Liviano.Managers
             return unsignedTransaction;
         }
 
-        public bool VerifyTranscation(Transaction tx , out WalletException[] transactionPolicyErrors)
+        public bool VerifyTransaction(Transaction tx , out WalletException[] transactionPolicyErrors)
         {
             var flag = _Builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
@@ -149,9 +149,9 @@ namespace Liviano.Managers
             return flag;
         }
 
-        public async void BroadcastTransaction(Transaction transcationToBroadcast)
+        public async void BroadcastTransaction(Transaction transactionToBroadcast)
         {
-           await _BroadcastManager.BroadcastTransactionAsync(transcationToBroadcast);
+           await _BroadcastManager.BroadcastTransactionAsync(transactionToBroadcast);
         }
     }
 }

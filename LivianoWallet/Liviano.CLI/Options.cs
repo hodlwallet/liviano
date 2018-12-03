@@ -158,14 +158,14 @@ namespace Liviano.CLI
         [Option('i', "index", HelpText = "Account index")]
         public string Index { get; set; }
 
-        [Option("to", HelpText = "Address to send Bitcoin to")]
+        [Option("to", HelpText = "Address to send Bitcoin to", Required = true)]
         public string To { get; set; }
 
-        [Option("amount", HelpText = "Amount in BTC to send")]
+        [Option("amount", HelpText = "Amount in BTC to send", Required = true)]
         public double Amount { get; set; }
 
-        [Option("fee-sats-per-byte", HelpText = "Fees on sats per byte")]
-        public int FeeSatsPerByte { get; set; }
+        [Option("sats-per-byte", HelpText = "Fees on sats per byte", Required = true)]
+        public int SatsPerByte { get; set; }
     }
 
     [Verb("start", HelpText = "Starts the SPV node and sync loaded wallet")]

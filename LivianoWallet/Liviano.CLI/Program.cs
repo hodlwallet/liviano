@@ -443,20 +443,18 @@ namespace Liviano.CLI
                 string error = null;
                 if (o.Name == null && o.Index == null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte);
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
                 }
                 else if (o.Name != null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte, accountName: o.Name);
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
                 }
                 else if (o.Index != null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte, accountIndex: o.Index);
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
                 }
 
-                Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly sent" : $"Transaction ({tx.GetHash()}) failed to send: {error}");
-
-                Console.WriteLine($"Tx Hex: {tx.ToHex()}");
+                Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly created" : $"Transaction ({tx.GetHash()}) failed to be created (is not valid): {error}");
             })
             .WithParsed<StartOptions>(o => {
                 string network = "main";

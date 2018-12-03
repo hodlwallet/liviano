@@ -13,10 +13,10 @@ namespace Liviano.Interfaces
     {
         Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransaction = true);
 
-        bool VerifyTranscation(Transaction transaction, out WalletException[] transactionPolicyErrors);
+        bool VerifyTransaction(Transaction transaction, out WalletException[] transactionPolicyErrors);
 
         Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys);
 
-        void BroadcastTransaction(Transaction transcationToBroadcast);
+        void BroadcastTransaction(Transaction transactionToBroadcast);
     }
 }

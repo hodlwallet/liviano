@@ -177,6 +177,8 @@ namespace Liviano.CLI
             try
             {
                 tx = transactionManager.CreateTransaction(destinationAddress, btcAmount, satsPerByte, account, password);
+                transactionManager.BroadcastTransaction(tx);
+
                 wasSent = true;
             }
             catch (WalletException e)
@@ -185,6 +187,8 @@ namespace Liviano.CLI
 
                 error = e.Message;
                 wasSent = false;
+
+                return (wasSent, tx, error);
             }
 
             return (wasSent, tx, error);
