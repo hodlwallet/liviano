@@ -37,10 +37,10 @@ namespace Liviano.Managers
             _BroadcastManager = broadcastManager;
             _WalletManager = walletManager;
             _CoinSelector = coinSelector;
-            _Builder = new TransactionBuilder();
+            _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
-        public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password)
+        public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransation = true)
         {
             Coin[] inputs = (Coin[]) _CoinSelector.Select(GetCoins(), amount).ToArray();
             HdAddress changeDestinationHdAddress = account.GetFirstUnusedChangeAddress();
@@ -69,10 +69,15 @@ namespace Liviano.Managers
                 .AddKeys(keys.ToArray())
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                .BuildTransaction(sign: false);
+                .BuildTransaction(sign: signTransation);
 
             // Calculate fees
             Money fees = txWithNoFees.GetVirtualSize() / satoshisPerByte;
+
+            if (inputs.Sum(o => o.Amount) < amount + fees)
+            {
+                throw new WalletException("This is a problem :(");
+            }
 
             return _Builder
                 .AddCoins(inputs)
@@ -80,7 +85,7 @@ namespace Liviano.Managers
                 .Send(toDestination, amount)
                 .SendFees(fees)
                 .SetChange(changeDestination)
-                .BuildTransaction(sign: false);
+                .BuildTransaction(sign: signTransation);
         }
 
         public Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys)
@@ -98,7 +103,6 @@ namespace Liviano.Managers
         public bool VerifyTranscation(Transaction tx , out WalletException[] transactionPolicyErrors)
         {
             var flag = _Builder.Verify(tx, out var errors);
-
             var exceptions = new List<WalletException>();
 
             if (errors.Any())
@@ -108,7 +112,9 @@ namespace Liviano.Managers
                     exceptions.Add(new WalletException(error.ToString()));
                 }
             }
+
             transactionPolicyErrors = exceptions.ToArray();
+
             return flag;
         }
     }
