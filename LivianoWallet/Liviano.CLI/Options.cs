@@ -118,6 +118,28 @@ namespace Liviano.CLI
         public string Index { get; set; }
     }
 
+    [Verb("get-address", HelpText = "Get address of an account or 0 if empty")]
+    class GetAddressOptions
+    {
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
+
+        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        public string Password { get; set; }
+
+        [Option("wallet-id", HelpText = "Wallet name to use")]
+        public string WalletId { get; set; }
+
+        [Option('n', "name", HelpText = "Account name")]
+        public string Name { get; set; }
+
+        [Option('i', "index", HelpText = "Account index")]
+        public string Index { get; set; }
+
+        [Option('l', "legacy", HelpText = "Show legacy address")]
+        public bool Legacy { get; set; }
+    }
+
     [Verb("start", HelpText = "Starts the SPV node and sync loaded wallet")]
     class StartOptions
     {

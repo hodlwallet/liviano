@@ -27,7 +27,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, StartOptions>(args)
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, GetAddressOptions, StartOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                string wordlist = "english";
                int wordCount = 24;
@@ -277,40 +277,129 @@ namespace Liviano.CLI
                 config.SaveChanges();
 
                 bool shownBalance = false;
-                if (o.Name != null)
+
+                try
                 {
-                    (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountName: o.Name);
+                    if (o.Name != null)
+                    {
+                        (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountName: o.Name);
 
-                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                    Console.WriteLine("==================================================");
+                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                        Console.WriteLine("==================================================");
 
-                    Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+                        Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
 
-                    shownBalance = true;
+                        shownBalance = true;
+                    }
+
+                    if (o.Index != null)
+                    {
+                        (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
+
+                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                        Console.WriteLine("==================================================");
+
+                        Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+
+                        shownBalance = true;
+                    }
                 }
-
-                if (o.Index != null)
+                catch (WalletException e)
                 {
-                    (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
+                    _Logger.Error(e.ToString());
 
-                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                    Console.WriteLine("==================================================");
-
-                    Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
-
-                    shownBalance = true;
+                    Console.WriteLine($"Account ({o.Name ?? o.Index}) not found.");
                 }
 
                 if (!shownBalance)
                 {
                     var balances = LightClient.AllAccountsBalance(config, o.Password);
-                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                    Console.WriteLine("==================================================");
 
-                    foreach (var balance in balances)
+                    if (balances.Count() > 0)
                     {
-                        Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
+                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                        Console.WriteLine("==================================================");
+
+                        foreach (var balance in balances)
+                        {
+                            Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
+                        }
                     }
+                    else
+                    {
+                        Console.WriteLine("No accounts with balances found");
+                    }
+                }
+            })
+            .WithParsed<GetAddressOptions>(o => {
+                string walletId = null;
+                Config config = null;
+
+                if (o.WalletId != null)
+                {
+                    walletId = o.WalletId;
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+
+                    if (walletId != null && !config.HasWallet(walletId))
+                    {
+                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
+
+                        throw new WalletException($"Please create a new wallet for {walletId}");
+                    }
+
+                    walletId = config.WalletId;
+                }
+                else
+                {
+                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
+
+                    throw new WalletException("Please create a new wallet with the command new-wallet");
+                }
+
+                if (o.Testnet)
+                {
+                    config.Network = "testnet";
+                }
+
+                config.SaveChanges();
+
+                HdAddress address = null;
+
+                try
+                {
+                    if (o.Name == null && o.Index == null)
+                    {
+                        address = LightClient.GetAddress(config, o.Password);
+                    }
+                    else if (o.Name != null)
+                    {
+                        address = LightClient.GetAddress(config, o.Password, accountName: o.Name);
+                    }
+                    else if (o.Index != null)
+                    {
+                        address = LightClient.GetAddress(config, o.Password, accountIndex: o.Index);
+                    }
+                }
+                catch (InvalidOperationException e)
+                {
+                    _Logger.Error(e.ToString());
+
+                    Console.WriteLine($"Unable to find account ({o.Name ?? o.Index})");
+
+                    return;
+                }
+
+                if (o.Legacy)
+                {
+                    Console.WriteLine($"{address.LegacyAddress}");
+                }
+                else
+                {
+                    Console.WriteLine($"{address.Address}");
                 }
             })
             .WithParsed<StartOptions>(o => {

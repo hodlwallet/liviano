@@ -162,6 +162,38 @@ namespace Liviano.CLI
             return balances;
         }
 
+        public static HdAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
+        {
+            _Network = HdOperations.GetNetwork(config.Network);
+
+            var chain = new ConcurrentChain();
+            var asyncLoopFactory = new AsyncLoopFactory();
+            var dateTimeProvider = new DateTimeProvider();
+            var scriptAddressReader = new ScriptAddressReader();
+            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+
+            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+
+            walletManager.LoadWallet(password);
+
+            HdAccount account = null;
+
+            if (accountIndex == null && accountName == null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First(o => o.Index == 0);
+            }
+            else if (accountIndex != null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First(o => o.Index == int.Parse(accountIndex));
+            }
+            else if (accountName != null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First(o => o.Name == accountName);
+            }
+
+            return account.GetFirstUnusedReceivingAddress();
+        }
+
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
             _Network = HdOperations.GetNetwork(config.Network);
@@ -172,7 +204,7 @@ namespace Liviano.CLI
             var scriptAddressReader = new ScriptAddressReader();
             var storageProvider = new FileSystemStorageProvider(config.WalletId);
 
-            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+            _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
 
