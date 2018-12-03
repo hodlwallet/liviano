@@ -37,7 +37,7 @@ namespace Liviano.Managers
             _BroadcastManager = broadcastManager;
             _WalletManager = walletManager;
             _CoinSelector = coinSelector;
-            _Builder = _WalletManager.Network.CreateTransactionBuilder();
+            _Builder = new TransactionBuilder();
         }
 
         public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransation = true)
