@@ -27,8 +27,8 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, GetAddressOptions, StartOptions>(args)
-            .WithParsed<NewMnemonicOptions>(o => {
+            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, GetAddressOptions, StartOptions>(args)
+            .WithParsed<MnemonicOptions>(o => {
                string wordlist = "english";
                int wordCount = 24;
 
@@ -44,7 +44,7 @@ namespace Liviano.CLI
 
                Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
             })
-            .WithParsed<GetExtendedKeyOptions>(o => {
+            .WithParsed<ExtendedKeyOptions>(o => {
                string mnemonic = null;
                string passphrase = null;
                string network = "main";
@@ -77,7 +77,7 @@ namespace Liviano.CLI
 
                Console.WriteLine(wif.ToString());
             })
-            .WithParsed<GetExtendedPubKeyOptions>(o => {
+            .WithParsed<ExtendedPubKeyOptions>(o => {
                string wif;
                string hdPath = "m/44'/0'/0'/0/0"; // Default BIP44 / Bitcoin / 1st account / receive / 1st pubkey
                string network = "main";

@@ -3,8 +3,8 @@ using CommandLine;
 
 namespace Liviano.CLI
 {
-    [Verb("new-mnemonic", HelpText = "Creates a new nmemonic")]
-    class NewMnemonicOptions
+    [Verb("mnemonic", HelpText = "Creates a new nmemonic")]
+    class MnemonicOptions
     {
         [Option('l', "wordlist", HelpText = "Set wordlist, accepted: chinese_simplified, chinese_traditional, english, french, japanese, portuguese_brazil, spanish.")]
         public string Wordlist { get; set; }
@@ -13,8 +13,8 @@ namespace Liviano.CLI
         public int WordCount { get; set; }
     }
 
-    [Verb("get-ext-key", HelpText = "Get extended key from mnemonic")]
-    class GetExtendedKeyOptions
+    [Verb("ext-key", HelpText = "Get extended key from mnemonic")]
+    class ExtendedKeyOptions
     {
         [Option("mnemonic", HelpText = "Set mnemonic to get ext priv key")]
         public string Mnemonic { get; set; }
@@ -29,8 +29,8 @@ namespace Liviano.CLI
         public bool Regtest { get; set; }
     }
 
-    [Verb("get-ext-pub-key", HelpText = "Get extended pubkey key from mnemonic")]
-    class GetExtendedPubKeyOptions
+    [Verb("ext-pub-key", HelpText = "Get extended pubkey key from mnemonic")]
+    class ExtendedPubKeyOptions
     {
         [Option("wif", HelpText = "Set ext priv key to use (wif format)")]
         public string Wif { get; set; }
@@ -99,7 +99,7 @@ namespace Liviano.CLI
         public bool Testnet { get; set; }
     }
 
-    [Verb("wallet-balance", HelpText = "See the balance on the wallet")]
+    [Verb("balance", HelpText = "See the balance on the wallet or by account")]
     class WalletBalanceOptions
     {
         [Option('t', "testnet", HelpText = "Run on testnet")]
@@ -118,8 +118,8 @@ namespace Liviano.CLI
         public string Index { get; set; }
     }
 
-    [Verb("get-address", HelpText = "Get address of an account or 0 if empty")]
-    class GetAddressOptions
+    [Verb("new-address", HelpText = "Get a new address of an account or 0 if empty")]
+    class NewAddressOptions
     {
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }

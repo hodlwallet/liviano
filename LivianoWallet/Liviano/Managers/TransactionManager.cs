@@ -46,10 +46,7 @@ namespace Liviano.Managers
             HdAddress changeDestinationHdAddress = account.GetFirstUnusedChangeAddress();
 
             var toDestination = BitcoinAddress.Create(destination, _WalletManager.Network);
-            var changeDestination = BitcoinAddress.Create(
-                changeDestinationHdAddress.Address,
-                _WalletManager.Network
-            );
+            var changeDestination = BitcoinAddress.Create(changeDestinationHdAddress.Address, _WalletManager.Network);
 
             List<Key> keys = new List<Key> ();
 
