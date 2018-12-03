@@ -455,6 +455,8 @@ namespace Liviano.CLI
                 }
 
                 Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly sent" : $"Transaction ({tx.GetHash()}) failed to send: {error}");
+
+                Console.WriteLine($"Tx Hex: {tx.ToHex()}");
             })
             .WithParsed<StartOptions>(o => {
                 string network = "main";
