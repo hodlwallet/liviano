@@ -27,7 +27,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, GetAddressOptions, StartOptions>(args)
+            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions>(args)
             .WithParsed<MnemonicOptions>(o => {
                string wordlist = "english";
                int wordCount = 24;
@@ -331,7 +331,7 @@ namespace Liviano.CLI
                     }
                 }
             })
-            .WithParsed<GetAddressOptions>(o => {
+            .WithParsed<NewAddressOptions>(o => {
                 string walletId = null;
                 Config config = null;
 
@@ -401,6 +401,60 @@ namespace Liviano.CLI
                 {
                     Console.WriteLine($"{address.Address}");
                 }
+            })
+            .WithParsed<SendOptions>(o => {
+                string walletId = null;
+                Config config = null;
+
+                if (o.WalletId != null)
+                {
+                    walletId = o.WalletId;
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+
+                    if (walletId != null && !config.HasWallet(walletId))
+                    {
+                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
+
+                        throw new WalletException($"Please create a new wallet for {walletId}");
+                    }
+
+                    walletId = config.WalletId;
+                }
+                else
+                {
+                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
+
+                    throw new WalletException("Please create a new wallet with the command new-wallet");
+                }
+
+                if (o.Testnet)
+                {
+                    config.Network = "testnet";
+                }
+
+                config.SaveChanges();
+
+                bool wasSent = false;
+                Transaction tx = null;
+                string error = null;
+                if (o.Name == null && o.Index == null)
+                {
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte);
+                }
+                else if (o.Name != null)
+                {
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte, accountName: o.Name);
+                }
+                else if (o.Index != null)
+                {
+                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.FeeSatsPerByte, accountIndex: o.Index);
+                }
+
+                Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly sent" : $"Transaction ({tx.GetHash()}) failed to send: {error}");
             })
             .WithParsed<StartOptions>(o => {
                 string network = "main";

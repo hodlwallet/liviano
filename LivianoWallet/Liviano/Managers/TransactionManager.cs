@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Liviano.Managers
 {
-    class TransactionManager : ITransactionManager
+    public class TransactionManager : ITransactionManager
     {
         IBroadcastManager _BroadcastManager;
 
@@ -22,13 +22,21 @@ namespace Liviano.Managers
 
         TransactionBuilder _Builder;
 
-        private Coin[] GetCoins()
+        private Coin[] GetCoins(HdAccount account)
         {
-            return _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Height).Select(
+            var results = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Height)
+            .Where(
+                o => o.Account.Index == account.Index
+            )
+            .Select(
                 o => Transaction.Parse(o.Transaction.Hex, _WalletManager.Network)
-            ).SelectMany(
+            )
+            .SelectMany(
                 o => o.Outputs.AsCoins()
-            ).ToArray();
+            )
+            .ToArray();
+
+            return results;
         }
 
         public TransactionManager(IBroadcastManager broadcastManager, WalletManager walletManager, ICoinSelector coinSelector, ConcurrentChain chain)
@@ -37,12 +45,18 @@ namespace Liviano.Managers
             _BroadcastManager = broadcastManager;
             _WalletManager = walletManager;
             _CoinSelector = coinSelector;
-            _Builder = new TransactionBuilder();
+            _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
         public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransation = true)
         {
-            Coin[] inputs = (Coin[]) _CoinSelector.Select(GetCoins(), amount).ToArray();
+            IEnumerable<ICoin> inputs = _CoinSelector.Select(GetCoins(account), amount);
+
+            if (inputs == null)
+            {
+                throw new WalletException("Balance too low to create transaction");
+            }
+
             HdAddress changeDestinationHdAddress = account.GetFirstUnusedChangeAddress();
 
             var toDestination = BitcoinAddress.Create(destination, _WalletManager.Network);
@@ -71,9 +85,11 @@ namespace Liviano.Managers
             // Calculate fees
             Money fees = txWithNoFees.GetVirtualSize() / satoshisPerByte;
 
-            if (inputs.Sum(o => o.Amount) < amount + fees)
+            inputs = _CoinSelector.Select(GetCoins(account), amount + fees);
+
+            if (inputs == null)
             {
-                throw new WalletException("This is a problem :(");
+                throw new WalletException("Balance too low to create transaction");
             }
 
             return _Builder

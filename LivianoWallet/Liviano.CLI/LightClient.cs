@@ -113,6 +113,83 @@ namespace Liviano.CLI
             });
         }
 
+        public static (bool WasSent, Transaction Tx, string Error) Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        {
+            _Network = HdOperations.GetNetwork(config.Network);
+
+            var chain = GetChain();
+            var asyncLoopFactory = new AsyncLoopFactory();
+            var dateTimeProvider = new DateTimeProvider();
+            var scriptAddressReader = new ScriptAddressReader();
+            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+
+            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+
+            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
+
+            if (!storageProvider.WalletExists())
+            {
+                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
+
+                throw new WalletException($"Error creating wallet from wallet id");
+            }
+
+            walletManager.LoadWallet(password);
+
+            var parameters = new NodeConnectionParameters();
+
+            parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
+            parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.Segwit));
+
+            _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
+            {
+                RequiredServices = NodeServices.Network //Needed for SPV
+            });
+            _Group.MaximumNodeConnection = config.NodesToConnect;
+            _Group.Connect();
+
+            var broadcastManager = new BroadcastManager(_Group);
+            var coinSelector = new DefaultCoinSelector();
+
+            var transactionManager = new TransactionManager(broadcastManager, walletManager, coinSelector, chain);
+            var btcAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
+            HdAccount account = null;
+
+            if (accountIndex == null && accountName == null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First();
+            }
+            else if (accountIndex != null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First(a => a.Index == int.Parse(accountIndex));
+            }
+            else if (accountName != null)
+            {
+                account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First(a => a.Name == accountName);
+            }
+
+            Transaction tx = null;
+            string error = "";
+            bool wasSent = false; // For now wasSent is "wasCreated" ;-)
+
+            try
+            {
+                tx = transactionManager.CreateTransaction(destinationAddress, btcAmount, satsPerByte, account, password);
+                wasSent = true;
+            }
+            catch (WalletException e)
+            {
+                _Logger.Error(e.ToString());
+
+                error = e.Message;
+                wasSent = false;
+            }
+
+            return (wasSent, tx, error);
+        }
+
         public static (string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount) AccountBalance(Config config, string password, string accountName = null, string accountIndex = null)
         {
             if (accountIndex == null) accountIndex = "-1";
