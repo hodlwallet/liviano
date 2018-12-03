@@ -16,5 +16,7 @@ namespace Liviano.Interfaces
         bool VerifyTranscation(Transaction transaction, out WalletException[] transactionPolicyErrors);
 
         Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys);
+
+        void BroadcastTransaction(Transaction transcationToBroadcast);
     }
 }

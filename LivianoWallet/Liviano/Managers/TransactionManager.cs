@@ -117,5 +117,10 @@ namespace Liviano.Managers
 
             return flag;
         }
+
+        public async void BroadcastTransaction(Transaction transcationToBroadcast)
+        {
+           await _BroadcastManager.BroadcastTransactionAsync(transcationToBroadcast);
+        }
     }
 }
