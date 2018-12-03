@@ -15,6 +15,7 @@ using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Exceptions;
+using NBitcoin;
 
 namespace Liviano.CLI
 {
@@ -26,7 +27,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, StartOptions>(args)
+            Parser.Default.ParseArguments<NewMnemonicOptions, GetExtendedKeyOptions, GetExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, StartOptions>(args)
             .WithParsed<NewMnemonicOptions>(o => {
                string wordlist = "english";
                int wordCount = 24;
@@ -239,6 +240,79 @@ namespace Liviano.CLI
 
                 Console.WriteLine(name);
             })
+            .WithParsed<WalletBalanceOptions>(o => {
+                string walletId = null;
+                Config config = null;
+
+                if (o.WalletId != null)
+                {
+                    walletId = o.WalletId;
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+
+                    if (walletId != null && !config.HasWallet(walletId))
+                    {
+                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
+
+                        throw new WalletException($"Please create a new wallet for {walletId}");
+                    }
+
+                    walletId = config.WalletId;
+                }
+                else
+                {
+                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
+
+                    throw new WalletException("Please create a new wallet with the command new-wallet");
+                }
+
+                if (o.Testnet)
+                {
+                    config.Network = "testnet";
+                }
+
+                config.SaveChanges();
+
+                bool shownBalance = false;
+                if (o.Name != null)
+                {
+                    (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountName: o.Name);
+
+                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                    Console.WriteLine("==================================================");
+
+                    Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+
+                    shownBalance = true;
+                }
+
+                if (o.Index != null)
+                {
+                    (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
+
+                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                    Console.WriteLine("==================================================");
+
+                    Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+
+                    shownBalance = true;
+                }
+
+                if (!shownBalance)
+                {
+                    var balances = LightClient.AllAccountsBalance(config, o.Password);
+                    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                    Console.WriteLine("==================================================");
+
+                    foreach (var balance in balances)
+                    {
+                        Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
+                    }
+                }
+            })
             .WithParsed<StartOptions>(o => {
                 string network = "main";
                 string walletId = null;
@@ -273,7 +347,6 @@ namespace Liviano.CLI
                 {
                     network = "testnet";
                     config.Network = network;
-
                 }
 
                 if (o.NodesToConnect != 0)

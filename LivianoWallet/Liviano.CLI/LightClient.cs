@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -112,11 +113,60 @@ namespace Liviano.CLI
             });
         }
 
+        public static (string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount) AccountBalance(Config config, string password, string accountName = null, string accountIndex = null)
+        {
+            if (accountIndex == null) accountIndex = "-1";
+
+            try
+            {
+                return AllAccountsBalance(config, password).First(b => b.Name == accountName || b.HdPath.EndsWith($"{accountIndex}'"));
+            }
+            catch (InvalidOperationException e)
+            {
+                _Logger.Error(e.ToString());
+
+                throw new WalletException($"Could not find account index ({accountIndex}) or name ({accountName})");
+            }
+        }
+
+        public static IEnumerable<(string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount)> AllAccountsBalance(Config config, string password)
+        {
+            List<(string, string, Money, Money)> balances = new List<(string, string, Money, Money)>();
+
+            _Network = HdOperations.GetNetwork(config.Network);
+
+            var chain = new ConcurrentChain();
+            var asyncLoopFactory = new AsyncLoopFactory();
+            var dateTimeProvider = new DateTimeProvider();
+            var scriptAddressReader = new ScriptAddressReader();
+            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+
+            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+
+            if (!storageProvider.WalletExists())
+            {
+                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
+
+                throw new WalletException($"Error creating wallet from wallet id");
+            }
+
+            walletManager.LoadWallet(password);
+
+            foreach (var account in walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin))
+            {
+                var spendableAmounts = account.GetSpendableAmount();
+
+                balances.Add((account.Name ?? $"#{account.Index}", account.HdPath, spendableAmounts.ConfirmedAmount, spendableAmounts.UnConfirmedAmount));
+            }
+
+            return balances;
+        }
+
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var chain = GetChain();
+            var chain = new ConcurrentChain();
             var asyncLoopFactory = new AsyncLoopFactory();
             var dateTimeProvider = new DateTimeProvider();
             var scriptAddressReader = new ScriptAddressReader();
