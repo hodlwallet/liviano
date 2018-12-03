@@ -37,7 +37,7 @@ namespace Liviano.Managers
             _BroadcastManager = broadcastManager;
             _WalletManager = walletManager;
             _CoinSelector = coinSelector;
-            //_Builder = _WalletManager.Network.CreateTransactionBuilder();
+            _Builder = new TransactionBuilder();
         }
 
         public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password)
@@ -95,10 +95,21 @@ namespace Liviano.Managers
             return unsignedTransaction;
         }
 
-        public bool VerifyTranscation(Transaction tx/*, out TransactionPolicyError[] transactionPolicyErrors*/)
+        public bool VerifyTranscation(Transaction tx , out WalletException[] transactionPolicyErrors)
         {
-            // transactionPolicyErrors.Append(new TransactionPolicyError());
-            return _Builder.Verify(tx);
+            var flag = _Builder.Verify(tx, out var errors);
+
+            var exceptions = new List<WalletException>();
+
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    exceptions.Add(new WalletException(error.ToString()));
+                }
+            }
+            transactionPolicyErrors = exceptions.ToArray();
+            return flag;
         }
     }
 }
