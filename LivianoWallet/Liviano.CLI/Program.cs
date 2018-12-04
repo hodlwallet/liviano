@@ -457,10 +457,20 @@ namespace Liviano.CLI
                 }
 
                 Console.WriteLine($"TxId: {tx.GetHash()}");
-                Console.WriteLine("=====================");
-                Console.WriteLine($"Fees: {tx.TotalOut.ToDecimal(MoneyUnit.BTC) - new Decimal(o.Amount)}");
+                Console.WriteLine("=====================" + new string('=', tx.GetHash().ToString().Length));
+                Console.WriteLine($"Size: {tx.GetVirtualSize()}");
                 Console.WriteLine($"Created: {wasCreated}");
                 Console.WriteLine($"Sent: {wasSent}");
+                Console.WriteLine("Inputs");
+                Console.WriteLine("------");
+
+                foreach (var input in tx.Inputs)
+                {
+                    Console.WriteLine($"{input.PrevOut.Hash} ({input.PrevOut.N})");
+                }
+
+                Console.WriteLine($"Fees: {tx.TotalOut.ToDecimal(MoneyUnit.BTC) - new Decimal(o.Amount)}");
+
                 Console.WriteLine($"Hex: {tx.ToHex()}");
             })
             .WithParsed<StartOptions>(o => {
