@@ -402,7 +402,7 @@ namespace Liviano.CLI
                     Console.WriteLine($"{address.Address}");
                 }
             })
-            .WithParsed<SendOptions>(o => {
+            .WithParsed<SendOptions>(async o => {
                 string walletId = null;
                 Config config = null;
 
@@ -441,17 +441,18 @@ namespace Liviano.CLI
                 bool wasSent = false;
                 Transaction tx = null;
                 string error = null;
+
                 if (o.Name == null && o.Index == null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
+                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
                 }
                 else if (o.Name != null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
+                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
                 }
                 else if (o.Index != null)
                 {
-                    (wasSent, tx, error) = LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
+                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
                 }
 
                 Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly created" : $"Transaction ({tx.GetHash()}) failed to be created (is not valid): {error}");

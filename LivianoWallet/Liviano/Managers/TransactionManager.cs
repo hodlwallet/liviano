@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Liviano.Managers
 {
@@ -162,7 +163,7 @@ namespace Liviano.Managers
             return flag;
         }
 
-        public async void BroadcastTransaction(Transaction transactionToBroadcast)
+        public async Task BroadcastTransaction(Transaction transactionToBroadcast)
         {
            await _BroadcastManager.BroadcastTransactionAsync(transactionToBroadcast);
         }

@@ -113,7 +113,7 @@ namespace Liviano.CLI
             });
         }
 
-        public static (bool WasSent, Transaction Tx, string Error) Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
@@ -177,8 +177,6 @@ namespace Liviano.CLI
             try
             {
                 tx = transactionManager.CreateTransaction(destinationAddress, btcAmount, satsPerByte, account, password);
-                transactionManager.BroadcastTransaction(tx);
-
                 wasSent = true;
             }
             catch (WalletException e)
@@ -198,6 +196,11 @@ namespace Liviano.CLI
                 _Logger.Error(err.Message);
 
                 throw err;
+            }
+
+            if (wasSent)
+            {
+                await transactionManager.BroadcastTransaction(tx);
             }
 
             return (wasSent, tx, error);
@@ -391,6 +394,9 @@ namespace Liviano.CLI
                 try
                 {
                     var keyInfo = Console.ReadKey();
+
+                    if (keyInfo.Key == ConsoleKey.Enter)
+                        Console.WriteLine();
 
                     quit = keyInfo.Key == ConsoleKey.Escape;
                 }

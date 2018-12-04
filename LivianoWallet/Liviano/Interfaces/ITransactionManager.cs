@@ -6,6 +6,7 @@ using NBitcoin;
 
 using Liviano.Exceptions;
 using Liviano.Models;
+using System.Threading.Tasks;
 
 namespace Liviano.Interfaces
 {
@@ -17,6 +18,6 @@ namespace Liviano.Interfaces
 
         Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys);
 
-        void BroadcastTransaction(Transaction transactionToBroadcast);
+        Task BroadcastTransaction(Transaction transactionToBroadcast);
     }
 }

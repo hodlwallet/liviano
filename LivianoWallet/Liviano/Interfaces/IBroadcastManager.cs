@@ -12,10 +12,8 @@ namespace Liviano.Interfaces
     {
         Task BroadcastTransactionAsync(Transaction transaction);
 
-
         TransactionBroadcastEntry GetTransaction(uint256 transactionHash);
 
         void AddOrUpdate(Transaction transaction, TransactionState state, string ErrorMessage = "");
-
     }
 }
