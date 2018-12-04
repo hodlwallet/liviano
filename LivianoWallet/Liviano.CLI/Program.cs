@@ -438,25 +438,29 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
+                bool wasCreated = false;
                 bool wasSent = false;
                 Transaction tx = null;
                 string error = null;
 
                 if (o.Name == null && o.Index == null)
                 {
-                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
+                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
                 }
                 else if (o.Name != null)
                 {
-                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
+                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
                 }
                 else if (o.Index != null)
                 {
-                    (wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
+                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
                 }
 
-                Console.WriteLine(wasSent ? $"Transaction({tx.GetHash()}) successfuly created" : $"Transaction ({tx.GetHash()}) failed to be created (is not valid): {error}");
-
+                Console.WriteLine($"TxId: {tx.GetHash()}");
+                Console.WriteLine("=====================");
+                Console.WriteLine($"Fees: {tx.TotalOut.ToDecimal(MoneyUnit.BTC) - new Decimal(o.Amount)}");
+                Console.WriteLine($"Created: {wasCreated}");
+                Console.WriteLine($"Sent: {wasSent}");
                 Console.WriteLine($"Hex: {tx.ToHex()}");
             })
             .WithParsed<StartOptions>(o => {

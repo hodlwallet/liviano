@@ -113,7 +113,7 @@ namespace Liviano.CLI
             });
         }
 
-        public static async Task<(bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
@@ -141,7 +141,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.SegwitAndLegacy));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager, Enums.ScriptTypes.SegwitAndLegacy));
 
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
@@ -172,38 +172,38 @@ namespace Liviano.CLI
 
             Transaction tx = null;
             string error = "";
-            bool wasSent = false; // For now wasSent is "wasCreated" ;-)
+            bool wasCreated = false;
+            bool wasSent = false;
 
             try
             {
                 tx = transactionManager.CreateTransaction(destinationAddress, btcAmount, satsPerByte, account, password);
-                wasSent = true;
+                wasCreated = true;
             }
             catch (WalletException e)
             {
                 _Logger.Error(e.ToString());
 
                 error = e.Message;
-                wasSent = false;
+                wasCreated = false;
 
-                return (wasSent, tx, error);
+                return (wasCreated, wasSent, tx, error);
             }
 
             transactionManager.VerifyTransaction(tx, out var errors);
 
-            foreach (var err in errors)
+            if (errors.Count() > 0)
             {
-                _Logger.Error(err.Message);
-
-                throw err;
+                error = String.Join<string>(',', errors.Select(o => o.Message));
             }
 
-            if (wasSent)
+            if (wasCreated)
             {
                 await transactionManager.BroadcastTransaction(tx);
+                wasSent = true;
             }
 
-            return (wasSent, tx, error);
+            return (wasCreated, wasSent, tx, error);
         }
 
         public static (string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount) AccountBalance(Config config, string password, string accountName = null, string accountIndex = null)
@@ -332,7 +332,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.SegwitAndLegacy));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager, Enums.ScriptTypes.SegwitAndLegacy));
 
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
