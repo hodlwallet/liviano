@@ -121,6 +121,8 @@ namespace Liviano.Managers
                 );
             }
 
+            _Builder = _WalletManager.Network.CreateTransactionBuilder();
+
             return _Builder
                 .AddCoins(inputs)
                 .AddKeys(keys.ToArray())

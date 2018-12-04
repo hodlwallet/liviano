@@ -141,7 +141,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.Segwit));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.SegwitAndLegacy));
 
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
@@ -192,6 +192,13 @@ namespace Liviano.CLI
             }
 
             transactionManager.VerifyTransaction(tx, out var errors);
+
+            foreach (var err in errors)
+            {
+                _Logger.Error(err.Message);
+
+                throw err;
+            }
 
             return (wasSent, tx, error);
         }
@@ -322,7 +329,7 @@ namespace Liviano.CLI
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.Segwit));
+            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager,Enums.ScriptTypes.SegwitAndLegacy));
 
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
