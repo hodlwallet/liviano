@@ -66,26 +66,16 @@ namespace Liviano.Managers
 
             foreach (Coin coin in inputs)
             {
-                HdAddress coinAddress = null;
-
+                HdAddress coinAddress;
                 try
                 {
-                    coinAddress = account.InternalAddresses.First(o =>
+                    coinAddress = account.InternalAddresses.Concat(account.ExternalAddresses).First(o =>
                         o.P2WPKH_ScriptPubKey == coin.ScriptPubKey || o.P2PKH_ScriptPubKey == coin.ScriptPubKey
                     );
                 }
                 catch (InvalidOperationException e)
                 {
-                    try
-                    {
-                        coinAddress = account.ExternalAddresses.First(o =>
-                            o.P2WPKH_ScriptPubKey == coin.ScriptPubKey || o.P2PKH_ScriptPubKey == coin.ScriptPubKey
-                        );
-                    }
-                    catch (InvalidOperationException e2)
-                    {
-                        throw new WalletException(e.Message + e2.Message);
-                    }
+                    throw new WalletException(e.Message);
                 }
 
                 keys.Add(
