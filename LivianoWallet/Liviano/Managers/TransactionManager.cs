@@ -100,6 +100,27 @@ namespace Liviano.Managers
                 throw new WalletException("Balance too low to create transaction");
             }
 
+            keys.Clear();
+
+            foreach (Coin coin in inputs)
+            {
+                HdAddress coinAddress;
+                try
+                {
+                    coinAddress = account.ExternalAddresses.Concat(account.InternalAddresses).First(
+                        o => o.Transactions.Any(u => u.Id == coin.Outpoint.Hash)
+                    );
+                }
+                catch (InvalidOperationException e)
+                {
+                    throw new WalletException(e.Message);
+                }
+
+                keys.Add(
+                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(password, coinAddress).PrivateKey
+                );
+            }
+
             return _Builder
                 .AddCoins(inputs)
                 .AddKeys(keys.ToArray())
