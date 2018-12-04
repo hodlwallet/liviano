@@ -62,15 +62,15 @@ namespace Liviano.Managers
             var toDestination = BitcoinAddress.Create(destination, _WalletManager.Network);
             var changeDestination = BitcoinAddress.Create(changeDestinationHdAddress.Address, _WalletManager.Network);
 
-            List<Key> keys = new List<Key> ();
+            List<Key> keys = new List<Key>();
 
             foreach (Coin coin in inputs)
             {
                 HdAddress coinAddress;
                 try
                 {
-                    coinAddress = account.InternalAddresses.Concat(account.ExternalAddresses).First(o =>
-                        o.P2WPKH_ScriptPubKey == coin.ScriptPubKey || o.P2PKH_ScriptPubKey == coin.ScriptPubKey
+                    coinAddress = account.ExternalAddresses.Concat(account.InternalAddresses).First(
+                        o => o.Transactions.Any(u => u.Id == coin.Outpoint.Hash)
                     );
                 }
                 catch (InvalidOperationException e)
