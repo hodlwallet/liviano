@@ -191,6 +191,8 @@ namespace Liviano.CLI
                 return (wasSent, tx, error);
             }
 
+            transactionManager.VerifyTransaction(tx, out var errors);
+
             return (wasSent, tx, error);
         }
 

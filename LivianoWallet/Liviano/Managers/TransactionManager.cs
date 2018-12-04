@@ -91,7 +91,7 @@ namespace Liviano.Managers
                 .BuildTransaction(sign: signTransation);
 
             // Calculate fees
-            Money fees = txWithNoFees.GetVirtualSize() / satoshisPerByte;
+            Money fees = satoshisPerByte * txWithNoFees.GetVirtualSize();
 
             inputs = _CoinSelector.Select(GetCoins(account), amount + fees);
 
