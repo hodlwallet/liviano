@@ -318,6 +318,9 @@ namespace Liviano.CLI
                 {
                     var keyInfo = Console.ReadKey();
 
+                    if (keyInfo.Key == ConsoleKey.Enter)
+                        Console.WriteLine();
+
                     quit = keyInfo.Key == ConsoleKey.Escape;
                 }
                 catch (InvalidOperationException e)
