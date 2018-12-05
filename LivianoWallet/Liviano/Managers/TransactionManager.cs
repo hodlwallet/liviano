@@ -145,16 +145,9 @@ namespace Liviano.Managers
                 .BuildTransaction(sign: signTransation);
         }
 
-        public Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys)
+        public Transaction SignTransaction(Transaction unsignedTransaction)
         {
-            if (unsignedTransaction.Inputs.All(i => i.GetSigner() != null))
-            {
-                throw new WalletException("Transaction already signed");
-            }
-
-            unsignedTransaction.Sign(keys, coins);
-
-            return unsignedTransaction;
+            return _Builder.SignTransaction(unsignedTransaction);
         }
 
         public bool VerifyTransaction(Transaction tx , out WalletException[] transactionPolicyErrors)
