@@ -12,6 +12,7 @@ using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Enums;
 using Liviano.Interfaces;
+using Liviano.Behaviors;
 
 namespace Liviano.Managers
 {
@@ -20,15 +21,14 @@ namespace Liviano.Managers
 
         NodesCollection _Nodes;
         MessageHub _EventHub;
-
         public BroadcastManager(NodesGroup nodeGroup)
         {
             _Nodes = nodeGroup.ConnectedNodes;
-
             this.Broadcasts = new ConcurrentDictionary<TransactionBroadcastEntry, object>(2, 0);
-            _EventHub = MessageHub.Instance;
-        }
 
+            _EventHub = MessageHub.Instance;
+
+        }
         //Concurrent dictionary ignoring the value
         public ConcurrentDictionary<TransactionBroadcastEntry,object> Broadcasts { get; }
 
@@ -81,17 +81,12 @@ namespace Liviano.Managers
             this.AddOrUpdate(transaction, TransactionState.ToBroadcast);
 
             var invPayload = new InvPayload(transaction);
+            var txPatload = new TxPayload(transaction);
 
             foreach (var node in nodes)
             {
-                try
-                {
                     await node.SendMessageAsync(invPayload).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    //Error handling
-                }
+                    await node.SendMessageAsync(txPatload).ConfigureAwait(false);
             }
         }
 
@@ -99,11 +94,6 @@ namespace Liviano.Managers
         {
             TransactionBroadcastEntry broadcastEntry = this.GetTransaction(transaction.GetHash());
             return (broadcastEntry != null) && (broadcastEntry.State == TransactionState.Propagated);
-        }
-
-        public static NodesGroup NewNodesGroup(Network network)
-        {
-            return new NodesGroup(network);
         }
     }
 }

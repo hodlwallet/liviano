@@ -15,6 +15,7 @@ using Liviano.Exceptions;
 using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
+using System.Threading;
 
 namespace Liviano.CLI
 {
@@ -136,23 +137,30 @@ namespace Liviano.CLI
             }
 
             walletManager.LoadWallet(password);
-
             var parameters = new NodeConnectionParameters();
 
             parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
             parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
             parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager, Enums.ScriptTypes.SegwitAndLegacy));
 
+
+            walletManager.Start();
+
             _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
             {
                 RequiredServices = NodeServices.Network //Needed for SPV
             });
+
             _Group.MaximumNodeConnection = config.NodesToConnect;
+            var broadcastManager = new BroadcastManager(_Group);
+            parameters.TemplateBehaviors.Add(new TransactionBroadcastBehavior(broadcastManager));
+            _Group.NodeConnectionParameters = parameters;
             _Group.Connect();
 
-            var broadcastManager = new BroadcastManager(_Group);
-            var coinSelector = new DefaultCoinSelector();
 
+
+
+            var coinSelector = new DefaultCoinSelector();
             var transactionManager = new TransactionManager(broadcastManager, walletManager, coinSelector, chain);
             var btcAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
             HdAccount account = null;
@@ -197,12 +205,14 @@ namespace Liviano.CLI
                 error = String.Join<string>(',', errors.Select(o => o.Message));
             }
 
+            //Thread.Sleep(30000);
+
             if (wasCreated)
             {
                 await transactionManager.BroadcastTransaction(tx);
                 wasSent = true;
             }
-
+            //Thread.Sleep(10000);
             return (wasCreated, wasSent, tx, error);
         }
 
@@ -360,7 +370,7 @@ namespace Liviano.CLI
                 timeToStartOn = walletManager.CreationTime != null ? walletManager.CreationTime : _Network.GetGenesis().Header.BlockTime; //Skip all time before, start of BIP32
             }
 
-            walletSyncManager.Scan(scanLocation, timeToStartOn);
+            walletSyncManager.Scan(scanLocation, new DateTimeOffset(new DateTime(2018,12,1)));
 
             _ConParams = parameters;
 

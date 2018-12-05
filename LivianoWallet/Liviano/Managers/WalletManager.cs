@@ -213,8 +213,17 @@ namespace Liviano.Managers
 
                 if (lastBlockSyncedHash == null && height.HasValue)
                 {
+                    if (_Chain.Tip.Height >= height.Value)
+                    {
+                        return _Chain.GetBlock(height.Value).HashBlock;
+                    }
+                    else
+                    {
+                        _Logger.Warning("Tip of saved chain is {tipofChain}, last synced height is {lastSyncedHeight}.\nRolling last synced height to chain tip ",_Chain.Tip.Height,height.Value);
+                        _Wallet.SetLastBlockDetailsByCoinType(CoinType.Bitcoin, _Chain.Tip);
 
-                    return _Chain.GetBlock(height.Value).HashBlock;
+                        return  _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
+                    }
                 }
 
                 // If details about the last block synced are not present in the wallet,
@@ -636,7 +645,11 @@ namespace Liviano.Managers
                 };
 
                 spentTransaction.SpendingDetails = spendingDetails;
-                spentTransaction.MerkleProof = block.PartialMerkleTree;
+
+                if (block != null)
+                {
+                    spentTransaction.MerkleProof = block.PartialMerkleTree;
+                }
 
                 OnNewSpendingTransaction?.Invoke(this, spentTransaction);
             }

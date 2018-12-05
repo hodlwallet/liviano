@@ -42,7 +42,7 @@ namespace Liviano.Behaviors
 
 // Suppresses warnings for obsolete use of SPV code
 #pragma warning disable 612, 618
-        private FilterState _FilterState;
+        public FilterState _FilterState { get; private set; }
 #pragma warning restore 612, 618
 
         private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
