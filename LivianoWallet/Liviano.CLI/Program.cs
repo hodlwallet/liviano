@@ -469,7 +469,7 @@ namespace Liviano.CLI
                     Console.WriteLine($"{input.PrevOut.Hash} ({input.PrevOut.N})");
                 }
 
-                Console.WriteLine($"Fees: {tx.TotalOut.ToDecimal(MoneyUnit.BTC) - new Decimal(o.Amount)}");
+                Console.WriteLine($"Fees: {new Money(tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
 
                 Console.WriteLine($"Hex: {tx.ToHex()}");
             })
