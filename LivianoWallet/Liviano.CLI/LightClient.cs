@@ -21,8 +21,6 @@ namespace Liviano.CLI
 {
     public class LightClient
     {
-        private static NodesGroup _Group;
-
         private static object _Lock = new object();
 
         private static NodeConnectionParameters _ConParams;
@@ -119,52 +117,27 @@ namespace Liviano.CLI
             _Network = HdOperations.GetNetwork(config.Network);
 
             var chain = GetChain();
-            var asyncLoopFactory = new AsyncLoopFactory();
-            var dateTimeProvider = new DateTimeProvider();
-            var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+            var addressManager = GetAddressManager();
+            var result = WalletManager.CreateWalletManager(
+                _Logger,
+                chain,
+                _Network,
+                config.WalletId,
+                addressManager,
+                maxAmountOfNodes: config.NodesToConnect,
+                password: password,
+                scan: false
+            );
 
-            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+            _Logger.Information("Loading wallet: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
-            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
-
-            if (!storageProvider.WalletExists())
-            {
-                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
-
-                throw new WalletException($"Error creating wallet from wallet id");
-            }
-
-            walletManager.LoadWallet(password);
-            var parameters = new NodeConnectionParameters();
-
-            parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
-            parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager, Enums.ScriptTypes.SegwitAndLegacy));
-
-
-            walletManager.Start();
-
-            _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
-            {
-                RequiredServices = NodeServices.Network //Needed for SPV
-            });
-
-            _Group.MaximumNodeConnection = config.NodesToConnect;
-            var broadcastManager = new BroadcastManager(_Group);
-            parameters.TemplateBehaviors.Add(new TransactionBroadcastBehavior(broadcastManager));
-            _Group.NodeConnectionParameters = parameters;
-            _Group.Connect();
-
-
-
-
+            WalletManager walletManager = result.WalletManager;
+            var broadcastManager = result.BroadcastManager;
             var coinSelector = new DefaultCoinSelector();
             var transactionManager = new TransactionManager(broadcastManager, walletManager, coinSelector, chain);
             var btcAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
-            HdAccount account = null;
 
+            HdAccount account = null;
             if (accountIndex == null && accountName == null)
             {
                 account = walletManager.GetAllAccountsByCoinType(CoinType.Bitcoin).First();
@@ -202,17 +175,15 @@ namespace Liviano.CLI
 
             if (errors.Count() > 0)
             {
-                error = String.Join<string>(',', errors.Select(o => o.Message));
+                error = String.Join<string>(", ", errors.Select(o => o.Message));
             }
-
-            //Thread.Sleep(30000);
 
             if (wasCreated)
             {
                 await transactionManager.BroadcastTransaction(tx);
                 wasSent = true;
             }
-            //Thread.Sleep(10000);
+
             return (wasCreated, wasSent, tx, error);
         }
 
@@ -226,7 +197,7 @@ namespace Liviano.CLI
             }
             catch (InvalidOperationException e)
             {
-                _Logger.Error(e.ToString());
+                _Logger.Error(e.Message);
 
                 throw new WalletException($"Could not find account index ({accountIndex}) or name ({accountName})");
             }
@@ -238,19 +209,13 @@ namespace Liviano.CLI
 
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var chain = new ConcurrentChain();
-            var asyncLoopFactory = new AsyncLoopFactory();
-            var dateTimeProvider = new DateTimeProvider();
-            var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+            WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
-            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-
-            if (!storageProvider.WalletExists())
+            if (!walletManager.GetStorageProvider().WalletExists())
             {
-                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
+                _Logger.Error("Error loading wallet wallet from {walletId}", config.WalletId);
 
-                throw new WalletException($"Error creating wallet from wallet id");
+                throw new WalletException($"Error loading wallet from wallet id");
             }
 
             walletManager.LoadWallet(password);
@@ -269,17 +234,10 @@ namespace Liviano.CLI
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var chain = new ConcurrentChain();
-            var asyncLoopFactory = new AsyncLoopFactory();
-            var dateTimeProvider = new DateTimeProvider();
-            var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(config.WalletId);
-
-            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            HdAccount account = null;
+            WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
             walletManager.LoadWallet(password);
-
-            HdAccount account = null;
 
             if (accountIndex == null && accountName == null)
             {
@@ -301,15 +259,9 @@ namespace Liviano.CLI
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var chain = new ConcurrentChain();
-            var asyncLoopFactory = new AsyncLoopFactory();
-            var dateTimeProvider = new DateTimeProvider();
-            var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(config.WalletId);
-
             _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
-            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+            WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
             walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
         }
@@ -318,59 +270,20 @@ namespace Liviano.CLI
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var chain = GetChain();
-            var asyncLoopFactory = new AsyncLoopFactory();
-            var dateTimeProvider = new DateTimeProvider();
-            var scriptAddressReader = new ScriptAddressReader();
-            var storageProvider = new FileSystemStorageProvider(config.WalletId);
+            var result = WalletManager.CreateWalletManager(
+                _Logger,
+                GetChain(),
+                _Network,
+                config.WalletId,
+                GetAddressManager(),
+                maxAmountOfNodes: config.NodesToConnect,
+                password: password
+            );
 
-            _Logger.Information("Starting wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+            WalletManager walletManager = result.WalletManager;
 
-            WalletManager walletManager = new WalletManager(_Logger, _Network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
-            WalletSyncManager walletSyncManager = new WalletSyncManager(_Logger, walletManager, chain);
-
-            if (!storageProvider.WalletExists())
-            {
-                _Logger.Error("Error creating wallet from {walletId}", config.WalletId);
-
-                throw new WalletException($"Error creating wallet from wallet id");
-            }
-
-            walletManager.LoadWallet(password);
-
-            var parameters = new NodeConnectionParameters();
-
-            parameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager())); //So we find nodes faster
-            parameters.TemplateBehaviors.Add(new ChainBehavior(chain)); //So we don't have to load the chain each time we start
-            parameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(_Logger, walletSyncManager, Enums.ScriptTypes.SegwitAndLegacy));
-
-            _Group = new NodesGroup(_Network, parameters, new NodeRequirement()
-            {
-                RequiredServices = NodeServices.Network //Needed for SPV
-            });
-            _Group.MaximumNodeConnection = config.NodesToConnect;
-            _Group.Connect();
-
-            var broadcastManager = new BroadcastManager(_Group);
-
-            walletManager.Start();
-
-            var scanLocation = new BlockLocator();
-            var walletBlockLocator = walletManager.GetWalletBlockLocator();
-            DateTimeOffset timeToStartOn;
-
-            if (walletBlockLocator != null) //Can be null if a wallet is new
-            {
-                scanLocation.Blocks.AddRange(walletBlockLocator); // Set starting scan location to wallet's last blockLocator position
-                timeToStartOn = chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
-            }
-            else
-            {
-                scanLocation.Blocks.Add(_Network.GenesisHash); //Set starting scan location to begining of network chain
-                timeToStartOn = walletManager.CreationTime != null ? walletManager.CreationTime : _Network.GetGenesis().Header.BlockTime; //Skip all time before, start of BIP32
-            }
-
-            walletSyncManager.Scan(scanLocation, new DateTimeOffset(new DateTime(2018,12,1)));
+            var walletSyncManager = result.WalletSyncManager;
+            var parameters = result.NodeConnectionParameters;
 
             _ConParams = parameters;
 
@@ -387,7 +300,7 @@ namespace Liviano.CLI
             walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
             walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
 
-            _Logger.Information("Liviano SPV client started");
+            _Logger.Information("Liviano SPV client started.");
 
             WaitUntilEscapeIsPressed(walletManager);
         }
@@ -405,15 +318,12 @@ namespace Liviano.CLI
                 {
                     var keyInfo = Console.ReadKey();
 
-                    if (keyInfo.Key == ConsoleKey.Enter)
-                        Console.WriteLine();
-
                     quit = keyInfo.Key == ConsoleKey.Escape;
                 }
                 catch (InvalidOperationException e)
                 {
-                    _Logger.Error("{error}", e);
-                    _Logger.Information("Stop handled by IDE", e);
+                    _Logger.Error("{error}", e.Message);
+                    _Logger.Information("Stop handled by IDE");
 
                     quitHandledByIDE = true;
                     quit = true;

@@ -12,6 +12,9 @@ using Liviano.Managers;
 using Liviano.Enums;
 using Liviano.Exceptions;
 using Liviano.Interfaces;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using Liviano.Behaviors;
 
 namespace Liviano.Managers
 {
@@ -77,8 +80,6 @@ namespace Liviano.Managers
 
         public uint256 WalletTipHash { get; set; }
 
-        public DateTimeOffset CreationTime { get { return _Wallet.CreationTime; } }
-
         public Network Network { get { return _Network; } }
 
         public event EventHandler<TransactionData> OnNewSpendingTransaction;
@@ -115,6 +116,27 @@ namespace Liviano.Managers
             _EventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
         }
 
+        public WalletManager(ILogger logger, Network network, string walletId = null, ConcurrentChain chain = null)
+        {
+            walletId = walletId ?? Guid.NewGuid().ToString();
+            chain = chain ?? new ConcurrentChain();
+
+            _Lock = new object();
+
+            _Logger = logger;
+            _Network = network;
+            _Chain = chain;
+
+            _ScriptAddressReader = new ScriptAddressReader();
+            _DateTimeProvider = new DateTimeProvider();
+            _StorageProvider = new FileSystemStorageProvider(walletId);
+            _KeysLookup = new Dictionary<Script, HdAddress>();
+            _OutpointLookup = new Dictionary<OutPoint, TransactionData>();
+
+            _EventHub = MessageHub.Instance;
+            _EventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
+        }
+
         /// <summary>
         /// Method to handle <see cref="TransactionBroadcastEntry"/>s as they are published onto the eventhub
         /// </summary>
@@ -127,8 +149,7 @@ namespace Liviano.Managers
             }
             else
             {
-                //this.logger.LogTrace("Exception occurred: {0}", transactionEntry.ErrorMessage);
-                //this.logger.LogTrace("(-)[EXCEPTION]");
+                _Logger.Error("Exception occurred: {errorMessage}", transactionEntry.ErrorMessage);
             }
         }
 
@@ -164,8 +185,6 @@ namespace Liviano.Managers
             );
         }
 
-
-        
         public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType bitcoin, int height, int confirmations = 0)
         {
             return _Wallet.GetAllSpendableTransactions(bitcoin, height, confirmations);
@@ -186,7 +205,6 @@ namespace Liviano.Managers
             return _Wallet.GetAccountsByCoinType(bitcoin);
         }
 
-
         public uint256 LastReceivedBlockHash()
         {
             if (_Wallet == null)
@@ -197,19 +215,13 @@ namespace Liviano.Managers
             uint256 lastBlockSyncedHash;
             lock (this._Lock)
             {
-                //lastBlockSyncedHash = this.Wallet
-                //    .Select(w => w.AccountsRoot.SingleOrDefault(a => a.CoinType == this.coinType))
-                //    .Where(w => w != null)
-                //    .OrderBy(o => o.LastBlockSyncedHeight)
-                //    .FirstOrDefault()?.LastBlockSyncedHash;
-
-                 lastBlockSyncedHash = _Wallet.AccountsRoot.Where(x => x.CoinType == CoinType.Bitcoin).Where(w => w != null)
+                lastBlockSyncedHash = _Wallet.AccountsRoot
+                    .Where(x => x.CoinType == _CoinType)
+                    .Where(w => w != null)
                     .OrderBy(o => o.LastBlockSyncedHeight)
                     .FirstOrDefault()?.LastBlockSyncedHash;
 
-
                 var height = _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHeight).FirstOrDefault();
-
 
                 if (lastBlockSyncedHash == null && height.HasValue)
                 {
@@ -220,7 +232,7 @@ namespace Liviano.Managers
                     else
                     {
                         _Logger.Warning("Tip of saved chain is {tipofChain}, last synced height is {lastSyncedHeight}.\nRolling last synced height to chain tip ",_Chain.Tip.Height,height.Value);
-                        _Wallet.SetLastBlockDetailsByCoinType(CoinType.Bitcoin, _Chain.Tip);
+                        _Wallet.SetLastBlockDetailsByCoinType(_CoinType, _Chain.Tip);
 
                         return  _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
                     }
@@ -250,7 +262,7 @@ namespace Liviano.Managers
             lock (this._Lock)
             {
 
-                    IEnumerable<HdAddress> addresses = _Wallet.GetAllAddressesByCoinType(CoinType.Bitcoin);
+                    IEnumerable<HdAddress> addresses = _Wallet.GetAllAddressesByCoinType(_CoinType);
                     foreach (HdAddress address in addresses)
                     {
                         this._KeysLookup[address.P2PKH_ScriptPubKey] = address;
@@ -380,26 +392,6 @@ namespace Liviano.Managers
             Guard.NotNull(wallet, nameof(wallet));
             this._Logger.Information("Wallet {walletName} has been loaded into the WalletManager", wallet.Name);
             this._Wallet = wallet;
-        }
-
-        public static Mnemonic NewMnemonic(string wordlist = "english", int wordCount = 12)
-        {
-            Wordlist bitcoinWordlist = HdOperations.WordlistFromString(wordlist);
-            WordCount bitcoinWordCount = HdOperations.WordCountFromInt(wordCount);
-
-            return NewMnemonic(bitcoinWordlist, bitcoinWordCount);
-        }
-
-        public static Mnemonic NewMnemonic(Wordlist wordlist, WordCount wordCount)
-        {
-            return new Mnemonic(wordlist, wordCount);
-        }
-
-        public static Mnemonic MnemonicFromString(string mnemonic)
-        {
-            Guard.NotEmpty(mnemonic, nameof(mnemonic));
-
-            return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
         }
 
         public IEnumerable<AccountBalance> GetBalances(string accountName = null)
@@ -963,7 +955,6 @@ namespace Liviano.Managers
         /// <inheritdoc />
         public DateTimeOffset GetWalletCreationTime()
         {
-            // NOTE: @igorgue for now we gonna keep this, even though it's not gonna be used
             return _Wallet.CreationTime;
         }
 
@@ -983,6 +974,105 @@ namespace Liviano.Managers
         public Wallet GetWallet()
         {
             return _Wallet;
+        }
+
+        public IStorageProvider GetStorageProvider()
+        {
+            return _StorageProvider;
+        }
+
+        public static Mnemonic NewMnemonic(string wordlist = "english", int wordCount = 12)
+        {
+            Wordlist bitcoinWordlist = HdOperations.WordlistFromString(wordlist);
+            WordCount bitcoinWordCount = HdOperations.WordCountFromInt(wordCount);
+
+            return NewMnemonic(bitcoinWordlist, bitcoinWordCount);
+        }
+
+        public static Mnemonic NewMnemonic(Wordlist wordlist, WordCount wordCount)
+        {
+            return new Mnemonic(wordlist, wordCount);
+        }
+
+        public static Mnemonic MnemonicFromString(string mnemonic)
+        {
+            Guard.NotEmpty(mnemonic, nameof(mnemonic));
+
+            return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
+        }
+
+        public static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, ConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null)
+        {
+            AsyncLoopFactory asyncLoopFactory = new AsyncLoopFactory();
+            DateTimeProvider dateTimeProvider = new DateTimeProvider();
+            ScriptAddressReader scriptAddressReader = new ScriptAddressReader();
+            FileSystemStorageProvider storageProvider = new FileSystemStorageProvider(walletId);
+            NodeConnectionParameters nodeConnectionParameters = new NodeConnectionParameters();
+
+            WalletManager walletManager = new WalletManager(logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+
+            logger.Information("Loading wallet: {walletFileId} on {network}", walletId, network.Name);
+
+            WalletSyncManager walletSyncManager = new WalletSyncManager(logger, walletManager, chain);
+
+            if (!storageProvider.WalletExists())
+            {
+                logger.Error("Error loading wallet from {walletId}", walletId);
+
+                throw new WalletException($"Error loading wallet from wallet id: {walletId}");
+            }
+
+            if (load && password != null)
+            {
+                walletManager.LoadWallet(password);
+            }
+
+            nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
+            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain));
+            nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
+
+            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
+                RequiredServices = NodeServices.Network
+            });
+
+            BroadcastManager broadcastManager = new BroadcastManager(nodesGroup);
+
+            nodeConnectionParameters.TemplateBehaviors.Add(new TransactionBroadcastBehavior(broadcastManager));
+
+            nodesGroup.NodeConnectionParameters = nodeConnectionParameters;
+
+            if (connect)
+            {
+                nodesGroup.MaximumNodeConnection = maxAmountOfNodes;
+                nodesGroup.Connect();
+            }
+
+            if (start)
+            {
+                walletManager.Start();
+            }
+
+            if (scan)
+            {
+                BlockLocator scanLocation = new BlockLocator();
+                ICollection<uint256> walletBlockLocator = walletManager.GetWalletBlockLocator();
+                DateTimeOffset timeToStartOn;
+
+                if (walletBlockLocator != null)
+                {
+                    scanLocation.Blocks.AddRange(walletBlockLocator);
+                    timeToStartOn = chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                }
+                else
+                {
+                    scanLocation.Blocks.Add(network.GenesisHash); //Set starting scan location to begining of network chain
+                    timeToStartOn = walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime; //Skip all time before, start of BIP32
+                }
+
+                walletSyncManager.Scan(scanLocation, timeToStartOn);
+            }
+
+            return (asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider, walletManager, walletSyncManager, nodesGroup, nodeConnectionParameters, broadcastManager);
         }
     }
 }
