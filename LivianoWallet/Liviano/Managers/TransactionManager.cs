@@ -94,14 +94,28 @@ namespace Liviano.Managers
             // Calculate fees
             Money fees = satoshisPerByte * txWithNoFees.GetVirtualSize();
 
+            _Builder = _WalletManager.Network.CreateTransactionBuilder();
+
+            // If fees are enough with the inputs we got, we should just create the tx.
+            if (inputs.Sum(o => o.TxOut.Value) >= (fees + amount))
+            {
+                return _Builder
+                    .AddCoins(inputs)
+                    .AddKeys(keys.ToArray())
+                    .Send(toDestination, amount)
+                    .SendFees(fees)
+                    .SetChange(changeDestination)
+                    .BuildTransaction(sign: signTransation);
+            }
+
+            // If the inputs do not satisfy the fees + amount grand total, then we repeat the process
             inputs = _CoinSelector.Select(GetCoins(account), amount + fees);
+            keys.Clear();
 
             if (inputs == null)
             {
                 throw new WalletException("Balance too low to create transaction");
             }
-
-            keys.Clear();
 
             foreach (Coin coin in inputs)
             {
@@ -122,8 +136,6 @@ namespace Liviano.Managers
                 );
             }
 
-            _Builder = _WalletManager.Network.CreateTransactionBuilder();
-
             return _Builder
                 .AddCoins(inputs)
                 .AddKeys(keys.ToArray())
@@ -133,16 +145,9 @@ namespace Liviano.Managers
                 .BuildTransaction(sign: signTransation);
         }
 
-        public Transaction SignTransaction(Transaction unsignedTransaction, Coin[] coins, Key[] keys)
+        public Transaction SignTransaction(Transaction unsignedTransaction)
         {
-            if (unsignedTransaction.Inputs.All(i => i.GetSigner() != null))
-            {
-                throw new WalletException("Transaction already signed");
-            }
-
-            unsignedTransaction.Sign(keys, coins);
-
-            return unsignedTransaction;
+            return _Builder.SignTransaction(unsignedTransaction);
         }
 
         public bool VerifyTransaction(Transaction tx , out WalletException[] transactionPolicyErrors)
