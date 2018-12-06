@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
     <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
   </ItemGroup>
 
@@ -20,9 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="serilog" Version="2.7.1" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+    <PackageReference Include="NBitcoin" Version="4.1.1.72" />
   </ItemGroup>
 
 </Project>

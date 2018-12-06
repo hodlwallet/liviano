@@ -10,7 +10,6 @@ test:
 publish_debug:
 	dotnet publish LivianoWallet --framework netcoreapp2.1 --configuration Debug
 	mkdir -p bin/debug
-	cp -R NBitcoin/NBitcoin/bin/Debug/netcoreapp2.1/publish bin/debug/NBitcoin
 	cp -R LivianoWallet/Liviano/bin/Debug/netcoreapp2.1/publish bin/debug/LivianoWallet
 	cp -R LivianoWallet/Liviano.CLI/bin/Debug/netcoreapp2.1/publish bin/debug/LivianoWalletCLI
 
