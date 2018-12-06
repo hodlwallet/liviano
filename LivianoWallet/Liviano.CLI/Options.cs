@@ -182,5 +182,8 @@ namespace Liviano.CLI
 
         [Option('n', "nodes-to-connect", HelpText = "Number of nodes to connect")]
         public int NodesToConnect { get;  set; }
+
+        [Option('d', "date", HelpText = "Date to start on")]
+        public string DateTime { get; set; }
     }
 }

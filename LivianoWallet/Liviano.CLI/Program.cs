@@ -520,7 +520,7 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
-                LightClient.Start(config, o.Password);
+                LightClient.Start(config, o.Password, o.DateTime);
             });
         }
     }

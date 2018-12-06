@@ -16,6 +16,8 @@ using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
 using System.Threading;
+using Liviano.Interfaces;
+using Liviano.Enums;
 
 namespace Liviano.CLI
 {
@@ -118,7 +120,7 @@ namespace Liviano.CLI
 
             var chain = GetChain();
             var addressManager = GetAddressManager();
-            var result = WalletManager.CreateWalletManager(
+            var result = CreateWalletManager(
                 _Logger,
                 chain,
                 _Network,
@@ -266,18 +268,19 @@ namespace Liviano.CLI
             walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
         }
 
-        public static void Start(Config config, string password)
+        public static void Start(Config config, string password, string datetime = null)
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
-            var result = WalletManager.CreateWalletManager(
+            var result = CreateWalletManager(
                 _Logger,
                 GetChain(),
                 _Network,
                 config.WalletId,
                 GetAddressManager(),
                 maxAmountOfNodes: config.NodesToConnect,
-                password: password
+                password: password,
+                timeToStartOn: datetime == null ? new DateTimeOffset?() : DateTimeOffset.Parse(datetime)
             );
 
             WalletManager walletManager = result.WalletManager;
@@ -382,6 +385,79 @@ namespace Liviano.CLI
             _Logger.Information("bye!");
 
             process.Kill();
+        }
+
+        private static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, ConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null, DateTimeOffset? timeToStartOn = null)
+        {
+            AsyncLoopFactory asyncLoopFactory = new AsyncLoopFactory();
+            DateTimeProvider dateTimeProvider = new DateTimeProvider();
+            ScriptAddressReader scriptAddressReader = new ScriptAddressReader();
+            FileSystemStorageProvider storageProvider = new FileSystemStorageProvider(walletId);
+            NodeConnectionParameters nodeConnectionParameters = new NodeConnectionParameters();
+
+            WalletManager walletManager = new WalletManager(logger, network, chain, asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider);
+
+            logger.Information("Loading wallet: {walletFileId} on {network}", walletId, network.Name);
+
+            WalletSyncManager walletSyncManager = new WalletSyncManager(logger, walletManager, chain);
+
+            if (!storageProvider.WalletExists())
+            {
+                logger.Error("Error loading wallet from {walletId}", walletId);
+
+                throw new WalletException($"Error loading wallet from wallet id: {walletId}");
+            }
+
+            if (load && password != null)
+            {
+                walletManager.LoadWallet(password);
+            }
+
+            nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
+            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain));
+            nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
+
+            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
+                RequiredServices = NodeServices.Network
+            });
+
+            BroadcastManager broadcastManager = new BroadcastManager(nodesGroup);
+
+            nodeConnectionParameters.TemplateBehaviors.Add(new TransactionBroadcastBehavior(broadcastManager));
+
+            nodesGroup.NodeConnectionParameters = nodeConnectionParameters;
+
+            if (connect)
+            {
+                nodesGroup.MaximumNodeConnection = maxAmountOfNodes;
+                nodesGroup.Connect();
+            }
+
+            if (start)
+            {
+                walletManager.Start();
+            }
+
+            if (scan)
+            {
+                BlockLocator scanLocation = new BlockLocator();
+                ICollection<uint256> walletBlockLocator = walletManager.GetWalletBlockLocator();
+
+                if (walletBlockLocator != null)
+                {
+                    scanLocation.Blocks.AddRange(walletBlockLocator);
+                    timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                }
+                else
+                {
+                    scanLocation.Blocks.Add(network.GenesisHash); //Set starting scan location to begining of network chain
+                    timeToStartOn = timeToStartOn ?? (walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime); //Skip all time before, start of BIP32
+                }
+
+                walletSyncManager.Scan(scanLocation, timeToStartOn.Value);
+            }
+
+            return (asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider, walletManager, walletSyncManager, nodesGroup, nodeConnectionParameters, broadcastManager);
         }
     }
 }
