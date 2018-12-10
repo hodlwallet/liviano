@@ -237,17 +237,6 @@ namespace Liviano.Managers
                         return  _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
                     }
                 }
-
-                // If details about the last block synced are not present in the wallet,
-                // find out which is the oldest wallet and set the last block synced to be the one at this date.
-                //if (lastBlockSyncedHash == null)
-                //{
-                //    this._Logger.Warning("There were no details about the last block synced in the wallets.");
-                //    DateTimeOffset earliestWalletDate = _Wallet.CreationTime;
-                //    this.UpdateWhenChainDownloaded(_Wallet, earliestWalletDate.DateTime);
-
-                //    lastBlockSyncedHash = this._Chain.Tip.HashBlock;
-                //}
             }
 
             return lastBlockSyncedHash;
@@ -311,19 +300,6 @@ namespace Liviano.Managers
                 IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this._Network, _UnusedAddressesBuffer, true);
                 this.UpdateKeysLookupLocked(newReceivingAddresses.Concat(newChangeAddresses));
             }
-
-            // If the chain is downloaded, we set the height of the newly created wallet to it.
-            // However, if the chain is still downloading when the user creates a wallet,
-            // we wait until it is downloaded in order to set it. Otherwise, the height of the wallet will be the height of the chain at that moment.
-            
-            //if (this._Chain.IsDownloaded())
-            //{
-            //    this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
-            //}
-            //else
-            //{
-            //    this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
-            //}
 
             // The creation date of the wallet.
             wallet.CreationTime = _DateTimeProvider.GetTimeOffset();

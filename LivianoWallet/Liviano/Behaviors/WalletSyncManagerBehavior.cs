@@ -138,7 +138,7 @@ namespace Liviano.Behaviors
 
             AttachedNode.StateChanged += ChangeOfAttachedNodeState;
             AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;
-            if (_Chain == null) //We need to insure we have a valid chain that is being synced constantly.
+            if (_Chain == null) // We need to insure we have a valid chain that is being synced constantly.
             {
                 var chainBehavior = AttachedNode.Behaviors.Find<ChainBehavior>();
                 if (chainBehavior == null)
