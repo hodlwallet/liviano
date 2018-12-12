@@ -77,7 +77,6 @@ namespace Liviano.CLI
                 using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     chain.Load(fs);
-
                 }
 
                 return chain;
@@ -128,7 +127,7 @@ namespace Liviano.CLI
                 addressManager,
                 maxAmountOfNodes: config.NodesToConnect,
                 password: password,
-                scan: false
+                scan: true
             );
 
             _Logger.Information("Loading wallet: {walletFileId} on {network}", config.WalletId, _Network.Name);
@@ -182,10 +181,11 @@ namespace Liviano.CLI
 
             if (wasCreated)
             {
+                Thread.Sleep(30000);
+
                 await transactionManager.BroadcastTransaction(tx);
                 wasSent = true;
             }
-
             return (wasCreated, wasSent, tx, error);
         }
 
@@ -268,7 +268,7 @@ namespace Liviano.CLI
             walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
         }
 
-        public static void Start(Config config, string password, string datetime = null)
+        public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
@@ -284,6 +284,17 @@ namespace Liviano.CLI
             );
 
             WalletManager walletManager = result.WalletManager;
+
+            if (dropTransactions)
+            {
+                var transactionsRemoved = walletManager.RemoveAllTransactions();
+
+                foreach (var item in transactionsRemoved)
+                {
+                    Console.WriteLine($"Deleting Tx Id: {item.Id}");
+                    Console.WriteLine($"Propagated: {item.IsPropagated}");
+                }
+            }
 
             var walletSyncManager = result.WalletSyncManager;
             var parameters = result.NodeConnectionParameters;
@@ -443,17 +454,24 @@ namespace Liviano.CLI
                 BlockLocator scanLocation = new BlockLocator();
                 ICollection<uint256> walletBlockLocator = walletManager.GetWalletBlockLocator();
 
-                if (walletBlockLocator != null)
+                if (walletBlockLocator != null) //If we have scanned before
                 {
-                    scanLocation.Blocks.AddRange(walletBlockLocator);
-                    timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                    if (!timeToStartOn.HasValue) //If we are NOT passing a value with -d
+                    {
+                        scanLocation.Blocks.AddRange(walletBlockLocator);
+                        timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                    }
+                    else
+                    {
+                        scanLocation.Blocks.Add(network.GenesisHash);
+                    }
                 }
-                else
+                else //We have never scanned before
                 {
                     scanLocation.Blocks.Add(network.GenesisHash); //Set starting scan location to begining of network chain
+
                     timeToStartOn = timeToStartOn ?? (walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime); //Skip all time before, start of BIP32
                 }
-
                 walletSyncManager.Scan(scanLocation, timeToStartOn.Value);
             }
 

@@ -106,7 +106,7 @@ namespace Liviano.Models
         /// </summary>
         public bool IsSpendable()
         {
-            return SpendingDetails == null;
+            return SpendingDetails == null && IsPropagated == true;
         }
 
         public Money SpendableAmount(bool confirmedOnly)

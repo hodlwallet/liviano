@@ -49,7 +49,7 @@ namespace Liviano.Managers
             }
 
             TransactionStateChanged?.Invoke(this, broadcastEntry);
-            _EventHub.Publish(broadcastEntry);
+            //_EventHub.Publish(broadcastEntry);
 
         }
 
@@ -81,12 +81,12 @@ namespace Liviano.Managers
             this.AddOrUpdate(transaction, TransactionState.ToBroadcast);
 
             var invPayload = new InvPayload(transaction);
-            var txPatload = new TxPayload(transaction);
+            var txPayload = new TxPayload(transaction);
 
             foreach (var node in nodes)
             {
                     await node.SendMessageAsync(invPayload).ConfigureAwait(false);
-                    await node.SendMessageAsync(txPatload).ConfigureAwait(false);
+                    await node.SendMessageAsync(txPayload).ConfigureAwait(false);
             }
         }
 

@@ -238,6 +238,12 @@ namespace Liviano.Managers
                     }
                 }
 
+                if (!_Chain.Contains(lastBlockSyncedHash))
+                {
+                    _Wallet.SetLastBlockDetailsByCoinType(CoinType.Bitcoin, _Chain.Tip);
+                    return _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
+
+                }
                 // If details about the last block synced are not present in the wallet,
                 // find out which is the oldest wallet and set the last block synced to be the one at this date.
                 //if (lastBlockSyncedHash == null)
@@ -879,9 +885,9 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public HashSet<(uint256, DateTimeOffset)> RemoveAllTransactions()
+        public IEnumerable<TransactionData> RemoveAllTransactions()
         {
-            var removedTransactions = new HashSet<(uint256, DateTimeOffset)>();
+            var removedTransactions = new List<TransactionData>();
 
             lock (this._Lock)
             {
@@ -890,7 +896,7 @@ namespace Liviano.Managers
                 {
                     foreach (HdAddress address in account.GetCombinedAddresses())
                     {
-                        removedTransactions.UnionWith(address.Transactions.Select(t => (t.Id, t.CreationTime)));
+                        removedTransactions.Union(address.Transactions);
                         address.Transactions.Clear();
                     }
                 }

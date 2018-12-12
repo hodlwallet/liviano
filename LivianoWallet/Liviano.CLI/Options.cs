@@ -185,5 +185,8 @@ namespace Liviano.CLI
 
         [Option('d', "date", HelpText = "Date to start on")]
         public string DateTime { get; set; }
+
+        [Option("drop-transactions", HelpText = "To delete all transaction")]
+        public bool DropTransactions { get; set; }
     }
 }
