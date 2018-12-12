@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Liviano.Interfaces
 {
-    interface ITransactionManager
+    public interface ITransactionManager
     {
         Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransaction = true);
 

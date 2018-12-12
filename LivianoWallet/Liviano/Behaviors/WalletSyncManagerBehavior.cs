@@ -138,7 +138,7 @@ namespace Liviano.Behaviors
 
             AttachedNode.StateChanged += ChangeOfAttachedNodeState;
             AttachedNode.MessageReceived += MessagedRecivedOnAttachedNode;
-            if (_Chain == null) //We need to insure we have a valid chain that is being synced constantly.
+            if (_Chain == null) // We need to insure we have a valid chain that is being synced constantly.
             {
                 var chainBehavior = AttachedNode.Behaviors.Find<ChainBehavior>();
                 if (chainBehavior == null)
@@ -190,7 +190,7 @@ namespace Liviano.Behaviors
                         {
                             if (!_Chain.IsDownloaded())
                             {
-                                _Logger.Warning("Attemped to create GetDataPayload failed, still downloading headers. TIP: {currentChainTip}",_Chain.Tip.Height);
+                                _Logger.Warning("Attemped to create GetDataPayload failed, still downloading headers. TIP: {currentChainTip}", _Chain.Tip.Height);
                                 return;
                             }
 
@@ -226,18 +226,18 @@ namespace Liviano.Behaviors
 
         private void HandlePongPayload(PongPayload pongPayload)
         {
-            if (pongPayload != null) //Make sure pong is valid
+            if (pongPayload != null) // Make sure pong is valid
             {
                 var ping = _PreviousPing;
                 if (ping != null && pongPayload.Nonce == ping.Nonce) // If the pong matches our previous Pings noonce
                 {
                     _PreviousPing = null;
-                    _FilterState = FilterState.Loaded; //We can assume they recieved our filter and its loaded
-                    foreach (var item in _ActionsToFireWhenFilterIsLoaded) //Iterate over items we had to dock
+                    _FilterState = FilterState.Loaded; // We can assume they recieved our filter and its loaded
+                    foreach (var item in _ActionsToFireWhenFilterIsLoaded) // Iterate over items we had to dock
                     {
-                        item();// Excute them
+                        item(); // Execute them
                     }
-                    _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>(); //Refresh collection
+                    _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>(); // Refresh collection
                 }
             }
         }
@@ -276,13 +276,13 @@ namespace Liviano.Behaviors
         {
             if (notFoundPayload != null)
             {
-                foreach (var txid in notFoundPayload) //These payloads cant be found
+                foreach (var txid in notFoundPayload) // These payloads cant be found
                 {
                     uint256 unusued;
-                    if (_InFlight.TryRemove(txid.Hash, out unusued)) //Remove them from out inflight list 
+                    if (_InFlight.TryRemove(txid.Hash, out unusued)) // Remove them from out inflight list 
                     {
-                        if (_InFlight.Count == 0) //If inflight is zero 
-                            StartScan(null); //Scan
+                        if (_InFlight.Count == 0) // If inflight is zero 
+                            StartScan(null); // Scan
                     }
                 }
             }
@@ -325,9 +325,9 @@ namespace Liviano.Behaviors
             lock (_CurrentPositionlocker)
             {
                 var chained = _Chain.GetBlock(h); // Get block belonging to this hash
-                if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) //Make sure there is a block and the update isn't anterior
+                if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) // Make sure there is a block and the update isn't anterior
                 {
-                    _CurrentPosition = chained.GetLocator(); //Set the new location
+                    _CurrentPosition = chained.GetLocator(); // Set the new location
 
 
                     var eventToPublish = new WalletPositionUpdatedEventArgs()
