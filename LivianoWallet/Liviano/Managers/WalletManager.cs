@@ -238,22 +238,19 @@ namespace Liviano.Managers
                     }
                 }
 
+                //If details about the last block synced are not present in the wallet,
+                //find out which is the oldest wallet and set the last block synced to be the one at this date.
+                if (lastBlockSyncedHash == null)
+                {
+                   lastBlockSyncedHash = _Chain.Tip.HashBlock;
+                }
+
                 if (!_Chain.Contains(lastBlockSyncedHash))
                 {
                     _Wallet.SetLastBlockDetailsByCoinType(CoinType.Bitcoin, _Chain.Tip);
                     return _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
 
                 }
-                // If details about the last block synced are not present in the wallet,
-                // find out which is the oldest wallet and set the last block synced to be the one at this date.
-                //if (lastBlockSyncedHash == null)
-                //{
-                //    this._Logger.Warning("There were no details about the last block synced in the wallets.");
-                //    DateTimeOffset earliestWalletDate = _Wallet.CreationTime;
-                //    this.UpdateWhenChainDownloaded(_Wallet, earliestWalletDate.DateTime);
-
-                //    lastBlockSyncedHash = this._Chain.Tip.HashBlock;
-                //}
             }
 
             return lastBlockSyncedHash;
