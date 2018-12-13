@@ -34,9 +34,22 @@ namespace Liviano
         Dictionary<uint256, ChainedBlock> _BlocksById = new Dictionary<uint256, ChainedBlock>();
         ChainedBlock[] _BlocksByHeight = new ChainedBlock[0];
         ReaderWriterLock @lock = new ReaderWriterLock();
+        int _CustomTipHeight;
 
-        public PartialConcurrentChain()
+        /// <summary>
+        /// Creates a partial Concurrent chain which starts sycning from the customTipProvided.
+        /// </summary>
+        /// <param name="customTip"></param>
+        public PartialConcurrentChain(ChainedBlock customTip)
         {
+            _Tip = customTip;
+            _CustomTipHeight = customTip.Height;
+        }
+
+        public void SetCustomTip(ChainedBlock newtip)
+        {
+            _Tip = newtip;
+            _CustomTipHeight = newtip.Height;
 
         }
         public PartialConcurrentChain(BlockHeader genesis)
@@ -52,63 +65,31 @@ namespace Liviano
             }
         }
 
-        public PartialConcurrentChain(byte[] bytes, ConsensusFactory consensusFactory) : this(bytes, consensusFactory, null)
+        public PartialConcurrentChain(byte[] bytes, Network network, ChainSerializationFormat format, int heightToLoadFrom)
         {
-        }
-
-        public PartialConcurrentChain(byte[] bytes, Consensus consensus) : this(bytes, consensus, null)
-        {
-        }
-
-        public PartialConcurrentChain(byte[] bytes, Network network) : this(bytes, network, null)
-        {
-        }
-
-        [Obsolete("Use ConcurrentChain(byte[], ConsensusFactory|Network|Consensus) instead")]
-        public PartialConcurrentChain(byte[] bytes) : this(bytes, Consensus.Main.ConsensusFactory, null)
-        {
-        }
-
-        public PartialConcurrentChain(byte[] bytes, ConsensusFactory consensusFactory, ChainSerializationFormat format)
-        {
-            Load(bytes, consensusFactory, format);
-        }
-
-        public PartialConcurrentChain(byte[] bytes, Consensus consensus, ChainSerializationFormat format)
-        {
-            Load(bytes, consensus, format);
-        }
-
-        public PartialConcurrentChain(byte[] bytes, Network network, ChainSerializationFormat format)
-        {
-            Load(bytes, network, format);
+            Load(bytes, network, format, heightToLoadFrom);
         }
 
         [Obsolete("Use ConcurrentChain(byte[], ConsensusFactory|Network|Consensus, ChainSerializationFormat format) instead")]
-        public PartialConcurrentChain(byte[] bytes, ChainSerializationFormat format)
+        public PartialConcurrentChain(byte[] bytes, ChainSerializationFormat format, int heightToLoadFrom)
         {
-            Load(bytes, Consensus.Main.ConsensusFactory, format);
+            Load(bytes, Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
         }
 
-        public void Load(byte[] chain, Network network, ChainSerializationFormat format)
+        public void Load(byte[] chain, Network network, ChainSerializationFormat format, int heightToLoadFrom)
         {
-            Load(new MemoryStream(chain), network, format);
+            Load(new MemoryStream(chain), network, format, heightToLoadFrom);
         }
 
-        public void Load(byte[] chain, Consensus consensus, ChainSerializationFormat format)
+        public void Load(byte[] chain, ConsensusFactory consensusFactory, ChainSerializationFormat format, int heightToLoadFrom)
         {
-            Load(new MemoryStream(chain), consensus, format);
-        }
-
-        public void Load(byte[] chain, ConsensusFactory consensusFactory, ChainSerializationFormat format)
-        {
-            Load(new MemoryStream(chain), consensusFactory, format);
+            Load(new MemoryStream(chain), consensusFactory, format, heightToLoadFrom);
         }
 
         [Obsolete("Use Load(byte[], ConsensusFactory|Network|Consensus, ChainSerializationFormat format) instead")]
-        public void Load(byte[] chain, ChainSerializationFormat format)
+        public void Load(byte[] chain, ChainSerializationFormat format, int heightToLoadFrom)
         {
-            Load(new MemoryStream(chain), Consensus.Main.ConsensusFactory, format);
+            Load(new MemoryStream(chain), Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
         }
 
         public void Load(byte[] chain, ConsensusFactory consensusFactory)
@@ -121,9 +102,9 @@ namespace Liviano
             Load(chain, consensus, null);
         }
 
-        public void Load(byte[] chain, Network network)
+        public void Load(byte[] chain, Network network, int heightToLoadFrom)
         {
-            Load(chain, network, null);
+            Load(chain, network, null, heightToLoadFrom);
         }
 
         [Obsolete("Use Load(byte[], ConsensusFactory|Network|Consensus) instead")]
@@ -132,31 +113,31 @@ namespace Liviano
             Load(new MemoryStream(chain), Consensus.Main.ConsensusFactory, null);
         }
 
-        public void Load(Stream stream, ConsensusFactory consensusFactory, ChainSerializationFormat format)
+        public void Load(Stream stream, ConsensusFactory consensusFactory, ChainSerializationFormat format, int heightToLoadFrom)
         {
             if (consensusFactory == null)
                 throw new ArgumentNullException(nameof(consensusFactory));
-            Load(new BitcoinStream(stream, false) { ConsensusFactory = consensusFactory }, format);
+            Load(new BitcoinStream(stream, false) { ConsensusFactory = consensusFactory }, format, heightToLoadFrom);
         }
 
-        public void Load(Stream stream, Network network, ChainSerializationFormat format)
+        public void Load(Stream stream, Network network, ChainSerializationFormat format,int heightToLoadFrom)
         {
             if (network == null)
                 throw new ArgumentNullException(nameof(network));
-            Load(stream, network.Consensus.ConsensusFactory, format);
+            Load(stream, network.Consensus.ConsensusFactory, format, heightToLoadFrom);
         }
 
-        public void Load(Stream stream, Consensus consensus, ChainSerializationFormat format)
+        public void Load(Stream stream, Consensus consensus, ChainSerializationFormat format, int heightToLoadFrom)
         {
             if (consensus == null)
                 throw new ArgumentNullException(nameof(consensus));
-            Load(stream, consensus.ConsensusFactory, format);
+            Load(stream, consensus.ConsensusFactory, format, heightToLoadFrom);
         }
 
         [Obsolete("Use Load(Stream, ConsensusFactory|Network|Consensus, ChainSerializationFormat) instead")]
-        public void Load(Stream stream, ChainSerializationFormat format)
+        public void Load(Stream stream, ChainSerializationFormat format, int heightToLoadFrom)
         {
-            Load(stream, Consensus.Main.ConsensusFactory, format);
+            Load(stream, Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
         }
         public void Load(Stream stream)
         {
@@ -167,7 +148,7 @@ namespace Liviano
         {
             Load(stream, null);
         }
-        public void Load(BitcoinStream stream, ChainSerializationFormat format)
+        public void Load(BitcoinStream stream, ChainSerializationFormat format, int heightToLoadFrom)
         {
             format = format ?? new ChainSerializationFormat();
             format.AssertCoherent();
@@ -176,7 +157,7 @@ namespace Liviano
             {
                 try
                 {
-                    int height = 0;
+                    int height = heightToLoadFrom;
                     while (true)
                     {
                         uint256.MutableUint256 id = null;
@@ -237,7 +218,7 @@ namespace Liviano
             format.AssertCoherent();
             using (@lock.LockRead())
             {
-                for (int i = 0; i < Tip.Height + 1; i++)
+                for (int i = _CustomTipHeight; i < Tip.Height + 1; i++)
                 {
                     var block = GetBlockNoLock(i);
                     if (format.SerializePrecomputedBlockHash)
@@ -250,7 +231,7 @@ namespace Liviano
 
         public PartialConcurrentChain Clone()
         {
-            PartialConcurrentChain chain = new PartialConcurrentChain();
+            PartialConcurrentChain chain = new PartialConcurrentChain(_Tip);
             chain._Tip = _Tip;
             using (@lock.LockRead())
             {
@@ -323,7 +304,10 @@ namespace Liviano
                     tip = tip.Previous;
                 }
             }
+
         }
+
+
 
         #region IChain Members
 
