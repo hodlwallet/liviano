@@ -71,16 +71,62 @@ namespace Liviano.CLI
             {
                 if (_ConParams != null)
                 {
-                    return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain;
+                    return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain as PartialConcurrentChain;
                 }
-                var chain = new ConcurrentChain(_Network);
-                using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
-                {
-                    chain.Load(fs);
-                }
+                var chain = new PartialConcurrentChain(_Network);
+                //using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                //{
+                //    chain.Load(fs);
+                //}
+
+                chain.AddOrReplaceBlocksByHeight(0, new ChainedBlock(GetCheckpoints().FirstOrDefault().BlockHeader, GetCheckpoints().FirstOrDefault().Height));
+
+                var xc = chain.Tip.GetLocator();
 
                 return chain;
             }
+        }
+
+        private  static IEnumerable<(int Height, BlockHeader BlockHeader)> GetCheckpoints()
+        {
+            List<(int Height, BlockHeader BlockHeader)> checkpoints = new List<(int, BlockHeader)>();
+            List<(int Height, int Version, uint256 PrevBlockHeaderHash, uint256 MerkleRootHash, uint Time, uint NBits, uint Nonce)> rawBlockHeaders = new List<(int, int, uint256, uint256, uint, uint, uint)>();
+
+            if (_Network == Network.Main)
+            {
+            }
+            else
+            {
+                rawBlockHeaders.Add(
+                (100800, 2, new uint256("0000000000af10f3079b4989ac4ff0baaecab38220510cdae9672d6922e93919"), new uint256("0000000000a33112f86f3f7b0aa590cb4949b84c2d9c673e9e303257b3be9000"), uint.Parse("1376543922"), uint.Parse("469817607"), uint.Parse("3078589146"))
+                );
+            }
+
+            foreach (var rawBlockHeader in rawBlockHeaders)
+            {
+                var blockHeader = _Network.Consensus.ConsensusFactory.CreateBlockHeader();
+                var bitcoinStream = new BitcoinStream(new MemoryStream(), serializing: true);
+
+                bitcoinStream.ReadWrite(rawBlockHeader.Version);
+                bitcoinStream.ReadWrite(rawBlockHeader.PrevBlockHeaderHash);
+                bitcoinStream.ReadWrite(rawBlockHeader.MerkleRootHash);
+                bitcoinStream.ReadWrite(rawBlockHeader.Time);
+                bitcoinStream.ReadWrite(rawBlockHeader.Nonce);
+
+                blockHeader.ReadWrite(bitcoinStream);
+
+                //blockHeader.Version = rawBlockHeader.Version;
+                //blockHeader.HashPrevBlock = rawBlockHeader.PrevBlockHeaderHash;
+                //blockHeader.HashMerkleRoot = rawBlockHeader.MerkleRootHash;
+                //blockHeader.BlockTime = DateTimeOffset.Parse(rawBlockHeader.Time.ToString());
+                //blockHeader.Bits = new Target(rawBlockHeader.NBits);
+                //blockHeader.Nonce = rawBlockHeader.Nonce;
+
+                checkpoints.Add((rawBlockHeader.Height, blockHeader));
+                //var blockHeader = new BlockHeader(bitcoinStream., _Network);
+            }
+
+            return checkpoints;
         }
 
         private static string GetConfigFile(string fileName)
@@ -425,9 +471,8 @@ namespace Liviano.CLI
             }
 
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain));
+            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain) { CanRespondToGetHeaders = false });
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
-
             NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
                 RequiredServices = NodeServices.Network
             });
