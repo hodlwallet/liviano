@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
@@ -24,5 +24,6 @@
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
     <PackageReference Include="NBitcoin" Version="4.1.1.72" />
   </ItemGroup>
+ 
 
 </Project>

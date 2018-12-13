@@ -27,6 +27,7 @@ namespace Liviano.Behaviors
 
         private ConcurrentChain _Chain;
 
+
         private ConcurrentChain _ExplicitChain;
 
         long _FalsePositiveCount = 0;
