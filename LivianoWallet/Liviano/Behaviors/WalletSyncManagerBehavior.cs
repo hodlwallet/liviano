@@ -27,7 +27,6 @@ namespace Liviano.Behaviors
 
         private ConcurrentChain _Chain;
 
-
         private ConcurrentChain _ExplicitChain;
 
         long _FalsePositiveCount = 0;
@@ -189,14 +188,16 @@ namespace Liviano.Behaviors
                     {
                         if (!IsScanning(node))
                         {
-                            if (!_Chain.IsDownloaded())
-                            {
-                                _Logger.Warning("Attemped to create GetDataPayload failed, still downloading headers. TIP: {currentChainTip}", _Chain.Tip.Height);
-                                return;
-                            }
 
                             GetDataPayload payload = new GetDataPayload();
                             var positionInChain = _Chain.FindFork(_CurrentPosition);
+
+                            if (positionInChain == null)
+                            {
+                                _Logger.Warning("Chain synced to height {height}", _Chain.Tip.Height);
+                                _Logger.Warning("Postion to start scanning from is not in the chain we are trying to sync, hmmm...");
+                                return;
+                            }
 
                             var blocks = _Chain
                                 .EnumerateAfter(positionInChain)

@@ -79,20 +79,10 @@ namespace Liviano.CLI
                 //    chain.Load(fs);
                 //}
 
-                chain.SetCustomTip(GetCheckpoints().First());
-
-
+                chain.SetCustomTip(_Network.GetCheckpoints().ElementAt(3));
+                
                 return chain;
             }
-        }
-
-        private  static List<ChainedBlock> GetCheckpoints()
-        {
-            return new List<ChainedBlock>() {
-                //Block Hex - 020000001939e922692d67e9da0c512082b3caaebaf04fac89499b07f310af000000000022c4fd8dd050b04bac685e24a0d0d6d21101ad605bc9effed2a654016e903836b2640c5207d9001cda8a7fb70401000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3703c08901000407d9001c0417570000522cfabe6d6d0000000000000000000068692066726f6d20706f6f6c7365727665726aac1eeeed88ffffffff01a078072a010000001976a914912e2b234f941f30b18afbb4fa46171214bf66c888ac0000000001000000012bde870a76d5864149993d3379247e02df18639f54459d0b639e938cc579b5b6010000006a47304402200a0309dd1c592291942eebc10a44b5afe15acb0038bf0496f24a6d965ee3485b02206b1dad3c1191afbb717722490492f2f2214c9af6c2d21f664fffc2d4c00a5aac012102221b1343d47a4660a21d25bcc89361fde6f8624d1dd829560b9b4fe5e91a45a7ffffffff02e0834e02000000001976a9146953ce65058e5e68125a9163d74b277d6a7f4a9e88aca02b7208000000001976a91402613aca07110cd9dce0a1633f305ca8e5a8dc2e88ac000000000100000001fd8bc1898c487c3993fb2122d62a7aff551d4d14d6ad0cbe753ca635ec3accb4010000006b483045022100ae0278870da3300a89cbb653d2e05d7fe9ff17fd81b5276962f2278ef7731a3a022051be5081def0bfb5be719642028a042dbbe106607f318d7171664c49bab2fcfe0121035292bf8e7fe116c5acfbb6b6d2e546c6c0a7ff30d4cc4e87a0555fcf3aafdfa1ffffffff0290c04d02000000001976a9146953ce65058e5e68125a9163d74b277d6a7f4a9e88ace0e8cf02000000001976a91422170ca0a180d1cbefc4e45598aed3a2de05778088ac00000000010000000166405a0fbfaabfb855d83d93510f7321c92ff0b97ebeefcb81364b047ec8ffbb010000006c493046022100bca8d0963d3c01508a5f9bbf8093007f18fbb196227a34cbcec8c7e879018088022100e68ebd50155ddaa3359445928d7d6494e039bba4f78e926c10bd38b19d2b16ea012102221b1343d47a4660a21d25bcc89361fde6f8624d1dd829560b9b4fe5e91a45a7ffffffff0290c04d02000000001976a9146953ce65058e5e68125a9163d74b277d6a7f4a9e88ace0150104000000001976a91402613aca07110cd9dce0a1633f305ca8e5a8dc2e88ac00000000
-               new ChainedBlock(new BlockHeader(new byte[]{ 2,0,0,0,25,57,233,34,105,45,103,233,218,12,81,32,130,179,202,174,186,240,79,172,137,73,155,7,243,16,175,0,0,0,0,0,34,196,253,141,208,80,176,75,172,104,94,36,160,208,214,210,17,1,173,96,91,201,239,254,210,166,84,1,110,144,56,54,178,100,12,82,7,217,0,28,218,138,127,183}),100800),
-
-            };   
         }
 
         private static string GetConfigFile(string fileName)
@@ -119,7 +109,7 @@ namespace Liviano.CLI
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                     using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
-                        GetChain().WriteTo(fs);
+                        //GetChain().WriteTo(fs);
                     }
                 }
             });
@@ -380,7 +370,7 @@ namespace Liviano.CLI
             _Logger.Information("Saving chain state...");
             lock(_Lock)
             {
-                GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
+                //GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                 using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     //GetChain().WriteTo(fs);
@@ -410,6 +400,28 @@ namespace Liviano.CLI
             process.Kill();
         }
 
+        private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset dateTimeOffset)
+        {
+            DateTimeOffset creationDate = dateTimeOffset;
+            ChainedBlock closestDate = null;
+            List<ChainedBlock> theDates = _Network.GetCheckpoints();
+            long min = long.MaxValue;
+
+            foreach (ChainedBlock date in theDates)
+            {
+                if (Math.Abs(date.Header.BlockTime.Ticks - creationDate.Ticks) < min)
+                {
+                    min = Math.Abs(date.Header.BlockTime.Ticks - creationDate.Ticks);
+                    closestDate = date;
+                }
+            }
+
+            //var indexOfClosestDate = theDates.IndexOf(closestDate);
+            //var dateBeforeClosestDate = theDates.ElementAt(indexOfClosestDate - 1);
+
+            return closestDate;
+        }
+
         private static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, ConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null, DateTimeOffset? timeToStartOn = null)
         {
             AsyncLoopFactory asyncLoopFactory = new AsyncLoopFactory();
@@ -436,6 +448,10 @@ namespace Liviano.CLI
                 walletManager.LoadWallet(password);
             }
 
+
+            var closestDate = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
+
+            chain = new PartialConcurrentChain(closestDate);
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
             nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain) { CanRespondToGetHeaders = false });
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
@@ -462,6 +478,8 @@ namespace Liviano.CLI
 
             if (scan)
             {
+                //TODO Work on logic for starting scan.
+                //Consider many things such as, size of chain, wallet block locator, creation date, and so on.
                 BlockLocator scanLocation = new BlockLocator();
                 ICollection<uint256> walletBlockLocator = walletManager.GetWalletBlockLocator();
 
