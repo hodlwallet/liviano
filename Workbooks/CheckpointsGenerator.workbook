@@ -64,10 +64,9 @@ while (true)
         var h = client.GetBlock(new QBitNinja.Client.Models.BlockFeature(i)).Result.Block.Header;
         var hex = new NBitcoin.DataEncoders.HexEncoder().EncodeData(h.ToBytes());
 
-        Console.WriteLine("checkpoints.Add((");
-        Console.WriteLine($"{i},");
-        Console.WriteLine($"new BlockHeader(\"{hex}\", network)");
-        Console.WriteLine("));");
+        Console.WriteLine("checkpoints.Add(");
+        Console.WriteLine($"new ChainedBlock(new BlockHeader(\"{hex}\", network), {i})");
+        Console.WriteLine(");");
 
         i += increments;
     }
