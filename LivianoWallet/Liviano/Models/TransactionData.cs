@@ -31,6 +31,12 @@ namespace Liviano.Models
         [JsonProperty(PropertyName = "isCoinBase", NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsCoinBase { get; set; }
 
+        [JsonProperty(PropertyName = "isSend", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsSend { get; set; }
+
+        [JsonProperty(PropertyName = "isReceive", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsReceive { get; set; }
+
         /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
         /// </summary>
