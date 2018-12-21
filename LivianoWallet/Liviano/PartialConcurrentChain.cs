@@ -10,27 +10,6 @@ namespace Liviano
 {
     public class PartialConcurrentChain : ConcurrentChain
     {
-        public class ChainSerializationFormat
-        {
-            public ChainSerializationFormat()
-            {
-                SerializePrecomputedBlockHash = true;
-                SerializeBlockHeader = true;
-            }
-            public bool SerializePrecomputedBlockHash
-            {
-                get; set;
-            }
-            public bool SerializeBlockHeader
-            {
-                get; set;
-            }
-            internal void AssertCoherent()
-            {
-                if (!SerializePrecomputedBlockHash && !SerializeBlockHeader)
-                    throw new InvalidOperationException("The ChainSerializationFormat is invalid, SerializePrecomputedBlockHash or SerializeBlockHeader shoudl be true");
-            }
-        }
         Dictionary<uint256, ChainedBlock> _BlocksById = new Dictionary<uint256, ChainedBlock>();
         ChainedBlock[] _BlocksByHeight = new ChainedBlock[0];
         ReaderWriterLock @lock = new ReaderWriterLock();
@@ -52,10 +31,6 @@ namespace Liviano
             _CustomTipHeight = newtip.Height;
 
         }
-        public PartialConcurrentChain(BlockHeader genesis)
-        {
-            SetTip(new ChainedBlock(genesis, 0));
-        }
         public PartialConcurrentChain(Network network)
         {
             if (network != null)
@@ -65,107 +40,29 @@ namespace Liviano
             }
         }
 
-        public PartialConcurrentChain(byte[] bytes, Network network, ChainSerializationFormat format, int heightToLoadFrom)
+        public PartialConcurrentChain(Network network, ChainedBlock chainedBlock)
         {
-            Load(bytes, network, format, heightToLoadFrom);
-        }
-
-        [Obsolete("Use ConcurrentChain(byte[], ConsensusFactory|Network|Consensus, ChainSerializationFormat format) instead")]
-        public PartialConcurrentChain(byte[] bytes, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            Load(bytes, Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
-        }
-
-        public void Load(byte[] chain, Network network, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            Load(new MemoryStream(chain), network, format, heightToLoadFrom);
-        }
-
-        public void Load(byte[] chain, ConsensusFactory consensusFactory, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            Load(new MemoryStream(chain), consensusFactory, format, heightToLoadFrom);
-        }
-
-        [Obsolete("Use Load(byte[], ConsensusFactory|Network|Consensus, ChainSerializationFormat format) instead")]
-        public void Load(byte[] chain, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            Load(new MemoryStream(chain), Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
-        }
-
-        public void Load(byte[] chain, ConsensusFactory consensusFactory)
-        {
-            Load(chain, consensusFactory, null);
-        }
-
-        public void Load(byte[] chain, Consensus consensus)
-        {
-            Load(chain, consensus, null);
-        }
-
-        public void Load(byte[] chain, Network network, int heightToLoadFrom)
-        {
-            Load(chain, network, null, heightToLoadFrom);
-        }
-
-        [Obsolete("Use Load(byte[], ConsensusFactory|Network|Consensus) instead")]
-        public void Load(byte[] chain)
-        {
-            Load(new MemoryStream(chain), Consensus.Main.ConsensusFactory, null);
-        }
-
-        public void Load(Stream stream, ConsensusFactory consensusFactory, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            if (consensusFactory == null)
-                throw new ArgumentNullException(nameof(consensusFactory));
-            Load(new BitcoinStream(stream, false) { ConsensusFactory = consensusFactory }, format, heightToLoadFrom);
-        }
-
-        public void Load(Stream stream, Network network, ChainSerializationFormat format,int heightToLoadFrom)
-        {
-            if (network == null)
-                throw new ArgumentNullException(nameof(network));
-            Load(stream, network.Consensus.ConsensusFactory, format, heightToLoadFrom);
-        }
-
-        public void Load(Stream stream, Consensus consensus, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            if (consensus == null)
-                throw new ArgumentNullException(nameof(consensus));
-            Load(stream, consensus.ConsensusFactory, format, heightToLoadFrom);
-        }
-
-        [Obsolete("Use Load(Stream, ConsensusFactory|Network|Consensus, ChainSerializationFormat) instead")]
-        public void Load(Stream stream, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            Load(stream, Consensus.Main.ConsensusFactory, format, heightToLoadFrom);
-        }
-        public void Load(Stream stream)
-        {
-            Load(new BitcoinStream(stream, false), null);
+            if (network != null)
+            {
+                var genesis = network.GetGenesis();
+                SetTip(chainedBlock);
+            }
         }
 
         public void Load(BitcoinStream stream)
         {
-            Load(stream, null);
-        }
-        public void Load(BitcoinStream stream, ChainSerializationFormat format, int heightToLoadFrom)
-        {
-            format = format ?? new ChainSerializationFormat();
-            format.AssertCoherent();
             var genesis = this.Genesis;
             using (@lock.LockWrite())
             {
                 try
-                {
-                    int height = heightToLoadFrom;
+                {    
                     while (true)
                     {
-                        uint256.MutableUint256 id = null;
-                        if (format.SerializePrecomputedBlockHash)
-                            stream.ReadWrite<uint256.MutableUint256>(ref id);
                         BlockHeader header = null;
-                        if (format.SerializeBlockHeader)
-                            stream.ReadWrite(ref header);
+                        int height = 0;
+                        height = stream.ReadWrite(height);
+                        header = stream.ReadWrite(header);
+
                         if (height == 0)
                         {
                             _BlocksByHeight = new ChainedBlock[0];
@@ -177,12 +74,10 @@ namespace Liviano
                             }
                             SetTipNoLock(new ChainedBlock(genesis?.Header ?? header, 0));
                         }
-                        else if (!format.SerializeBlockHeader ||
-                                (_Tip.HashBlock == header.HashPrevBlock && !(header.IsNull && header.Nonce == 0)))
-                            SetTipNoLock(new ChainedBlock(header, id?.Value, Tip));
+                        else if (_Tip.HashBlock == header.HashPrevBlock && !(header.IsNull && header.Nonce == 0))
+                            SetTipNoLock(new ChainedBlock(header, height));
                         else
                             break;
-                        height++;
                     }
                 }
                 catch (EndOfStreamException)
@@ -198,32 +93,16 @@ namespace Liviano
             return ms.ToArray();
         }
 
-        public void WriteTo(Stream stream)
+        public new void WriteTo(BitcoinStream stream)
         {
-            WriteTo(stream, null);
-        }
-        public void WriteTo(Stream stream, ChainSerializationFormat format)
-        {
-            WriteTo(new BitcoinStream(stream, true), format);
-        }
+            //Make sure chain isnt null and can enumerate??
 
-        public void WriteTo(BitcoinStream stream)
-        {
-            WriteTo(stream, null);
-        }
-
-        public void WriteTo(BitcoinStream stream, ChainSerializationFormat format)
-        {
-            format = format ?? new ChainSerializationFormat();
-            format.AssertCoherent();
             using (@lock.LockRead())
             {
                 for (int i = _CustomTipHeight; i < Tip.Height + 1; i++)
                 {
                     var block = GetBlockNoLock(i);
-                    if (format.SerializePrecomputedBlockHash)
-                        stream.ReadWrite(block.HashBlock.AsBitcoinSerializable());
-                    if (format.SerializeBlockHeader)
+                        stream.ReadWrite(block.Height);
                         stream.ReadWrite(block.Header);
                 }
             }

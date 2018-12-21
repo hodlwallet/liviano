@@ -40,7 +40,7 @@ namespace Liviano.CLI
         {
             while (1 == 1)
             {
-                await Task.Delay(50_000);
+                await Task.Delay(30_000);
 
                 await SaveAsync();
 
@@ -74,10 +74,10 @@ namespace Liviano.CLI
                     return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain as PartialConcurrentChain;
                 }
                 var chain = new PartialConcurrentChain(_Network);
-                //using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
-                //{
-                //    chain.Load(fs);
-                //}
+                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                {
+                    ((PartialConcurrentChain)chain).Load(new BitcoinStream(fs,false));
+                }
 
                 chain.SetCustomTip(_Network.GetCheckpoints().ElementAt(3));
                 
@@ -109,7 +109,8 @@ namespace Liviano.CLI
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                     using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
-                        //GetChain().WriteTo(fs);
+                        PartialConcurrentChain chain = GetChain() as PartialConcurrentChain;
+                        chain.WriteTo(new BitcoinStream(fs,true));
                     }
                 }
             });
@@ -373,7 +374,7 @@ namespace Liviano.CLI
                 //GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                 using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
-                    //GetChain().WriteTo(fs);
+                    GetChain().WriteTo(fs);
                 }
 
                 walletManager.SaveWallet();
@@ -488,7 +489,14 @@ namespace Liviano.CLI
                     if (!timeToStartOn.HasValue) //If we are NOT passing a value with -d
                     {
                         scanLocation.Blocks.AddRange(walletBlockLocator);
-                        timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                        if (chain.Contains(walletManager.LastReceivedBlockHash()))
+                        {
+                            timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                        }
+                        else
+                        {
+                            timeToStartOn = closestDate.Header.BlockTime;
+                        }
                     }
                     else
                     {
