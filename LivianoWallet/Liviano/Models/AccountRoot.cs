@@ -94,15 +94,14 @@ namespace Liviano.Models
         /// <remarks>The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
         /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains transactions.
         /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/></remarks>
-        /// <param name="password">The password used to decrypt the wallet's encrypted seed.</param>
         /// <param name="encryptedSeed">The encrypted private key for this wallet.</param>
         /// <param name="chainCode">The chain code for this wallet.</param>
         /// <param name="network">The network for which this account will be created.</param>
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <param name="password">The password used to decrypt the wallet's encrypted seed.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(string password, string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime)
+        public HdAccount AddNewAccount(string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime, string password = "")
         {
-            Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
 
@@ -117,7 +116,7 @@ namespace Liviano.Models
 
             // Get the extended pub key used to generate addresses for this account.
             string accountHdPath = HdOperations.GetAccountHdPath((int)this.CoinType, newAccountIndex);
-            Key privateKey = HdOperations.DecryptSeed(encryptedSeed, password, network);
+            Key privateKey = HdOperations.DecryptSeed(encryptedSeed, network, password);
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
 
             var newAccount = new HdAccount

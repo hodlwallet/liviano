@@ -9,7 +9,7 @@ namespace Liviano.Interfaces
 {
     public interface IWalletSyncManager
     {
-        BloomFilter CreateBloomFilter(double Fp,ScriptTypes scriptType, BloomFlags flags = BloomFlags.UPDATE_ALL);
+        BloomFilter CreateBloomFilter(double Fp, ScriptTypes scriptType, BloomFlags flags = BloomFlags.UPDATE_ALL);
         Transaction GetKnownTransaction(uint256 txId);
         bool ProcessTransaction(Transaction tx);
         bool ProcessTransaction(Transaction tx, ChainedBlock header, MerkleBlock blk);

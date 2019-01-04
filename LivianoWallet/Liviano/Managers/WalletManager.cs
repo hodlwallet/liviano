@@ -284,9 +284,8 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public Mnemonic CreateWallet(string password, string name, Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
+        public Mnemonic CreateWallet(string name, string password = "", Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
         {
-            Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(name, nameof(name));
 
             if (_StorageProvider.WalletExists())
@@ -309,7 +308,7 @@ namespace Liviano.Managers
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < _WalletCreationAccountsCount; i++)
             {
-                HdAccount account = wallet.AddNewAccount(password, this._CoinType, this._DateTimeProvider.GetTimeOffset());
+                HdAccount account = wallet.AddNewAccount(_CoinType, _DateTimeProvider.GetTimeOffset(), password);
                 IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this._Network, _UnusedAddressesBuffer);
                 IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this._Network, _UnusedAddressesBuffer, true);
                 this.UpdateKeysLookupLocked(newReceivingAddresses.Concat(newChangeAddresses));
@@ -356,10 +355,8 @@ namespace Liviano.Managers
             SaveWallet(_Wallet);
         }
 
-        public bool LoadWallet(string password)
+        public bool LoadWallet(string password = "")
         {
-            Guard.NotEmpty(password, nameof(password));
-
             if (!_StorageProvider.WalletExists())
             {
                 return false;

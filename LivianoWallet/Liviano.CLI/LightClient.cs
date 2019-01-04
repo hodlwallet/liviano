@@ -267,7 +267,7 @@ namespace Liviano.CLI
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
-            walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
+            walletManager.CreateWallet(config.WalletId, password, WalletManager.MnemonicFromString(mnemonic));
         }
 
         public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
