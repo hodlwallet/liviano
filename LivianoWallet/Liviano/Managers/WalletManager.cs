@@ -314,19 +314,6 @@ namespace Liviano.Managers
                 this.UpdateKeysLookupLocked(newReceivingAddresses.Concat(newChangeAddresses));
             }
 
-            // If the chain is downloaded, we set the height of the newly created wallet to it.
-            // However, if the chain is still downloading when the user creates a wallet,
-            // we wait until it is downloaded in order to set it. Otherwise, the height of the wallet will be the height of the chain at that moment.
-            
-            //if (this._Chain.IsDownloaded())
-            //{
-            //    this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
-            //}
-            //else
-            //{
-            //    this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
-            //}
-
             // The creation date of the wallet.
             wallet.CreationTime = _DateTimeProvider.GetTimeOffset();
 
