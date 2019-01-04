@@ -487,8 +487,17 @@ namespace Liviano.CLI
                 {
                     if (!timeToStartOn.HasValue) //If we are NOT passing a value with -d
                     {
+                        scanLocation.Blocks.Add(network.GenesisHash);
                         scanLocation.Blocks.AddRange(walletBlockLocator);
-                        timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+
+                        if (chain.Contains(walletManager.LastReceivedBlockHash()))
+                        {
+                            timeToStartOn = chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
+                        }
+                        else
+                        {
+                            timeToStartOn = chain.GetBlock(network.GenesisHash).Header.BlockTime;
+                        }
                     }
                     else
                     {
