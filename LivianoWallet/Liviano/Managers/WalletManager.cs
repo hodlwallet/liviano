@@ -805,7 +805,7 @@ namespace Liviano.Managers
 
             // The block locator will help when the wallet
             // needs to rewind this will be used to find the fork.
-            _Wallet.BlockLocator = chainedBlock.GetLocator().Blocks;
+            _Wallet.BlockLocator = GetPartialLocator(chainedBlock).Blocks;
 
             lock (this._Lock)
             {
@@ -814,6 +814,40 @@ namespace Liviano.Managers
             }
         }
 
+
+        private BlockLocator GetPartialLocator(ChainedBlock block)
+        {
+            //TODO: tries to create block locator all the way to genesis, we dont need all that, we just need the last locator, techincally.
+            //But we can create an exponential locator the first block we do have.
+            int nStep = 1;
+            List<uint256> vHave = new List<uint256>();
+
+            var pindex = block;
+            while (pindex != null)
+            {
+                vHave.Add(pindex.HashBlock);
+                // Stop when we have added the genesis block.
+                if (pindex.Height == 0)
+                    break;
+                // Exponentially larger steps back, plus the genesis block.
+                int nHeight = Math.Max(pindex.Height - nStep, 0);
+                while (pindex.Height > nHeight)
+                {
+                    pindex = pindex.Previous;
+
+                    if (pindex == null)
+                    {
+                        break;
+                    }
+                }
+                if (vHave.Count > 10)
+                    nStep *= 2;
+            }
+
+            var locators = new BlockLocator();
+            locators.Blocks = vHave;
+            return locators;
+        }
         /// <summary>
         /// Updates details of the last block synced in a wallet when the chain of headers finishes downloading.
         /// </summary>
@@ -834,9 +868,9 @@ namespace Liviano.Managers
         //        {
         //            // In case of an exception while waiting for the chain to be at a certain height, we just cut our losses and
         //            // sync from the current height.
-                    
+
         //                this.UpdateLastBlockSyncedHeight(this._Chain.Tip);
-                    
+
         //        },
         //        TimeSpans.FiveSeconds);
         //}

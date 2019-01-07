@@ -327,9 +327,9 @@ namespace Liviano.Behaviors
             lock (_CurrentPositionlocker)
             {
                 var chained = _Chain.GetBlock(h); // Get block belonging to this hash
-                if (chained != null && !EarlierThanCurrentProgress(chained.GetLocator())) // Make sure there is a block and the update isn't anterior
+                if (chained != null && !EarlierThanCurrentProgress(GetPartialLocator(chained))) // Make sure there is a block and the update isn't anterior
                 {
-                    _CurrentPosition = chained.GetLocator(); // Set the new location
+                    _CurrentPosition = GetPartialLocator(chained); // Set the new location
 
 
                     var eventToPublish = new WalletPositionUpdatedEventArgs()
@@ -381,6 +381,40 @@ namespace Liviano.Behaviors
                 Interlocked.Increment(ref _FalsePositiveCount);
             }
             return hit;
+        }
+
+        private BlockLocator GetPartialLocator(ChainedBlock block)
+        {
+            //TODO: tries to create block locator all the way to genesis, we dont need all that, we just need the last locator, techincally.
+            //But we can create an exponential locator the first block we do have.
+            int nStep = 1;
+            List<uint256> vHave = new List<uint256>();
+
+            var pindex = block;
+            while (pindex != null)
+            {
+                vHave.Add(pindex.HashBlock);
+                // Stop when we have added the genesis block.
+                if (pindex.Height == 0)
+                    break;
+                // Exponentially larger steps back, plus the genesis block.
+                int nHeight = Math.Max(pindex.Height - nStep, 0);
+                while (pindex.Height > nHeight)
+                {
+                    pindex = pindex.Previous;
+
+                    if (pindex == null)
+                    {
+                        break;
+                    }
+                }
+                if (vHave.Count > 10)
+                    nStep *= 2;
+            }
+
+            var locators = new BlockLocator();
+            locators.Blocks = vHave;
+            return locators;
         }
 
         private bool CheckFPRate(MerkleBlockPayload merkleBlock)

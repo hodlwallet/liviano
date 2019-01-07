@@ -31,6 +31,8 @@ namespace Liviano.CLI
 
         private static Network _Network;
 
+        private static ChainedBlock BIP39Activation = new ChainedBlock(new BlockHeader("020000005abd8e47d983fee4a20f83f93973d92f072a06c5bc6867640200000000000000b929390f399afa1cc074bb1219be0f6e10a18e338e8ba5b1acfadae86c59d8e01d5dc3520ca3031996821dc7", Network.Main), 277996);
+
         private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs walletPositionUpdate)
         {
             _Logger.Information("Position updated to: {height}", walletPositionUpdate.NewPosition.Height);
@@ -74,12 +76,13 @@ namespace Liviano.CLI
                     return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain as PartialConcurrentChain;
                 }
                 var chain = new PartialConcurrentChain(_Network);
+                
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     ((PartialConcurrentChain)chain).Load(new BitcoinStream(fs,false));
                 }
 
-                chain.SetCustomTip(_Network.GetCheckpoints().ElementAt(3));
+                chain.SetCustomTip(_Network.GetCheckpoints().ElementAt(2));
                 
                 return chain;
             }
@@ -452,9 +455,11 @@ namespace Liviano.CLI
 
             var closestDate = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
 
-            chain = new PartialConcurrentChain(closestDate);
+
+
+            chain = new PartialConcurrentChain(BIP39Activation);
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain) { CanRespondToGetHeaders = false });
+            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
             NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
                 RequiredServices = NodeServices.Network
@@ -509,7 +514,10 @@ namespace Liviano.CLI
 
                     timeToStartOn = timeToStartOn ?? (walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime); //Skip all time before, start of BIP32
                 }
-                walletSyncManager.Scan(scanLocation, timeToStartOn.Value);
+                var blockLocators = new BlockLocator();
+                var depinga = BIP39Activation.Header.GetHash();
+                blockLocators.Blocks.Add(BIP39Activation.Header.GetHash());
+                walletSyncManager.Scan(blockLocators, BIP39Activation.Header.BlockTime);
             }
 
             return (asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider, walletManager, walletSyncManager, nodesGroup, nodeConnectionParameters, broadcastManager);

@@ -12,6 +12,8 @@ namespace Liviano.Managers
 {
     public class WalletSyncManager : IWalletSyncManager
     {
+        DateTime End, Start;
+
         WalletManager _WalletManager;
 
         ConcurrentChain _Chain;
@@ -143,6 +145,7 @@ namespace Liviano.Managers
 
         public void Scan(BlockLocator locator, DateTimeOffset dateToStartOn)
         {
+            Start = DateTime.Now;
             if (DateToStartScanningFrom == default(DateTimeOffset) || dateToStartOn < DateToStartScanningFrom)
                 DateToStartScanningFrom = dateToStartOn;
             if (CurrentPosition == null || EarlierThanCurrentProgress(locator))
@@ -179,6 +182,10 @@ namespace Liviano.Managers
             if (e.NewPosition.Height == _Chain.Tip.Height)
             {
                 _Logger.Information("Wallet synced to tip of chain");
+                End = DateTime.Now;
+                _Logger.Information("START TIME: {startTime}", Start.ToLongTimeString());
+                _Logger.Information("END TIME: {endTime}", End.ToLongTimeString());
+                _Logger.Information("Time to sync (seconds): {difference}", End.Subtract(Start).TotalSeconds);
                 _IsSyncedToChainTip = true;
                 OnWalletSyncedToTipOfChain?.Invoke(this, e.NewPosition);
             }

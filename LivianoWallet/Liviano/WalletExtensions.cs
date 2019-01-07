@@ -66,6 +66,7 @@ namespace Liviano
         /// <returns>The checkpoints.</returns>
         /// <param name="network">Network.</param>
         public static List<ChainedBlock> GetCheckpoints(this Network network)
+
         {
             List<ChainedBlock> checkpoints = new List<ChainedBlock>();
 
@@ -157,7 +158,7 @@ namespace Liviano
                 checkpoints.Add(new ChainedBlock(new BlockHeader("0000002060d09b66acde67094a0199d102aa4de52945e47b97430b63fbdc0b0000000000d748daa1824c05ea3c305bed4ca5f0b58f1317624925b4c397f9fe154a0544b7fc24055bf0ff0f1b96af14f6"), 1310400));
 
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020b2a21fd812e43a32f109bc31eeff0403205619bbae2990bfa500000000000000e24d20fb200bb20989faa0401dbccc49c8236f0ec1425b78868f46f3f176f0df0acd865b05c14a19e181d79f"), 1411200));
-                
+
             }
 
             return checkpoints;

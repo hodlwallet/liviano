@@ -1,4 +1,5 @@
 using NBitcoin;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,6 +52,11 @@ namespace Liviano
 
         public void Load(BitcoinStream stream)
         {
+            if (stream.Inner.Length == 0)
+            {
+                Log.Logger.Warning("Couldn't load chain because it was empty.");
+                return;
+            }
             var genesis = this.Genesis;
             using (@lock.LockWrite())
             {
@@ -96,14 +102,18 @@ namespace Liviano
         public new void WriteTo(BitcoinStream stream)
         {
             //Make sure chain isnt null and can enumerate??
-
             using (@lock.LockRead())
             {
                 for (int i = _CustomTipHeight; i < Tip.Height + 1; i++)
                 {
-                    var block = GetBlockNoLock(i);
-                        stream.ReadWrite(block.Height);
-                        stream.ReadWrite(block.Header);
+                    var block = GetBlockNoLock(i); // TODO: Add all blocks to a list first and insure none are null then write them to string.
+                    if (block == null)
+                    {
+                        Log.Logger.Warning("Couldn't save chain because headers are not downloaded"); //For now return if null, dont save.
+                        return;
+                    }
+                    stream.ReadWrite(block.Height);
+                    stream.ReadWrite(block.Header);
                 }
             }
         }
