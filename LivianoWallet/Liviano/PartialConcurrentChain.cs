@@ -50,7 +50,7 @@ namespace Liviano
             }
         }
 
-        public void Load(BitcoinStream stream)
+        public new void Load(BitcoinStream stream)
         {
             if (stream.Inner.Length == 0)
             {
@@ -92,7 +92,7 @@ namespace Liviano
             }
         }
 
-        public byte[] ToBytes()
+        public new byte[] ToBytes()
         {
             MemoryStream ms = new MemoryStream();
             WriteTo(ms);
@@ -118,7 +118,7 @@ namespace Liviano
             }
         }
 
-        public PartialConcurrentChain Clone()
+        public new PartialConcurrentChain Clone()
         {
             PartialConcurrentChain chain = new PartialConcurrentChain(_Tip);
             chain._Tip = _Tip;
