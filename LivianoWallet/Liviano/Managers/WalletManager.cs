@@ -364,8 +364,9 @@ namespace Liviano.Managers
             // Check the password.
             try
             {
+                
                 if (!wallet.IsExtPubKeyWallet)
-                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+                    HdOperations.DecryptSeed(wallet.EncryptedSeed, wallet.Network, password);
             }
             catch (Exception ex)
             {

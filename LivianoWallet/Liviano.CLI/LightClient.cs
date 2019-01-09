@@ -443,7 +443,7 @@ namespace Liviano.CLI
                 throw new WalletException($"Error loading wallet from wallet id: {walletId}");
             }
 
-            if (load && password != null)
+            if (load)
             {
                 walletManager.LoadWallet(password);
             }
