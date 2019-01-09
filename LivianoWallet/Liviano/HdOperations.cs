@@ -298,7 +298,14 @@ namespace Liviano
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(network, nameof(network));
 
-            return Key.Parse(encryptedSeed, password, network);
+            if (password != null)
+            {
+                return Key.Parse(encryptedSeed, password, network);
+            }
+            else
+            {
+                return Key.Parse(encryptedSeed, network);
+            }
         }
 
         /// <summary>

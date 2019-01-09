@@ -301,8 +301,17 @@ namespace Liviano.Managers
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic);
 
-            // Create a wallet file.
-            string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this._Network).ToWif();
+            // Create a wallet file
+            string encryptedSeed;
+            if (password != null)
+            {
+                encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, _Network).ToWif();
+            }
+            else
+            {
+                encryptedSeed = extendedKey.PrivateKey.GetWif(_Network).ToString();
+            }
+
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
 
             // Generate multiple accounts and addresses from the get-go.

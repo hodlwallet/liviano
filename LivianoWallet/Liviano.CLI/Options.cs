@@ -89,7 +89,7 @@ namespace Liviano.CLI
         [Option("name", HelpText = "Set name to create wallet")]
         public string Name { get; set; }
 
-        [Option('p', "password", HelpText = "Set password to create wallet (get encrypted key)", Required = true)]
+        [Option('p', "password", HelpText = "Set password to create wallet (get encrypted key)")]
         public string Password { get; set; }
 
         [Option("passphrase", HelpText = "Set passphrase to create wallet (get passphrase)")]
@@ -105,7 +105,7 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        [Option('p', "password", HelpText = "Password start the wallet")]
         public string Password { get; set; }
 
         [Option("wallet-id", HelpText = "Wallet name to use")]
@@ -124,7 +124,7 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        [Option('p', "password", HelpText = "Password start the wallet")]
         public string Password { get; set; }
 
         [Option("wallet-id", HelpText = "Wallet name to use")]
@@ -146,7 +146,7 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        [Option('p', "password", HelpText = "Password start the wallet")]
         public string Password { get; set; }
 
         [Option("wallet-id", HelpText = "Wallet name to use")]
@@ -174,7 +174,7 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet", Required = true)]
+        [Option('p', "password", HelpText = "Password start the wallet")]
         public string Password { get; set; }
 
         [Option("wallet-id", HelpText = "Wallet name to use")]
