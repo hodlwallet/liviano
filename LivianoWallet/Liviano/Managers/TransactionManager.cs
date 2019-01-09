@@ -49,7 +49,7 @@ namespace Liviano.Managers
             _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
-        public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransation = true)
+        public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password = "", bool signTransation = true)
         {
             IEnumerable<ICoin> inputs = _CoinSelector.Select(GetCoins(account), amount);
 
@@ -80,7 +80,7 @@ namespace Liviano.Managers
                 }
 
                 keys.Add(
-                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(password, coinAddress).PrivateKey
+                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
                 );
             }
 
@@ -132,7 +132,7 @@ namespace Liviano.Managers
                 }
 
                 keys.Add(
-                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(password, coinAddress).PrivateKey
+                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
                 );
             }
 

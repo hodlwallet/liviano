@@ -271,7 +271,7 @@ namespace Liviano.CLI
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
-            walletManager.CreateWallet(password, config.WalletId, WalletManager.MnemonicFromString(mnemonic));
+            walletManager.CreateWallet(config.WalletId, password, WalletManager.MnemonicFromString(mnemonic));
         }
 
         public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
@@ -447,7 +447,7 @@ namespace Liviano.CLI
                 throw new WalletException($"Error loading wallet from wallet id: {walletId}");
             }
 
-            if (load && password != null)
+            if (load)
             {
                 walletManager.LoadWallet(password);
             }
@@ -493,6 +493,7 @@ namespace Liviano.CLI
                 {
                     if (!timeToStartOn.HasValue) //If we are NOT passing a value with -d
                     {
+                        scanLocation.Blocks.Add(network.GenesisHash);
                         scanLocation.Blocks.AddRange(walletBlockLocator);
                         if (chain.Contains(walletManager.LastReceivedBlockHash()))
                         {
@@ -502,6 +503,7 @@ namespace Liviano.CLI
                         {
                             timeToStartOn = closestDate.Header.BlockTime;
                         }
+
                     }
                     else
                     {

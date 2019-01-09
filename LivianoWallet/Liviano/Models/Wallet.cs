@@ -225,16 +225,14 @@ namespace Liviano.Models
         /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
         /// </remarks>
         /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/>
-        /// <param name="password">The password used to decrypt the wallet's <see cref="EncryptedSeed"/>.</param>
         /// <param name="coinType">The type of coin this account is for.</param>
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <param name="password">The password used to decrypt the wallet's <see cref="EncryptedSeed"/>.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(string password, CoinType coinType, DateTimeOffset accountCreationTime)
+        public HdAccount AddNewAccount(CoinType coinType, DateTimeOffset accountCreationTime, string password = "")
         {
-            Guard.NotEmpty(password, nameof(password));
-
             AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
-            return accountRoot.AddNewAccount(password, this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime);
+            return accountRoot.AddNewAccount(this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime, password);
         }
 
         // <summary>
@@ -299,12 +297,11 @@ namespace Liviano.Models
         /// <summary>
         /// Gets the extended private key for the given address.
         /// </summary>
-        /// <param name="password">The password used to encrypt/decrypt sensitive info.</param>
         /// <param name="address">The address to get the private key for.</param>
+        /// <param name="password">The password used to encrypt/decrypt sensitive info.</param>
         /// <returns>The extended private key.</returns>
-        public ISecret GetExtendedPrivateKeyForAddress(string password, HdAddress address)
+        public ISecret GetExtendedPrivateKeyForAddress(HdAddress address, string password = "")
         {
-            Guard.NotEmpty(password, nameof(password));
             Guard.NotNull(address, nameof(address));
 
             // Check if the wallet contains the address.
@@ -314,7 +311,7 @@ namespace Liviano.Models
             }
 
             // get extended private key
-            Key privateKey = HdOperations.DecryptSeed(this.EncryptedSeed, password, this.Network);
+            Key privateKey = HdOperations.DecryptSeed(this.EncryptedSeed, this.Network, password);
             return HdOperations.GetExtendedPrivateKey(privateKey, this.ChainCode, address.HdPath, this.Network);
         }
 

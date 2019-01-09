@@ -284,9 +284,8 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public Mnemonic CreateWallet(string password, string name, Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
+        public Mnemonic CreateWallet(string name, string password = "", Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
         {
-            Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(name, nameof(name));
 
             if (_StorageProvider.WalletExists())
@@ -302,31 +301,27 @@ namespace Liviano.Managers
 
             ExtKey extendedKey = HdOperations.GetExtendedKey(mnemonic);
 
-            // Create a wallet file.
-            string encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, this._Network).ToWif();
+            // Create a wallet file
+            string encryptedSeed;
+            if (password != null)
+            {
+                encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, _Network).ToWif();
+            }
+            else
+            {
+                encryptedSeed = extendedKey.PrivateKey.GetWif(_Network).ToString();
+            }
+
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < _WalletCreationAccountsCount; i++)
             {
-                HdAccount account = wallet.AddNewAccount(password, this._CoinType, this._DateTimeProvider.GetTimeOffset());
+                HdAccount account = wallet.AddNewAccount(_CoinType, _DateTimeProvider.GetTimeOffset(), password);
                 IEnumerable<HdAddress> newReceivingAddresses = account.CreateAddresses(this._Network, _UnusedAddressesBuffer);
                 IEnumerable<HdAddress> newChangeAddresses = account.CreateAddresses(this._Network, _UnusedAddressesBuffer, true);
                 this.UpdateKeysLookupLocked(newReceivingAddresses.Concat(newChangeAddresses));
             }
-
-            // If the chain is downloaded, we set the height of the newly created wallet to it.
-            // However, if the chain is still downloading when the user creates a wallet,
-            // we wait until it is downloaded in order to set it. Otherwise, the height of the wallet will be the height of the chain at that moment.
-            
-            //if (this._Chain.IsDownloaded())
-            //{
-            //    this.UpdateLastBlockSyncedHeight(wallet, this._Chain.Tip);
-            //}
-            //else
-            //{
-            //    this.UpdateWhenChainDownloaded(wallet, this._DateTimeProvider.GetUtcNow());
-            //}
 
             // The creation date of the wallet.
             wallet.CreationTime = _DateTimeProvider.GetTimeOffset();
@@ -356,10 +351,8 @@ namespace Liviano.Managers
             SaveWallet(_Wallet);
         }
 
-        public bool LoadWallet(string password)
+        public bool LoadWallet(string password = "")
         {
-            Guard.NotEmpty(password, nameof(password));
-
             if (!_StorageProvider.WalletExists())
             {
                 return false;
@@ -371,8 +364,9 @@ namespace Liviano.Managers
             // Check the password.
             try
             {
+                
                 if (!wallet.IsExtPubKeyWallet)
-                    Key.Parse(wallet.EncryptedSeed, password, wallet.Network);
+                    HdOperations.DecryptSeed(wallet.EncryptedSeed, wallet.Network, password);
             }
             catch (Exception ex)
             {

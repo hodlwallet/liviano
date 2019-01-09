@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace Liviano.Tests
+namespace Liviano.Tests.Liviano
 {
     public class HdAccountTest
     {

@@ -290,16 +290,22 @@ namespace Liviano
         /// Decrypts the encrypted private key (seed).
         /// </summary>
         /// <param name="encryptedSeed">The encrypted seed to decrypt.</param>
-        /// <param name="password">The password used to decrypt the encrypted seed.</param>
         /// <param name="network">The network this seed applies to.</param>
+        /// <param name="password">The password used to decrypt the encrypted seed.</param>
         /// <returns></returns>
-        public static Key DecryptSeed(string encryptedSeed, string password, Network network)
+        public static Key DecryptSeed(string encryptedSeed, Network network, string password = "")
         {
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
-            Guard.NotEmpty(password, nameof(password));
             Guard.NotNull(network, nameof(network));
 
-            return Key.Parse(encryptedSeed, password, network);
+            if (password != null)
+            {
+                return Key.Parse(encryptedSeed, password, network);
+            }
+            else
+            {
+                return Key.Parse(encryptedSeed, network);
+            }
         }
 
         /// <summary>
