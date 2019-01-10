@@ -64,16 +64,16 @@ namespace Liviano.Behaviors
         }
 
         ConcurrentChain _Chain;
-        public ConcurrentChain Chain
+        public PartialConcurrentChain Chain
         {
             get
             {
-                return _Chain;
+                return _Chain as PartialConcurrentChain;
             }
             set
             {
                 AssertNotAttached();
-                _Chain = value;
+                _Chain = (PartialConcurrentChain) value;
             }
         }
 

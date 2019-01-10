@@ -65,19 +65,20 @@ namespace Liviano.CLI
             }
         }
 
-        private static ConcurrentChain GetChain()
+        private static PartialConcurrentChain GetChain()
         {
             lock(_Lock)
             {
                 if (_ConParams != null)
                 {
-                    return _ConParams.TemplateBehaviors.Find<ChainBehavior>().Chain as PartialConcurrentChain;
+                    return _ConParams.TemplateBehaviors.Find<PartialChainBehavior>().Chain as PartialConcurrentChain;
                 }
+
                 var chain = new PartialConcurrentChain(_Network);
-                
+
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
-                    ((PartialConcurrentChain)chain).Load(new BitcoinStream(fs, false));
+                    chain.Load(new BitcoinStream(fs, false));
                 }
 
                 chain.SetCustomTip(_Network.GetBIP39ActivationChainedBlock());
@@ -110,7 +111,7 @@ namespace Liviano.CLI
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                     using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
-                        PartialConcurrentChain chain = GetChain() as PartialConcurrentChain;
+                        PartialConcurrentChain chain = GetChain();
                         chain.WriteTo(new BitcoinStream(fs,true));
                     }
                 }
@@ -424,7 +425,7 @@ namespace Liviano.CLI
             return closestDate;
         }
 
-        private static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, ConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null, DateTimeOffset? timeToStartOn = null)
+        private static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, PartialConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null, DateTimeOffset? timeToStartOn = null)
         {
             AsyncLoopFactory asyncLoopFactory = new AsyncLoopFactory();
             DateTimeProvider dateTimeProvider = new DateTimeProvider();
