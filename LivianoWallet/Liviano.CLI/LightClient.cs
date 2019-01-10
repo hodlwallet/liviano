@@ -496,11 +496,11 @@ namespace Liviano.CLI
 
                 if (DateTimeOffset.Now.Subtract(walletManager.GetWallet().CreationTime) > new TimeSpan(1, 0, 0, 0))
                 {
-                    dateToStartScanning = new DateTimeOffset(DateTime.Now.Subtract(new TimeSpan(7, 0, 0, 0)));
+                    dateToStartScanning = timeToStartOn ?? new DateTimeOffset(DateTime.Now.Subtract(new TimeSpan(7, 0, 0, 0)));
                 }
                 else
                 {
-                    dateToStartScanning = new DateTimeOffset(new DateTime(2014, 1, 1));
+                    dateToStartScanning = timeToStartOn ?? new DateTimeOffset(new DateTime(2014, 1, 1));
                 }
 
                 walletSyncManager.Scan(scanLocation, dateToStartScanning);
