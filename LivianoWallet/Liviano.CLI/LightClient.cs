@@ -480,43 +480,29 @@ namespace Liviano.CLI
 
             if (scan)
             {
-                //TODO Work on logic for starting scan.
-                //Consider many things such as, size of chain, wallet block locator, creation date, and so on.
                 BlockLocator scanLocation = new BlockLocator();
+                DateTimeOffset dateToStartScanning;
                 ICollection<uint256> walletBlockLocator = walletManager.GetWalletBlockLocator();
 
-                if (walletBlockLocator != null) //If we have scanned before
+                if (walletBlockLocator != null)
                 {
-                    if (!timeToStartOn.HasValue) //If we are NOT passing a value with -d
-                    {
-                        scanLocation.Blocks.Add(network.GenesisHash);
-                        scanLocation.Blocks.AddRange(walletBlockLocator);
-                        if (chain.Contains(walletManager.LastReceivedBlockHash()))
-                        {
-                            timeToStartOn = timeToStartOn ?? chain.GetBlock(walletManager.LastReceivedBlockHash()).Header.BlockTime; //Skip all time before last blockhash synced
-                        }
-                        else
-                        {
-                            timeToStartOn = closestDate.Header.BlockTime;
-                        }
-
-                    }
-                    else
-                    {
-                        scanLocation.Blocks.Add(network.GenesisHash);
-                    }
+                    scanLocation.Blocks.AddRange(walletBlockLocator);
                 }
-                else //We have never scanned before
+                else
                 {
-                    scanLocation.Blocks.Add(network.GenesisHash); //Set starting scan location to begining of network chain
-
-                    timeToStartOn = timeToStartOn ?? (walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime); //Skip all time before, start of BIP32
+                    scanLocation.Blocks.Add(network.GetBIP39ActivationChainedBlock().HashBlock);
                 }
 
-                var blockLocators = new BlockLocator();
-                blockLocators.Blocks.Add(network.GetBIP39ActivationChainedBlock().Header.GetHash());
+                if (DateTimeOffset.Now.Subtract(walletManager.GetWallet().CreationTime) > new TimeSpan(1, 0, 0, 0))
+                {
+                    dateToStartScanning = new DateTimeOffset(DateTime.Now.Subtract(new TimeSpan(7, 0, 0, 0)));
+                }
+                else
+                {
+                    dateToStartScanning = new DateTimeOffset(new DateTime(2014, 1, 1));
+                }
 
-                walletSyncManager.Scan(blockLocators, network.GetBIP39ActivationChainedBlock().Header.BlockTime);
+                walletSyncManager.Scan(scanLocation, dateToStartScanning);
             }
 
             return (asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider, walletManager, walletSyncManager, nodesGroup, nodeConnectionParameters, broadcastManager);
