@@ -473,7 +473,7 @@ namespace Liviano.CLI
             }
 
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new ChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
+            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
             NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
                 RequiredServices = NodeServices.Network
