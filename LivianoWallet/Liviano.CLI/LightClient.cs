@@ -31,9 +31,6 @@ namespace Liviano.CLI
 
         private static Network _Network;
 
-        private static ChainedBlock BIP39ActivationMainNet = new ChainedBlock(new BlockHeader("020000005abd8e47d983fee4a20f83f93973d92f072a06c5bc6867640200000000000000b929390f399afa1cc074bb1219be0f6e10a18e338e8ba5b1acfadae86c59d8e01d5dc3520ca3031996821dc7", Network.Main), 277996);
-        private static ChainedBlock BIP39ActivationTestNet = new ChainedBlock(new BlockHeader("02000000cc3b4f230127a925da29423cab8974a83b60a5212ce6fd9a30b682e7000000001d153b89315e7eebca2005582395b709a8cce47d626226d53db4a33cad513b8eaa5dc352ffff001d002654ae", Network.TestNet), 154932);
-
         private static void WalletSyncManager_OnWalletPositionUpdate(object sender, WalletPositionUpdatedEventArgs walletPositionUpdate)
         {
             _Logger.Information("Position updated to: {height}", walletPositionUpdate.NewPosition.Height);
@@ -80,17 +77,10 @@ namespace Liviano.CLI
                 
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
-                    ((PartialConcurrentChain)chain).Load(new BitcoinStream(fs,false));
+                    ((PartialConcurrentChain)chain).Load(new BitcoinStream(fs, false));
                 }
 
-                if (_Network == Network.Main)
-                {
-                    chain.SetCustomTip(BIP39ActivationMainNet);
-                }
-                else
-                {
-                    chain.SetCustomTip(BIP39ActivationTestNet);
-                }
+                chain.SetCustomTip(_Network.GetBIP39ActivationChainedBlock());
 
                 return chain;
             }
@@ -460,17 +450,9 @@ namespace Liviano.CLI
                 walletManager.LoadWallet(password);
             }
 
-
             var closestDate = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
 
-            if (network == Network.Main)
-            {
-                chain = new PartialConcurrentChain(BIP39ActivationMainNet);
-            }
-            else
-            {
-                chain = new PartialConcurrentChain(BIP39ActivationTestNet);
-            }
+            chain = new PartialConcurrentChain(network.GetBIP39ActivationChainedBlock());
 
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
             nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
@@ -530,18 +512,11 @@ namespace Liviano.CLI
 
                     timeToStartOn = timeToStartOn ?? (walletManager.GetWalletCreationTime() != null ? walletManager.GetWalletCreationTime() : network.GetGenesis().Header.BlockTime); //Skip all time before, start of BIP32
                 }
-                var blockLocators = new BlockLocator();
 
-                if (network == Network.Main)
-                {
-                    blockLocators.Blocks.Add(BIP39ActivationMainNet.Header.GetHash());
-                    walletSyncManager.Scan(blockLocators, BIP39ActivationMainNet.Header.BlockTime);
-                }
-                else
-                {
-                    blockLocators.Blocks.Add(BIP39ActivationTestNet.Header.GetHash());
-                    walletSyncManager.Scan(blockLocators, BIP39ActivationTestNet.Header.BlockTime);
-                }
+                var blockLocators = new BlockLocator();
+                blockLocators.Blocks.Add(network.GetBIP39ActivationChainedBlock().Header.GetHash());
+
+                walletSyncManager.Scan(blockLocators, network.GetBIP39ActivationChainedBlock().Header.BlockTime);
             }
 
             return (asyncLoopFactory, dateTimeProvider, scriptAddressReader, storageProvider, walletManager, walletSyncManager, nodesGroup, nodeConnectionParameters, broadcastManager);

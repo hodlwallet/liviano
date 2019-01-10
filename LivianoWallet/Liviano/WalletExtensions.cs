@@ -121,5 +121,24 @@ namespace Liviano
 
             return checkpoints;
         }
+
+        public static ChainedBlock GetBIP39ActivationChainedBlock(this Network network)
+        {
+            BlockHeader blockHeader;
+            int height;
+
+            if (network == Network.Main)
+            {
+                blockHeader = new BlockHeader("020000005abd8e47d983fee4a20f83f93973d92f072a06c5bc6867640200000000000000b929390f399afa1cc074bb1219be0f6e10a18e338e8ba5b1acfadae86c59d8e01d5dc3520ca3031996821dc7", Network.Main);
+                height = 277996;
+            }
+            else
+            {
+                blockHeader = new BlockHeader("02000000cc3b4f230127a925da29423cab8974a83b60a5212ce6fd9a30b682e7000000001d153b89315e7eebca2005582395b709a8cce47d626226d53db4a33cad513b8eaa5dc352ffff001d002654ae", Network.TestNet);
+                height = 154932;
+            }
+
+            return new ChainedBlock(blockHeader, height);
+        }
     }
 }
