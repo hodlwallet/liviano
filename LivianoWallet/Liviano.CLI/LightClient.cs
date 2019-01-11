@@ -81,7 +81,8 @@ namespace Liviano.CLI
                     chain.Load(new BitcoinStream(fs, false));
                 }
 
-                chain.SetCustomTip(_Network.GetBIP39ActivationChainedBlock());
+                if (chain.Tip.Height < _Network.GetBIP39ActivationChainedBlock().Height)
+                    chain.SetCustomTip(_Network.GetBIP39ActivationChainedBlock());
 
                 return chain;
             }
@@ -399,26 +400,9 @@ namespace Liviano.CLI
             process.Kill();
         }
 
-        private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset dateTimeOffset)
+        private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
         {
-            DateTimeOffset creationDate = dateTimeOffset;
-            ChainedBlock closestDate = null;
-            List<ChainedBlock> theDates = _Network.GetCheckpoints();
-            long min = long.MaxValue;
-
-            foreach (ChainedBlock date in theDates)
-            {
-                if (Math.Abs(date.Header.BlockTime.Ticks - creationDate.Ticks) < min)
-                {
-                    min = Math.Abs(date.Header.BlockTime.Ticks - creationDate.Ticks);
-                    closestDate = date;
-                }
-            }
-
-            //var indexOfClosestDate = theDates.IndexOf(closestDate);
-            //var dateBeforeClosestDate = theDates.ElementAt(indexOfClosestDate - 1);
-
-            return closestDate;
+            return _Network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
         }
 
         private static (IAsyncLoopFactory AsyncLoopFactory, IDateTimeProvider DateTimeProvider, IScriptAddressReader ScriptAddressReader, IStorageProvider StorageProvider, WalletManager WalletManager, IWalletSyncManager WalletSyncManager, NodesGroup NodesGroup, NodeConnectionParameters NodeConnectionParameters, IBroadcastManager BroadcastManager) CreateWalletManager(ILogger logger, PartialConcurrentChain chain, Network network, string walletId, AddressManager addressManager, ScriptTypes scriptTypes = ScriptTypes.SegwitAndLegacy, int maxAmountOfNodes = 4, bool load = true, bool start = true, bool connect = true, bool scan = true, string password = null, DateTimeOffset? timeToStartOn = null)
@@ -442,14 +426,16 @@ namespace Liviano.CLI
                 throw new WalletException($"Error loading wallet from wallet id: {walletId}");
             }
 
-            if (load)
+            ChainedBlock closestChainedBlock = null;
+            if (load && walletManager.LoadWallet(password))
             {
-                walletManager.LoadWallet(password);
+                logger.Information($"Loaded wallet, with id {walletId}");
+
+                closestChainedBlock = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
+
+                if (chain.Tip.Header.BlockTime < closestChainedBlock.Header.BlockTime)
+                    chain.SetCustomTip(closestChainedBlock);
             }
-
-            var closestDate = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
-
-            chain = new PartialConcurrentChain(network.GetBIP39ActivationChainedBlock());
 
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
             nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
@@ -494,9 +480,9 @@ namespace Liviano.CLI
                 {
                     dateToStartScanning = timeToStartOn.Value;
                 }
-                else if (closestDate.Header.BlockTime > chain.Tip.Header.BlockTime)
+                else if (closestChainedBlock.Header.BlockTime > chain.Tip.Header.BlockTime)
                 {
-                    dateToStartScanning = closestDate.Header.BlockTime;
+                    dateToStartScanning = closestChainedBlock.Header.BlockTime;
                 }
                 else
                 {
