@@ -489,6 +489,9 @@ namespace Liviano.CLI
                     dateToStartScanning = network.GetBIP39ActivationChainedBlock().Header.BlockTime;
                 }
 
+                logger.Information($"Starting syncing from: {dateToStartScanning.DateTime.ToString()}");
+                logger.Information($"Block locator: ${scanLocation.Blocks.ToString()}");
+
                 walletSyncManager.Scan(scanLocation, dateToStartScanning);
             }
 
