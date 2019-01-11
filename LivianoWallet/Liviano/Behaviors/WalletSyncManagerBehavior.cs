@@ -195,7 +195,7 @@ namespace Liviano.Behaviors
                             if (positionInChain == null)
                             {
                                 _Logger.Warning("Chain synced to height {height}", _Chain.Tip.Height);
-                                _Logger.Warning("Postion to start scanning from is not in the chain we are trying to sync, hmmm...");
+                                _Logger.Warning("Position to start scanning from is not in the chain we are trying to sync, hmmm...");
                                 return;
                             }
 

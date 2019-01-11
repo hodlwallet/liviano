@@ -112,7 +112,7 @@ namespace Liviano.CLI
                     using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
                         PartialConcurrentChain chain = GetChain();
-                        chain.WriteTo(new BitcoinStream(fs,true));
+                        chain.WriteTo(new BitcoinStream(fs, true));
                     }
                 }
             });
@@ -367,19 +367,15 @@ namespace Liviano.CLI
 
         private static void Cleanup(WalletManager walletManager)
         {
-            // Include here cleanup stuff, maybe last time to save the file?
-
-            // Example last time to save a file.
-            _Logger.Information("Saving chain state...");
             lock(_Lock)
             {
-                //GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
+                GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
                 using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
-                    GetChain().WriteTo(fs);
-                }
+                    PartialConcurrentChain chain = GetChain();
 
-                walletManager.SaveWallet();
+                    chain.WriteTo(new BitcoinStream(fs, true));
+                }
             }
         }
 
