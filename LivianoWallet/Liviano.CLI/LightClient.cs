@@ -494,13 +494,17 @@ namespace Liviano.CLI
                     scanLocation.Blocks.Add(network.GetBIP39ActivationChainedBlock().HashBlock);
                 }
 
-                if (DateTimeOffset.Now.Subtract(walletManager.GetWallet().CreationTime) > new TimeSpan(1, 0, 0, 0))
+                if (timeToStartOn.HasValue)
                 {
-                    dateToStartScanning = timeToStartOn ?? new DateTimeOffset(DateTime.Now.Subtract(new TimeSpan(7, 0, 0, 0)));
+                    dateToStartScanning = timeToStartOn.Value;
+                }
+                else if (closestDate.Header.BlockTime > chain.Tip.Header.BlockTime)
+                {
+                    dateToStartScanning = closestDate.Header.BlockTime;
                 }
                 else
                 {
-                    dateToStartScanning = timeToStartOn ?? new DateTimeOffset(new DateTime(2014, 1, 1));
+                    dateToStartScanning = network.GetBIP39ActivationChainedBlock().Header.BlockTime;
                 }
 
                 walletSyncManager.Scan(scanLocation, dateToStartScanning);
