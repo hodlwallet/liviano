@@ -20,8 +20,16 @@ We use Xamarin and NBitcoin and support .NET Standard 2.0 which makes this libra
 
 We need NBitcoin we use the latest on their `master` branch.
 
+For this you'd download NBitcoin on the root directory of this project.
+
 ```
-make submodule_init
+git clone --depth=1 git@github.com:MetacoSA/NBitcoin.git
+```
+
+And run the following script to be able to build on Visual Studio for Mac:
+
+```
+./patch_nbitcoin_project.sh
 ```
 
 ## Build Instructions
