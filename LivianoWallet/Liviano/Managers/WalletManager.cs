@@ -538,7 +538,7 @@ namespace Liviano.Managers
                     IEnumerable<TxOut> paidOutTo = transaction.Outputs.Where(o =>
                     {
                         // If script is empty ignore it.
-                        if (o.Value == 0)
+                        if (o.Value == (long) 0)
                             return false;
 
                         // Check if the destination script is one of the wallet's.

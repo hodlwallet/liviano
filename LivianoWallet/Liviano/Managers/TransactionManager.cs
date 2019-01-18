@@ -49,7 +49,7 @@ namespace Liviano.Managers
             _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
-        public Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password = "", bool signTransation = true)
+        public Transaction CreateTransaction(string destination, Money amount, long satoshisPerByte, HdAccount account, string password = "", bool signTransation = true)
         {
             IEnumerable<ICoin> inputs = _CoinSelector.Select(GetCoins(account), amount);
 

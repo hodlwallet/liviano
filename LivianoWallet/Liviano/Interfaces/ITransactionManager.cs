@@ -12,7 +12,7 @@ namespace Liviano.Interfaces
 {
     public interface ITransactionManager
     {
-        Transaction CreateTransaction(string destination, Money amount, int satoshisPerByte, HdAccount account, string password, bool signTransaction = true);
+        Transaction CreateTransaction(string destination, Money amount, long satoshisPerByte, HdAccount account, string password, bool signTransaction = true);
 
         bool VerifyTransaction(Transaction transaction, out WalletException[] transactionPolicyErrors);
 
