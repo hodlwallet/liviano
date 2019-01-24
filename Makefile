@@ -45,13 +45,6 @@ osx_debug_build:
 	rm -rf ./liviano-cli
 	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano-cli
 
-submodule_init:
-	git submodule init
-	git submodule update
-
-submodule_update:
-	git submodule update
-
 clean:
 	dotnet clean LivianoWallet --framework netcoreapp2.1
 	rm -rf bin/*
