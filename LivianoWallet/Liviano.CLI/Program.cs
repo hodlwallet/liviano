@@ -513,9 +513,9 @@ namespace Liviano.CLI
                 {
                     config.NodesToConnect = o.NodesToConnect;
                 }
-                else
+                else if (config.NodesToConnect == 0)
                 {
-                    config.NodesToConnect = 12; // safe default.
+                    config.NodesToConnect = 4; // safe default.
                 }
 
                 config.SaveChanges();

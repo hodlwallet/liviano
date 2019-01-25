@@ -79,7 +79,7 @@ namespace Liviano.Behaviors
             _Logger = logger;
 
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
-            FalsePositiveRate = 0.000000000000000001;
+            FalsePositiveRate = 0.000000000000000000001;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
@@ -299,11 +299,12 @@ namespace Liviano.Behaviors
                     return;
                 }
 
-                string nodeInfo = String.Format("{0,45}", AttachedNode.ToString());
-                _Logger.Information("{nodeAddress} - Merkle block payload block time: {blockTime} (height: {height}) (txs: {txs})",
-                    nodeInfo,
-                    merkleBlockPayload.Object.Header.BlockTime,
-                    _Chain.FindFork(_CurrentPosition).Height,
+                _Logger.Information(
+                    "{attachedNodeInfoString} Merkle Block Payload: Block Time: {blockTime}. Height: {height}. Hash: {hash}. TXs: {transactionCount}",
+                    AttachedNode.InfoString(),
+                    merkleBlockPayload.Object.Header.BlockTime.DateTime,
+                    _Chain.GetBlock(merkleBlockPayload.Object.Header.GetHash())?.Height,
+                    merkleBlockPayload.Object.Header.GetHash(),
                     merkleBlockPayload.Object.PartialMerkleTree.TransactionCount
                 );
 

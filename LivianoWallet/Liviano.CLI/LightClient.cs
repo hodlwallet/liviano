@@ -97,12 +97,12 @@ namespace Liviano.CLI
 
         private static string AddrmanFile()
         {
-            return GetConfigFile("addrman.dat");
+            return GetConfigFile($"addrman-{_Network.ToString()}.dat");
         }
 
         private static string ChainFile()
         {
-            return GetConfigFile("chain.dat");
+            return GetConfigFile($"chain-{_Network.ToString()}.dat");
         }
 
         private static async Task SaveAsync()
@@ -393,7 +393,8 @@ namespace Liviano.CLI
 
                 thread.Dispose();
 
-                _Logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
+                if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated)
+                    _Logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
             }
 
             _Logger.Information("Closing thread with pid: {pid}", process.Id);
@@ -439,6 +440,7 @@ namespace Liviano.CLI
                     chain.SetCustomTip(closestChainedBlock);
             }
 
+            nodeConnectionParameters.UserAgent = "/Liviano:0.1/";
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
             nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
