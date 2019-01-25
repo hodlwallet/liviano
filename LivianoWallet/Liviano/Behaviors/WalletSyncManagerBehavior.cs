@@ -79,7 +79,7 @@ namespace Liviano.Behaviors
             _Logger = logger;
 
             _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
-            FalsePositiveRate = 0.000005;
+            FalsePositiveRate = 0.000000000000000001;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
