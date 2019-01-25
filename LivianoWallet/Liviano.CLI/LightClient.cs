@@ -299,8 +299,8 @@ namespace Liviano.CLI
 
                 foreach (var item in transactionsRemoved)
                 {
-                    Console.WriteLine($"Deleting Tx Id: {item.Id}");
-                    Console.WriteLine($"Propagated: {item.IsPropagated}");
+                    _Logger.Warning($"Deleting Tx Id: {item.Id}");
+                    _Logger.Warning($"Propagated: {item.IsPropagated}");
                 }
             }
 

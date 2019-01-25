@@ -147,7 +147,7 @@ namespace Liviano
         {
             // Return a right padded string of 60 chars of the information of a node.
             return String.Format(
-                "{0,60}",
+                "{0,65}",
                 $"{node.RemoteSocketAddress.ToString()}:{node.RemoteSocketPort} ({node.PeerVersion.UserAgent}{node.PeerVersion.Version})"
              );
         }
