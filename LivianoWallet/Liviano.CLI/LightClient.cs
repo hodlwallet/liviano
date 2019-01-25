@@ -19,6 +19,8 @@ using System.Threading;
 using Liviano.Interfaces;
 using Liviano.Enums;
 
+using NBitcoin.DataEncoders;
+
 namespace Liviano.CLI
 {
     public class LightClient
@@ -471,16 +473,21 @@ namespace Liviano.CLI
                 {
                     scanLocation.Blocks.AddRange(walletBlockLocator);
                 }
-                else
-                {
-                    scanLocation.Blocks.Add(network.GetBIP39ActivationChainedBlock().HashBlock);
-                }
+
+                // Block locator is empty lets create a new one, first we add the activation block
+                scanLocation.Blocks.Add(network.GetBIP39ActivationChainedBlock().HashBlock);
+                // Then the checkpoints
+                scanLocation.Blocks.AddRange(
+                    network.GetCheckpoints().Select(checkpoint => checkpoint.HashBlock)
+                );
+                // Finally the closest on our partial chain to the creation of the wallet
+                scanLocation.Blocks.Add(closestChainedBlock.HashBlock);
 
                 if (timeToStartOn.HasValue)
                 {
                     dateToStartScanning = timeToStartOn.Value;
                 }
-                else if (closestChainedBlock.Header.BlockTime > chain.Tip.Header.BlockTime)
+                else if (closestChainedBlock.Header.BlockTime >= chain.Tip.Header.BlockTime)
                 {
                     dateToStartScanning = closestChainedBlock.Header.BlockTime;
                 }
@@ -490,7 +497,13 @@ namespace Liviano.CLI
                 }
 
                 logger.Information($"Starting syncing from: {dateToStartScanning.DateTime.ToString()}");
-                logger.Information($"Block locator: ${scanLocation.Blocks.ToString()}");
+
+                logger.Information($"Block Locator cointains {scanLocation.Blocks.Count} blocks:");
+
+                foreach (var block in scanLocation.Blocks)
+                {
+                    logger.Information($"Id: {Encoders.Hex.EncodeData(block.ToBytes().Reverse().ToArray())}");
+                }
 
                 walletSyncManager.Scan(scanLocation, dateToStartScanning);
             }

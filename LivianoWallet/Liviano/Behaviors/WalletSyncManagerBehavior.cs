@@ -298,7 +298,15 @@ namespace Liviano.Behaviors
                 {
                     return;
                 }
-                _Logger.Information("Merkle block payload block time: {blockTime}", merkleBlockPayload.Object.Header.BlockTime);
+
+                string nodeInfo = String.Format("{0,45}", AttachedNode.ToString());
+                _Logger.Information("{nodeAddress} - Merkle block payload block time: {blockTime} (height: {height}) (txs: {txs})",
+                    nodeInfo,
+                    merkleBlockPayload.Object.Header.BlockTime,
+                    _Chain.FindFork(_CurrentPosition).Height,
+                    merkleBlockPayload.Object.PartialMerkleTree.TransactionCount
+                );
+
                 foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
                 {
                     _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
