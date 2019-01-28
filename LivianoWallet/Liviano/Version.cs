@@ -35,6 +35,11 @@ namespace Liviano
             }
         }
 
+        public static new string ToString()
+        {
+            return $"{Name} ({Number})";
+        }
+
         public static string Name
         {
             get

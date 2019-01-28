@@ -322,7 +322,7 @@ namespace Liviano.CLI
             walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
             walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
 
-            _Logger.Information("Liviano started!");
+            _Logger.Information("{livianoVersion} started!", Liviano.Version.ToString());
 
             WaitUntilEscapeIsPressed(walletManager);
         }

@@ -58,8 +58,9 @@ namespace Liviano
 
                 return;
             }
-            
-            ChainedBlock genesis = _Network.GetBIP39ActivationChainedBlock();
+
+            // var genesis = _Network.GetBIP39ActivationChainedBlock();
+            var genesis = _Network.GetGenesis();
 
             using (@lock.LockWrite())
             {
