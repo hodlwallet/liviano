@@ -370,13 +370,16 @@ namespace Liviano.Managers
             }
             catch (Exception ex)
             {
-                this._Logger.Error("Exception occurred: {0}", ex.ToString());
-                this._Logger.Error("(-)[EXCEPTION]");
+                _Logger.Error("Exception occurred: {0}", ex.ToString());
+                _Logger.Error("(-)[EXCEPTION]");
+
                 throw new SecurityException(ex.Message);
             }
 
-            _Logger.Information("Wallet {walletName} loaded from the storage provider", wallet.Name);
-            this.Load(wallet);
+            _Logger.Information("{walletName} file loaded", wallet.Name);
+
+            Load(wallet);
+
             return true;
         }
 
@@ -387,8 +390,9 @@ namespace Liviano.Managers
         private void Load(Wallet wallet)
         {
             Guard.NotNull(wallet, nameof(wallet));
-            this._Logger.Information("Wallet {walletName} has been loaded into the WalletManager", wallet.Name);
-            this._Wallet = wallet;
+
+            _Logger.Information("{walletName} loaded WalletManager", wallet.Name);
+            _Wallet = wallet;
         }
 
         public IEnumerable<AccountBalance> GetBalances(string accountName = null)

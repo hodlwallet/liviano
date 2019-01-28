@@ -40,7 +40,7 @@ namespace Liviano.CLI
 
         private static async void PeriodicSave()
         {
-            while (1 == 1)
+            while (true)
             {
                 await Task.Delay(30_000);
 
@@ -76,7 +76,7 @@ namespace Liviano.CLI
                     return _ConParams.TemplateBehaviors.Find<PartialChainBehavior>().Chain as PartialConcurrentChain;
                 }
 
-                var chain = new PartialConcurrentChain(_Network);
+                var chain = new PartialConcurrentChain(_Network, _Logger);
 
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
@@ -97,12 +97,12 @@ namespace Liviano.CLI
 
         private static string AddrmanFile()
         {
-            return GetConfigFile($"addrman-{_Network.ToString()}.dat");
+            return GetConfigFile($"addrman-{_Network.ToString().ToLower()}.dat");
         }
 
         private static string ChainFile()
         {
-            return GetConfigFile($"chain-{_Network.ToString()}.dat");
+            return GetConfigFile($"chain-{_Network.ToString().ToLower()}.dat");
         }
 
         private static async Task SaveAsync()
@@ -322,7 +322,7 @@ namespace Liviano.CLI
             walletManager.OnNewSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("New spending tx: {txId}", spendingTransaction.Id); };
             walletManager.OnUpdateSpendingTransaction += (sender, spendingTransaction) => { _Logger.Information("Update spending tx: {txId}", spendingTransaction.Id); };
 
-            _Logger.Information("Liviano SPV client started.");
+            _Logger.Information("Liviano started!");
 
             WaitUntilEscapeIsPressed(walletManager);
         }
@@ -332,7 +332,7 @@ namespace Liviano.CLI
             bool quit = false;
             bool quitHandledByIDE = false;
 
-            _Logger.Information("Press ESC to stop SPV client...");
+            _Logger.Information("Press {key} to stop Liviano...", "ESC");
 
             while (!quit)
             {
@@ -432,7 +432,7 @@ namespace Liviano.CLI
             ChainedBlock closestChainedBlock = null;
             if (load && walletManager.LoadWallet(password))
             {
-                logger.Information($"Loaded wallet, with id {walletId}");
+                logger.Information("Loaded wallet");
 
                 closestChainedBlock = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
 
@@ -440,9 +440,9 @@ namespace Liviano.CLI
                     chain.SetCustomTip(closestChainedBlock);
             }
 
-            nodeConnectionParameters.UserAgent = "/Liviano:0.1/";
+            nodeConnectionParameters.UserAgent = Liviano.Version.UserAgent;
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
+            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
             NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
                 RequiredServices = NodeServices.Network
@@ -459,6 +459,8 @@ namespace Liviano.CLI
                 nodesGroup.MaximumNodeConnection = maxAmountOfNodes;
                 nodesGroup.Connect();
             }
+
+            _Logger.Information("Connecting to {maxNodesCount} nodes", nodesGroup.MaximumNodeConnection);
 
             if (start)
             {
@@ -498,13 +500,13 @@ namespace Liviano.CLI
                     dateToStartScanning = network.GetBIP39ActivationChainedBlock().Header.BlockTime;
                 }
 
-                logger.Information($"Starting syncing from: {dateToStartScanning.DateTime.ToString()}");
+                logger.Information("Starting syncing from: {datetime}", dateToStartScanning.DateTime.ToString());
 
-                logger.Information($"Block Locator cointains {scanLocation.Blocks.Count} blocks:");
+                logger.Information("Block Locator contains {count} blocks:", scanLocation.Blocks.Count);
 
                 foreach (var block in scanLocation.Blocks)
                 {
-                    logger.Information($"Id: {Encoders.Hex.EncodeData(block.ToBytes().Reverse().ToArray())}");
+                    logger.Information("Id: {hex}", Encoders.Hex.EncodeData(block.ToBytes().Reverse().ToArray()));
                 }
 
                 walletSyncManager.Scan(scanLocation, dateToStartScanning);

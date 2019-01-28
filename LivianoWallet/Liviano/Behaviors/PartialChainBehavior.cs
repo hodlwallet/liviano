@@ -1,3 +1,4 @@
+using Liviano.Utilities;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -12,12 +13,16 @@ namespace Liviano.Behaviors
     public class PartialChainBehavior : NodeBehavior
     {
         State _State;
-        public PartialChainBehavior(ConcurrentChain chain)
+        Network _Network;
+
+        public PartialChainBehavior(ConcurrentChain chain, Network network)
         {
-            if (chain == null)
-                throw new ArgumentNullException(nameof(chain));
+            Guard.NotNull(chain, nameof(chain));
+            Guard.NotNull(network, nameof(network));
+
             _State = new PartialChainBehavior.State();
             _Chain = chain;
+            _Network = network;
             AutoSync = true;
             CanSync = true;
             CanRespondToGetHeaders = true;
@@ -109,20 +114,21 @@ namespace Liviano.Behaviors
 
         private BlockLocator GetPartialLocator(ChainedBlock block)
         {
-            //TODO: tries to create block locator all the way to genesis, we dont need all that, we just need the last locator, techincally.
             //But we can create an exponential locator the first block we do have.
             int nStep = 1;
             List<uint256> vHave = new List<uint256>();
 
-            var pindex = block;
+            ChainedBlock activationBlock = _Network.GetBIP39ActivationChainedBlock();
+            ChainedBlock pindex = block;
             while (pindex != null)
             {
                 vHave.Add(pindex.HashBlock);
+                
                 // Stop when we have added the genesis block.
-                if (pindex.Height == 0)
+                if (pindex.Height == activationBlock.Height)
                     break;
                 // Exponentially larger steps back, plus the genesis block.
-                int nHeight = Math.Max(pindex.Height - nStep, 0);
+                int nHeight = Math.Max(pindex.Height - nStep, activationBlock.Height);
                 while (pindex.Height > nHeight)
                 {
                     pindex = pindex.Previous;
@@ -371,7 +377,7 @@ namespace Liviano.Behaviors
 
         public override object Clone()
         {
-            var clone = new PartialChainBehavior(Chain)
+            var clone = new PartialChainBehavior(Chain, _Network)
             {
                 CanSync = CanSync,
                 CanRespondToGetHeaders = CanRespondToGetHeaders,

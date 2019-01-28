@@ -1,3 +1,4 @@
+using Liviano.Utilities;
 using NBitcoin;
 using Serilog;
 using System;
@@ -15,49 +16,51 @@ namespace Liviano
         ChainedBlock[] _BlocksByHeight = new ChainedBlock[0];
         ReaderWriterLock @lock = new ReaderWriterLock();
         int _CustomTipHeight;
+        Network _Network;
+        ILogger _Logger;
 
         /// <summary>
         /// Creates a partial Concurrent chain which starts sycning from the customTipProvided.
         /// </summary>
         /// <param name="customTip"></param>
-        public PartialConcurrentChain(ChainedBlock customTip)
+        public PartialConcurrentChain(ChainedBlock customTip, Network network, ILogger logger)
         {
+            Guard.NotNull(customTip, nameof(customTip));
+            Guard.NotNull(network, nameof(network));
+            Guard.NotNull(logger, nameof(logger));
+
+            _Logger = logger;
             _Tip = customTip;
             _CustomTipHeight = customTip.Height;
+            _Network = network;            
         }
 
-        public void SetCustomTip(ChainedBlock newtip)
+        public PartialConcurrentChain(Network network, ILogger logger)
         {
-            _Tip = newtip;
-            _CustomTipHeight = newtip.Height;
+            Guard.NotNull(network, nameof(network));
+            Guard.NotNull(logger, nameof(logger));
 
-        }
-        public PartialConcurrentChain(Network network)
-        {
-            if (network != null)
-            {
-                var genesis = network.GetGenesis();
-                SetTip(new ChainedBlock(genesis.Header, 0));
-            }
+            _Logger = logger;
+            SetTip(network.GetBIP39ActivationChainedBlock());
         }
 
-        public PartialConcurrentChain(Network network, ChainedBlock chainedBlock)
+        public void SetCustomTip(ChainedBlock newTip)
         {
-            if (network != null)
-            {
-                var genesis = network.GetGenesis();
-                SetTip(chainedBlock);
-            }
+            _Tip = newTip;
+            _CustomTipHeight = newTip.Height;
         }
 
         public new void Load(BitcoinStream stream)
         {
             if (stream.Inner.Length == 0)
             {
-                Log.Logger.Warning("Couldn't load chain because it was empty.");
+                _Logger.Warning("Couldn't load chain because it was empty");
+
                 return;
             }
-            var genesis = this.Genesis;
+            
+            ChainedBlock genesis = _Network.GetBIP39ActivationChainedBlock();
+
             using (@lock.LockWrite())
             {
                 try
@@ -66,6 +69,7 @@ namespace Liviano
                     {
                         BlockHeader header = null;
                         int height = 0;
+
                         height = stream.ReadWrite(height);
                         header = stream.ReadWrite(header);
 
@@ -73,12 +77,15 @@ namespace Liviano
                         {
                             _BlocksByHeight = new ChainedBlock[0];
                             _BlocksById.Clear();
+
                             _Tip = null;
+
                             if (header != null && genesis != null && header.GetHash() != genesis.HashBlock)
                             {
                                 throw new InvalidOperationException("Unexpected genesis block");
                             }
-                            SetTipNoLock(new ChainedBlock(genesis?.Header ?? header, 0));
+
+                            SetTipNoLock(new ChainedBlock(genesis?.Header ?? header, genesis?.Height ?? height));
                         }
                         else if (_Tip.HashBlock == header.HashPrevBlock && !(header.IsNull && header.Nonce == 0))
                             SetTipNoLock(new ChainedBlock(header, height));
@@ -120,7 +127,7 @@ namespace Liviano
 
         public new PartialConcurrentChain Clone()
         {
-            PartialConcurrentChain chain = new PartialConcurrentChain(_Tip);
+            PartialConcurrentChain chain = new PartialConcurrentChain(_Tip, _Network, _Logger);
             chain._Tip = _Tip;
             using (@lock.LockRead())
             {
