@@ -76,7 +76,8 @@ namespace Liviano.CLI
                     return _ConParams.TemplateBehaviors.Find<PartialChainBehavior>().Chain as PartialConcurrentChain;
                 }
 
-                var chain = new PartialConcurrentChain(_Network, _Logger);
+                // var chain = new PartialConcurrentChain(_Network, _Logger);
+                var chain = new PartialConcurrentChain(_Network);
 
                 using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
