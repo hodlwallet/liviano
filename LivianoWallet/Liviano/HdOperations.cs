@@ -317,6 +317,7 @@ namespace Liviano
         /// <returns></returns>
         public static string[] GenerateGuessWords(string wordToGuess, string language = "english", int amountAround = 9)
         {
+            //TODO: Modify method to include two words from mnemonic
             Guard.NotEmpty(wordToGuess, nameof(wordToGuess));
             Guard.NotEmpty(language, nameof(language));
 
@@ -426,6 +427,22 @@ namespace Liviano
         public static ConcurrentChain NewConcurrentChain()
         {
             return new ConcurrentChain();
+        }
+
+        /// <summary>
+        /// Verify if a word exists in the specified wordlist
+        /// </summary>
+        /// <param name="word">A word to find</param>
+        /// <param name="wordlist">The wordlist to query</param>
+        /// <returns></returns>
+        public static bool IsWordInWordlist(string word, string wordlist = "english")
+        {
+            Guard.NotEmpty(word, nameof(word));
+            Guard.NotEmpty(wordlist, nameof(wordlist));
+
+            int index;
+
+            return WordlistFromString(wordlist).WordExists(word, out index);
         }
     }
 }
