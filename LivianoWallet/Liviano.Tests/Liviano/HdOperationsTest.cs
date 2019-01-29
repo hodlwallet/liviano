@@ -142,5 +142,15 @@ namespace Liviano.Tests.Liviano
             Assert.True(HdOperations.IsInMnemonicAtIndex(mnemonic, "dilemma", 1));
             Assert.False(HdOperations.IsInMnemonicAtIndex(mnemonic, "film", 3));
         }
+
+	[Fact]
+	public void IsWordInWordlist()
+	{
+	    string exist = "abstract";
+	    string nonExist = "ambiguous";
+
+	    Assert.True(HdOperations.IsWordInWordlist(exist, "english"));
+	    Assert.False(HdOperations.IsWordInWordlist(nonExist, "english")); 
+	}
     }
 }
