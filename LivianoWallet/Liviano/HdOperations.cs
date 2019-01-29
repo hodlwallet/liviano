@@ -439,10 +439,8 @@ namespace Liviano
         {
             Guard.NotEmpty(word, nameof(word));
             Guard.NotEmpty(wordlist, nameof(wordlist));
-
-            int index;
-
-            return WordlistFromString(wordlist).WordExists(word, out index);
+            
+            return WordlistFromString(wordlist).WordExists(word, out var unused);
         }
     }
 }
