@@ -345,10 +345,23 @@ namespace Liviano.Managers
                 this._StorageProvider.SaveWallet(wallet);
             }
         }
+        
 
         public void SaveWallet()
         {
             SaveWallet(_Wallet);
+        }
+
+        public void UnloadWallet()
+        {
+            if (_Wallet == null)
+            {
+                _Logger.Information("Wallet hasn't been loaded");
+                return;
+            }
+
+            _Logger.Information("{walletName} unloaded on WalletManager", _Wallet.Name);
+            _Wallet = null;
         }
 
         public bool LoadWallet(string password = "")
