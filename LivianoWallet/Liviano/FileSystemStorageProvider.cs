@@ -12,12 +12,11 @@ namespace Liviano
     public class FileSystemStorageProvider : IStorageProvider
     {
         private readonly string _Id;
-
-        private readonly string _FilePath;
-
         private const string _Extension = "json";
 
         private readonly string _Directory = "data";
+
+        public string FilePath { get; private set; }
 
         public FileSystemStorageProvider(string id = null, string directory = "data")
         {
@@ -34,20 +33,20 @@ namespace Liviano
 
             _Directory = directory;
 
-            _FilePath = GetFilePath();
+            FilePath = GetFilePath();
 
             Directory.CreateDirectory(_Directory);
         }
 
         public Wallet LoadWallet()
         {
-            if (File.Exists(_FilePath))
+            if (File.Exists(FilePath))
             {
-                return JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(_FilePath));
+                return JsonConvert.DeserializeObject<Wallet>(File.ReadAllText(FilePath));
             }
             else
             {
-                throw new WalletException($"Wallet file with name '{_FilePath}' could not be found.");
+                throw new WalletException($"Wallet file with name '{FilePath}' could not be found.");
             }
         }
 
@@ -59,19 +58,19 @@ namespace Liviano
         public void SaveWallet(Wallet wallet, bool saveBackupFile = true)
         {
             string guid = Guid.NewGuid().ToString();
-            string newFilePath = $"{_FilePath}.{guid}.new";
-            string tempFilePath = $"{_FilePath}.{guid}.temp";
+            string newFilePath = $"{FilePath}.{guid}.new";
+            string tempFilePath = $"{FilePath}.{guid}.temp";
 
             File.WriteAllText(newFilePath, JsonConvert.SerializeObject(wallet, Formatting.Indented));
 
             // If the file does not exist yet, create it.
-            if (!File.Exists(_FilePath))
+            if (!File.Exists(FilePath))
             {
-                File.Move(newFilePath, _FilePath);
+                File.Move(newFilePath, FilePath);
 
                 if (saveBackupFile)
                 {
-                    File.Copy(_FilePath, $"{_FilePath}.bak", true);
+                    File.Copy(FilePath, $"{FilePath}.bak", true);
                 }
 
                 return;
@@ -79,12 +78,12 @@ namespace Liviano
 
             if (saveBackupFile)
             {
-                File.Copy(_FilePath, $"{_FilePath}.bak", true);
+                File.Copy(FilePath, $"{FilePath}.bak", true);
             }
 
             // Delete the file and rename the temp file to that of the target file.
-            File.Move(_FilePath, tempFilePath);
-            File.Move(newFilePath, _FilePath);
+            File.Move(FilePath, tempFilePath);
+            File.Move(newFilePath, FilePath);
 
             try
             {
@@ -93,7 +92,7 @@ namespace Liviano
             catch (IOException)
             {
                 // Marking the file for deletion in the future.
-                File.Move(tempFilePath, $"{_FilePath}.{guid}.del");
+                File.Move(tempFilePath, $"{FilePath}.{guid}.del");
             }
         }
 

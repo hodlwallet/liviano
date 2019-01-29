@@ -423,7 +423,11 @@ namespace Liviano.CLI
 
             WalletSyncManager walletSyncManager = new WalletSyncManager(logger, walletManager, chain);
 
-            if (!storageProvider.WalletExists())
+            if (storageProvider.WalletExists())
+            {
+                logger.Information("Will load wallet from {filename}", storageProvider.FilePath);
+            }
+            else
             {
                 logger.Error("Error loading wallet from {walletId}", walletId);
 
