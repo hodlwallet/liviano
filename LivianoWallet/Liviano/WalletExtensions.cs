@@ -118,7 +118,8 @@ namespace Liviano
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020e299ffd701caa20284b69e3b56ad1ed6699293914592f63dcc010000000000000409119b5141e2bbdb4a36a0e82ecf0373f29ce1019131e88c7ccf9343a23baf6a64d85980e173196b02af97", network), 1209600));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("0000002060d09b66acde67094a0199d102aa4de52945e47b97430b63fbdc0b0000000000d748daa1824c05ea3c305bed4ca5f0b58f1317624925b4c397f9fe154a0544b7fc24055bf0ff0f1b96af14f6", network), 1310400));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020b2a21fd812e43a32f109bc31eeff0403205619bbae2990bfa500000000000000e24d20fb200bb20989faa0401dbccc49c8236f0ec1425b78868f46f3f176f0df0acd865b05c14a19e181d79f", network), 1411200));
-                /* NOTE exception to the 100800 blocks... on testnet there's a huge amount of blocks in these gaps for little time */ checkpoints.Add(new ChainedBlock(new BlockHeader("00000020d03eeff74eadfb6060591912d74d7d3c395bc7217dd5063f9100000000000000e30bd6356932222da86753d1bda3584b1b76c6229fc30625fdfad2637e9720fb3537df5ba866011a0b27a352", network), 1442000));
+                // NOTE exception to the 100800 blocks... on testnet there's a huge amount of blocks in these gaps for little time
+                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020d03eeff74eadfb6060591912d74d7d3c395bc7217dd5063f9100000000000000e30bd6356932222da86753d1bda3584b1b76c6229fc30625fdfad2637e9720fb3537df5ba866011a0b27a352", network), 1442000));
             }
 
             return checkpoints;
@@ -141,6 +142,29 @@ namespace Liviano
             }
 
             return new ChainedBlock(blockHeader, height);
+        }
+
+        public static BlockLocator GetDefaultBlockLocator(this Network network)
+        {
+            ChainedBlock bip39ActivationBlock = network.GetBIP39ActivationChainedBlock();
+            BlockLocator defaultScanLocations = new BlockLocator();
+            
+            defaultScanLocations.Blocks.Add(network.GenesisHash);
+            
+            foreach (ChainedBlock checkpoint in network.GetCheckpoints())
+            {
+                // Genesis added already
+                if (checkpoint.Height == 0)
+                    continue;
+
+                // Insert BIP 39 block
+                if (checkpoint.Height > bip39ActivationBlock.Height)
+                    defaultScanLocations.Blocks.Add(bip39ActivationBlock.HashBlock);
+                
+                defaultScanLocations.Blocks.Add(checkpoint.HashBlock);
+            }
+
+            return defaultScanLocations;
         }
 
         public static string InfoString(this Node node)
