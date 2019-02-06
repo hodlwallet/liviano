@@ -144,13 +144,23 @@ namespace Liviano.Tests.Liviano
         }
 
 	[Fact]
-	public void IsWordInWordlist()
+	public void IsWordInWordlistTest()
 	{
 	    string exist = "abstract";
 	    string nonExist = "ambiguous";
 
 	    Assert.True(HdOperations.IsWordInWordlist(exist, "english"));
 	    Assert.False(HdOperations.IsWordInWordlist(nonExist, "english")); 
+	}
+
+	[Fact]
+	public void IsValidChecksumTest()
+	{
+	    string validMnemonic = "ugly dilemma idle crowd toast virus film funny laundry little gossip pair";
+	    string invalidMnemonic = "ugly clarify idle crowd toast virus film funny laundry little gossip pair";
+
+	    Assert.True(HdOperations.IsValidChecksum(validMnemonic, "english"));
+	    Assert.False(HdOperations.IsValidChecksum(invalidMnemonic, "english"));
 	}
     }
 }
