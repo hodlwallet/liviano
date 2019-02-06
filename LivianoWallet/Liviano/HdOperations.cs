@@ -442,5 +442,19 @@ namespace Liviano
             
             return WordlistFromString(wordlist).WordExists(word, out var unused);
         }
+
+        /// <summary>
+        /// Verify if a mnemonic has a valid checksum
+        /// </summary>
+        /// <param name="mnemonic">A mnemonic words, these are parsed via NBitcoin Mnemonic</param>
+        /// <param name="wordlist">The wordlist to query</param>
+        /// <returns></returns>
+        public static bool IsValidChecksum(string mnemonic, string wordlist = "english")
+        {
+            Guard.NotEmpty(mnemonic, nameof(mnemonic));
+            Guard.NotEmpty(wordlist, nameof(wordlist));
+
+            return new Mnemonic(mnemonic, WordlistFromString(wordlist)).IsValidChecksum;
+        }
     }
 }
