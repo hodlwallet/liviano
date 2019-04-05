@@ -235,7 +235,7 @@ namespace Liviano.CLI
             {
                 var spendableAmounts = account.GetSpendableAmount();
 
-                balances.Add((account.Name ?? $"#{account.Index}", account.HdPath, spendableAmounts.ConfirmedAmount, spendableAmounts.UnConfirmedAmount));
+                balances.Add((account.Name ?? $"#{account.Index}", $"{account.HdPath}/{account.Index}", spendableAmounts.ConfirmedAmount, spendableAmounts.UnConfirmedAmount));
             }
 
             return balances;
