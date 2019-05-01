@@ -2,8 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
 using NBitcoin;
 using NBitcoin.Protocol;
+using NBitcoin.Crypto;
+using NBitcoin.DataEncoders;
+using NBitcoin.RPC;
+
+using Liviano.Utilities;
 
 namespace Liviano
 {
@@ -148,9 +155,9 @@ namespace Liviano
         {
             ChainedBlock bip39ActivationBlock = network.GetBIP39ActivationChainedBlock();
             BlockLocator defaultScanLocations = new BlockLocator();
-            
+
             defaultScanLocations.Blocks.Add(network.GenesisHash);
-            
+
             foreach (ChainedBlock checkpoint in network.GetCheckpoints())
             {
                 // Genesis added already
@@ -160,7 +167,7 @@ namespace Liviano
                 // Insert BIP 39 block
                 if (checkpoint.Height > bip39ActivationBlock.Height)
                     defaultScanLocations.Blocks.Add(bip39ActivationBlock.HashBlock);
-                
+
                 defaultScanLocations.Blocks.Add(checkpoint.HashBlock);
             }
 
@@ -174,6 +181,154 @@ namespace Liviano
                 "{0,65}",
                 $"{node.RemoteSocketAddress.ToString()}:{node.RemoteSocketPort} ({node.PeerVersion.UserAgent}{node.PeerVersion.Version})"
              );
+        }
+
+        public static IEnumerable<Coin> GetCoins(this TxOutList me, Script script)
+        {
+            return me.AsCoins().Where(c => c.ScriptPubKey == script);
+        }
+
+        /// <summary>
+        /// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
+        /// </summary>
+        public static bool PossiblyNativeSegWitInvolved(this Transaction me)
+        {
+            // We omit Guard, because it's performance critical in Wasabi.
+            // We start with the inputs, because, this check is faster.
+            // Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
+            foreach (TxIn input in me.Inputs)
+            {
+                if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
+                {
+                    return true;
+                }
+            }
+            foreach (TxOut output in me.Outputs)
+            {
+                if (output.ScriptPubKey.IsWitness)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
+        {
+            return me.Outputs.GroupBy(x => x.Value)
+               .ToDictionary(x => x.Key, y => y.Count())
+               .Select(x => (x.Key, x.Value))
+               .Where(x => includeSingle || x.Value > 1);
+        }
+
+        public static int GetAnonymitySet(this Transaction me, int outputIndex)
+        {
+            // 1. Get the output corresponting to the output index.
+            var output = me.Outputs[outputIndex];
+            // 2. Get the number of equal outputs.
+            int equalOutputs = me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
+            // 3. Anonymity set cannot be larger than the number of inputs.
+            var inputCount = me.Inputs.Count;
+            var anonSet = Math.Min(equalOutputs, inputCount);
+            return equalOutputs;
+        }
+
+        public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
+
+        /// <summary>
+        /// Careful, if it's in a legacy block then this won't work.
+        /// </summary>
+        public static bool HasWitScript(this TxIn me)
+        {
+            Guard.NotNull(me, nameof(me));
+
+            bool notNull = !(me.WitScript is null);
+            bool notEmpty = me.WitScript != WitScript.Empty;
+            return notNull && notEmpty;
+        }
+
+        public static Money Percentage(this Money me, decimal perc)
+        {
+            return Money.Satoshis((me.Satoshi / 100m) * perc);
+        }
+
+        public static decimal ToUsd(this Money me, decimal btcExchangeRate)
+        {
+            return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
+        }
+
+        public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
+        {
+            PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
+            return pubKey.WitHash == address.Hash;
+        }
+
+        /// <summary>
+        /// If scriptpubkey is already present, just add the value.
+        /// </summary>
+        public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
+        {
+            TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
+            if (found != null)
+            {
+                found.Value += money;
+            }
+            else
+            {
+                me.Add(money, scriptPubKey);
+            }
+        }
+
+        /// <summary>
+        /// If scriptpubkey is already present, just add the value.
+        /// </summary>
+        public static void AddWithOptimize(this TxOutList me, Money money, IDestination destination)
+        {
+            me.AddWithOptimize(money, destination.ScriptPubKey);
+        }
+
+        /// <summary>
+        /// If scriptpubkey is already present, just add the value.
+        /// </summary>
+        public static void AddWithOptimize(this TxOutList me, TxOut txOut)
+        {
+            me.AddWithOptimize(txOut.Value, txOut.ScriptPubKey);
+        }
+
+        /// <summary>
+        /// If scriptpubkey is already present, just add the value.
+        /// </summary>
+        public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
+        {
+            foreach (var txout in collection)
+            {
+                me.AddWithOptimize(txout);
+            }
+        }
+
+        public static string ToZPub(this ExtPubKey extPubKey, Network network)
+        {
+            var data = extPubKey.ToBytes();
+            var version = (network == Network.Main)
+                ? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
+                : new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+
+            return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+        }
+
+        public static string ToZPrv(this ExtKey extKey, Network network)
+        {
+            var data = extKey.ToBytes();
+            var version = (network == Network.Main)
+                ? new byte[] { (0x04), (0xB2), (0x43), (0x0C) }
+                : new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
+
+            return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+        }
+
+        public static async Task StopAsync(this RPCClient rpc)
+        {
+            await rpc.SendCommandAsync("stop");
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Liviano.CLI
             })
             .WithParsed<ExtendedPubKeyOptions>(o => {
                string wif;
-               string hdPath = "m/44'/0'/0'/0/0"; // Default BIP44 / Bitcoin / 1st account / receive / 1st pubkey
+               string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
                string network = "main";
 
                if (o.Wif != null)
@@ -469,7 +469,7 @@ namespace Liviano.CLI
                     Console.WriteLine($"{input.PrevOut.Hash} ({input.PrevOut.N})");
                 }
 
-                Console.WriteLine($"Fees: {new Money(tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
+                Console.WriteLine($"Fees: {new Money((long) tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
 
                 Console.WriteLine($"Hex: {tx.ToHex()}");
             })

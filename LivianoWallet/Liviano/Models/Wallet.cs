@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Liviano.Utilities;
 using Liviano.Models;
 using Liviano.Exceptions;
+using NBitcoin.DataEncoders;
 
 namespace Liviano.Models
 {
@@ -222,38 +223,19 @@ namespace Liviano.Models
         /// </summary>
         /// <remarks>
         /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
-        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
+        /// According to BIP84, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
         /// </remarks>
-        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/>
+        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki"/>
         /// <param name="coinType">The type of coin this account is for.</param>
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
         /// <param name="password">The password used to decrypt the wallet's <see cref="EncryptedSeed"/>.</param>
         /// <returns>A new HD account.</returns>
         public HdAccount AddNewAccount(CoinType coinType, DateTimeOffset accountCreationTime, string password = "")
         {
-            AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
-            return accountRoot.AddNewAccount(this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime, password);
-        }
+            AccountRoot accountRoot = AccountsRoot.Single(a => a.CoinType == coinType);
 
-        // <summary>
-        /// Adds an account to the current wallet.
-        /// </summary>
-        /// <remarks>
-        /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
-        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
-        /// </remarks>
-        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/>
-        /// <param name="extPubKey">The extended public key for the wallet<see cref="EncryptedSeed"/>.</param>
-        /// <param name="coinType">The type of coin this account is for.</param>
-        /// <param name="accountIndex">Zero-based index of the account to add.</param>
-        /// <param name="accountCreationTime">Creation time of the account to be created.</param>
-        /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(CoinType coinType, ExtPubKey extPubKey, int accountIndex, DateTimeOffset accountCreationTime)
-        {
-            AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
-            return accountRoot.AddNewAccount(extPubKey, accountIndex, this.Network, accountCreationTime);
+            return accountRoot.AddNewAccount(EncryptedSeed, ChainCode, Network, accountCreationTime, password);
         }
-
 
         /// <summary>
         /// Gets the first account that contains no transaction.
@@ -300,7 +282,7 @@ namespace Liviano.Models
         /// <param name="address">The address to get the private key for.</param>
         /// <param name="password">The password used to encrypt/decrypt sensitive info.</param>
         /// <returns>The extended private key.</returns>
-        public ISecret GetExtendedPrivateKeyForAddress(HdAddress address, string password = "")
+        public ExtKey GetExtendedPrivateKeyForAddress(HdAddress address, string password = "")
         {
             Guard.NotNull(address, nameof(address));
 
@@ -311,8 +293,9 @@ namespace Liviano.Models
             }
 
             // get extended private key
-            Key privateKey = HdOperations.DecryptSeed(this.EncryptedSeed, this.Network, password);
-            return HdOperations.GetExtendedPrivateKey(privateKey, this.ChainCode, address.HdPath, this.Network);
+            Key privateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
+
+            return HdOperations.GetExtendedPrivateKey(privateKey, ChainCode, address.HdPath, Network);
         }
 
         /// <summary>

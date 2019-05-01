@@ -15,7 +15,7 @@ namespace Liviano.Tests.Liviano
         public void GetCoinTypeHavingHdPathReturnsCointType()
         {
             var account = new HdAccount();
-            account.HdPath = "m/44/0";
+            account.HdPath = "m/84'/0'";
 
             CoinType result = account.GetCoinType();
 

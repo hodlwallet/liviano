@@ -48,3 +48,4 @@ osx_debug_build:
 clean:
 	dotnet clean LivianoWallet --framework netcoreapp2.1
 	rm -rf bin/*
+	rm -rf obj/*

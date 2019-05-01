@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
+    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildingInsideVisualStudio)' == 'true'">

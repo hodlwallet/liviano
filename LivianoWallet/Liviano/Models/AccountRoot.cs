@@ -92,8 +92,8 @@ namespace Liviano.Models
         /// Adds an account to the current account root.
         /// </summary>
         /// <remarks>The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
-        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains transactions.
-        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/></remarks>
+        /// According to BIP84, an account at index (i) can only be created when the account at index (i - 1) contains transactions.
+        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki"/></remarks>
         /// <param name="encryptedSeed">The encrypted private key for this wallet.</param>
         /// <param name="chainCode">The chain code for this wallet.</param>
         /// <param name="network">The network for which this account will be created.</param>
@@ -115,17 +115,20 @@ namespace Liviano.Models
             }
 
             // Get the extended pub key used to generate addresses for this account.
-            string accountHdPath = HdOperations.GetAccountHdPath((int)this.CoinType, newAccountIndex);
             Key privateKey = HdOperations.DecryptSeed(encryptedSeed, network, password);
+
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex);
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
+            ExtKey accountExtKey = new ExtKey(privateKey, chainCode).Derive(new KeyPath(accountHdPath));
 
             var newAccount = new HdAccount
             {
                 Index = newAccountIndex,
+                ExtendedPrivKey = accountExtKey.ToString(network),
                 ExtendedPubKey = accountExtPubKey.ToString(network),
                 ExternalAddresses = new List<HdAddress>(),
                 InternalAddresses = new List<HdAddress>(),
-                Name = $"account {newAccountIndex}",
+                Name = $"Account {newAccountIndex}",
                 HdPath = accountHdPath,
                 CreationTime = accountCreationTime
             };
@@ -142,7 +145,7 @@ namespace Liviano.Models
         /// </summary>
         /// <param name="accountExtPubKey">The extended public key for the account.</param>
         /// <param name="accountIndex">The zero-based account index.</param>
-        public HdAccount AddNewAccount(ExtPubKey accountExtPubKey, int accountIndex, Network network, DateTimeOffset accountCreationTime)
+        public HdAccount AddNewAccount(ExtKey accountExtKey, ExtPubKey accountExtPubKey, int accountIndex, Network network, DateTimeOffset accountCreationTime)
         {
             ICollection<HdAccount> hdAccounts = this.Accounts.ToList();
 
@@ -162,10 +165,11 @@ namespace Liviano.Models
             var newAccount = new HdAccount
             {
                 Index = accountIndex,
+                ExtendedPrivKey = accountExtKey.ToString(network),
                 ExtendedPubKey = accountExtPubKey.ToString(network),
                 ExternalAddresses = new List<HdAddress>(),
                 InternalAddresses = new List<HdAddress>(),
-                Name = $"account {accountIndex}",
+                Name = $"Account {accountIndex}",
                 HdPath = accountHdPath,
                 CreationTime = accountCreationTime
             };

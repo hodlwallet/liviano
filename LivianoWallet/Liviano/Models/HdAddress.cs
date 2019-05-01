@@ -68,7 +68,7 @@ namespace Liviano.Models
         public string CompatilibityAddress { get; set; }
 
         /// <summary>
-        /// A path to the address as defined in BIP44.
+        /// A path to the address as defined in BIP84.
         /// </summary>
         [JsonProperty(PropertyName = "hdPath")]
         public string HdPath { get; set; }

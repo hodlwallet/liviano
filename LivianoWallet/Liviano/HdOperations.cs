@@ -89,7 +89,7 @@ namespace Liviano
         /// <param name="hdPath">The HD path of the account for which to get the extended private key.</param>
         /// <param name="network">The network for which to generate this extended private key.</param>
         /// <returns></returns>
-        public static ISecret GetExtendedPrivateKey(Key privateKey, byte[] chainCode, string hdPath, Network network)
+        public static ExtKey GetExtendedPrivateKey(Key privateKey, byte[] chainCode, string hdPath, Network network)
         {
             Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(chainCode, nameof(chainCode));
@@ -97,10 +97,7 @@ namespace Liviano
             Guard.NotNull(network, nameof(network));
 
             // Get the extended key.
-            var seedExtKey = new ExtKey(privateKey, chainCode);
-            ExtKey addressExtKey = seedExtKey.Derive(new KeyPath(hdPath));
-            BitcoinExtKey addressPrivateKey = addressExtKey.GetWif(network);
-            return addressPrivateKey;
+            return new ExtKey(privateKey, chainCode).Derive(new KeyPath(hdPath));
         }
 
         /// <summary>
@@ -166,9 +163,20 @@ namespace Liviano
         /// <param name="coinType">Type of the coin this account is in.</param>
         /// <param name="accountIndex">Index of the account.</param>
         /// <returns>The HD path of an account.</returns>
-        public static string GetAccountHdPath(int coinType, int accountIndex)
+        public static string GetAccountHdPath(int coinType, int accountIndex, string purpose = null, string hdRootPath = null)
         {
-            return $"m/44'/{coinType}'/{accountIndex}'";
+            // HdRootPath ignores 'coinType' and 'accountIndex'
+            if (hdRootPath != null)
+                return $"{hdRootPath}/{accountIndex}'";
+
+            if (purpose == null)
+            {
+                return $"m/84'/{coinType}'/{accountIndex}'";
+            }
+            else
+            {
+                return $"m/{purpose}'/{coinType}'/{accountIndex}'";
+            }
         }
 
         /// <summary>
@@ -224,7 +232,7 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Creates an address' HD path, according to BIP 44.
+        /// Creates an address' HD path, according to BIP 84.
         /// </summary>
         /// <param name="coinType">Type of coin in the HD path.</param>
         /// <param name="accountIndex">Index of the account in the HD path.</param>
@@ -235,7 +243,7 @@ namespace Liviano
         public static string CreateHdPath(int coinType, int accountIndex, bool isChange, int addressIndex)
         {
             int change = isChange ? 1 : 0;
-            return $"m/44'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
+            return $"m/84'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
         }
 
         /// <summary>
@@ -298,7 +306,7 @@ namespace Liviano
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(network, nameof(network));
 
-            if (password != null)
+            if (!string.IsNullOrEmpty(password))
             {
                 return Key.Parse(encryptedSeed, password, network);
             }
