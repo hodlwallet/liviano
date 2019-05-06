@@ -393,14 +393,7 @@ namespace Liviano.CLI
                     return;
                 }
 
-                if (o.Legacy)
-                {
-                    Console.WriteLine($"{address.Address}");
-                }
-                else
-                {
-                    Console.WriteLine($"{address.Address}");
-                }
+                Console.WriteLine($"{address.Address}");
             })
             .WithParsed<SendOptions>(async o => {
                 string walletId = null;

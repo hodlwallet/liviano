@@ -288,5 +288,144 @@ namespace Liviano.Tests.Liviano
                 ExtKey.Parse(account.ExtendedPrivKey, network).ToZPrv(network)
             );
         }
+
+        [Fact]
+        public void Bip84CompatibilityWithPasswordTest()
+        {
+            Network network = Network.Main;
+
+            // Set Mnemonic and get the priv ext key
+            string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+            string password = "test";
+            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic, password);
+
+            // Creates a new wallet
+            Wallet wallet = new Wallet
+            {
+                Name = "bip84wallet",
+                EncryptedSeed = extKey.PrivateKey.GetWif(network).ToString(),
+                ChainCode = extKey.ChainCode,
+                CreationTime = DateTimeOffset.Now,
+                Network = network,
+                AccountsRoot = new List<AccountRoot> { new AccountRoot(CoinType.Bitcoin, new List<HdAccount>()){}},
+            };
+
+            HdAccount account = wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now);
+
+            HdAddress[] newReceivingAddresses = account.CreateAddresses(network, 20).ToArray();
+            HdAddress[] newChangeAddressess = account.CreateAddresses(network, 20).ToArray();
+
+            // Verify data with https://iancoleman.io/bip39/ if needed
+            Assert.Equal
+            (
+                "0bcdfe83aa48a793f8c68f09eee46bce8aa1fe5d4eb76381dff21d1690259e58a9d609e7c6b487d7a4b78230c22465bf727e7f864f386262fc0dea12ec040e7c",
+                new HexEncoder().EncodeData(new Mnemonic(mnemonic).DeriveSeed(password))
+            );
+
+            Assert.Equal
+            (
+                CoinType.Bitcoin,
+                account.GetCoinType()
+            );
+
+            Assert.Equal
+            (
+                "zprvAWgYBBk7JR8GkojhAZB9mNYaZaYoourMf3qn8q6Q3HMRPX2pRVUjEg1KqojcscbyGJUSKbnvpGqsHRDZ1mqq6RpHZ6LnQxmmnExDh293HYZ",
+                extKey.ToZPrv(network)
+            );
+
+            Assert.Matches
+            (
+                @"m/84'/",
+                account.HdPath
+            );
+
+            Assert.Equal(
+                "m/84'/0'/0'",
+                account.HdPath
+            );
+
+            // Address 0 from Account 0 test
+            Assert.Equal
+            (
+                "bc1q0h0u48k0hx0m9uhrpzpjsh4h9v2z5jhkvs9w94",
+                newReceivingAddresses[0].Address
+            );
+
+
+            Assert.Equal
+            (
+                "03d21ca564c77d4d750e29ac6c4b5d951790e1b49cbbdaed862a2525e480cb956f",
+                new HexEncoder().EncodeData(newReceivingAddresses[0].PubKey.ScriptPubKey.ToCompressedBytes())
+            );
+
+            // Address 1 from account 0 test
+            Assert.Equal
+            (
+                "bc1qrhcfphe7tjdtwrke999n5rtyv6uzn5m70xghsa",
+                newReceivingAddresses[1].Address
+            );
+
+
+            Assert.Equal
+            (
+                "03c31175ae2639e2158122f4793625696310b0c5ee5e9b7710b13b8a8f70c7793c",
+                new HexEncoder().EncodeData(newReceivingAddresses[1].PubKey.ScriptPubKey.ToCompressedBytes())
+            );
+
+            // Address 2 from account 0 test
+            Assert.Equal
+            (
+                "bc1qgnh247772ta040qknw6pje2ues5udpljwxwlu5",
+                newReceivingAddresses[2].Address
+            );
+
+
+            Assert.Equal
+            (
+                "02111472e6f5fdf351023328f2257549a4a69ec4f69b09d5a26580b90cb98fa904",
+                new HexEncoder().EncodeData(newReceivingAddresses[2].PubKey.ScriptPubKey.ToCompressedBytes())
+            );
+
+            // Address 18 from account 0 test
+            Assert.Equal
+            (
+                "bc1q07y8zq6ach2tz8xvjnfwye5syyh4e6vc25jwz6",
+                newReceivingAddresses[18].Address
+            );
+
+
+            Assert.Equal
+            (
+                "0265614bd32781395605a0ce27cb364454c8f196dfa9c2d625446d4f492a892a8b",
+                new HexEncoder().EncodeData(newReceivingAddresses[18].PubKey.ScriptPubKey.ToCompressedBytes())
+            );
+
+            // Address 19 from account 0 test
+            Assert.Equal
+            (
+                "bc1qx2vpc2eu4065lv4qrjj4wgdd4wee3lv2ujj5eq",
+                newReceivingAddresses[19].Address
+            );
+
+
+            Assert.Equal
+            (
+                "026e774007e56296024e99126b74e5bedbc9a963cfff12a104fd77f90658653e42",
+                new HexEncoder().EncodeData(newReceivingAddresses[19].PubKey.ScriptPubKey.ToCompressedBytes())
+            );
+
+            Assert.Equal
+            (
+                "zpub6s6e8jg36PqLxbsZuWBudDTimzJDPH8hbRsxz8YH5YtxwivCQcH33z8TFhMSy2UHZLeCQkm6nwr5SN7T3E3NtRQu54WZYvQ6i89eWB3BL5Y",
+                ExtPubKey.Parse(account.ExtendedPubKey, network).ToZPub(network)
+            );
+
+            Assert.Equal
+            (
+                "zprvAe7HjE99G2H3k7o6oUeuG5WzDxTiypQrECxNBk8fXDMz4vb3s4xnWBoyQPpgDAsPFPjtVZGU4PppBzBTw3AiyoYsy23MKeqvLTP2SPypLA9",
+                ExtKey.Parse(account.ExtendedPrivKey, network).ToZPrv(network)
+            );
+        }
     }
 }

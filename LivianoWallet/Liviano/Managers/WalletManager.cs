@@ -298,14 +298,7 @@ namespace Liviano.Managers
 
             // Create a wallet file
             string encryptedSeed;
-            if (password != null)
-            {
-                encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, _Network).ToWif();
-            }
-            else
-            {
-                encryptedSeed = extendedKey.PrivateKey.GetWif(_Network).ToString();
-            }
+            encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, _Network).ToWif();
 
             Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
 
