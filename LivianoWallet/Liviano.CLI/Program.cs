@@ -395,7 +395,7 @@ namespace Liviano.CLI
 
                 if (o.Legacy)
                 {
-                    Console.WriteLine($"{address.LegacyAddress}");
+                    Console.WriteLine($"{address.Address}");
                 }
                 else
                 {

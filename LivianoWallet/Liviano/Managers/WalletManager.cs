@@ -268,12 +268,7 @@ namespace Liviano.Managers
                     IEnumerable<HdAddress> addresses = _Wallet.GetAllAddressesByCoinType(_CoinType);
                     foreach (HdAddress address in addresses)
                     {
-                        this._KeysLookup[address.P2PKH_ScriptPubKey] = address;
-                        this._KeysLookup[address.P2WPKH_ScriptPubKey] = address;
-                        this._KeysLookup[address.P2SH_P2WPKH_ScriptPubKey] = address;
-
-                        if (address.Pubkey != null)
-                        this._KeysLookup[address.Pubkey] = address;
+                        this._KeysLookup[address.ScriptPubKey] = address;
 
                         foreach (TransactionData transaction in address.Transactions)
                         {
@@ -487,28 +482,18 @@ namespace Liviano.Managers
 
             return walletFile;
         }
-        
+
         /// <summary>
         /// Update the keys and transactions we're tracking in memory for faster lookups.
         /// </summary>
         public void UpdateKeysLookupLocked(IEnumerable<HdAddress> addresses)
         {
-            if (addresses == null || !addresses.Any())
-            {
-                return;
-            }
+            if (addresses == null || !addresses.Any()) return;
 
             lock (this._Lock)
             {
                 foreach (HdAddress address in addresses)
-                {
-                    this._KeysLookup[address.P2PKH_ScriptPubKey] = address;
-                    this._KeysLookup[address.P2WPKH_ScriptPubKey] = address;
-                    this._KeysLookup[address.P2SH_P2WPKH_ScriptPubKey] = address;
-
-                    if (address.Pubkey != null)
-                        this._KeysLookup[address.Pubkey] = address;
-                }
+                    this._KeysLookup[address.ScriptPubKey] = address;
             }
         }
 
@@ -778,11 +763,11 @@ namespace Liviano.Managers
                 foreach (HdAccount account in _Wallet.GetAccountsByCoinType(this._CoinType))
                 {
                     bool isChange;
-                    if (account.ExternalAddresses.Any(address => address.P2WPKH_ScriptPubKey == script || address.P2PKH_ScriptPubKey == script || address.P2SH_P2WPKH_ScriptPubKey == script)) //Changed
+                    if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
                     {
                         isChange = false;
                     }
-                    else if (account.InternalAddresses.Any(address => address.P2WPKH_ScriptPubKey == script || address.P2PKH_ScriptPubKey == script || address.P2SH_P2WPKH_ScriptPubKey == script)) //Changed
+                    else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
                     {
                         isChange = true;
                     }
@@ -795,7 +780,6 @@ namespace Liviano.Managers
 
                     this.UpdateKeysLookupLocked(newAddresses);
                 }
-            
         }
 
         private IEnumerable<HdAddress> AddAddressesToMaintainBuffer(HdAccount account, bool isChange)

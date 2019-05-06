@@ -217,7 +217,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "0330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c",
-                new HexEncoder().EncodeData(newReceivingAddresses[0].Pubkey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[0].PubKey.ScriptPubKey.ToCompressedBytes())
             );
 
             // Address 1 from account 0 test
@@ -231,7 +231,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "03e775fd51f0dfb8cd865d9ff1cca2a158cf651fe997fdc9fee9c1d3b5e995ea77",
-                new HexEncoder().EncodeData(newReceivingAddresses[1].Pubkey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[1].PubKey.ScriptPubKey.ToCompressedBytes())
             );
 
             // Address 2 from account 0 test
@@ -245,7 +245,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "038ffea936b2df76bf31220ebd56a34b30c6b86f40d3bd92664e2f5f98488dddfa",
-                new HexEncoder().EncodeData(newReceivingAddresses[2].Pubkey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[2].PubKey.ScriptPubKey.ToCompressedBytes())
             );
 
             // Address 18 from account 0 test
@@ -259,7 +259,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "02d56ba8cc5cb6c4e3995c2b73e7bc934d2456299cd74cb311d1c8612b46add054",
-                new HexEncoder().EncodeData(newReceivingAddresses[18].Pubkey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[18].PubKey.ScriptPubKey.ToCompressedBytes())
             );
 
             // Address 19 from account 0 test
@@ -273,7 +273,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "03fc8771c531b40e1202f91a779faf0a7955cebceb38bd18924163a99dafaaa647",
-                new HexEncoder().EncodeData(newReceivingAddresses[19].Pubkey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[19].PubKey.ScriptPubKey.ToCompressedBytes())
             );
 
             Assert.Equal

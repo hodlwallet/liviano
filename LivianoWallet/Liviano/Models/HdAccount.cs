@@ -7,6 +7,7 @@ using System.Text;
 
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
+using Liviano.Enums;
 
 namespace Liviano.Models
 {
@@ -241,22 +242,31 @@ namespace Liviano.Models
             {
                 // Generate a new address.
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
-                BitcoinWitPubKeyAddress segwitAddress = pubkey.GetSegwitAddress(network);
-                BitcoinAddress legacyAddress = pubkey.GetAddress(network);
-                BitcoinAddress compatibilityAddress = pubkey.GetScriptAddress(network);
+                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i); // This is the one that decides the script type
+
+                BitcoinAddress address;
+                switch (hdPath.HdPathToScriptType())
+                {
+                    case ScriptTypes.P2PKH:
+                        address = pubkey.GetAddress(network);
+                        break;
+                    case ScriptTypes.P2SH_P2WPKH:
+                        address = pubkey.GetScriptAddress(network);
+                        break;
+                    case ScriptTypes.P2WPKH:
+                    default:
+                        address = pubkey.GetSegwitAddress(network);
+                        break;
+                }
 
                 // Add the new address details to the list of addresses.
                 var newAddress = new HdAddress
                 {
                     Index = i,
-                    HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i),
-                    P2WPKH_ScriptPubKey = segwitAddress.ScriptPubKey,
-                    P2PKH_ScriptPubKey = legacyAddress.ScriptPubKey,
-                    P2SH_P2WPKH_ScriptPubKey = compatibilityAddress.ScriptPubKey,
-                    Pubkey = pubkey.ScriptPubKey,
-                    Address = segwitAddress.ToString(),
-                    LegacyAddress = legacyAddress.ToString(),
-                    CompatilibityAddress = compatibilityAddress.ToString(),
+                    HdPath = hdPath,
+                    ScriptPubKey = address.ScriptPubKey,
+                    PubKey = pubkey,
+                    Address = address.ToString(),
                     Transactions = new List<TransactionData>()
                 };
 

@@ -11,6 +11,7 @@ using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
 using Liviano.Utilities;
+using Liviano.Enums;
 
 namespace Liviano
 {
@@ -329,6 +330,31 @@ namespace Liviano
         public static async Task StopAsync(this RPCClient rpc)
         {
             await rpc.SendCommandAsync("stop");
+        }
+
+        /// <summary>
+        /// This guess the script type from the hd path, P2WSH doesn't have an hdpath,
+        /// defaults to legacy, because bip32 addresses should be legacy, in the case of
+        /// bip 141 then we  have a problem since it generates both kinds of address but
+        /// not at the same time... We'll go back to this problem after.
+        /// </summary>
+        /// <param name="hdPath"></param>
+        /// <returns></returns>
+        public static ScriptTypes HdPathToScriptType(this string hdPath)
+        {
+            if (hdPath.StartsWith("m/44'"))
+                return ScriptTypes.P2PKH;
+
+            if (hdPath.StartsWith("m/45'"))
+                return ScriptTypes.P2SH;
+
+            if (hdPath.StartsWith("m/49'"))
+                return ScriptTypes.P2SH_P2WPKH;
+
+            if (hdPath.StartsWith("m/84'"))
+                return ScriptTypes.P2WPKH;
+
+            return ScriptTypes.P2PKH;
         }
     }
 }

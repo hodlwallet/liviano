@@ -67,8 +67,7 @@ namespace Liviano.Tests.Liviano
             {
                 Address = key.PubKey.GetAddress(Network.Main).ToString(),
                 HdPath = hdPath,
-                P2PKH_ScriptPubKey = key.ScriptPubKey,
-                P2WPKH_ScriptPubKey = key.ScriptPubKey,
+                ScriptPubKey = key.ScriptPubKey
             };
 
             return address;

@@ -40,7 +40,7 @@ namespace Liviano.Tests.Liviano
     public class WalletManagerTest
     {
         ILogger _Logger;
-        
+
         public WalletManagerTest()
         {
             // Setup log

@@ -105,11 +105,7 @@ namespace Liviano.Managers
             var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
             var outPoints = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height).Select(x => x.ToOutPoint());
 
-            var legacyScripts = addresses.Select(x => x.P2WPKH_ScriptPubKey);
-            var segWitScripts = addresses.Select(x => x.P2PKH_ScriptPubKey);
-            var compatabilityScripts = addresses.Select(x => x.P2SH_P2WPKH_ScriptPubKey);
-
-            var scripts = legacyScripts.Concat(segWitScripts).Concat(compatabilityScripts);
+            var scripts = addresses.Select(x => x.ScriptPubKey);
 
             foreach (var txin in transaction.Inputs.AsIndexedInputs())
             {
@@ -161,7 +157,7 @@ namespace Liviano.Managers
         {
             var spendableTransactions = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height);
             var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
-            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).Concat(addresses.SelectMany(x => x.GetTrackableAddressData(scriptType))).Where(x => x != null);
+            var dataToTrack = spendableTransactions.Select(x => x.ToOutPoint().ToBytes()).Concat(addresses.SelectMany(x => x.GetTrackableAddressData())).Where(x => x != null);
 
             return dataToTrack;
         }
