@@ -54,7 +54,7 @@ namespace Liviano
 
         private static Network GetNetwork(string str)
         {
-            return str.StartsWith('z') ? Network.Main : Network.TestNet;
+            return str.StartsWith("z") ? Network.Main : Network.TestNet;
         }
     }
 }
