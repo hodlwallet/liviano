@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
@@ -9,10 +10,8 @@ namespace Liviano
     /// <summary>
     /// Implements BIP84's utility functions to parse and convert BIP44's format prefixes (xpub and xprv) to BIP84's prefixes (zpub and zprv)
     /// read details here: https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-    ///
-    /// NOTE: Some of the details of this implementation are hidden in extensions methods of Liviano.WalletExtensions
     /// </summary>
-    public class Bip84
+    public static class Bip84
     {
         public static ExtKey ParseZPrv(string zprv)
         {
@@ -40,6 +39,26 @@ namespace Liviano
                 zPubData[i] = newPrefix[i];
 
             return new BitcoinExtPubKey(encoder.EncodeData(zPubData), network);
+        }
+
+        public static string ToZPub(this ExtPubKey extPubKey, Network network)
+        {
+            var data = extPubKey.ToBytes();
+            var version = (network == Network.Main)
+                ? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
+                : new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+
+            return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+        }
+
+        public static string ToZPrv(this ExtKey extKey, Network network)
+        {
+            var data = extKey.ToBytes();
+            var version = (network == Network.Main)
+                ? new byte[] { (0x04), (0xB2), (0x43), (0x0C) }
+                : new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
+
+            return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
 
         public static string GetZPrv(ExtKey extKey, Network network)
