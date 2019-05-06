@@ -13,6 +13,7 @@ namespace Liviano.Models
         public HdAddress()
         {
             Transactions = new List<TransactionData>();
+            ScriptType = ScriptTypes.P2WPKH;
         }
 
         /// <summary>
