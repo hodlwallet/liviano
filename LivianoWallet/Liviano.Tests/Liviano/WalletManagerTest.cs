@@ -13,6 +13,13 @@ namespace Liviano.Tests.Liviano
 {
     public class BeforeWalletManagerTest : BeforeAfterTestAttribute
     {
+        ILogger _Logger;
+
+        public BeforeWalletManagerTest()
+        {
+            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        }
+
         public override void Before(MethodInfo methodUnderTest)
         {
             try
@@ -21,8 +28,8 @@ namespace Liviano.Tests.Liviano
             }
             catch
             {
+                _Logger.Error("Cannot create 'data' directory before test");
             }
-            
         }
 
         public override void After(MethodInfo methodUnderTest)
@@ -33,6 +40,7 @@ namespace Liviano.Tests.Liviano
             }
             catch
             {
+                _Logger.Error("Cannot delete 'data' directory after running test");
             }
         }
     }
@@ -49,7 +57,7 @@ namespace Liviano.Tests.Liviano
             _Logger = new LoggerConfiguration().WriteTo.File("test.log", rollingInterval: RollingInterval.Day).CreateLogger();
         }
 
-        [Fact (Skip = "Too slow to run, this takes 40 seconds...")]
+        [Fact]
         [BeforeWalletManagerTest]
         public void CreateWalletWithoutPassword()
         {
@@ -61,6 +69,22 @@ namespace Liviano.Tests.Liviano
             Assert.NotNull(wm.GetWallet());
 
             var wallet = wm.GetWallet();
+        }
+
+        [Fact]
+        [BeforeWalletManagerTest]
+        public void CreateWalletWithPassword()
+        {
+            var wm = new WalletManager(_Logger, Network.Main, "wmtest");
+
+            var mnemonic = wm.CreateWallet("wmtest", "test");
+
+            Assert.NotNull(mnemonic);
+            Assert.NotNull(wm.GetWallet());
+
+            var wallet = wm.GetWallet();
+
+            Assert.StartsWith("", wallet.EncryptedSeed);
         }
     }
 }
