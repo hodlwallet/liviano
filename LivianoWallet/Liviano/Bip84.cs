@@ -43,20 +43,16 @@ namespace Liviano
 
         public static string ToZPub(this ExtPubKey extPubKey, Network network)
         {
-            var data = extPubKey.ToBytes();
-            var version = (network == Network.Main)
-                ? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
-                : new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+            byte[] data = extPubKey.ToBytes();
+            byte[] version = Utils.ToBytes(network == Network.Main ? 0x04B24746U : 0x045F1CF6U, false);
 
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
 
         public static string ToZPrv(this ExtKey extKey, Network network)
         {
-            var data = extKey.ToBytes();
-            var version = (network == Network.Main)
-                ? new byte[] { (0x04), (0xB2), (0x43), (0x0C) }
-                : new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
+            byte[] data = extKey.ToBytes();
+            byte[] version = Utils.ToBytes(network == Network.Main ? 0x04B2430CU : 0x045F18BCU, false);
 
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
