@@ -5,6 +5,9 @@ run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
 test:
+	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
+
+test_with_coverage:
 	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 /p:CollectCoverage=true
 
 publish_debug:
