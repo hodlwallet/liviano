@@ -7,6 +7,7 @@ using System.Text;
 
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
+using Liviano.Enums;
 
 namespace Liviano.Models
 {
@@ -22,7 +23,7 @@ namespace Liviano.Models
         /// The index of the account.
         /// </summary>
         /// <remarks>
-        /// According to BIP44, an account at index (i) can only be created when the account
+        /// According to BIP84, an account at index (i) can only be created when the account
         /// at index (i - 1) contains transactions.
         /// </remarks>
         [JsonProperty(PropertyName = "index")]
@@ -35,16 +36,22 @@ namespace Liviano.Models
         public string Name { get; set; }
 
         /// <summary>
-        /// A path to the account as defined in BIP44.
+        /// A path to the account as defined in BIP84.
         /// </summary>
         [JsonProperty(PropertyName = "hdPath")]
         public string HdPath { get; set; }
 
         /// <summary>
-        /// An extended pub key used to generate addresses.
+        /// An extended priv key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPubKey")]
         public string ExtendedPubKey { get; set; }
+
+        /// <summary>
+        /// An extended pub key used to generate addresses.
+        /// </summary>
+        [JsonProperty(PropertyName = "extPrivKey")]
+        public string ExtendedPrivKey { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
@@ -213,7 +220,7 @@ namespace Liviano.Models
         /// </summary>
         /// <remarks>
         /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
-        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
+        /// According to BIP84, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
         /// </remarks>
         /// <param name="network">The network these addresses will be for.</param>
         /// <param name="addressesQuantity">The number of addresses to create.</param>
@@ -235,22 +242,31 @@ namespace Liviano.Models
             {
                 // Generate a new address.
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
-                BitcoinWitPubKeyAddress segwitAddress = pubkey.GetSegwitAddress(network);
-                BitcoinAddress legacyAddress = pubkey.GetAddress(network);
-                BitcoinAddress compatibilityAddress = pubkey.GetScriptAddress(network);
+                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i); // This is the one that decides the script type
+
+                BitcoinAddress address;
+                switch (hdPath.HdPathToScriptType())
+                {
+                    case ScriptTypes.P2PKH:
+                        address = pubkey.GetAddress(network);
+                        break;
+                    case ScriptTypes.P2SH_P2WPKH:
+                        address = pubkey.GetScriptAddress(network);
+                        break;
+                    case ScriptTypes.P2WPKH:
+                    default:
+                        address = pubkey.GetSegwitAddress(network);
+                        break;
+                }
 
                 // Add the new address details to the list of addresses.
                 var newAddress = new HdAddress
                 {
                     Index = i,
-                    HdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i),
-                    P2WPKH_ScriptPubKey = segwitAddress.ScriptPubKey,
-                    P2PKH_ScriptPubKey = legacyAddress.ScriptPubKey,
-                    P2SH_P2WPKH_ScriptPubKey = compatibilityAddress.ScriptPubKey,
-                    Pubkey = pubkey.ScriptPubKey,
-                    Address = segwitAddress.ToString(),
-                    LegacyAddress = legacyAddress.ToString(),
-                    CompatilibityAddress = compatibilityAddress.ToString(),
+                    HdPath = hdPath,
+                    ScriptPubKey = address.ScriptPubKey,
+                    PubKey = pubkey,
+                    Address = address.ToString(),
                     Transactions = new List<TransactionData>()
                 };
 

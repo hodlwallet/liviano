@@ -59,12 +59,12 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = null,
-                Amount = new Money(15)
+                Amount = new Money(15, MoneyUnit.BTC)
             };
 
             Money result = transaction.SpendableAmount(false);
 
-            Assert.Equal(new Money(15), result);
+            Assert.Equal(new Money(15, MoneyUnit.BTC), result);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails { BlockHeight = 16 },
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
                 BlockHeight = 15
             };
 
@@ -88,7 +88,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails(),
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
                 BlockHeight = 15
             };
 
@@ -103,7 +103,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails(),
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
                 BlockHeight = 15
             };
 
@@ -118,7 +118,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails(),
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
             };
 
             Money result = transaction.SpendableAmount(false);
@@ -145,7 +145,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails { BlockHeight = 16 },
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
                 BlockHeight = 15
             };
 
@@ -160,7 +160,7 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = new SpendingDetails(),
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
             };
 
             Money result = transaction.SpendableAmount(true);
@@ -174,13 +174,13 @@ namespace Liviano.Tests.Liviano
             var transaction = new TransactionData
             {
                 SpendingDetails = null,
-                Amount = new Money(15),
+                Amount = new Money(15, MoneyUnit.BTC),
                 BlockHeight = 15
             };
 
             Money result = transaction.SpendableAmount(true);
 
-            Assert.Equal(new Money(15), result);
+            Assert.Equal(new Money(15, MoneyUnit.BTC), result);
         }
     }
 }

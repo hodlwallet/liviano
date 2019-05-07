@@ -24,7 +24,7 @@ namespace Liviano.CLI
 
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
-        
+
         [Option('r', "regtest", HelpText = "Run on regtest")]
         public bool Regtest { get; set; }
     }
@@ -135,9 +135,6 @@ namespace Liviano.CLI
 
         [Option('i', "index", HelpText = "Account index")]
         public string Index { get; set; }
-
-        [Option('l', "legacy", HelpText = "Show legacy address")]
-        public bool Legacy { get; set; }
     }
 
     [Verb("send", HelpText = "Send to an address from an account")]

@@ -1,10 +1,20 @@
 build:
 	dotnet build LivianoWallet --framework netcoreapp2.1
 
+# Usage (run on debug): args="--configuration Debug" make run
 run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
 test:
+	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
+
+# Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test_single
+# Usage (method name):      test="Bip84CompatibilityTest" make test_single
+# Usage (partial matching): test="Bip84" make test_single
+test_single:
+	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 --filter "FullyQualifiedName~${test}"
+
+test_with_coverage:
 	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 /p:CollectCoverage=true
 
 publish_debug:
@@ -47,4 +57,7 @@ osx_debug_build:
 
 clean:
 	dotnet clean LivianoWallet --framework netcoreapp2.1
+	rm -rf NBitcoin/NBitcoin/bin/*
+	rm -rf NBitcoin/NBitcoin/obj/*
 	rm -rf bin/*
+	rm -rf obj/*

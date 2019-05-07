@@ -13,6 +13,7 @@ namespace Liviano.Models
         public HdAddress()
         {
             Transactions = new List<TransactionData>();
+            ScriptType = ScriptTypes.P2WPKH;
         }
 
         /// <summary>
@@ -24,51 +25,25 @@ namespace Liviano.Models
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
-        [JsonProperty(PropertyName = "P2WPKHScriptPubKey")]
+        [JsonProperty(PropertyName = "ScriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script P2WPKH_ScriptPubKey { get; set; }
+        public Script ScriptPubKey { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
-        [JsonProperty(PropertyName = "P2PKHScriptPubKey")]
-        [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script P2PKH_ScriptPubKey { get; set; }
-
-        /// <summary>
-        /// The script pub key for this address.
-        /// </summary>
-        [JsonProperty(PropertyName = "P2SHP2WPKHScriptPubKey")]
-        [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script P2SH_P2WPKH_ScriptPubKey { get; set; }
-
-        /// <summary>
-        /// The script pub key for this address.
-        /// </summary>
-        [JsonProperty(PropertyName = "pubkey")]
-        [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script Pubkey { get; set; }
+        [JsonProperty(PropertyName = "pubKey")]
+        [JsonConverter(typeof(KeyJsonConverter))]
+        public PubKey PubKey { get; set; }
 
         /// <summary>
         /// The Base58 representation of this address.
         /// </summary>
         [JsonProperty(PropertyName = "address")]
         public string Address { get; set; }
-        
-        /// <summary>
-        /// The Base58 representation of this address.
-        /// </summary>
-        [JsonProperty(PropertyName = "legacyAddress")]
-        public string LegacyAddress { get; set; }
-
-                /// <summary>
-        /// The Base58 representation of this address.
-        /// </summary>
-        [JsonProperty(PropertyName = "compatibilityAddress")]
-        public string CompatilibityAddress { get; set; }
 
         /// <summary>
-        /// A path to the address as defined in BIP44.
+        /// A path to the address as defined in BIP84.
         /// </summary>
         [JsonProperty(PropertyName = "hdPath")]
         public string HdPath { get; set; }
@@ -77,7 +52,14 @@ namespace Liviano.Models
         /// A list of transactions involving this address.
         /// </summary>
         [JsonProperty(PropertyName = "transactions")]
+
         public ICollection<TransactionData> Transactions { get; set; }
+
+        /// <summary>
+        /// The type of the script will tell the type of address
+        /// </summary>
+        [JsonProperty(PropertyName = "ScriptType")]
+        public ScriptTypes ScriptType { get; set; }
 
         /// <summary>
         /// Determines whether this is a change address or a receive address.
@@ -117,19 +99,9 @@ namespace Liviano.Models
             return (confirmed, total - confirmed);
         }
 
-        public IEnumerable<byte[]> GetTrackableAddressData(ScriptTypes scriptType)
+        public IEnumerable<byte[]> GetTrackableAddressData()
         {
-            switch (scriptType)
-            {
-                case ScriptTypes.Legacy:
-                    return P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData);
-                case ScriptTypes.Segwit:
-                    return P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData);
-                case ScriptTypes.SegwitAndLegacy:
-                    return P2WPKH_ScriptPubKey.ToOps().Select(x => x.PushData).Concat(P2PKH_ScriptPubKey.ToOps().Select(x => x.PushData));
-                default:
-                    throw new InvalidOperationException($"Unsupported script type:{Enum.GetName(typeof(ScriptTypes), scriptType)}");
-            }
+            return ScriptPubKey.ToOps().Select(x => x.PushData);
         }
     }
 }

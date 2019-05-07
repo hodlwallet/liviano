@@ -74,7 +74,7 @@ namespace Liviano.Behaviors
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.SegwitAndLegacy, ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.P2WPKH, ConcurrentChain chain = null)
         {
             _Logger = logger;
 
