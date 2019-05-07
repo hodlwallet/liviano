@@ -104,6 +104,7 @@ namespace Liviano.Models
         {
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
+            Guard.NotNull(password, nameof(password));
 
             // Get the current collection of accounts.
             List<HdAccount> accounts = this.Accounts.ToList();

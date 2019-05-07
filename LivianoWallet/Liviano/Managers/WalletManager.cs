@@ -282,6 +282,7 @@ namespace Liviano.Managers
         public Mnemonic CreateWallet(string name, string password = "", Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
         {
             Guard.NotEmpty(name, nameof(name));
+            Guard.NotNull(password, nameof(password));
 
             if (_StorageProvider.WalletExists())
             {

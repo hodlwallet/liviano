@@ -270,6 +270,9 @@ namespace Liviano.CLI
         {
             _Network = HdOperations.GetNetwork(config.Network);
 
+            if (password == null)
+                password = "";
+
             _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);

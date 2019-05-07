@@ -305,15 +305,9 @@ namespace Liviano
         {
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(network, nameof(network));
+            Guard.NotNull(password, nameof(password));
 
-            if (!string.IsNullOrEmpty(password))
-            {
-                return Key.Parse(encryptedSeed, password, network);
-            }
-            else
-            {
-                return Key.Parse(encryptedSeed, network);
-            }
+            return Key.Parse(encryptedSeed, password, network);
         }
 
         /// <summary>

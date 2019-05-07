@@ -164,7 +164,7 @@ namespace Liviano.Tests.Liviano
             Wallet wallet = new Wallet
             {
                 Name = "bip84wallet",
-                EncryptedSeed = extKey.PrivateKey.GetWif(network).ToString(),
+                EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret("", network).ToWif(),
                 ChainCode = extKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
                 Network = network,
@@ -201,7 +201,8 @@ namespace Liviano.Tests.Liviano
                 account.HdPath
             );
 
-            Assert.Equal(
+            Assert.Equal
+            (
                 "m/84'/0'/0'",
                 account.HdPath
             );
@@ -289,6 +290,7 @@ namespace Liviano.Tests.Liviano
             );
         }
 
+
         [Fact]
         public void Bip84CompatibilityWithPasswordTest()
         {
@@ -303,14 +305,14 @@ namespace Liviano.Tests.Liviano
             Wallet wallet = new Wallet
             {
                 Name = "bip84wallet",
-                EncryptedSeed = extKey.PrivateKey.GetWif(network).ToString(),
+                EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif(),
                 ChainCode = extKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
                 Network = network,
                 AccountsRoot = new List<AccountRoot> { new AccountRoot(CoinType.Bitcoin, new List<HdAccount>()){}},
             };
 
-            HdAccount account = wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now);
+            HdAccount account = wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, password);
 
             HdAddress[] newReceivingAddresses = account.CreateAddresses(network, 20).ToArray();
             HdAddress[] newChangeAddressess = account.CreateAddresses(network, 20).ToArray();
@@ -340,7 +342,8 @@ namespace Liviano.Tests.Liviano
                 account.HdPath
             );
 
-            Assert.Equal(
+            Assert.Equal
+            (
                 "m/84'/0'/0'",
                 account.HdPath
             );
