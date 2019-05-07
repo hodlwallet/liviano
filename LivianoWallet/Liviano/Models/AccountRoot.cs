@@ -12,22 +12,29 @@ namespace Liviano.Models
 {
     public class AccountRoot
     {
+        public static readonly string[] PATH_PURPOSES = { "44", "49", "84" };
+
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
         public AccountRoot()
         {
-            this.Accounts = new List<HdAccount>();
+            Accounts = new List<HdAccount>();
+            Purpose = "84";
         }
 
-        public AccountRoot(CoinType coinType, ICollection<HdAccount> accounts)
+        public AccountRoot(CoinType coinType, ICollection<HdAccount> accounts, string purpose = "84")
         {
+            if (!PATH_PURPOSES.Contains(purpose))
+                throw new WalletException($"Purpose '{purpose}' is not a valid one! please use any of the following: {string.Join(", ", PATH_PURPOSES)}");
+
             CoinType = coinType;
             Accounts = accounts;
+            Purpose = purpose;
         }
 
         /// <summary>
-        /// The type of coin, Bitcoin or Stratis.
+        /// The type of coin, Bitcoin or any alts?
         /// </summary>
         [JsonProperty(PropertyName = "coinType")]
         public CoinType CoinType { get; set; }
@@ -50,6 +57,12 @@ namespace Liviano.Models
         /// </summary>
         [JsonProperty(PropertyName = "accounts")]
         public ICollection<HdAccount> Accounts { get; private set; }
+
+        /// <summary>
+        /// Purpose constant of the HD derivation path. Default should be 84
+        /// </summary>
+        [JsonProperty(PropertyName = "purpose")]
+        public string Purpose { get; set; }
 
         /// <summary>
         /// Gets the first account that contains no transaction.
@@ -118,7 +131,7 @@ namespace Liviano.Models
             // Get the extended pub key used to generate addresses for this account.
             Key privateKey = HdOperations.DecryptSeed(encryptedSeed, network, password);
 
-            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex);
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose);
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
             ExtKey accountExtKey = new ExtKey(privateKey, chainCode).Derive(new KeyPath(accountHdPath));
 
@@ -161,7 +174,7 @@ namespace Liviano.Models
                                             accountExtPubKey.ToString(network));
             }
 
-            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, accountIndex);
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, accountIndex, Purpose);
 
             var newAccount = new HdAccount
             {

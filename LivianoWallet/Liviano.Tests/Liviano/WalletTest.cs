@@ -5,6 +5,7 @@ using NBitcoin;
 using Xunit;
 
 using Liviano.Models;
+using System.Collections.Generic;
 
 namespace Liviano.Tests.Liviano
 {
@@ -29,6 +30,37 @@ namespace Liviano.Tests.Liviano
 
             Assert.True(w.IsExtPubKeyWallet);
             Assert.Equal(w.CreationTime, new DateTimeOffset(DateTime.Parse("2018-10-12")));
+        }
+
+        [Fact]
+        public void CreateWalletWithMultipleAccountsOnDifferentHdPathsTest()
+        {
+            Network network = Network.Main;
+
+            // Set Mnemonic and get the priv ext key
+            string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            List<AccountRoot> accountsRoot = new List<AccountRoot>
+            {
+                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),
+                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),
+                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "84")
+            };
+
+            // Creates a new wallet
+            Wallet wallet = new Wallet
+            {
+                Name = "multiple_accounts_wallet",
+                EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret("", network).ToWif(),
+                ChainCode = extKey.ChainCode,
+                CreationTime = DateTimeOffset.Now,
+                Network = network,
+                AccountsRoot = accountsRoot,
+            };
+
+            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "84");
+            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "44");
+            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "49");
         }
 
         [Fact]

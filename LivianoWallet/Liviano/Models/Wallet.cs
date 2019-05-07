@@ -220,9 +220,12 @@ namespace Liviano.Models
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
         /// <param name="password">The password used to decrypt the wallet's <see cref="EncryptedSeed"/>.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(CoinType coinType, DateTimeOffset accountCreationTime, string password = "")
+        public HdAccount AddNewAccount(CoinType coinType, DateTimeOffset accountCreationTime, string password = "", string purpose = "84")
         {
-            AccountRoot accountRoot = AccountsRoot.Single(a => a.CoinType == coinType);
+            AccountRoot accountRoot = AccountsRoot.Single(a => a.CoinType == coinType && a.Purpose == purpose);
+
+            if (accountRoot == null)
+                throw new WalletException("Invalid account root's purpose");
 
             return accountRoot.AddNewAccount(EncryptedSeed, ChainCode, Network, accountCreationTime, password);
         }
