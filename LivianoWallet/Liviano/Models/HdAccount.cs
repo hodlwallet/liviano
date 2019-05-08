@@ -226,7 +226,7 @@ namespace Liviano.Models
         /// <param name="addressesQuantity">The number of addresses to create.</param>
         /// <param name="isChange">Whether the addresses added are change (internal) addresses or receiving (external) addresses.</param>
         /// <returns>The created addresses.</returns>
-        public IEnumerable<HdAddress> CreateAddresses(Network network, int addressesQuantity, bool isChange = false)
+        public IEnumerable<HdAddress> CreateAddresses(Network network, int addressesQuantity, bool isChange = false, string purpose = "84")
         {
             ICollection<HdAddress> addresses = isChange ? this.InternalAddresses : this.ExternalAddresses;
 
@@ -242,7 +242,7 @@ namespace Liviano.Models
             {
                 // Generate a new address.
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
-                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i); // This is the one that decides the script type
+                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i, purpose); // This is the one that decides the script type
 
                 BitcoinAddress address;
                 switch (hdPath.HdPathToScriptType())

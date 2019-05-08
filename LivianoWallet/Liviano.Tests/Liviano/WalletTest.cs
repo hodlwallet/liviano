@@ -43,7 +43,7 @@ namespace Liviano.Tests.Liviano
             List<AccountRoot> accountsRoot = new List<AccountRoot>
             {
                 new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),
-                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),
+                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "49"),
                 new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "84")
             };
 
@@ -58,9 +58,36 @@ namespace Liviano.Tests.Liviano
                 AccountsRoot = accountsRoot,
             };
 
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "84");
             wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "44");
             wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "49");
+            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "84");
+
+            List<HdAccount> accounts = wallet.GetAccountsByCoinType(CoinType.Bitcoin).ToList();
+
+            for (int i = 0; i < accounts.Count; i++)
+            {
+                accounts[i].CreateAddresses(network, 1, false, accountsRoot[i].Purpose);
+            }
+
+            foreach (HdAccount account in accounts)
+            {
+                HdAddress address = account.GetFirstUnusedReceivingAddress();
+
+                switch (account.HdPath)
+                {
+                    case "m/44'/0'/0'":
+                    Assert.StartsWith("1", address.Address);
+                    break;
+                    case "m/49'/0'/0'":
+                    Assert.StartsWith("3", address.Address);
+                    break;
+                    case "m/84'/0'/0'":
+                    Assert.StartsWith("bc", address.Address);
+                    break;
+                    default:
+                    break;
+                }
+            }
         }
 
         [Fact]
