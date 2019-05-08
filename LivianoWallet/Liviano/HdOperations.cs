@@ -240,10 +240,10 @@ namespace Liviano
         /// <param name="addressIndex">Index of the address in the HD path.</param>
         /// <returns>The HD path.</returns>
         /// <remarks>Refer to <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#path-levels"/> for the format of the HD path.</remarks>
-        public static string CreateHdPath(int coinType, int accountIndex, bool isChange, int addressIndex)
+        public static string CreateHdPath(int coinType, int accountIndex, bool isChange, int addressIndex, string purpose = "84")
         {
             int change = isChange ? 1 : 0;
-            return $"m/84'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
+            return $"m/{purpose}'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
         }
 
         /// <summary>
