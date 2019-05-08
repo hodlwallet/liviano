@@ -6,6 +6,7 @@ using Xunit;
 
 using Liviano.Models;
 using System.Collections.Generic;
+using Liviano.Exceptions;
 
 namespace Liviano.Tests.Liviano
 {
@@ -85,7 +86,7 @@ namespace Liviano.Tests.Liviano
                     Assert.StartsWith("bc", address.Address);
                     break;
                     default:
-                    break;
+                    throw new WalletException("Invalid hd path on account");
                 }
             }
         }
