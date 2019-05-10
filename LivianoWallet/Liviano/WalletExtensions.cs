@@ -214,40 +214,6 @@ namespace Liviano
             return false;
         }
 
-        public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
-        {
-            return me.Outputs.GroupBy(x => x.Value)
-               .ToDictionary(x => x.Key, y => y.Count())
-               .Select(x => (x.Key, x.Value))
-               .Where(x => includeSingle || x.Value > 1);
-        }
-
-        public static int GetAnonymitySet(this Transaction me, int outputIndex)
-        {
-            // 1. Get the output corresponting to the output index.
-            var output = me.Outputs[outputIndex];
-            // 2. Get the number of equal outputs.
-            int equalOutputs = me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
-            // 3. Anonymity set cannot be larger than the number of inputs.
-            var inputCount = me.Inputs.Count;
-            var anonSet = Math.Min(equalOutputs, inputCount);
-            return equalOutputs;
-        }
-
-        public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
-
-        /// <summary>
-        /// Careful, if it's in a legacy block then this won't work.
-        /// </summary>
-        public static bool HasWitScript(this TxIn me)
-        {
-            Guard.NotNull(me, nameof(me));
-
-            bool notNull = !(me.WitScript is null);
-            bool notEmpty = me.WitScript != WitScript.Empty;
-            return notNull && notEmpty;
-        }
-
         public static Money Percentage(this Money me, decimal perc)
         {
             return Money.Satoshis((me.Satoshi / 100m) * perc);
