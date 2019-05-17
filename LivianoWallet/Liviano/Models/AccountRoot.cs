@@ -12,7 +12,7 @@ namespace Liviano.Models
 {
     public class AccountRoot
     {
-        public static readonly string[] PATH_PURPOSES = { "44", "49", "84" };
+        public static readonly string[] PATH_PURPOSES = { "32", "44", "49", "84", "141" };
 
         /// <summary>
         /// Initializes a new instance of the object.
@@ -113,7 +113,7 @@ namespace Liviano.Models
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
         /// <param name="password">The password used to decrypt the wallet's encrypted seed.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime, string password = "")
+        public HdAccount AddNewAccount(string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime, string password = "", string hdRootPath = null)
         {
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
@@ -131,7 +131,7 @@ namespace Liviano.Models
             // Get the extended pub key used to generate addresses for this account.
             Key privateKey = HdOperations.DecryptSeed(encryptedSeed, network, password);
 
-            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose);
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose, hdRootPath);
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
             ExtKey accountExtKey = new ExtKey(privateKey, chainCode).Derive(new KeyPath(accountHdPath));
 

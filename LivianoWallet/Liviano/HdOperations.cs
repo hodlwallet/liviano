@@ -169,12 +169,14 @@ namespace Liviano
             if (hdRootPath != null)
                 return $"{hdRootPath}/{accountIndex}'";
 
-            if (purpose == null)
+            switch (purpose)
             {
+                case null:
                 return $"m/84'/{coinType}'/{accountIndex}'";
-            }
-            else
-            {
+                case "32":
+                case "141":
+                return $"m/0'/0/{accountIndex}";
+                default:
                 return $"m/{purpose}'/{coinType}'/{accountIndex}'";
             }
         }
