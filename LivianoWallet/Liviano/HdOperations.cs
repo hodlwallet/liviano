@@ -175,7 +175,7 @@ namespace Liviano
                 return $"m/84'/{coinType}'/{accountIndex}'";
                 case "32":
                 case "141":
-                return $"m/0'/0/{accountIndex}";
+                return $"m/0'/0";
                 default:
                 return $"m/{purpose}'/{coinType}'/{accountIndex}'";
             }
@@ -245,6 +245,10 @@ namespace Liviano
         public static string CreateHdPath(int coinType, int accountIndex, bool isChange, int addressIndex, string purpose = "84")
         {
             int change = isChange ? 1 : 0;
+
+            if (purpose == "141" || purpose == "32")
+                return $"m/{coinType}'/{change}/{addressIndex}";
+
             return $"m/{purpose}'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
         }
 

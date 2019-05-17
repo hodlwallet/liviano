@@ -242,7 +242,7 @@ namespace Liviano.Models
             {
                 // Generate a new address.
                 PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
-                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i, purpose); // This is the one that decides the script type
+                string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i, purpose);
 
                 BitcoinAddress address;
                 switch (hdPath.HdPathToScriptType())
@@ -254,6 +254,7 @@ namespace Liviano.Models
                         address = pubkey.GetScriptAddress(network);
                         break;
                     case ScriptTypes.P2WPKH:
+                    case ScriptTypes.UNKNOWN:
                     default:
                         address = pubkey.GetSegwitAddress(network);
                         break;

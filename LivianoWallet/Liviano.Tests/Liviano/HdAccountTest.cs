@@ -319,13 +319,18 @@ namespace Liviano.Tests.Liviano
         {
             Network network = Network.Main;
             string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-            string hdPath = "m/0'/0";
-            string fistAddress = "bc1qgv52mt89gpev6p56huggl970sppqkgftxakv7f";
+            string hdPath = "m/0'/0/0";
+            string firstAddress = "bc1qgv52mt89gpev6p56huggl970sppqkgftxakv7f";
 
             ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+
+            // First lets check with normal pub key derivation
+            PubKey pubKey = extKey.Derive(new KeyPath(hdPath)).Neuter().PubKey;
+            Assert.Equal(firstAddress, pubKey.WitHash.GetAddress(network).ToString());
+
             List<AccountRoot> accountsRoot = new List<AccountRoot>
             {
-                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "141"),
+                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "141")
             };
 
             // Creates a new wallet
@@ -339,36 +344,15 @@ namespace Liviano.Tests.Liviano
                 AccountsRoot = accountsRoot,
             };
 
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "44");
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "49");
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "84");
+            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "141");
 
-            List<HdAccount> accounts = wallet.GetAccountsByCoinType(CoinType.Bitcoin).ToList();
+            HdAccount account = wallet.GetAccountByCoinType("Account 0", CoinType.Bitcoin);
+            account.CreateAddresses(network, 1, false, "141");
 
-            for (int i = 0; i < accounts.Count; i++)
-            {
-                accounts[i].CreateAddresses(network, 1, false, accountsRoot[i].Purpose);
-            }
+            HdAddress address = account.GetFirstUnusedReceivingAddress();
 
-            foreach (HdAccount account in accounts)
-            {
-                HdAddress address = account.GetFirstUnusedReceivingAddress();
-
-                switch (account.HdPath)
-                {
-                    case "m/44'/0'/0'":
-                    Assert.StartsWith("1", address.Address);
-                    break;
-                    case "m/49'/0'/0'":
-                    Assert.StartsWith("3", address.Address);
-                    break;
-                    case "m/84'/0'/0'":
-                    Assert.StartsWith("bc", address.Address);
-                    break;
-                    default:
-                    throw new WalletException("Invalid hd path on account");
-                }
-            }
+            Assert.Equal(hdPath, address.HdPath);
+            Assert.Equal(firstAddress, address.Address);
         }
     }
 }

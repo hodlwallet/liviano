@@ -10,10 +10,10 @@ namespace Liviano.Models
 {
     public class HdAddress
     {
-        public HdAddress()
+        public HdAddress(ScriptTypes scriptType = ScriptTypes.P2WPKH)
         {
             Transactions = new List<TransactionData>();
-            ScriptType = ScriptTypes.P2WPKH;
+            ScriptType = scriptType;
         }
 
         /// <summary>

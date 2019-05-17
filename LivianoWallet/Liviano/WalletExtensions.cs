@@ -300,7 +300,10 @@ namespace Liviano
             if (hdPath.StartsWith("m/84'"))
                 return ScriptTypes.P2WPKH;
 
-            return ScriptTypes.P2PKH;
+            if (hdPath.StartsWith("m/0"))
+                return ScriptTypes.UNKNOWN;
+
+            return ScriptTypes.UNKNOWN;
         }
     }
 }

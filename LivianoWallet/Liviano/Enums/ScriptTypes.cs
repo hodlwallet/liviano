@@ -10,6 +10,7 @@ namespace Liviano.Enums
         P2SH = 1,
         P2SH_P2WPKH = 2,
         P2WPKH = 3,
-        P2WSH = 4
+        P2WSH = 4,
+        UNKNOWN = 5
     }
 }
