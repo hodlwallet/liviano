@@ -336,12 +336,12 @@ namespace Liviano.Tests.Liviano
             // Creates a new wallet
             Wallet wallet = new Wallet
             {
-                Name = "multiple_accounts_wallet",
+                Name = "hodl_wallet_old_wallet",
                 EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret("", network).ToWif(),
                 ChainCode = extKey.ChainCode,
                 CreationTime = DateTimeOffset.Now,
                 Network = network,
-                AccountsRoot = accountsRoot,
+                AccountsRoot = accountsRoot
             };
 
             wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "141");
@@ -350,6 +350,8 @@ namespace Liviano.Tests.Liviano
             account.CreateAddresses(network, 1, false, "141");
 
             HdAddress address = account.GetFirstUnusedReceivingAddress();
+
+            Console.WriteLine($"Address' hd path: {address.HdPath}");
 
             Assert.Equal(hdPath, address.HdPath);
             Assert.Equal(firstAddress, address.Address);

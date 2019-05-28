@@ -256,7 +256,7 @@ namespace Liviano.Models
                     case ScriptTypes.P2WPKH:
                     case ScriptTypes.UNKNOWN:
                     default:
-                        address = pubkey.GetSegwitAddress(network);
+                        address = pubkey.WitHash.GetAddress(network);
                         break;
                 }
 

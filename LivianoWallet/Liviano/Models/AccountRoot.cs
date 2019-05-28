@@ -131,7 +131,16 @@ namespace Liviano.Models
             // Get the extended pub key used to generate addresses for this account.
             Key privateKey = HdOperations.DecryptSeed(encryptedSeed, network, password);
 
-            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose, hdRootPath);
+            string accountHdPath;
+            if (Purpose == "32" || Purpose == "141")
+            {
+                accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose, null, hdRootPath);
+            }
+            else
+            {
+                accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, newAccountIndex, Purpose, hdRootPath);
+            }
+
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
             ExtKey accountExtKey = new ExtKey(privateKey, chainCode).Derive(new KeyPath(accountHdPath));
 

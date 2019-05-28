@@ -163,11 +163,15 @@ namespace Liviano
         /// <param name="coinType">Type of the coin this account is in.</param>
         /// <param name="accountIndex">Index of the account.</param>
         /// <returns>The HD path of an account.</returns>
-        public static string GetAccountHdPath(int coinType, int accountIndex, string purpose = null, string hdRootPath = null)
+        public static string GetAccountHdPath(int coinType, int accountIndex, string purpose = null, string hdRootPath = null, string hdAccountPath = null)
         {
+            // hdAccountPath ignores everything
+            if (hdAccountPath != null)
+                return $"{hdAccountPath}";
+
             // HdRootPath ignores 'coinType' and 'accountIndex'
             if (hdRootPath != null)
-                return $"{hdRootPath}/{accountIndex}'";
+                return $"{hdRootPath}/{accountIndex}";
 
             switch (purpose)
             {
