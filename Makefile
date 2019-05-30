@@ -5,14 +5,21 @@ build:
 run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
+# Usage (all tests):        make test
+# Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
+# Usage (method name):      test="Bip84CompatibilityTest" make test
+# Usage (partial matching): test="Bip84" make test
+# Usage (using 't'):        t="Bip84" make test
 test:
-	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1
-
-# Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test_single
-# Usage (method name):      test="Bip84CompatibilityTest" make test_single
-# Usage (partial matching): test="Bip84" make test_single
-test_single:
-	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 --filter "FullyQualifiedName~${test}"
+	@if [ "${test}${t}" = "" ]; then\
+		dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1;\
+	fi
+	@if [ "${test}" != "" ]; then\
+		dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 --filter "FullyQualifiedName~${test}";\
+	fi
+	@if [ "${t}" != "" ]; then\
+		dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 --filter "FullyQualifiedName~${t}";\
+	fi
 
 test_with_coverage:
 	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp2.1 /p:CollectCoverage=true
