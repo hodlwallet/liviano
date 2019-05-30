@@ -448,6 +448,15 @@ namespace Liviano.CLI
                     chain.SetCustomTip(closestChainedBlock);
             }
 
+            // string s = string.Join(", ", network.DNSSeeds.Select(seed => seed.Host).ToArray());
+            // if (network == Network.TestNet)
+            // {
+            //     DNSSeedData peterTood = new DNSSeedData("peter tood", "seed.tbtc.petertodd.org");
+
+            //     network.DNSSeeds = new List<DNSSeedData> { peterTood };
+            //     // network.DNSSeeds.
+            // }
+
             nodeConnectionParameters.UserAgent = Liviano.Version.UserAgent;
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
             nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
