@@ -180,7 +180,7 @@ namespace Liviano
                 return $"m/84'/{coinType}'/{accountIndex}'";
                 case "32":
                 case "141":
-                return $"m/0'/0";
+                return $"m/0'"; // This is a very very very assumption.
                 default:
                 return $"m/{purpose}'/{coinType}'/{accountIndex}'";
             }
@@ -271,8 +271,12 @@ namespace Liviano
             string[] pathElements = hdPath.Split('/');
             if (pathElements.Length < 3) // Then it's a BIP 32 or BIP 141 hdpath, we asume Bitcoin.
             {
-                // TODO Would be nice to log something here... $"Could not parse CoinType from HdPath {hdPath}.");
-                return (int) CoinType.Bitcoin;
+                if (hdPath.StartsWith("m/"))
+                {
+                    return (int) CoinType.Bitcoin;
+                }
+
+                throw new WalletException($"Could not parse CoinType from HdPath {hdPath}.");
             }
 
             int coinType = 0;

@@ -347,11 +347,12 @@ namespace Liviano.Tests.Liviano
             wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "141");
 
             HdAccount account = wallet.GetAccountByCoinType("Account 0", CoinType.Bitcoin);
+
+            Assert.Equal("m/0'", HdOperations.GetAccountHdPath((int) CoinType.Bitcoin, 0, "32"));
+
             account.CreateAddresses(network, 1, false, "141");
 
             HdAddress address = account.GetFirstUnusedReceivingAddress();
-
-            Console.WriteLine($"Address' hd path: {address.HdPath}");
 
             Assert.Equal(hdPath, address.HdPath);
             Assert.Equal(firstAddress, address.Address);
