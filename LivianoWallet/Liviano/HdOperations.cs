@@ -268,8 +268,11 @@ namespace Liviano
             Guard.NotEmpty(hdPath, nameof(hdPath));
 
             string[] pathElements = hdPath.Split('/');
-            if (pathElements.Length < 3)
-                throw new WalletException($"Could not parse CoinType from HdPath {hdPath}.");
+            if (pathElements.Length < 3) // Then it's a BIP 32 or BIP 141 hdpath, we asume Bitcoin.
+            {
+                // TODO Would be nice to log something here... $"Could not parse CoinType from HdPath {hdPath}.");
+                return 0; // TODO How to get CoinType Bitcoin on int?
+            }
 
             int coinType = 0;
             if (int.TryParse(pathElements[2].Replace("'", string.Empty), out coinType))

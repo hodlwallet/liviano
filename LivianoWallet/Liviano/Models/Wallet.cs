@@ -228,7 +228,7 @@ namespace Liviano.Models
                 throw new WalletException("Invalid account root's purpose");
 
             if (purpose == "32" || purpose == "141")
-                return accountRoot.AddNewAccount(EncryptedSeed, ChainCode, Network, accountCreationTime, password, "m/0'/0");
+                return accountRoot.AddNewAccount(EncryptedSeed, ChainCode, Network, accountCreationTime, password, "m/0'");
 
             return accountRoot.AddNewAccount(EncryptedSeed, ChainCode, Network, accountCreationTime, password);
 
