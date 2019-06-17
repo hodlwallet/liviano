@@ -355,6 +355,11 @@ namespace Liviano.Managers
 
         public bool LoadWallet(string password = "")
         {
+            if (password == null)
+            {
+                password = "";
+            }
+
             if (!_StorageProvider.WalletExists())
             {
                 return false;

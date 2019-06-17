@@ -89,7 +89,7 @@ namespace Liviano.CLI
         [Option("name", HelpText = "Set name to create wallet")]
         public string Name { get; set; }
 
-        [Option('p', "password", HelpText = "Set password to create wallet (get encrypted key)")]
+        [Option('p', "password", HelpText = "Set password to create wallet (get encrypted key)", Default = "")]
         public string Password { get; set; }
 
         [Option("passphrase", HelpText = "Set passphrase to create wallet (get passphrase)")]
