@@ -66,3 +66,11 @@ clean:
 	dotnet clean LivianoWallet --framework netcoreapp2.1
 	rm -rf bin/*
 	rm -rf obj/*
+	rm -rf LivianoWallet/Liviano/obj/*
+	rm -rf LivianoWallet/Liviano.CLI/obj/*
+	rm -rf LivianoWallet/Liviano.Tests/obj/*
+	rm -rf LivianoWallet/Liviano.Utilities/obj/*
+	rm -rf LivianoWallet/Liviano/bin/*
+	rm -rf LivianoWallet/Liviano.CLI/bin/*
+	rm -rf LivianoWallet/Liviano.Tests/bin/*
+	rm -rf LivianoWallet/Liviano.Utilities/bin/*

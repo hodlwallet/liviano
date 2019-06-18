@@ -241,22 +241,22 @@ namespace Liviano.Models
             for (int i = firstNewAddressIndex; i < firstNewAddressIndex + addressesQuantity; i++)
             {
                 // Generate a new address.
-                PubKey pubkey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
+                PubKey pubKey = HdOperations.GeneratePublicKey(this.ExtendedPubKey, i, isChange);
                 string hdPath = HdOperations.CreateHdPath((int)this.GetCoinType(), this.Index, isChange, i, purpose);
 
                 BitcoinAddress address;
                 switch (hdPath.HdPathToScriptType())
                 {
                     case ScriptTypes.P2PKH:
-                        address = pubkey.GetAddress(network);
+                        address = pubKey.GetAddress(ScriptPubKeyType.Legacy, network);
                         break;
                     case ScriptTypes.P2SH_P2WPKH:
-                        address = pubkey.GetScriptAddress(network);
+                        address = pubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network);
                         break;
                     case ScriptTypes.P2WPKH:
                     case ScriptTypes.UNKNOWN:
                     default:
-                        address = pubkey.WitHash.GetAddress(network);
+                        address = pubKey.GetAddress(ScriptPubKeyType.Segwit, network);
                         break;
                 }
 
@@ -266,7 +266,7 @@ namespace Liviano.Models
                     Index = i,
                     HdPath = hdPath,
                     ScriptPubKey = address.ScriptPubKey,
-                    PubKey = pubkey,
+                    PubKey = pubKey,
                     Address = address.ToString(),
                     Transactions = new List<TransactionData>()
                 };
