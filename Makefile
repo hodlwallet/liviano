@@ -63,9 +63,6 @@ osx_debug_build:
 	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano-cli
 
 clean:
-	dotnet clean NBitcoin --framework netcoreapp2.1
-	rm -rf NBitcoin/NBitcoin/bin/*
-	rm -rf NBitcoin/NBitcoin/obj/*
 	dotnet clean LivianoWallet --framework netcoreapp2.1
 	rm -rf bin/*
 	rm -rf obj/*

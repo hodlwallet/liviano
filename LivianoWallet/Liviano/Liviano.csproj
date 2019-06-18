@@ -12,11 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
-    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,13 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="serilog" Version="2.7.1" />
-  </ItemGroup>
- 
-
-  <ItemGroup Condition="'$(BuildingInsideVisualStudio)' != 'true'">
-    <PackageReference Include="NBitcoin" Version="4.1.1.72" />
+    <PackageReference Include="Easy.MessageHub" Version="4.0.1" />
+    <PackageReference Include="NBitcoin" Version="4.1.2.36" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="serilog" Version="2.9.0-dev-01091" />
   </ItemGroup>
 </Project>

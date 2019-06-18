@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano", "Liviano\Liviano.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano", "Liviano\Liviano.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.CLI", "Liviano.CLI\Liviano.CLI.csproj", "{97F84F72-04FA-4B9A-877A-5E00F2CB0D62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.CLI", "Liviano.CLI\Liviano.CLI.csproj", "{97F84F72-04FA-4B9A-877A-5E00F2CB0D62}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB38604C-12E8-413D-99C1-F1B933146341}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,11 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{CE6350F2-3DA2-49A2-A29B-E5B2A8EB10E3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NBitcoin", "..\NBitcoin\NBitcoin\NBitcoin.csproj", "{E23F42BE-67BE-4FB5-96C2-4B3D6C89DC48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,10 +40,6 @@ Global
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E23F42BE-67BE-4FB5-96C2-4B3D6C89DC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E23F42BE-67BE-4FB5-96C2-4B3D6C89DC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E23F42BE-67BE-4FB5-96C2-4B3D6C89DC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E23F42BE-67BE-4FB5-96C2-4B3D6C89DC48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
