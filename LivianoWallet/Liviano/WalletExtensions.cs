@@ -305,5 +305,10 @@ namespace Liviano
 
             return ScriptTypes.UNKNOWN;
         }
+
+        public static bool IsBitcoinAddress(this string address)
+        {
+            try { BitcoinAddress.Create(address, Network.Main); return true; } catch { return false; }
+        }
     }
 }

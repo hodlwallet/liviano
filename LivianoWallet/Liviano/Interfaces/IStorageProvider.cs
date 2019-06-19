@@ -12,5 +12,7 @@ namespace Liviano.Interfaces
         bool WalletExists();
 
         void SaveWallet(Wallet wallet);
+
+        void DeleteWallet();
     }
 }

@@ -16,7 +16,7 @@ namespace Liviano
 
         private readonly string _Directory = "data";
 
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         public FileSystemStorageProvider(string id = null, string directory = "data")
         {
@@ -53,6 +53,11 @@ namespace Liviano
         public void SaveWallet(Wallet wallet)
         {
             SaveWallet(wallet, true);
+        }
+
+        public void DeleteWallet()
+        {
+            File.Delete(GetFilePath());
         }
 
         public void SaveWallet(Wallet wallet, bool saveBackupFile = true)
@@ -101,7 +106,7 @@ namespace Liviano
             return File.Exists(GetFilePath());
         }
 
-        private string GetFilePath()
+        string GetFilePath()
         {
             return Path.Combine(_Directory, $"{_Id}.{_Extension}");
         }

@@ -9,6 +9,7 @@ using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using Liviano.Managers;
+using NBitcoin.DataEncoders;
 
 namespace Liviano
 {
@@ -78,7 +79,7 @@ namespace Liviano
                 case "regtest":
                     return Network.RegTest;
                 default:
-                    throw new WalletException($"Invalid network {network}, valid networks are {String.Join(", ", AcceptedNetworks)}");
+                    throw new WalletException($"Invalid network {network}, valid networks are {string.Join(", ", AcceptedNetworks)}");
             }
         }
 
@@ -475,6 +476,25 @@ namespace Liviano
             Guard.NotEmpty(wordlist, nameof(wordlist));
 
             return new Mnemonic(mnemonic, WordlistFromString(wordlist)).IsValidChecksum;
+        }
+
+        public static bool IsMnemonicOfWallet(Mnemonic mnemonic, Wallet wallet, Network network = null, string password = null)
+        {
+            if (wallet == null) return false;
+            
+            if (network == null) network = Network.Main;
+            if (password == null) password = "";
+
+            ExtKey extKeyFromMnemonic = GetExtendedKey(mnemonic, password);
+            
+            return extKeyFromMnemonic.PrivateKey.GetWif(network).ToString() == wallet.EncryptedSeed;
+        }
+
+        public static bool IsMnemonicOfWallet(string mnemonic, Wallet wallet)
+        {
+            var m = new Mnemonic(mnemonic);
+
+            return IsMnemonicOfWallet(m, wallet);
         }
     }
 }
