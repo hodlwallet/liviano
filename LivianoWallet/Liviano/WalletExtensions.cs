@@ -112,22 +112,22 @@ namespace Liviano
             else if (network == Network.TestNet)
             {
                 // Checkpoints are every 100800 blocks, 0 is genesis
-                checkpoints.Add(new ChainedBlock(new BlockHeader("020000001939e922692d67e9da0c512082b3caaebaf04fac89499b07f310af000000000022c4fd8dd050b04bac685e24a0d0d6d21101ad605bc9effed2a654016e903836b2640c5207d9001cda8a7fb7", network), 100800));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("02000000ee689e4dcdc3c7dac591b98e1e4dc83aae03ff9fb9d469d704a64c0100000000bfffaded2a67821eb5729b362d613747e898d08d6c83b5704646c26c13146f4c6de91353c02a601b3a817f87", network), 201600));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("02000000a5895a55e1291fc575f21f107adfb24f4adfba8a75deb716ed32000000000000c6cd6732a04c51f08b2af9ed3277ddf83f5cb97cf6e90b30dda26f1aa2f575245f5c44545e60331a024203fb", network), 302400));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("030000007ccf123dcf34b0c5627969c6eebfe4934fbd65244bf93109cd5282000000000065eecfb9cb61b373d7e8da19fa27ebab09c3a367369506763f173a5e40f8b64062dd57556c34021c218f078c", network), 403200));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("0300000069ea2a30f71b993f5692ed2d7feb266d8780d7a327743e79e6af010000000000619d9580aef06044392706715e917766e71d5a594b0299d08949209f563d4c4f8a25a65586ab001b831c3129", network), 504000));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("040000007bd55e0c495e4ffb54404450463a013445ddf6658291f2be62120000000000003db2bc32999d4d774c28b5d3602af74059c2c2b0afa4a15b540662d22be6379fe1dc4656202a091ae8ab9486", network), 604800));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("040000008c44837e5fc2c5d63450f23d311ae5b54daccc34c50ff52944dcfa00000000004fc1b5bb33da3ef5cb4914055674c932dca9f36646da6f78b65c023484a163f22da8c456f0ff0f1c9d56a0df", network), 705600));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020c83686174fd96b8bddc6a097680011e852694cf2a65d65c01b00000000000000199221fc7318c3a98f5259ef41478038767973d433e6c9c60c8252564221e876a771245780e2341a088d14a9", network), 806400));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("0000003094724e53bef465404b0bbecd5fab9df3945d89c8e21bee42afa10c0000000000794ab7fe567e15b75b3544f68f4d9ea15e5657a5b0204684a10feb329037753b5aed9957ffff001c51aa24d0", network), 907200));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020ecd0c218239a360d0d38dcea28a66060b6e01f1f6b9998879a60000000000000916fe1e5bba4812e2e1a59e9befef17d0067d1b50817f9bb52fe4c14093333a2171d0858c0cc521a59140b8f", network), 1008000));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020165c37bbe6f558e555540f3cf15a3ee5bf7826d6d85e5989c67a2400000000002398f3407d233713b96dfe3295de6c119fc064da6cef9ea50393a6a16065c1c3070fdb58f0ec091bb445a2e4", network), 1108800));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020e299ffd701caa20284b69e3b56ad1ed6699293914592f63dcc010000000000000409119b5141e2bbdb4a36a0e82ecf0373f29ce1019131e88c7ccf9343a23baf6a64d85980e173196b02af97", network), 1209600));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("0000002060d09b66acde67094a0199d102aa4de52945e47b97430b63fbdc0b0000000000d748daa1824c05ea3c305bed4ca5f0b58f1317624925b4c397f9fe154a0544b7fc24055bf0ff0f1b96af14f6", network), 1310400));
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020b2a21fd812e43a32f109bc31eeff0403205619bbae2990bfa500000000000000e24d20fb200bb20989faa0401dbccc49c8236f0ec1425b78868f46f3f176f0df0acd865b05c14a19e181d79f", network), 1411200));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("020000001939e922692d67e9da0c512082b3caaebaf04fac89499b07f310af000000000022c4fd8dd050b04bac685e24a0d0d6d21101ad605bc9effed2a654016e903836b2640c5207d9001cda8a7fb7", network), 100800));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("02000000ee689e4dcdc3c7dac591b98e1e4dc83aae03ff9fb9d469d704a64c0100000000bfffaded2a67821eb5729b362d613747e898d08d6c83b5704646c26c13146f4c6de91353c02a601b3a817f87", network), 201600));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("02000000a5895a55e1291fc575f21f107adfb24f4adfba8a75deb716ed32000000000000c6cd6732a04c51f08b2af9ed3277ddf83f5cb97cf6e90b30dda26f1aa2f575245f5c44545e60331a024203fb", network), 302400));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("030000007ccf123dcf34b0c5627969c6eebfe4934fbd65244bf93109cd5282000000000065eecfb9cb61b373d7e8da19fa27ebab09c3a367369506763f173a5e40f8b64062dd57556c34021c218f078c", network), 403200));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("0300000069ea2a30f71b993f5692ed2d7feb266d8780d7a327743e79e6af010000000000619d9580aef06044392706715e917766e71d5a594b0299d08949209f563d4c4f8a25a65586ab001b831c3129", network), 504000));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("040000007bd55e0c495e4ffb54404450463a013445ddf6658291f2be62120000000000003db2bc32999d4d774c28b5d3602af74059c2c2b0afa4a15b540662d22be6379fe1dc4656202a091ae8ab9486", network), 604800));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("040000008c44837e5fc2c5d63450f23d311ae5b54daccc34c50ff52944dcfa00000000004fc1b5bb33da3ef5cb4914055674c932dca9f36646da6f78b65c023484a163f22da8c456f0ff0f1c9d56a0df", network), 705600));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020c83686174fd96b8bddc6a097680011e852694cf2a65d65c01b00000000000000199221fc7318c3a98f5259ef41478038767973d433e6c9c60c8252564221e876a771245780e2341a088d14a9", network), 806400));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("0000003094724e53bef465404b0bbecd5fab9df3945d89c8e21bee42afa10c0000000000794ab7fe567e15b75b3544f68f4d9ea15e5657a5b0204684a10feb329037753b5aed9957ffff001c51aa24d0", network), 907200));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020ecd0c218239a360d0d38dcea28a66060b6e01f1f6b9998879a60000000000000916fe1e5bba4812e2e1a59e9befef17d0067d1b50817f9bb52fe4c14093333a2171d0858c0cc521a59140b8f", network), 1008000));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020165c37bbe6f558e555540f3cf15a3ee5bf7826d6d85e5989c67a2400000000002398f3407d233713b96dfe3295de6c119fc064da6cef9ea50393a6a16065c1c3070fdb58f0ec091bb445a2e4", network), 1108800));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020e299ffd701caa20284b69e3b56ad1ed6699293914592f63dcc010000000000000409119b5141e2bbdb4a36a0e82ecf0373f29ce1019131e88c7ccf9343a23baf6a64d85980e173196b02af97", network), 1209600));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("0000002060d09b66acde67094a0199d102aa4de52945e47b97430b63fbdc0b0000000000d748daa1824c05ea3c305bed4ca5f0b58f1317624925b4c397f9fe154a0544b7fc24055bf0ff0f1b96af14f6", network), 1310400));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020b2a21fd812e43a32f109bc31eeff0403205619bbae2990bfa500000000000000e24d20fb200bb20989faa0401dbccc49c8236f0ec1425b78868f46f3f176f0df0acd865b05c14a19e181d79f", network), 1411200));
                 // NOTE exception to the 100800 blocks... on testnet there's a huge amount of blocks in these gaps for little time
-                checkpoints.Add(new ChainedBlock(new BlockHeader("00000020d03eeff74eadfb6060591912d74d7d3c395bc7217dd5063f9100000000000000e30bd6356932222da86753d1bda3584b1b76c6229fc30625fdfad2637e9720fb3537df5ba866011a0b27a352", network), 1442000));
+                // checkpoints.Add(new ChainedBlock(new BlockHeader("00000020d03eeff74eadfb6060591912d74d7d3c395bc7217dd5063f9100000000000000e30bd6356932222da86753d1bda3584b1b76c6229fc30625fdfad2637e9720fb3537df5ba866011a0b27a352", network), 1442000));
             }
 
             return checkpoints;
@@ -145,8 +145,10 @@ namespace Liviano
             }
             else
             {
-                blockHeader = new BlockHeader("02000000cc3b4f230127a925da29423cab8974a83b60a5212ce6fd9a30b682e7000000001d153b89315e7eebca2005582395b709a8cce47d626226d53db4a33cad513b8eaa5dc352ffff001d002654ae", Network.TestNet);
-                height = 154932;
+                // blockHeader = new BlockHeader("02000000cc3b4f230127a925da29423cab8974a83b60a5212ce6fd9a30b682e7000000001d153b89315e7eebca2005582395b709a8cce47d626226d53db4a33cad513b8eaa5dc352ffff001d002654ae", Network.TestNet);
+                // height = 154932;
+                blockHeader = network.GetGenesis().Header;
+                height = 0;
             }
 
             return new ChainedBlock(blockHeader, height);
