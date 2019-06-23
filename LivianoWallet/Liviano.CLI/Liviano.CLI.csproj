@@ -10,13 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.5.0" />
-    <PackageReference Include="NBitcoin" Version="4.1.2.36" />
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.2-dev-00798" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Liviano\Liviano.csproj" />
+    <ProjectReference Include="..\..\NBitcoin\NBitcoin\NBitcoin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

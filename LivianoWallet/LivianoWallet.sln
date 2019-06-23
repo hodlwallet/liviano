@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Tests", "Liviano.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Utilities", "Liviano.Utilities\Liviano.Utilities.csproj", "{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBitcoin", "..\NBitcoin\NBitcoin\NBitcoin.csproj", "{E97A42E1-4956-4BCD-95E9-3C6530279DA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7388EDA6-2BB6-4D9B-A59F-546F058AEC34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E97A42E1-4956-4BCD-95E9-3C6530279DA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E97A42E1-4956-4BCD-95E9-3C6530279DA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E97A42E1-4956-4BCD-95E9-3C6530279DA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E97A42E1-4956-4BCD-95E9-3C6530279DA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
