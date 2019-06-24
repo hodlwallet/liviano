@@ -208,7 +208,7 @@ namespace Liviano
             }
             foreach (TxOut output in me.Outputs)
             {
-                if (output.ScriptPubKey.IsScriptType(ScriptType.Witness))
+                if (output.ScriptPubKey.IsWitness)
                 {
                     return true;
                 }

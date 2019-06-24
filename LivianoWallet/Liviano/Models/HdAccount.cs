@@ -248,15 +248,15 @@ namespace Liviano.Models
                 switch (hdPath.HdPathToScriptType())
                 {
                     case ScriptTypes.P2PKH:
-                        address = pubKey.GetAddress(ScriptPubKeyType.Legacy, network);
+                        address = pubKey.GetAddress(network);
                         break;
                     case ScriptTypes.P2SH_P2WPKH:
-                        address = pubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network);
+                        address = pubKey.GetScriptAddress(network);
                         break;
                     case ScriptTypes.P2WPKH:
                     case ScriptTypes.UNKNOWN:
                     default:
-                        address = pubKey.GetAddress(ScriptPubKeyType.Segwit, network);
+                        address = pubKey.WitHash.GetAddress(network);
                         break;
                 }
 

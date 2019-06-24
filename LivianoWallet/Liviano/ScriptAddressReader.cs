@@ -19,7 +19,7 @@ namespace Liviano
                 // This is what Satoshi used in the first transaction, is not secure :)
                 case TxOutType.TX_PUBKEY:
                     PubKey pubKey = PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(script);
-                    destinationAddress = pubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
+                    destinationAddress = pubKey.GetAddress(network).ToString();
                     break;
                 // Pay to PubKey hash is the regular, most common type of output.
                 case TxOutType.TX_PUBKEYHASH:
