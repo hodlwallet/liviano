@@ -444,18 +444,9 @@ namespace Liviano.CLI
 
                 closestChainedBlock = GetClosestChainedBlockToDateTimeOffset(walletManager.GetWalletCreationTime());
 
-                // if (chain.Tip.Header.BlockTime < closestChainedBlock.Header.BlockTime)
-                //     chain.SetCustomTip(closestChainedBlock);
+                if (chain.Tip.Header.BlockTime < closestChainedBlock.Header.BlockTime)
+                    chain.SetCustomTip(closestChainedBlock);
             }
-
-            // string s = string.Join(", ", network.DNSSeeds.Select(seed => seed.Host).ToArray());
-            // if (network == Network.TestNet)
-            // {
-            //     DNSSeedData peterTood = new DNSSeedData("peter tood", "seed.tbtc.petertodd.org");
-
-            //     network.DNSSeeds = new List<DNSSeedData> { peterTood };
-            //     // network.DNSSeeds.
-            // }
 
             nodeConnectionParameters.UserAgent = Liviano.Version.UserAgent;
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
@@ -501,17 +492,18 @@ namespace Liviano.CLI
                 scanLocation.Blocks.AddRange(
                     network.GetCheckpoints().Select(checkpoint => checkpoint.HashBlock)
                 );
+                
                 // Finally the closest on our partial chain to the creation of the wallet
-                // scanLocation.Blocks.Add(closestChainedBlock.HashBlock);
+                scanLocation.Blocks.Add(closestChainedBlock.HashBlock);
 
                 if (timeToStartOn.HasValue)
                 {
                     dateToStartScanning = timeToStartOn.Value;
                 }
-                // else if (closestChainedBlock.Header.BlockTime >= chain.Tip.Header.BlockTime)
-                // {
-                //     dateToStartScanning = closestChainedBlock.Header.BlockTime;
-                // }
+                else if (closestChainedBlock.Header.BlockTime >= chain.Tip.Header.BlockTime)
+                {
+                    dateToStartScanning = closestChainedBlock.Header.BlockTime;
+                }
                 else
                 {
                     dateToStartScanning = network.GetBIP39ActivationChainedBlock().Header.BlockTime;
