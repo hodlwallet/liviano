@@ -108,6 +108,7 @@ namespace Liviano
                 checkpoints.Add(new ChainedBlock(new BlockHeader("0000002023922ab77be55efd05cee12392a2b93793f2669fa30d720000000000000000003cb99a54e8356ef7a0bb85421ed8cc783734586782368d7cb0aed5de0cfe956162b1595a8c577e1749b786df", network), 504000));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("000000207866eb8d5115490c859c0df6173b966bc4c637226c4a0d0000000000000000009e4e76d4f89771e96a9cd3c1f75f4ae11ceac34e3884d606a2448e375967d21435bc065b495a4117421bd9ed", network), 524160));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020e2873bfe173976c6fca3b943a38ce846cc9d77a7b8610c00000000000000000006b4b391db2f5d19b471e05b07104a167770d1bf583e85c5987577732e92268602c6b55b91c1251778ec4a23", network), 544320));
+                checkpoints.Add(new ChainedBlock(new BlockHeader("000000200cd536b3eb1cd9c028e081f1455006276b293467c3e5170000000000000000007bc1b27489db01c85d38a4bc6d2280611e9804f506d83ad00d2a33ebd663992f76c7725c505b2e174fb90f55", network), 564480));
             }
             else if (network == Network.TestNet)
             {
@@ -126,9 +127,10 @@ namespace Liviano
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020e299ffd701caa20284b69e3b56ad1ed6699293914592f63dcc010000000000000409119b5141e2bbdb4a36a0e82ecf0373f29ce1019131e88c7ccf9343a23baf6a64d85980e173196b02af97", network), 1209600));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("0000002060d09b66acde67094a0199d102aa4de52945e47b97430b63fbdc0b0000000000d748daa1824c05ea3c305bed4ca5f0b58f1317624925b4c397f9fe154a0544b7fc24055bf0ff0f1b96af14f6", network), 1310400));
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020b2a21fd812e43a32f109bc31eeff0403205619bbae2990bfa500000000000000e24d20fb200bb20989faa0401dbccc49c8236f0ec1425b78868f46f3f176f0df0acd865b05c14a19e181d79f", network), 1411200));
-                
                 // NOTE exception to the 100800 blocks rule... on testnet there's a huge amount of blocks in these gaps for little time
                 checkpoints.Add(new ChainedBlock(new BlockHeader("00000020d03eeff74eadfb6060591912d74d7d3c395bc7217dd5063f9100000000000000e30bd6356932222da86753d1bda3584b1b76c6229fc30625fdfad2637e9720fb3537df5ba866011a0b27a352", network), 1442000));
+                // Back to 100800 blocks per checkpoint
+                checkpoints.Add(new ChainedBlock(new BlockHeader("0080ff2f322d37e9186e4f46fc6516cca758b2ab9f238f85caac087a25020000000000003acc6d9a7905fa11304660bdcd37a39e02f990293c45a33b4b44cd0ee02783b7ca4dc05c28f7031a09d57910", network), 1512000));
             }
 
             return checkpoints;
