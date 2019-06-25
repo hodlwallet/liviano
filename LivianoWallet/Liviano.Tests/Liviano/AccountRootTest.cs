@@ -65,7 +65,7 @@ namespace Liviano.Tests.Liviano
             var key = new Key();
             var address = new HdAddress
             {
-                Address = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main).ToString(),
+                Address = key.PubKey.GetAddress(Network.Main).ToString(),
                 HdPath = hdPath,
                 ScriptPubKey = key.ScriptPubKey
             };
