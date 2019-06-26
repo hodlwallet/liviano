@@ -9,6 +9,8 @@ using Xunit;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using System.IO;
+using System.Threading.Tasks;
+using Xunit.Abstractions;
 
 namespace Liviano.Tests.Liviano
 {
@@ -17,7 +19,7 @@ namespace Liviano.Tests.Liviano
         public string hash { get; set; }
         public int height { get; set; }
         public string chain { get; set; }
-        public int total { get; set; }
+        public long total { get; set; }
         public int fees { get; set; }
         public int size { get; set; }
         public int ver { get; set; }
@@ -61,7 +63,7 @@ namespace Liviano.Tests.Liviano
 
                 ms.Write(bitsBytes);
 
-                // FIXME What is this thing? A log or an int? We need 4 bytes not 8
+                // FIXME What is this thing? A long or an int? We need 4 bytes not 8
                 byte[] nonceBytes = BitConverter.GetBytes(nonce).Take(4).ToArray();
                 // byte[] nonceBytes = BitConverter.GetBytes(nonce); // Thi should be the correct code...
 
@@ -80,6 +82,13 @@ namespace Liviano.Tests.Liviano
 
         static HttpClient _HttpClient = new HttpClient();
 
+        readonly ITestOutputHelper _Output;
+
+        public WalletExtensionsTest(ITestOutputHelper output)
+        {
+            _Output = output;
+        }
+
         [Fact]
         public void NetworkCheckpointsValidationTest()
         {
@@ -91,28 +100,52 @@ namespace Liviano.Tests.Liviano
         {
             string explorerApi = network == Network.Main ? BLOCKCYPHER_MAINNET_BLOCK_API : BLOCKCYPHER_TESTNET_BLOCK_API;
 
+
             foreach (var checkpoint in network.GetCheckpoints())
             {
                 string url = string.Format(explorerApi, checkpoint.Height);
-                HttpResponseMessage response = await _HttpClient.GetAsync(url);
+                string content = await GetResponseFromUrlOrFile(url, checkpoint.Height, network);
 
-                // Test "pass" if the api doesn't work for us...
-                if (response.StatusCode == HttpStatusCode.TooManyRequests) return;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new ArgumentException($"Invalid api call {url}");
-                }
-
-                string content = await response.Content.ReadAsStringAsync();
                 BlockcypherBlock block = Newtonsoft.Json.JsonConvert.DeserializeObject<BlockcypherBlock>(content);
                 string checkpointBlockHeaderHex = new HexEncoder().EncodeData(checkpoint.Header.ToBytes());
 
                 Assert.Equal(block.GetBlockHeaderHex(), checkpointBlockHeaderHex);
-
-                // Blockcypher's api limits you to 200 req / hour, so count them...
-                Thread.Sleep(1000);
             }
+        }
+
+        async Task<string> GetResponseFromUrlOrFile(string url, int blockHeight, Network network)
+        {
+            string baseDirectory = Path.GetFullPath(
+                Path.Combine(
+                    System.IO.Directory.GetCurrentDirectory(), "../../../../../tmp"
+                )
+            );
+            string fileName = $"{baseDirectory}/{blockHeight}.{network.Name.ToLower()}.json";
+
+            // Read the file if it exists and has content
+            if (File.Exists(fileName) && new FileInfo(fileName).Length > 0)
+                return await File.ReadAllTextAsync(fileName);
+
+            // We now do the http request
+            _Output.WriteLine($"File cache failed, calling url {url} to get data");
+
+            // Blockcypher's api limits you to 200 req / hour, so count them...
+            HttpResponseMessage response = await _HttpClient.GetAsync(url);
+            Thread.Sleep(1000); // And sleep for a second... first test run is slow but after is fast.
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests || !response.IsSuccessStatusCode)
+            {
+                // NOTE Incase this fails read this...
+                _Output.WriteLine("I've noticed that sometimes the API will return a 404, just rerun until you have content if that happens");
+
+                throw new ArgumentException($"Invalid api call to {url}, Http error: {response.StatusCode.ToString()}");
+            }
+
+            string content = await response.Content.ReadAsStringAsync();
+
+            await File.WriteAllTextAsync(fileName, content);
+
+            return content;
         }
     }
 }
