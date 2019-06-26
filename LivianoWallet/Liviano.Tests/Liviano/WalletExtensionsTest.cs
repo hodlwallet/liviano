@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Linq;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace Liviano.Tests.Liviano
         public string coinbase_addr { get; set; }
         public string relayed_by { get; set; }
         public int bits { get; set; }
-        public long nonce { get; set; }
+        public long nonce { get; set; } // TODO Why is this a `long`?
         public int n_tx { get; set; }
         public string prev_block { get; set; }
         public string mrkl_root { get; set; }
@@ -39,7 +40,6 @@ namespace Liviano.Tests.Liviano
             using (MemoryStream ms = new MemoryStream())
             {
                 byte[] versionBytes = BitConverter.GetBytes(ver);
-                Array.Reverse(versionBytes);
 
                 ms.Write(versionBytes);
 
@@ -51,20 +51,19 @@ namespace Liviano.Tests.Liviano
                 byte[] merkleRootBytes = new HexEncoder().DecodeData(mrkl_root);
                 Array.Reverse(merkleRootBytes);
 
-                ms.Write(prevBlockBytes);
+                ms.Write(merkleRootBytes);
 
                 byte[] timestampBytes = BitConverter.GetBytes((int) new DateTimeOffset(time).ToUnixTimeSeconds());
-                Array.Reverse(timestampBytes);
 
                 ms.Write(timestampBytes);
 
                 byte[] bitsBytes = BitConverter.GetBytes(bits);
-                Array.Reverse(bitsBytes);
 
                 ms.Write(bitsBytes);
 
-                byte[] nonceBytes = BitConverter.GetBytes(nonce);
-                Array.Reverse(nonceBytes);
+                // FIXME What is this thing? A log or an int? We need 4 bytes not 8
+                byte[] nonceBytes = BitConverter.GetBytes(nonce).Take(4).ToArray();
+                // byte[] nonceBytes = BitConverter.GetBytes(nonce); // Thi should be the correct code...
 
                 ms.Write(nonceBytes);
 
