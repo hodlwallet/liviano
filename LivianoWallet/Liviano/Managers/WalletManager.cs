@@ -174,9 +174,8 @@ namespace Liviano.Managers
             _AsyncLoop = _AsyncLoopFactory.Run("Wallet persist job", token =>
                 {
                     SaveWallet(_Wallet);
-                    _Logger.Information("Wallets saved to file at {0}.", _DateTimeProvider.GetUtcNow());
 
-                    _Logger.Information("(-)[IN_ASYNC_LOOP]");
+                    _Logger.Information("Wallets saved to file at {0}.", _DateTimeProvider.GetUtcNow());
 
                     return Task.CompletedTask;
                 },
@@ -378,7 +377,6 @@ namespace Liviano.Managers
             catch (Exception ex)
             {
                 _Logger.Error("Exception occurred: {0}", ex.ToString());
-                _Logger.Error("(-)[EXCEPTION]");
 
                 throw new SecurityException(ex.Message);
             }
@@ -597,7 +595,7 @@ namespace Liviano.Managers
             if (spentTransaction == null)
             {
                 // Strange, why would it be null?
-                _Logger.Information("(-)[TX_NULL]");
+                _Logger.Information("Transaction is NULL!!!");
                 
                 return;
             }
