@@ -115,7 +115,7 @@ namespace Liviano.Managers
                 {
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
-                    _WalletManager.ProcessTransaction(transaction, null, proof);
+                    _WalletManager.ProcessTransaction(transaction, null, proof, _Chain.Tip.Height >= chainedBlock.Height);
 
                     interesting = true;
                 }
@@ -129,7 +129,7 @@ namespace Liviano.Managers
                 {
                     _Logger.Information("Found tx with id: {transactionHash}!!!", transaction.GetHash());
 
-                    _WalletManager.ProcessTransaction(transaction, null, proof);
+                    _WalletManager.ProcessTransaction(transaction, null, proof, _Chain.Tip.Height >= chainedBlock.Height);
 
                     interesting = true;
                 }
