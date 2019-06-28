@@ -87,6 +87,12 @@ namespace Liviano.Models
         public string Hex { get; set; }
 
         /// <summary>
+        /// Memo of the transaction to persist it locally
+        /// </summary>
+        [JsonProperty(PropertyName = "memo", NullValueHandling = NullValueHandling.Ignore)]
+        public string Memo { get; set; }
+
+        /// <summary>
         /// Propagation state of this transaction.
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>

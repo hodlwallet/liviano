@@ -697,12 +697,12 @@ namespace Liviano.Managers
                     IsCoinBase = transaction.IsCoinBase == false ? (bool?)null : true,
                     IsCoinStake = false/*transaction.IsCoinStake == false ? (bool?)null : true*/,
                     BlockHeight = blockHeight,
-                    //BlockHash = block?.GetHash(),
+                    //BlockHash = block?.GetHash()
                     Id = transactionHash,
                     CreationTime = block != null ? block.Header.BlockTime : new DateTimeOffset(DateTime.Now), //TODO: TIME
                     Index = index,
                     ScriptPubKey = script,
-                    Hex = true /*this.walletSettings.SaveTransactionHex*/ ? transaction.ToHex() : null,
+                    Hex = transaction.ToHex(),
                     IsPropagated = isPropagated,
                     IsSend = address.IsChangeAddress(),
                     IsReceive = !address.IsChangeAddress()
