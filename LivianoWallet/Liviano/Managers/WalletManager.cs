@@ -116,7 +116,7 @@ namespace Liviano.Managers
             _EventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
         }
 
-        public WalletManager(ILogger logger, Network network, string walletId = null, ConcurrentChain chain = null)
+        public WalletManager(ILogger logger, Network network, string walletId = null, ConcurrentChain chain = null, IStorageProvider storageProvider = null)
         {
             walletId = walletId ?? Guid.NewGuid().ToString();
             chain = chain ?? new ConcurrentChain();
@@ -129,7 +129,7 @@ namespace Liviano.Managers
 
             _ScriptAddressReader = new ScriptAddressReader();
             _DateTimeProvider = new DateTimeProvider();
-            _StorageProvider = new FileSystemStorageProvider(walletId);
+            _StorageProvider = storageProvider ?? new FileSystemStorageProvider(walletId);
             _KeysLookup = new Dictionary<Script, HdAddress>();
             _OutpointLookup = new Dictionary<OutPoint, TransactionData>();
 
