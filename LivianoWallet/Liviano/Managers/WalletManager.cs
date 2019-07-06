@@ -278,7 +278,7 @@ namespace Liviano.Managers
         }
 
         /// <inheritdoc />
-        public Mnemonic CreateWallet(string name, string password = "", Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12)
+        public Mnemonic CreateWallet(string name, string password = "", Mnemonic mnemonic = null, string wordlist = "english", int wordCount = 12, DateTimeOffset? creationTime = null)
         {
             Guard.NotEmpty(name, nameof(name));
             Guard.NotNull(password, nameof(password));
@@ -300,7 +300,7 @@ namespace Liviano.Managers
             string encryptedSeed;
             encryptedSeed = extendedKey.PrivateKey.GetEncryptedBitcoinSecret(password, _Network).ToWif();
 
-            Wallet wallet = this.GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode);
+            Wallet wallet = GenerateWalletFile(name, encryptedSeed, extendedKey.ChainCode, creationTime);
 
             // Generate multiple accounts and addresses from the get-go.
             for (int i = 0; i < _WalletCreationAccountsCount; i++)
