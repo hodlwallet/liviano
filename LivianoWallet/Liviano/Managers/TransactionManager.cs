@@ -80,7 +80,7 @@ namespace Liviano.Managers
                 }
 
                 keys.Add(
-                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
+                    _WalletManager.Wallet.GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
                 );
             }
 
@@ -132,7 +132,7 @@ namespace Liviano.Managers
                 }
 
                 keys.Add(
-                    _WalletManager.GetWallet().GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
+                    _WalletManager.Wallet.GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
                 );
             }
 

@@ -77,10 +77,11 @@ namespace Liviano.Managers
 
         /// <summary>Gets the wallet.</summary>
         private Wallet _Wallet { get; set; }
+        public Wallet Wallet { get => _Wallet; }
 
         public uint256 WalletTipHash { get; set; }
 
-        public Network Network { get { return _Network; } }
+        public Network Network { get => _Network; }
 
         public event EventHandler<TransactionData> OnNewSpendingTransaction;
 
@@ -999,12 +1000,6 @@ namespace Liviano.Managers
         public int? GetWalletHeight()
         {
             return _Wallet.AccountsRoot.Min().LastBlockSyncedHeight;
-        }
-
-        /// <inheritdoc />
-        public Wallet GetWallet()
-        {
-            return _Wallet;
         }
 
         public IStorageProvider GetStorageProvider()
