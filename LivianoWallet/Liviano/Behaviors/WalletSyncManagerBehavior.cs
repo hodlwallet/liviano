@@ -21,6 +21,8 @@ namespace Liviano.Behaviors
 {
     public class WalletSyncManagerBehavior : NodeBehavior
     {
+        const double FALSE_POSITIVE_RATE_DEFAULT = 0.000000000000000000001;
+
         IWalletSyncManager _WalletSyncManager;
 
         long _FalsePositiveCount = 0;
@@ -76,12 +78,12 @@ namespace Liviano.Behaviors
         /// </summary>
         public double FalsePositiveRate { get; set; }
 
-        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.P2WPKH, ConcurrentChain chain = null)
+        public WalletSyncManagerBehavior(ILogger logger, IWalletSyncManager walletSyncManager, ScriptTypes scriptType = ScriptTypes.P2WPKH, ConcurrentChain chain = null, double fpRate = 0.00)
         {
             _Logger = logger;
 
             _WalletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
-            FalsePositiveRate = 0.000000000000000000001;
+            FalsePositiveRate = fpRate > 0.00 ? fpRate : FALSE_POSITIVE_RATE_DEFAULT;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
