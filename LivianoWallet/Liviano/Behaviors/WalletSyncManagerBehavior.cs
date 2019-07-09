@@ -1,65 +1,67 @@
-using Easy.MessageHub;
-using Liviano.Enums;
-using Liviano.Interfaces;
-using Liviano.Managers;
-using Liviano.Models;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.SPV;
-using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
+
+using Serilog;
+
+using Easy.MessageHub;
+
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using NBitcoin.SPV;
+
+using Liviano.Enums;
+using Liviano.Interfaces;
+using Liviano.Models;
 
 namespace Liviano.Behaviors
 {
     public class WalletSyncManagerBehavior : NodeBehavior
     {
-        IWalletSyncManager _walletSyncManager;
-
-        DateTimeOffset _SkipBefore { get { return _walletSyncManager.DateToStartScanningFrom; } set { _walletSyncManager.DateToStartScanningFrom = value; } }
-
-        private BlockLocator _CurrentPosition { get { return _walletSyncManager.CurrentPosition; } set { _walletSyncManager.CurrentPosition = value; } }
-
-        private ConcurrentChain _Chain;
-
-        private ConcurrentChain _ExplicitChain;
+        IWalletSyncManager _WalletSyncManager;
 
         long _FalsePositiveCount = 0;
 
         long _TotalReceived = 0;
 
+        object _Lock = new object();
+
+        object _CurrentPositionlocker = new object();
+
+        DateTimeOffset _SkipBefore { get { return _WalletSyncManager.DateToStartScanningFrom; } set { _WalletSyncManager.DateToStartScanningFrom = value; } }
+
+        BlockLocator _CurrentPosition { get { return _WalletSyncManager.CurrentPosition; } set { _WalletSyncManager.CurrentPosition = value; } }
+
+        ConcurrentChain _Chain;
+
+        ConcurrentChain _ExplicitChain;
+
         ConcurrentDictionary<uint256, uint256> _InFlight = new ConcurrentDictionary<uint256, uint256>();
 
         BoundedDictionary<uint256, MerkleBlock> _TransactionsToBlock = new BoundedDictionary<uint256, MerkleBlock>(1000);
-        object locker = new object();
 
         volatile PingPayload _PreviousPing;
 
-// Suppresses warnings for obsolete use of SPV code
-#pragma warning disable 612, 618
-        public FilterState _FilterState { get; private set; }
-#pragma warning restore 612, 618
+        ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
 
-        private ConcurrentBag<Action> _ActionsToFireWhenFilterIsLoaded;
+        ScriptTypes _ScriptType;
 
-        private ScriptTypes _ScriptType;
+        ILogger _Logger;
 
-        private ILogger _Logger;
-
-        private MessageHub _messageHub;
-
-        private object _CurrentPositionlocker = new object();
+        MessageHub _MessageHub;
 
         /// <summary>
         /// The maximum accepted false positive rate difference, the node will be disconnected if the actual false positive rate is higher than FalsePositiveRate + MaximumFalsePositiveRateDifference.
         /// </summary>
         public double MaximumFalsePositiveRateDifference { get; set; } = 0.1;
 
+// Suppresses warnings for obsolete use of SPV code
+#pragma warning disable 612, 618
+        public FilterState _FilterState { get; private set; }
+#pragma warning restore 612, 618
 
         public double ActualFalsePostiveRate
         {
@@ -78,19 +80,19 @@ namespace Liviano.Behaviors
         {
             _Logger = logger;
 
-            _walletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
+            _WalletSyncManager = walletSyncManager ?? throw new ArgumentNullException(nameof(walletSyncManager));
             FalsePositiveRate = 0.000000000000000000001;
             _Chain = chain;
             _ExplicitChain = chain;
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
 
-            _messageHub = MessageHub.Instance;
+            _MessageHub = MessageHub.Instance;
         }
 
         public override object Clone()
         {
-            var clone = new WalletSyncManagerBehavior(_Logger, _walletSyncManager, _ScriptType, _ExplicitChain);
+            var clone = new WalletSyncManagerBehavior(_Logger, _WalletSyncManager, _ScriptType, _ExplicitChain);
 
             clone.FalsePositiveRate = FalsePositiveRate;
             clone._SkipBefore = _SkipBefore;
@@ -104,26 +106,20 @@ namespace Liviano.Behaviors
             SetBloomFilter();
         }
 
-        private void SetBloomFilter()
+        public void SendMessageAsync(Payload payload)
         {
             var node = AttachedNode;
-            if (node != null) //Insure we have a node
+            if (node == null)
+                return;
+
+#pragma warning disable 612, 618
+            if (_FilterState == FilterState.Loaded)
+#pragma warning restore 612, 618
+
+                node.SendMessageAsync(payload);
+            else
             {
-                _PreviousPing = null; //Set to null
-                var filter = _walletSyncManager.CreateBloomFilter(FalsePositiveRate,_ScriptType); //Create bloom filter
-
-#pragma warning disable 612, 618
-                _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
-#pragma warning disable 612, 618
-
-                node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
-                _FilterState = FilterState.Loading; // Set state to loading
-                var ping = new PingPayload() // Create a ping payload
-                {
-                    Nonce = RandomUtils.GetUInt64() // Add a random noonce, we will expect this in the future
-                };
-                _PreviousPing = ping; //The last ping will the one we just created
-                node.SendMessageAsync(ping); // Now send it
+                _ActionsToFireWhenFilterIsLoaded.Add(() => node.SendMessageAsync(payload));
             }
         }
 
@@ -146,14 +142,40 @@ namespace Liviano.Behaviors
                 _Chain = chainBehavior.Chain;
             }
 
-
             Timer timer = new Timer(StartScan, null, 5000, 10000);
             RegisterDisposable(timer);
-
-
         }
 
-        private void MessagedRecivedOnAttachedNode(NBitcoin.Protocol.Node node, NBitcoin.Protocol.IncomingMessage message)
+        protected override void DetachCore()
+        {
+            AttachedNode.StateChanged -= ChangeOfAttachedNodeState;
+            AttachedNode.MessageReceived -= MessagedRecivedOnAttachedNode;
+        }
+
+        void SetBloomFilter()
+        {
+            var node = AttachedNode;
+            if (node != null) //Insure we have a node
+            {
+                _PreviousPing = null; //Set to null
+                var filter = _WalletSyncManager.CreateBloomFilter(FalsePositiveRate, _ScriptType); //Create bloom filter
+
+#pragma warning disable 612, 618
+                _FilterState = FilterState.Unloaded; // Set state to unloaded as we are attempting to load
+#pragma warning disable 612, 618
+
+                node.SendMessageAsync(new FilterLoadPayload(filter)); // Send that shit, load filter
+                _FilterState = FilterState.Loading; // Set state to loading
+                var ping = new PingPayload() // Create a ping payload
+                {
+                    Nonce = RandomUtils.GetUInt64() // Add a random noonce, we will expect this in the future
+                };
+                _PreviousPing = ping; //The last ping will the one we just created
+                node.SendMessageAsync(ping); // Now send it
+            }
+        }
+
+        void MessagedRecivedOnAttachedNode(NBitcoin.Protocol.Node node, NBitcoin.Protocol.IncomingMessage message)
         {
             var messagePayload = message.Message.Payload;
 
@@ -172,7 +194,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void StartScan(object p)
+        void StartScan(object p)
         {
             var node = AttachedNode;
             if (_FilterState != FilterState.Loaded)
@@ -182,7 +204,7 @@ namespace Liviano.Behaviors
             }
             if (!IsScanning(node))
             {
-                if (Monitor.TryEnter(locker))
+                if (Monitor.TryEnter(_Lock))
                 {
                     try
                     {
@@ -215,18 +237,18 @@ namespace Liviano.Behaviors
                     }
                     finally
                     {
-                        Monitor.Exit(locker);
+                        Monitor.Exit(_Lock);
                     }
                 }
             }
         }
 
-        private bool IsScanning(Node node)
+        bool IsScanning(Node node)
         {
             return _InFlight.Count != 0 || _CurrentPosition == null || node == null;
         }
 
-        private void HandlePongPayload(PongPayload pongPayload)
+        void HandlePongPayload(PongPayload pongPayload)
         {
             if (pongPayload != null) // Make sure pong is valid
             {
@@ -244,7 +266,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void HandleTxPayload(TxPayload txPayload)
+        void HandleTxPayload(TxPayload txPayload)
         {
             if (txPayload != null)
             {
@@ -260,7 +282,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void HandleInvPayload(InvPayload invPayload, Node node)
+        void HandleInvPayload(InvPayload invPayload, Node node)
         {
             if (invPayload != null)
             {
@@ -274,7 +296,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void HandleNotFoundPayLoad(NotFoundPayload notFoundPayload)
+        void HandleNotFoundPayLoad(NotFoundPayload notFoundPayload)
         {
             if (notFoundPayload != null)
             {
@@ -290,7 +312,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void HandleMerkleBlockPayload(MerkleBlockPayload merkleBlockPayload)
+        void HandleMerkleBlockPayload(MerkleBlockPayload merkleBlockPayload)
         {
             if (merkleBlockPayload != null)
             {
@@ -311,7 +333,7 @@ namespace Liviano.Behaviors
                 foreach (var txId in merkleBlockPayload.Object.PartialMerkleTree.GetMatchedTransactions())
                 {
                     _TransactionsToBlock.AddOrUpdate(txId, merkleBlockPayload.Object, (k, v) => merkleBlockPayload.Object);
-                    var tx = _walletSyncManager.GetKnownTransaction(txId);
+                    var tx = _WalletSyncManager.GetKnownTransaction(txId);
                     if (tx != null)
                     {
                         NotifyWalletSyncManager(tx, merkleBlockPayload.Object);
@@ -331,7 +353,7 @@ namespace Liviano.Behaviors
             }
         }
 
-        private void UpdateCurrentPosition(uint256 h)
+        void UpdateCurrentPosition(uint256 h)
         {
             lock (_CurrentPositionlocker)
             {
@@ -347,27 +369,26 @@ namespace Liviano.Behaviors
                         NewPosition = chained
                     };
 
-                    _messageHub.Publish(eventToPublish);
+                    _MessageHub.Publish(eventToPublish);
                     _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
                 }
             }
             
         }
 
-
-        private bool EarlierThanCurrentProgress(BlockLocator locator)
+        bool EarlierThanCurrentProgress(BlockLocator locator)
         {
             return _Chain.FindFork(locator).Height < _Chain.FindFork(_CurrentPosition).Height;
         }
 
 
-        private bool NotifyWalletSyncManager(Transaction tx, MerkleBlock blk)
+        bool NotifyWalletSyncManager(Transaction tx, MerkleBlock blk)
         {
 
             bool hit = false;
             if (blk == null)
             {
-                hit = _walletSyncManager.ProcessTransaction(tx);
+                hit = _WalletSyncManager.ProcessTransaction(tx);
             }
             else
             {
@@ -376,11 +397,11 @@ namespace Liviano.Behaviors
                 if (prev != null)
                 {
                     var header = new ChainedBlock(blk.Header, null, prev);
-                    hit = _walletSyncManager.ProcessTransaction(tx, header, blk);
+                    hit = _WalletSyncManager.ProcessTransaction(tx, header, blk);
                 }
                 else
                 {
-                    hit = _walletSyncManager.ProcessTransaction(tx);
+                    hit = _WalletSyncManager.ProcessTransaction(tx);
                 }
             }
 
@@ -392,7 +413,7 @@ namespace Liviano.Behaviors
             return hit;
         }
 
-        private BlockLocator GetPartialLocator(ChainedBlock block)
+        BlockLocator GetPartialLocator(ChainedBlock block)
         {
             //TODO: tries to create block locator all the way to genesis, we dont need all that, we just need the last locator, techincally.
             //But we can create an exponential locator the first block we do have.
@@ -426,7 +447,7 @@ namespace Liviano.Behaviors
             return locators;
         }
 
-        private bool CheckFPRate(MerkleBlockPayload merkleBlock)
+        bool CheckFPRate(MerkleBlockPayload merkleBlock)
         {
             var maxFPRate = FalsePositiveRate + MaximumFalsePositiveRateDifference;
             if (_TotalReceived > 100
@@ -441,36 +462,12 @@ namespace Liviano.Behaviors
             return true;
         }
 
-        private void ChangeOfAttachedNodeState(Node node, NodeState oldState)
+        void ChangeOfAttachedNodeState(Node node, NodeState oldState)
         {
             if (node.State == NodeState.HandShaked)
             {
                 SetBloomFilter();
                 SendMessageAsync(new MempoolPayload());
-            }
-        }
-
-        protected override void DetachCore()
-        {
-            AttachedNode.StateChanged -= ChangeOfAttachedNodeState;
-            AttachedNode.MessageReceived -= MessagedRecivedOnAttachedNode;
-        }
-
-
-        public void SendMessageAsync(Payload payload)
-        {
-            var node = AttachedNode;
-            if (node == null)
-                return;
-
-#pragma warning disable 612, 618
-            if (_FilterState == FilterState.Loaded)
-#pragma warning restore 612, 618
-
-                node.SendMessageAsync(payload);
-            else
-            {
-                _ActionsToFireWhenFilterIsLoaded.Add(() => node.SendMessageAsync(payload));
             }
         }
     }
