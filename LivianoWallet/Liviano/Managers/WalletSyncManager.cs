@@ -18,7 +18,7 @@ namespace Liviano.Managers
 
         ConcurrentChain _Chain;
 
-        private bool _IsSyncedToChainTip;
+        private bool _IsSyncedToChainTip = false;
 
         private uint _Tweak;
 

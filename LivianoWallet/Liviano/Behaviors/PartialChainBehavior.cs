@@ -105,7 +105,7 @@ namespace Liviano.Behaviors
             RegisterDisposable(_Refresh);
             if (AttachedNode.State == NodeState.Connected)
             {
-                var highPoW = SharedState.HighestValidatedPoW;
+                var highPoW = _State.HighestValidatedPoW;
                 AttachedNode.MyVersion.StartHeight = highPoW == null ? Chain.Height : highPoW.Height;
             }
             AttachedNode.StateChanged += AttachedNode_StateChanged;
@@ -138,6 +138,7 @@ namespace Liviano.Behaviors
                         break;
                     }
                 }
+
                 if (vHave.Count > 10)
                     nStep *= 2;
             }
