@@ -21,7 +21,7 @@ namespace Liviano.Behaviors
 {
     public class WalletSyncManagerBehavior : NodeBehavior
     {
-        const double FALSE_POSITIVE_RATE_DEFAULT = 0.000000000000000000001;
+        const double FALSE_POSITIVE_RATE_DEFAULT = 0.000005;
 
         IWalletSyncManager _WalletSyncManager;
 
