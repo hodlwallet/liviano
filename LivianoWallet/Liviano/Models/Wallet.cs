@@ -16,41 +16,11 @@ namespace Liviano.Models
 {
     public class Wallet
     {
-        /// <sumary>
-        /// Default wallet constructor
-        /// <sumary>
-        /// <param name="name">The name of the wallet.</param>
-        /// <param name="accountsRoot">List of accounts root.</param>
-        /// <param name="isExtPubKeyWallet">Is the wallet an xpub or not.</param>
-        /// <param name="encryptedSeed">The encrypted seed</param>
-        /// <param name="chainCode">The chain code.</param>
-        /// <param name="blockLocator">A block locator list.</param>
-        /// <param name="network">Main, TestNet, or RegTest.</param>
-        /// <param name="creationTime">Creation time, if not a default</param>
+        Key _PrivateKey = null;
 
-        public Wallet()
+        public enum CoinType
         {
-            this.AccountsRoot = new List<AccountRoot>();
-        }
-
-        public Wallet(
-            string name = null,
-            ICollection<AccountRoot> accountsRoot = null,
-            bool isExtPubKeyWallet = true,
-            string encryptedSeed = null,
-            byte[] chainCode = null,
-            ICollection<uint256> blockLocator = null,
-            Network network = null,
-            DateTimeOffset creationTime = new DateTimeOffset())
-       {
-            Name = name ?? "";
-            AccountsRoot = accountsRoot ?? new List<AccountRoot>();
-            IsExtPubKeyWallet = isExtPubKeyWallet;
-            EncryptedSeed = encryptedSeed ?? "";
-            ChainCode = chainCode ?? new byte[0];
-            Network = network ?? Network.Main;
-            BlockLocator = blockLocator ?? new List<uint256> { Network.GenesisHash };
-            CreationTime = creationTime;
+            Bitcoin = 0
         }
 
         /// <summary>
@@ -113,6 +83,41 @@ namespace Liviano.Models
         [JsonConverter(typeof(Utilities.JsonConverters.DateTimeOffsetConverter))]
         public DateTimeOffset CreationTime { get; set; }
 
+        public Wallet(
+            string name = null,
+            ICollection<AccountRoot> accountsRoot = null,
+            bool isExtPubKeyWallet = true,
+            string encryptedSeed = null,
+            byte[] chainCode = null,
+            ICollection<uint256> blockLocator = null,
+            Network network = null,
+            DateTimeOffset creationTime = new DateTimeOffset())
+        {
+            Name = name ?? "";
+            AccountsRoot = accountsRoot ?? new List<AccountRoot>();
+            IsExtPubKeyWallet = isExtPubKeyWallet;
+            EncryptedSeed = encryptedSeed ?? "";
+            ChainCode = chainCode ?? new byte[0];
+            Network = network ?? Network.Main;
+            BlockLocator = blockLocator ?? new List<uint256> { Network.GenesisHash };
+            CreationTime = creationTime;
+        }
+
+        /// <sumary>
+        /// Default wallet constructor
+        /// <sumary>
+        /// <param name="name">The name of the wallet.</param>
+        /// <param name="accountsRoot">List of accounts root.</param>
+        /// <param name="isExtPubKeyWallet">Is the wallet an xpub or not.</param>
+        /// <param name="encryptedSeed">The encrypted seed</param>
+        /// <param name="chainCode">The chain code.</param>
+        /// <param name="blockLocator">A block locator list.</param>
+        /// <param name="network">Main, TestNet, or RegTest.</param>
+        /// <param name="creationTime">Creation time, if not a default</param>
+        public Wallet()
+        {
+            this.AccountsRoot = new List<AccountRoot>();
+        }
 
         /// <summary>
         /// Gets the accounts the wallet has for this type of coin.
@@ -290,8 +295,7 @@ namespace Liviano.Models
             }
 
             // get extended private key
-            Key privateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
-
+            Key privateKey = GetPrivateKey(password);
             return HdOperations.GetExtendedPrivateKey(privateKey, ChainCode, address.HdPath, Network);
         }
 
@@ -309,11 +313,20 @@ namespace Liviano.Models
             return accounts
                 .SelectMany(x => x.GetSpendableTransactions(currentChainHeight, confirmations));
         }
-    }
 
+        /// <summary>
+        /// This is a memoizable private key, so we don't call it again
+        /// </summary>
+        /// A <param name="password"> to authenticate the key</param>
+        /// <returns></returns>
+        Key GetPrivateKey(string password = "")
+        {
+            if (_PrivateKey == null)
+            {
+                _PrivateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
+            }
 
-    public enum CoinType
-    {
-        Bitcoin = 0
+            return _PrivateKey;
+        }
     }
 }
