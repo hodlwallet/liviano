@@ -49,8 +49,9 @@ namespace Liviano.Managers
             _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
-        public Transaction CreateTransaction(string destination, Money amount, long satoshisPerByte, HdAccount account, string password = "", bool signTransation = true)
+        public Transaction CreateTransaction(string destination, Money amount, long satoshisPerKB, HdAccount account, string password = "", bool signTransation = true)
         {
+            // Get coins from coin selector that satisfy our amount
             IEnumerable<ICoin> inputs = _CoinSelector.Select(GetCoins(account), amount);
 
             if (inputs == null)
@@ -58,13 +59,14 @@ namespace Liviano.Managers
                 throw new WalletException("Balance too low to create transaction");
             }
 
+            // Get addresses to send (destination) and change
             HdAddress changeDestinationHdAddress = account.GetFirstUnusedChangeAddress();
 
             var toDestination = BitcoinAddress.Create(destination, _WalletManager.Network);
             var changeDestination = BitcoinAddress.Create(changeDestinationHdAddress.Address, _WalletManager.Network);
 
+            // Populate the signing keys of each input
             List<Key> keys = new List<Key>();
-
             foreach (Coin coin in inputs)
             {
                 HdAddress coinAddress;
@@ -84,65 +86,16 @@ namespace Liviano.Managers
                 );
             }
 
-            Transaction txWithNoFees = _Builder
+            // Create transaction builder with change and signing keys
+            var tx = _Builder
                 .AddCoins(inputs)
                 .AddKeys(keys.ToArray())
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                .BuildTransaction(sign: signTransation);
+                //.SendEstimatedFees(new FeeRate(satoshisPerKB)) FIXME, send the fee actually...
+                .BuildTransaction(signTransation);
 
-            // Calculate fees
-            Money fees = satoshisPerByte * txWithNoFees.GetVirtualSize();
-
-            _Builder = _WalletManager.Network.CreateTransactionBuilder();
-
-            // If fees are enough with the inputs we got, we should just create the tx.
-            if (inputs.Sum(o => o.TxOut.Value) >= (fees + amount))
-            {
-                return _Builder
-                    .AddCoins(inputs)
-                    .AddKeys(keys.ToArray())
-                    .Send(toDestination, amount)
-                    .SendFees(fees)
-                    .SetChange(changeDestination)
-                    .BuildTransaction(sign: signTransation);
-            }
-
-            // If the inputs do not satisfy the fees + amount grand total, then we repeat the process
-            inputs = _CoinSelector.Select(GetCoins(account), amount + fees);
-            keys.Clear();
-
-            if (inputs == null)
-            {
-                throw new WalletException("Balance too low to create transaction");
-            }
-
-            foreach (Coin coin in inputs)
-            {
-                HdAddress coinAddress;
-                try
-                {
-                    coinAddress = account.ExternalAddresses.Concat(account.InternalAddresses).First(
-                        o => o.Transactions.Any(u => u.Id == coin.Outpoint.Hash)
-                    );
-                }
-                catch (InvalidOperationException e)
-                {
-                    throw new WalletException(e.Message);
-                }
-
-                keys.Add(
-                    _WalletManager.Wallet.GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
-                );
-            }
-
-            return _Builder
-                .AddCoins(inputs)
-                .AddKeys(keys.ToArray())
-                .Send(toDestination, amount)
-                .SendFees(fees)
-                .SetChange(changeDestination)
-                .BuildTransaction(sign: signTransation);
+            return tx;
         }
 
         public Transaction SignTransaction(Transaction unsignedTransaction)
