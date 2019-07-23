@@ -85,8 +85,8 @@ namespace Liviano.Managers
 
             foreach (var node in nodes)
             {
-                    await node.SendMessageAsync(invPayload).ConfigureAwait(false);
-                    await node.SendMessageAsync(txPayload).ConfigureAwait(false);
+                await node.SendMessageAsync(invPayload).ConfigureAwait(false);
+                await node.SendMessageAsync(txPayload).ConfigureAwait(false);
             }
         }
 
