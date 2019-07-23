@@ -14,14 +14,14 @@ using NBitcoin.DataEncoders;
 
 namespace Liviano.Models
 {
+    public enum CoinType
+    {
+        Bitcoin = 0
+    }
+
     public class Wallet
     {
         Key _PrivateKey = null;
-
-        public enum CoinType
-        {
-            Bitcoin = 0
-        }
 
         /// <summary>
         /// The root of the accounts tree, a list of all the accounts belonging to this wallet.
