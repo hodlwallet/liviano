@@ -30,6 +30,20 @@ namespace Liviano.Models
         public Money AmountSent { get; set; }
 
         /// <summary>
+        /// The transaction total amount, sent and received by you.
+        /// </summary>
+        [JsonProperty(PropertyName = "totalAmount")]
+        [JsonConverter(typeof(MoneyJsonConverter))]
+        public Money TotalAmount { get; set; }
+
+        /// <summary>
+        /// The transaction total fees sent on this tx.
+        /// </summary>
+        [JsonProperty(PropertyName = "totalFees")]
+        [JsonConverter(typeof(MoneyJsonConverter))]
+        public Money TotalFees { get; set; }
+
+        /// <summary>
         /// A value indicating whether this is a coin stake transaction or not.
         /// </summary>
         [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
@@ -111,6 +125,13 @@ namespace Liviano.Models
         /// </summary>
         [JsonProperty(PropertyName = "spendingDetails", NullValueHandling = NullValueHandling.Ignore)]
         public SpendingDetails SpendingDetails { get; set; }
+
+        /// <summary>
+        /// The script pub key for the address we sent to
+        /// </summary>
+        [JsonProperty(PropertyName = "sentToScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ScriptJsonConverter))]
+        public Script SentToScriptPubKey { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.

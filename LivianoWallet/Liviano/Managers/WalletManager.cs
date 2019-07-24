@@ -700,6 +700,7 @@ namespace Liviano.Managers
 
             // The amount could be a change address amount, in that case the tx amount is the amount not in the change address
             var amountSent = Money.Zero;
+            Script scriptPubKeyToSentTo = null;
             if (address.IsChangeAddress())
             {
                 for (int i = 0, count = transaction.Outputs.Count(); i < count; i++)
@@ -707,7 +708,33 @@ namespace Liviano.Managers
                     if (i == index) continue;
 
                     amountSent += transaction.Outputs[i].Value;
+
+                    // TODO This could be wrong, because we could implement send to many!
+                    scriptPubKeyToSentTo = transaction.Outputs[i].ScriptPubKey;
                 }
+            }
+
+            Money totalAmount = transaction.TotalOut;
+
+            // Getting total fees, if we pay for it we should see it,
+            // if not, well this is complicated, e don't have the utxo said
+            // user sent you money from, and we're not gonna go about and get it.
+            // unless in the future we have an integration with electrum where we can call
+            // a function like 'get utxo(txId, n);'
+            Money totalFees = Money.Zero;
+            Money totalAmountInInputs = Money.Zero;
+            if (address.IsChangeAddress())
+            {
+                foreach (TxIn input in transaction.Inputs)
+                {
+                    totalAmountInInputs += Wallet.GetAmountFromOutPoint(input.PrevOut);
+                }
+
+                // Since fees are implied, then it's the total amount in the inputs
+                // this might be problematic if we don't have th inputs...
+                // that's why we only do it if it's positive
+                if (totalAmount < totalAmountInInputs)
+                    totalFees = totalAmountInInputs - totalAmount;
             }
 
             if (foundTransaction == null)
@@ -718,6 +745,9 @@ namespace Liviano.Managers
                 {
                     Amount = amount,
                     AmountSent = amountSent,
+                    TotalFees = totalFees,
+                    TotalAmount = totalAmount,
+                    SentToScriptPubKey = scriptPubKeyToSentTo,
                     IsCoinBase = transaction.IsCoinBase == false ? (bool?)null : true,
                     IsCoinStake = false,
                     BlockHeight = blockHeight,

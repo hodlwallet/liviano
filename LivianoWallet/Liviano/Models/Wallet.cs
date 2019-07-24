@@ -11,6 +11,7 @@ using Liviano.Utilities;
 using Liviano.Models;
 using Liviano.Exceptions;
 using NBitcoin.DataEncoders;
+using System.Collections;
 
 namespace Liviano.Models
 {
@@ -330,6 +331,45 @@ namespace Liviano.Models
             }
 
             return _PrivateKey;
+        }
+
+        public Money GetAmountFromOutPoint(OutPoint outPoint)
+        {
+            Money amount = Money.Zero;
+            TransactionData txData = null;
+            Transaction tx = null;
+
+            var addresses = GetAllCombinedAddresses();
+
+            foreach (HdAddress address in addresses)
+            {
+                txData = address.Transactions.FirstOrDefault((t) => t.Id == outPoint.Hash);
+
+                if (txData != null) break;
+            }
+
+            if (txData is null) return amount;
+
+            tx = Transaction.Parse(txData.Hex, Network);
+
+            amount = tx.Outputs[outPoint.N].Value;
+
+            return amount;
+        }
+
+        public IEnumerable<HdAddress> GetAllCombinedAddresses()
+        {
+            List<HdAddress> addresses = new List<HdAddress>();
+
+            foreach (AccountRoot accountRoot in AccountsRoot)
+            {
+                foreach (HdAccount account in accountRoot.Accounts)
+                {
+                    addresses.AddRange(account.GetCombinedAddresses());
+                }
+            }
+
+            return addresses;
         }
     }
 }
