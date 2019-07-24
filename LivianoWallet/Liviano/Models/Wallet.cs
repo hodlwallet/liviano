@@ -21,7 +21,7 @@ namespace Liviano.Models
 
     public class Wallet
     {
-        Key _PrivateKey = null;
+        Key _PrivateKey;
 
         /// <summary>
         /// The root of the accounts tree, a list of all the accounts belonging to this wallet.
@@ -83,6 +83,17 @@ namespace Liviano.Models
         [JsonConverter(typeof(Utilities.JsonConverters.DateTimeOffsetConverter))]
         public DateTimeOffset CreationTime { get; set; }
 
+        /// <summary>
+        /// Wallet constructor
+        /// </summary>
+        /// <param name="name">The name of the wallet.</param>
+        /// <param name="accountsRoot">List of accounts root.</param>
+        /// <param name="isExtPubKeyWallet">Is the wallet an xpub or not.</param>
+        /// <param name="encryptedSeed">The encrypted seed</param>
+        /// <param name="chainCode">The chain code.</param>
+        /// <param name="blockLocator">A block locator list.</param>
+        /// <param name="network">Main, TestNet, or RegTest.</param>
+        /// <param name="creationTime">Creation time, if not a default</param>
         public Wallet(
             string name = null,
             ICollection<AccountRoot> accountsRoot = null,
@@ -103,17 +114,9 @@ namespace Liviano.Models
             CreationTime = creationTime;
         }
 
-        /// <sumary>
+        /// <summary>
         /// Default wallet constructor
-        /// <sumary>
-        /// <param name="name">The name of the wallet.</param>
-        /// <param name="accountsRoot">List of accounts root.</param>
-        /// <param name="isExtPubKeyWallet">Is the wallet an xpub or not.</param>
-        /// <param name="encryptedSeed">The encrypted seed</param>
-        /// <param name="chainCode">The chain code.</param>
-        /// <param name="blockLocator">A block locator list.</param>
-        /// <param name="network">Main, TestNet, or RegTest.</param>
-        /// <param name="creationTime">Creation time, if not a default</param>
+        /// </summary>
         public Wallet()
         {
             this.AccountsRoot = new List<AccountRoot>();
@@ -319,7 +322,7 @@ namespace Liviano.Models
         /// </summary>
         /// A <param name="password"> to authenticate the key</param>
         /// <returns></returns>
-        Key GetPrivateKey(string password = "")
+        public Key GetPrivateKey(string password = "")
         {
             if (_PrivateKey == null)
             {
