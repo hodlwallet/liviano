@@ -688,6 +688,19 @@ namespace Liviano.Managers
             int index = transaction.Outputs.IndexOf(utxo);
             Money amount = utxo.Value;
             TransactionData foundTransaction = addressTransactions.FirstOrDefault(t => (t.Id == transactionHash) && (t.Index == index));
+
+            // The amount could be a change address amount, in that case the tx amount is the amount not in the change address
+            var amountSent = Money.Zero;
+            if (address.IsChangeAddress())
+            {
+                for (int i = 0, count = transaction.Outputs.Count(); i < count; i++)
+                {
+                    if (i == index) continue;
+
+                    amountSent += transaction.Outputs[i].Value;
+                }
+            }
+
             if (foundTransaction == null)
             {
                 _Logger.Information("UTXO '{0}-{1}' not found, creating.", transactionHash, index);
@@ -695,6 +708,7 @@ namespace Liviano.Managers
                 var newTransaction = new TransactionData
                 {
                     Amount = amount,
+                    AmountSent = amountSent,
                     IsCoinBase = transaction.IsCoinBase == false ? (bool?)null : true,
                     IsCoinStake = false/*transaction.IsCoinStake == false ? (bool?)null : true*/,
                     BlockHeight = blockHeight,

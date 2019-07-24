@@ -23,6 +23,13 @@ namespace Liviano.Models
         public Money Amount { get; set; }
 
         /// <summary>
+        /// The transaction amount.
+        /// </summary>
+        [JsonProperty(PropertyName = "amountSent", DefaultValueHandling = (long)0)]
+        [JsonConverter(typeof(MoneyJsonConverter))]
+        public Money AmountSent { get; set; }
+
+        /// <summary>
         /// A value indicating whether this is a coin stake transaction or not.
         /// </summary>
         [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]

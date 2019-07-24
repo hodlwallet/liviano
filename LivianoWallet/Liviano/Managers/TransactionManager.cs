@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Liviano.Managers
 {
+    // TODO Transaction manager does not have a log... sucks.
     public class TransactionManager : ITransactionManager
     {
         IBroadcastManager _BroadcastManager;
@@ -20,8 +21,6 @@ namespace Liviano.Managers
         ICoinSelector _CoinSelector;
 
         ConcurrentChain _Chain;
-
-        TransactionBuilder _Builder;
 
         private Coin[] GetCoins(HdAccount account)
         {
@@ -46,15 +45,14 @@ namespace Liviano.Managers
             _BroadcastManager = broadcastManager;
             _WalletManager = walletManager;
             _CoinSelector = coinSelector;
-            _Builder = _WalletManager.Network.CreateTransactionBuilder();
         }
 
         public Transaction CreateTransaction(string destination, Money amount, long satoshisPerKB, HdAccount account, string password = "", bool signTransation = true)
         {
             // Get coins from coin selector that satisfy our amount
-            IEnumerable<ICoin> inputs = _CoinSelector.Select(GetCoins(account), amount);
+            ICoin[] coins = _CoinSelector.Select(GetCoins(account), amount).ToArray();
 
-            if (inputs == null)
+            if (coins == null)
             {
                 throw new WalletException("Balance too low to create transaction");
             }
@@ -65,47 +63,67 @@ namespace Liviano.Managers
             var toDestination = BitcoinAddress.Create(destination, _WalletManager.Network);
             var changeDestination = BitcoinAddress.Create(changeDestinationHdAddress.Address, _WalletManager.Network);
 
-            // Populate the signing keys of each input
-            List<Key> keys = new List<Key>();
-            foreach (Coin coin in inputs)
-            {
-                HdAddress coinAddress;
-                try
-                {
-                    coinAddress = account.ExternalAddresses.Concat(account.InternalAddresses).First(
-                        o => o.Transactions.Any(u => u.Id == coin.Outpoint.Hash)
-                    );
-                }
-                catch (InvalidOperationException e)
-                {
-                    throw new WalletException(e.Message);
-                }
+            // Populate the signing keys of each coin
+            Key[] keys = GetCoinKeys(account, coins, password);
 
-                keys.Add(
-                    _WalletManager.Wallet.GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
-                );
-            }
-
+            var noFeeBuilder = _WalletManager.Network.CreateTransactionBuilder();
             // Create transaction builder with change and signing keys
-            var tx = _Builder
-                .AddCoins(inputs)
+            Transaction txWithNoFees = noFeeBuilder
+                .AddCoins(coins)
                 .AddKeys(keys.ToArray())
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                //.SendEstimatedFees(new FeeRate(satoshisPerKB)) FIXME, send the fee actually...
-                .BuildTransaction(signTransation);
+                .BuildTransaction(sign: signTransation);
 
-            return tx;
+            // Calculate fees
+            Money fees = txWithNoFees.GetVirtualSize() * (satoshisPerKB / 1000);
+
+            // If fees are enough with the coins we got, we should just create the tx.
+            if (coins.Sum(o => o.TxOut.Value) >= (fees + amount))
+            {
+                var goodEnoughBuilder = _WalletManager.Network.CreateTransactionBuilder();
+                return goodEnoughBuilder
+                    .AddCoins(coins)
+                    .AddKeys(keys.ToArray())
+                    .Send(toDestination, amount)
+                    .SendFees(fees)
+                    .SetChange(changeDestination)
+                    .BuildTransaction(sign: signTransation);
+            }
+
+            // If the coins do not satisfy the fees + amount grand total, then we repeat the process
+            coins = _CoinSelector.Select(GetCoins(account), amount + fees).ToArray();
+
+            // Coins will be empty if the tx cannot be created by the coin selector
+            if (coins == null)
+            {
+                throw new WalletException("Balance too low to create transaction");
+            }
+
+            // Get the keys for the coins again...
+            keys = GetCoinKeys(account, coins, password);
+
+            var finalBuilder = _WalletManager.Network.CreateTransactionBuilder();
+            // Finally send the transcation
+            return finalBuilder
+                .AddCoins(coins)
+                .AddKeys(keys.ToArray())
+                .Send(toDestination, amount)
+                .SendFees(fees)
+                .SetChange(changeDestination)
+                .BuildTransaction(sign: signTransation);
         }
 
         public Transaction SignTransaction(Transaction unsignedTransaction)
         {
-            return _Builder.SignTransaction(unsignedTransaction);
+            var builder = _WalletManager.Network.CreateTransactionBuilder();
+            return builder.SignTransaction(unsignedTransaction);
         }
 
         public bool VerifyTransaction(Transaction tx , out WalletException[] transactionPolicyErrors)
         {
-            var flag = _Builder.Verify(tx, out var errors);
+            var builder = _WalletManager.Network.CreateTransactionBuilder();
+            var flag = builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
 
             if (errors.Any())
@@ -124,6 +142,31 @@ namespace Liviano.Managers
         public async Task BroadcastTransaction(Transaction transactionToBroadcast)
         {
            await _BroadcastManager.BroadcastTransactionAsync(transactionToBroadcast);
+        }
+
+        Key[] GetCoinKeys(HdAccount account, ICoin[] coins, string password = "")
+        {
+            List<Key> keys = new List<Key>();
+            foreach (Coin coin in coins)
+            {
+                HdAddress coinAddress;
+                try
+                {
+                    coinAddress = account.ExternalAddresses.Concat(account.InternalAddresses).First(
+                        o => o.Transactions.Any(u => u.Id == coin.Outpoint.Hash)
+                    );
+                }
+                catch (InvalidOperationException e)
+                {
+                    throw new WalletException(e.Message);
+                }
+
+                keys.Add(
+                    _WalletManager.Wallet.GetExtendedPrivateKeyForAddress(coinAddress, password).PrivateKey
+                );
+            }
+
+            return keys.ToArray();
         }
     }
 }
