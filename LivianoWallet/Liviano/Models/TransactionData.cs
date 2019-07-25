@@ -18,7 +18,7 @@ namespace Liviano.Models
         /// <summary>
         /// The transaction amount.
         /// </summary>
-        [JsonProperty(PropertyName = "amount")]
+        [JsonProperty(PropertyName = "amount", DefaultValueHandling = (long)0)]
         [JsonConverter(typeof(MoneyJsonConverter))]
         public Money Amount { get; set; }
 
@@ -32,14 +32,14 @@ namespace Liviano.Models
         /// <summary>
         /// The transaction total amount, sent and received by you.
         /// </summary>
-        [JsonProperty(PropertyName = "totalAmount")]
+        [JsonProperty(PropertyName = "totalAmount", DefaultValueHandling = (long)0)]
         [JsonConverter(typeof(MoneyJsonConverter))]
         public Money TotalAmount { get; set; }
 
         /// <summary>
         /// The transaction total fees sent on this tx.
         /// </summary>
-        [JsonProperty(PropertyName = "totalFees")]
+        [JsonProperty(PropertyName = "totalFees", DefaultValueHandling = (long)0)]
         [JsonConverter(typeof(MoneyJsonConverter))]
         public Money TotalFees { get; set; }
 
