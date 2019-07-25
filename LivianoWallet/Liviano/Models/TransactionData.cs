@@ -102,6 +102,13 @@ namespace Liviano.Models
         public Script ScriptPubKey { get; set; }
 
         /// <summary>
+        /// The script pub key for the address we sent to
+        /// </summary>
+        [JsonProperty(PropertyName = "sentToScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ScriptJsonConverter))]
+        public Script SentToScriptPubKey { get; set; }
+
+        /// <summary>
         /// Hexadecimal representation of this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
@@ -127,13 +134,6 @@ namespace Liviano.Models
         public SpendingDetails SpendingDetails { get; set; }
 
         /// <summary>
-        /// The script pub key for the address we sent to
-        /// </summary>
-        [JsonProperty(PropertyName = "sentToScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script SentToScriptPubKey { get; set; }
-
-        /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
         public bool IsConfirmed()
@@ -146,7 +146,14 @@ namespace Liviano.Models
         /// </summary>
         public bool IsSpendable()
         {
-            return SpendingDetails == null;
+            return IsSend == false && SpendingDetails == null;
+        }
+
+        public Transaction GetTransaction(Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            return Transaction.Parse(Hex, network);
         }
 
         public Money SpendableAmount(bool confirmedOnly)
