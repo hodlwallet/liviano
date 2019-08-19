@@ -66,9 +66,9 @@ namespace Liviano.Tests.Liviano
             var mnemonic = wm.CreateWallet("wmtest");
 
             Assert.NotNull(mnemonic);
-            Assert.NotNull(wm.GetWallet());
+            Assert.NotNull(wm.Wallet);
 
-            var wallet = wm.GetWallet();
+            var wallet = wm.Wallet;
         }
 
         [Fact]
@@ -80,9 +80,9 @@ namespace Liviano.Tests.Liviano
             var mnemonic = wm.CreateWallet("wmtest", "test");
 
             Assert.NotNull(mnemonic);
-            Assert.NotNull(wm.GetWallet());
+            Assert.NotNull(wm.Wallet);
 
-            var wallet = wm.GetWallet();
+            var wallet = wm.Wallet;
 
             Assert.StartsWith("", wallet.EncryptedSeed);
         }
