@@ -41,7 +41,7 @@ namespace Liviano.Models
         [JsonProperty("pruning")]
         public string Pruning { get; set; }
 
-        [JsonProperty("s")]
+        [JsonProperty("s", NullValueHandling = NullValueHandling.Ignore)]
         public int? PrivatePort { get; set; }
 
         [JsonProperty("t")]
@@ -55,6 +55,39 @@ namespace Liviano.Models
     {
         [JsonProperty("results")]
         public List<Server> Servers { get; set; }
+
+        public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
+        {
+            var servers = new ElectrumServers();
+            servers.Servers = new List<Server>();
+
+            foreach (var item in dict)
+            {
+                var domainName = item.Key;
+                var values = item.Value;
+
+                var server = new Server
+                {
+                    Domain = domainName,
+                    Pruning = values["pruning"],
+                    Version = values["version"]
+                };
+
+                if (values.ContainsKey("s"))
+                    server.PrivatePort = int.Parse(values["s"]);
+                else
+                    server.PrivatePort = null;
+
+                if (values.ContainsKey("t"))
+                    server.UnencryptedPort = int.Parse(values["t"]);
+                else
+                    server.UnencryptedPort = null;
+
+                servers.Servers.Add(server);
+            }
+
+            return servers;
+        }
     }
 
     public static class ServerExtensions

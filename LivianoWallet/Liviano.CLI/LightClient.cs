@@ -339,15 +339,15 @@ namespace Liviano.CLI
             const string CLIENT_NAME = "hodlwallet";
             System.Version PROTOCOL_VERSION = new System.Version("1.4");
             string FILENAME = Path.Combine(Path.GetDirectoryName(
-                Assembly.GetCallingAssembly().Location), "Electrum", "btc-servers.json"
+                Assembly.GetCallingAssembly().Location), "Electrum", "mainnet-servers.json"
             );
 
             using (var reader = new StreamReader(FILENAME))
             {
                 var json = reader.ReadToEnd();
-                var data = JsonConvert.DeserializeObject<ElectrumServers>(json);
+                var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
 
-                var servers = data.Servers.CompatibleServers();
+                var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
                 foreach (var server in servers)
                 {
