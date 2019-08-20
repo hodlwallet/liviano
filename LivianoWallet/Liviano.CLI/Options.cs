@@ -178,12 +178,19 @@ namespace Liviano.CLI
         public string WalletId { get; set; }
 
         [Option('n', "nodes-to-connect", HelpText = "Number of nodes to connect")]
-        public int NodesToConnect { get;  set; }
+        public int NodesToConnect { get; set; }
 
         [Option('d', "date", HelpText = "Date to start on")]
         public string DateTime { get; set; }
 
         [Option("drop-transactions", HelpText = "To delete all transaction")]
         public bool DropTransactions { get; set; }
+    }
+
+    [Verb("electrum-test", HelpText = "Starts a test of the electrum server for a hardcoded address")]
+    class ElectrumTestOptions
+    {
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
     }
 }

@@ -30,4 +30,9 @@
   <ItemGroup>
     <Folder Include="Electrum\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Electrum\btc-servers.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
