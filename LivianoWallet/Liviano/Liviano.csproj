@@ -27,4 +27,7 @@
     <PackageReference Include="serilog" Version="2.9.0-dev-01091" />
     <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.14.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Electrum\" />
+  </ItemGroup>
 </Project>
