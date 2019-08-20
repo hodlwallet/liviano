@@ -23,7 +23,7 @@ using NBitcoin.DataEncoders;
 
 namespace Liviano.CLI
 {
-    public class LightClient
+    public static class LightClient
     {
         private static object _Lock = new object();
 
@@ -69,7 +69,7 @@ namespace Liviano.CLI
 
         private static PartialConcurrentChain GetChain()
         {
-            lock(_Lock)
+            lock (_Lock)
             {
                 if (_ConParams != null)
                 {
@@ -110,10 +110,10 @@ namespace Liviano.CLI
         {
             await Task.Factory.StartNew(() =>
             {
-                lock(_Lock)
+                lock (_Lock)
                 {
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                    using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                    using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
                         PartialConcurrentChain chain = GetChain();
                         chain.WriteTo(new BitcoinStream(fs, true));
@@ -374,10 +374,10 @@ namespace Liviano.CLI
 
         private static void Cleanup(WalletManager walletManager)
         {
-            lock(_Lock)
+            lock (_Lock)
             {
                 GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     PartialConcurrentChain chain = GetChain();
 
@@ -450,9 +450,10 @@ namespace Liviano.CLI
 
             nodeConnectionParameters.UserAgent = Liviano.Version.UserAgent;
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
+            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false, SkipPoWCheck = true });
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
-            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
+            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement()
+            {
                 RequiredServices = NodeServices.Network
             });
 
@@ -492,7 +493,7 @@ namespace Liviano.CLI
                 scanLocation.Blocks.AddRange(
                     network.GetCheckpoints().Select(checkpoint => checkpoint.HashBlock)
                 );
-                
+
                 // Finally the closest on our partial chain to the creation of the wallet
                 scanLocation.Blocks.Add(closestChainedBlock.HashBlock);
 
