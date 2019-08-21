@@ -338,10 +338,10 @@ namespace Liviano.CLI
         {
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
-            const string CLIENT_NAME = "Hodl Wallet";
+            const string CLIENT_NAME = "HODL Wallet";
             System.Version PROTOCOL_VERSION = new System.Version("1.4");
             string FILENAME = Path.Combine(Path.GetDirectoryName(
-                Assembly.GetCallingAssembly().Location), "Electrum", "mainnet-servers.json"
+                Assembly.GetCallingAssembly().Location), "Electrum", "servers.json"
             );
 
             using (var reader = new StreamReader(FILENAME))
