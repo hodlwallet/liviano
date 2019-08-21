@@ -61,7 +61,7 @@ namespace Liviano.Behaviors
         /// </summary>
         public double MaximumFalsePositiveRateDifference { get; set; } = 0.1;
 
-// Suppresses warnings for obsolete use of SPV code
+        // Suppresses warnings for obsolete use of SPV code
 #pragma warning disable 612, 618
         public FilterState _FilterState { get; private set; }
 #pragma warning restore 612, 618
@@ -90,7 +90,7 @@ namespace Liviano.Behaviors
             _ScriptType = scriptType;
             _ActionsToFireWhenFilterIsLoaded = new ConcurrentBag<Action>();
 
-            _MessageHub = MessageHub.Instance;
+            _MessageHub = new MessageHub();
         }
 
         public override object Clone()
@@ -193,7 +193,7 @@ namespace Liviano.Behaviors
             else if (messagePayload is TxPayload)
                 HandleTxPayload(messagePayload as TxPayload);
             else
-            {   
+            {
             }
         }
 
@@ -376,7 +376,7 @@ namespace Liviano.Behaviors
                     _Logger.Information("Updated current position: {chainHeight}", _Chain.FindFork(_CurrentPosition).Height);
                 }
             }
-            
+
         }
 
         bool EarlierThanCurrentProgress(BlockLocator locator)

@@ -33,12 +33,15 @@ using System.Net.Sockets;
 using System.Threading;
 
 using Liviano.Models;
+using System.Xml.Schema;
+using System.ComponentModel;
+using System.Security.Cryptography;
 
 namespace Liviano.Electrum
 {
     public class JsonRpcTcpClient
     {
-        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
+        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(1.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
 
@@ -67,12 +70,13 @@ namespace Liviano.Electrum
         {
             try
             {
-                var maybeTimedOutipAddress = await ResolveAsync(hostName).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                if (maybeTimedOutipAddress == null) throw new TimeoutException(string.Format("Timed out connecting to {0}:{1}", hostName, _Port));
-                return maybeTimedOutipAddress;
+                var maybeTimedOutIpAddress = await ResolveAsync(hostName).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                if (maybeTimedOutIpAddress == null) throw new TimeoutException(string.Format("Timed out connecting to {0}:{1}", hostName, _Port));
+                return maybeTimedOutIpAddress;
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 throw new HttpListenerException(1, string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
             }
         }
@@ -163,13 +167,20 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request)
         {
-            foreach (var server in _Servers)
+            var rng = new Random();
+            List<Server> popableServers = new List<Server>();
+            popableServers.AddRange(_Servers);
+
+            while (popableServers.Count > 0)
             {
+                var index = rng.Next(popableServers.Count);
+                var server = popableServers[index];
+
                 try
                 {
                     Host = server.Domain;
                     _ipAddress = ResolveHost(server.Domain).Result;
-                    _Port = server.UnencryptedPort.Value; // Make this dynamic.
+                    _Port = server.PrivatePort.Value; // Make this dynamic.
 
                     var stringOption = await RequestInternal(request).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
                     if (stringOption == null) throw new HttpListenerException(1, "Timeout when trying to communicate with UtxoCoin server");
@@ -178,9 +189,13 @@ namespace Liviano.Electrum
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.UnencryptedPort, ex.Message));
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
                 }
+
+                popableServers.RemoveAt(index);
             }
+
             return null;
         }
     }

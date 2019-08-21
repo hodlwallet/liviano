@@ -31,7 +31,7 @@ namespace Liviano.Managers
             _Chain = chain;
             _WalletManager = walletManager;
             _Logger = logger;
-            _MessageHub = MessageHub.Instance;
+            _MessageHub = new MessageHub();
 
             _MessageHub.Subscribe<WalletPositionUpdatedEventArgs>(HandleUpdatedWalletPosition);
         }
@@ -61,7 +61,7 @@ namespace Liviano.Managers
 
         public Transaction GetKnownTransaction(uint256 txId)
         {
-            var transactionData =_WalletManager.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
+            var transactionData = _WalletManager.GetAllTransactionsByCoinType(CoinType.Bitcoin).FirstOrDefault(x => x.Id == txId);
             if (transactionData == null)
             {
                 return null;
@@ -102,7 +102,7 @@ namespace Liviano.Managers
 
             var interesting = false;
 
-            var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x=> x.IsChangeAddress() == false);
+            var addresses = _WalletManager.GetAllAddressesByCoinType(CoinType.Bitcoin).Where(x => x.IsChangeAddress() == false);
             var outPoints = _WalletManager.GetAllSpendableTransactions(CoinType.Bitcoin, _Chain.Tip.Height).Select(x => x.ToOutPoint());
 
             var scripts = addresses.Select(x => x.ScriptPubKey);

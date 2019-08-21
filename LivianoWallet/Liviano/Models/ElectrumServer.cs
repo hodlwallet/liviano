@@ -94,7 +94,7 @@ namespace Liviano.Models
     {
         public static List<Server> CompatibleServers(this List<Server> servers)
         {
-            return servers.Where(x => !x.Domain.EndsWith(".onion") && x.UnencryptedPort.HasValue).ToList();
+            return servers.Where(x => !x.Domain.EndsWith(".onion") && x.PrivatePort.HasValue).ToList();
         }
 
         public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)

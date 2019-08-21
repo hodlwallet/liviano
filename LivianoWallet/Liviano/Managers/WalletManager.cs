@@ -113,7 +113,7 @@ namespace Liviano.Managers
             _KeysLookup = new Dictionary<Script, HdAddress>();
             _OutpointLookup = new Dictionary<OutPoint, TransactionData>();
 
-            _EventHub = MessageHub.Instance;
+            _EventHub = new MessageHub();
             _EventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
         }
 
@@ -134,7 +134,7 @@ namespace Liviano.Managers
             _KeysLookup = new Dictionary<Script, HdAddress>();
             _OutpointLookup = new Dictionary<OutPoint, TransactionData>();
 
-            _EventHub = MessageHub.Instance;
+            _EventHub = new MessageHub();
             _EventHub.Subscribe<TransactionBroadcastEntry>(HandleBroadcastedTransaction);
         }
 
@@ -231,10 +231,10 @@ namespace Liviano.Managers
                     }
                     else
                     {
-                        _Logger.Warning("Tip of saved chain is {tipofChain}, last synced height is {lastSyncedHeight}.\nRolling last synced height to chain tip ",_Chain.Tip.Height,height.Value);
+                        _Logger.Warning("Tip of saved chain is {tipofChain}, last synced height is {lastSyncedHeight}.\nRolling last synced height to chain tip ", _Chain.Tip.Height, height.Value);
                         _Wallet.SetLastBlockDetailsByCoinType(_CoinType, _Chain.Tip);
 
-                        return  _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
+                        return _Wallet.AccountsRoot.Select(x => x.LastBlockSyncedHash).FirstOrDefault();
                     }
                 }
 
@@ -242,7 +242,7 @@ namespace Liviano.Managers
                 //find out which is the oldest wallet and set the last block synced to be the one at this date.
                 if (lastBlockSyncedHash == null)
                 {
-                   lastBlockSyncedHash = _Chain.Tip.HashBlock;
+                    lastBlockSyncedHash = _Chain.Tip.HashBlock;
                 }
 
                 if (!_Chain.Contains(lastBlockSyncedHash))
@@ -265,16 +265,16 @@ namespace Liviano.Managers
             lock (_Lock)
             {
 
-                    IEnumerable<HdAddress> addresses = _Wallet.GetAllAddressesByCoinType(_CoinType);
-                    foreach (HdAddress address in addresses)
-                    {
-                        _KeysLookup[address.ScriptPubKey] = address;
+                IEnumerable<HdAddress> addresses = _Wallet.GetAllAddressesByCoinType(_CoinType);
+                foreach (HdAddress address in addresses)
+                {
+                    _KeysLookup[address.ScriptPubKey] = address;
 
-                        foreach (TransactionData transaction in address.Transactions)
-                        {
-                            _OutpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
-                        }
+                    foreach (TransactionData transaction in address.Transactions)
+                    {
+                        _OutpointLookup[new OutPoint(transaction.Id, transaction.Index)] = transaction;
                     }
+                }
             }
         }
 
@@ -478,7 +478,7 @@ namespace Liviano.Managers
                 ChainCode = chainCode,
                 CreationTime = creationTime ?? _DateTimeProvider.GetTimeOffset(),
                 Network = _Network,
-                AccountsRoot = new List<AccountRoot> { new AccountRoot(_CoinType, new List<HdAccount>()){}},
+                AccountsRoot = new List<AccountRoot> { new AccountRoot(_CoinType, new List<HdAccount>()) { } },
             };
 
             _Logger.Information("Wallet file created for wallet {walletName}", walletFile.Name);
@@ -546,7 +546,7 @@ namespace Liviano.Managers
                     IEnumerable<TxOut> paidOutTo = transaction.Outputs.Where(o =>
                     {
                         // If script is empty ignore it.
-                        if (o.Value == (long) 0)
+                        if (o.Value == (long)0)
                             return false;
 
                         // Check if the destination script is one of the wallet's.
@@ -605,7 +605,7 @@ namespace Liviano.Managers
             {
                 // Strange, why would it be null?
                 _Logger.Information("Transaction is NULL!!!");
-                
+
                 return;
             }
 
@@ -807,26 +807,26 @@ namespace Liviano.Managers
         public virtual void TransactionFoundInternal(Script script)
         {
 
-                foreach (HdAccount account in _Wallet.GetAccountsByCoinType(_CoinType))
+            foreach (HdAccount account in _Wallet.GetAccountsByCoinType(_CoinType))
+            {
+                bool isChange;
+                if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
                 {
-                    bool isChange;
-                    if (account.ExternalAddresses.Any(address => address.ScriptPubKey == script))
-                    {
-                        isChange = false;
-                    }
-                    else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
-                    {
-                        isChange = true;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    IEnumerable<HdAddress> newAddresses = AddAddressesToMaintainBuffer(account, isChange);
-
-                    UpdateKeysLookupLocked(newAddresses);
+                    isChange = false;
                 }
+                else if (account.InternalAddresses.Any(address => address.ScriptPubKey == script))
+                {
+                    isChange = true;
+                }
+                else
+                {
+                    continue;
+                }
+
+                IEnumerable<HdAddress> newAddresses = AddAddressesToMaintainBuffer(account, isChange);
+
+                UpdateKeysLookupLocked(newAddresses);
+            }
         }
 
         private IEnumerable<HdAddress> AddAddressesToMaintainBuffer(HdAccount account, bool isChange)
@@ -851,7 +851,7 @@ namespace Liviano.Managers
 
             lock (_Lock)
             {
-                _Logger.Information("Updating last block synced for wallet {walletName} to {height}",_Wallet.Name, chainedBlock.Height);
+                _Logger.Information("Updating last block synced for wallet {walletName} to {height}", _Wallet.Name, chainedBlock.Height);
                 _Wallet.SetLastBlockDetailsByCoinType(_CoinType, chainedBlock);
             }
         }

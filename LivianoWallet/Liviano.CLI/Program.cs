@@ -556,7 +556,7 @@ namespace Liviano.CLI
                 if (network == "main")
                 {
 
-                    LightClient.TestElectrumConnection("14jhXcC8s6JAbzsarPYX4z5PsNRWfu6j4V", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74");
+                    LightClient.TestElectrumConnection("1HgFikZZi9C4t7B1gRohtiEon2FtmDvwnu", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74");
                 }
                 else
                 {
