@@ -33,11 +33,18 @@ using System.Diagnostics;
 
 namespace Liviano.Electrum
 {
-    public class SslTcpClient
+    public static class SslTcpClient
     {
-        private static Hashtable _CertificateErrors = new Hashtable();
+        public static readonly Hashtable _CertificateErrors = new Hashtable();
 
-        // The following method is invoked by the RemoteCertificateValidationDelegate.
+        /// <summary>
+        /// The following method is invoked by the RemoteCertificateValidationDelegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="certificate"></param>
+        /// <param name="chain"></param>
+        /// <param name="sslPolicyErrors"></param>
+        /// <returns></returns>
         public static bool ValidateServerCertificate(
               object sender,
               X509Certificate certificate,
@@ -47,19 +54,20 @@ namespace Liviano.Electrum
             if (sslPolicyErrors == SslPolicyErrors.None)
                 return true;
 
-            Debug.WriteLine("Certificate error: {0}", sslPolicyErrors);
+            Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors);
 
             // Do not allow this client to communicate with unauthenticated servers.
             return false;
         }
 
-        public static void RunClient(string machineName, string serverName, int port = 443)
+        /// <summary>
+        /// Gets an ssl stream from a tcp client of the server, names must match the cert name
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="serverName"></param>
+        /// <returns></returns>
+        public static SslStream GetSslStream(TcpClient client, string serverName)
         {
-            // Create a TCP/IP client socket.
-            // machineName is the host running the server application.
-            TcpClient client = new TcpClient(machineName, port);
-            Debug.WriteLine("Client connected.");
-
             // Create an SSL stream that will close the client's stream.
             SslStream sslStream = new SslStream(
                 client.GetStream(),
@@ -68,6 +76,8 @@ namespace Liviano.Electrum
                 null
             );
 
+            Debug.WriteLine("[GetSslStream] Client connected via ssl.");
+
             // The server name must match the name on the server certificate.
             try
             {
@@ -75,38 +85,29 @@ namespace Liviano.Electrum
             }
             catch (AuthenticationException e)
             {
-                Debug.WriteLine("Exception: {0}", e.Message);
+                Debug.WriteLine("[GetSslStream] Exception: {0}", e.Message);
 
                 if (e.InnerException != null)
                 {
-                    Debug.WriteLine("Inner exception: {0}", e.InnerException.Message);
+                    Debug.WriteLine("[GetSslStream] Inner exception: {0}", e.InnerException.Message);
                 }
 
-                Debug.WriteLine("Authentication failed - closing the connection.");
+                Debug.WriteLine("[GetSslStream] Authentication failed - Closing the connection.");
 
                 client.Close();
 
-                return;
+                return null;
             }
 
-            // Encode a test message into a byte array.
-            // Signal the end of the message using the "<EOF>".
-            byte[] messsage = Encoding.UTF8.GetBytes("Hello from the client.<EOF>");
-
-            // Send hello message to the server. 
-            sslStream.Write(messsage);
-            sslStream.Flush();
-
-            // Read message from the server.
-            string serverMessage = ReadMessage(sslStream);
-            Debug.WriteLine("Server says: {0}", serverMessage);
-
-            // Close the client connection.
-            client.Close();
-            Debug.WriteLine("Client closed.");
+            return sslStream;
         }
 
-        static string ReadMessage(SslStream sslStream)
+        /// <summary>
+        /// Reads a message from the SSL Stream.
+        /// </summary>
+        /// <param name="sslStream"></param>
+        /// <returns></returns>
+        public static string ReadMessage(SslStream sslStream)
         {
             // Read the  message sent by the server.
             // The end of the message is signaled using the
@@ -114,8 +115,10 @@ namespace Liviano.Electrum
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
 
+            Debug.WriteLine("[ReadMessage] Reading message from: ", sslStream.ToString());
+
             int bytes = -1;
-            do
+            while (bytes != 0)
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
 
@@ -132,9 +135,48 @@ namespace Liviano.Electrum
                 {
                     break;
                 }
-            } while (bytes != 0);
+            }
 
-            return messageData.ToString();
+            var msg = messageData.ToString();
+
+            Debug.WriteLine("[ReadMessage] Read message {0}", msg);
+
+            return msg;
+        }
+
+        /// <summary>
+        /// Example how to use the library
+        /// </summary>
+        /// <param name="serverName"></param>
+        /// <param name="port"></param>
+        public static void RunClientExample(string serverName, int port = 443)
+        {
+            // Create a TCP/IP client socket.
+            // machineName is the host running the server application.
+            TcpClient client = new TcpClient(serverName, port);
+
+            Debug.WriteLine($"[RunClientExample] Connected to: {serverName}:{port}");
+
+            using (var sslStream = GetSslStream(client, serverName))
+            {
+                // Encode a test message into a byte array.
+                // Signal the end of the message using the "<EOF>".
+                byte[] messsage = Encoding.UTF8.GetBytes(
+                    @"{""id"": ""1"", ""method"": ""server.version"", ""params"": [""HODL"", ""1.4""]}"
+                );
+
+                // Send version message to the server. 
+                sslStream.Write(messsage);
+                sslStream.Flush();
+
+                // Read message from the server.
+                string serverMessage = ReadMessage(sslStream);
+                Debug.WriteLine("[RunClientExample] Response: {0}", serverMessage);
+            }
+
+            // Close the client connection.
+            client.Close();
+            Debug.WriteLine("[RunClientExample] Client closed.");
         }
     }
 }
