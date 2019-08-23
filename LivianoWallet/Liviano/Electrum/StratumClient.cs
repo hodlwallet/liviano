@@ -32,6 +32,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using NBitcoin;
+using NBitcoin.Crypto;
+using NBitcoin.DataEncoders;
 
 using Liviano.Models;
 
@@ -263,10 +265,10 @@ namespace Liviano.Electrum
 
         public static string GetElectrumScriptHashFromAddress(string publicAddress, Network network)
         {
-            var address = BitcoinAddress.Create(publicAddress, network);
-            var sha = NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes());
-            var reversedSha = sha.Reverse().ToArray();
-            return NBitcoin.DataEncoders.Encoders.Hex.EncodeData(reversedSha);
+            var bitcoinAddress = BitcoinAddress.Create(publicAddress, network);
+            var scriptHashBytes = Hashes.SHA256(bitcoinAddress.ScriptPubKey.ToBytes()).Reverse().ToArray();
+
+            return Encoders.Hex.EncodeData(scriptHashBytes);
         }
     }
 }

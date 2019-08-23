@@ -33,6 +33,7 @@ using Liviano.Models;
 using System.Xml.Schema;
 using System.ComponentModel;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace Liviano.Electrum
 {
@@ -168,7 +169,7 @@ namespace Liviano.Electrum
             List<Server> popableServers = new List<Server>();
             popableServers.AddRange(_Servers);
 
-            Console.WriteLine($"Amount of severs {_Servers.Count}");
+            Debug.WriteLine($"Amount of severs {_Servers.Count}");
 
             object _lock = new object();
             int count = 0;
@@ -190,15 +191,15 @@ namespace Liviano.Electrum
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
                 }
 
                 count += 1;
                 popableServers.RemoveAt(index);
             }
 
-            Console.WriteLine($"Processed amount of {count}");
+            Debug.WriteLine($"Processed amount of {count}");
 
             return null;
         }
