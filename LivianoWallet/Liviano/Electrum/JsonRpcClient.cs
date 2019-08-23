@@ -44,7 +44,7 @@ using System.Reflection;
 
 namespace Liviano.Electrum
 {
-    public class JsonRpcTcpClient
+    public class JsonRpcClient
     {
         static string RECENT_ELECTRUM_SERVERS_FILENAME => GetFileFullPath("recent_servers.json");
 
@@ -62,7 +62,7 @@ namespace Liviano.Electrum
 
         public string Host { get; private set; }
 
-        public JsonRpcTcpClient(List<Server> servers)
+        public JsonRpcClient(List<Server> servers)
         {
             _Servers = servers;
         }
@@ -109,9 +109,12 @@ namespace Liviano.Electrum
             var json = File.ReadAllText(serversFileName);
             var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
 
+            // FIXME These severs should try to connect and send server.version to see if we can add them
             connectedServers.AddRange(
                 ElectrumServers.FromDictionary(data).Servers.CompatibleServers()
             );
+
+            // TODO Test if the servers connect
 
             File.WriteAllText(
                 RECENT_ELECTRUM_SERVERS_FILENAME,

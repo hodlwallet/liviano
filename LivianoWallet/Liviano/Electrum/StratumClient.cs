@@ -108,11 +108,11 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
-        JsonRpcTcpClient _JsonRpcClient;
+        JsonRpcClient _JsonRpcClient;
 
         public StratumClient(List<Server> servers)
         {
-            _JsonRpcClient = new JsonRpcTcpClient(servers);
+            _JsonRpcClient = new JsonRpcClient(servers);
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
