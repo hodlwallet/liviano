@@ -30,6 +30,8 @@ using System.Security.Authentication;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using System;
 
 namespace Liviano.Electrum
 {
@@ -130,8 +132,9 @@ namespace Liviano.Electrum
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
 
-                // Check for EOF.
-                if (messageData.ToString().IndexOf("<EOF>", System.StringComparison.CurrentCulture) != -1)
+                // Check for EOF && if the message is complete json... Usually this works with electrum
+                if (messageData.ToString().IndexOf("<EOF>", System.StringComparison.CurrentCulture) != -1 ||
+                CanParseToJson(messageData.ToString()))
                 {
                     break;
                 }
@@ -177,6 +180,22 @@ namespace Liviano.Electrum
             // Close the client connection.
             client.Close();
             Debug.WriteLine("[RunClientExample] Client closed.");
+        }
+
+        static bool CanParseToJson(string message)
+        {
+            try
+            {
+                JsonConvert.DeserializeObject(message);
+            }
+            catch (JsonSerializationException e)
+            {
+                Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message);
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
