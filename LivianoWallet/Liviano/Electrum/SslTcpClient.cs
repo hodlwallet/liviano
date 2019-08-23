@@ -30,8 +30,8 @@ using System.Security.Authentication;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
+
 using Newtonsoft.Json;
-using System;
 
 namespace Liviano.Electrum
 {
@@ -134,7 +134,7 @@ namespace Liviano.Electrum
 
                 // Check for EOF && if the message is complete json... Usually this works with electrum
                 if (messageData.ToString().IndexOf("<EOF>", System.StringComparison.CurrentCulture) != -1 ||
-                CanParseToJson(messageData.ToString()))
+                    CanParseToJson(messageData.ToString()))
                 {
                     break;
                 }

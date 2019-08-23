@@ -340,6 +340,8 @@ namespace Liviano.CLI
         {
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
+            JsonRpcClient.PopulateRecentlyConnectedServers();
+
             var recentServers = JsonRpcClient.GetRecentlyConnectedServers();
 
             if (recentServers.Count == 0)
@@ -365,12 +367,12 @@ namespace Liviano.CLI
             //try
             //{
             //    var servers = new List<Server>() { server };
-            //    var stratum = new StratumClient(servers);
+            //    var stratum = new ElectrumClient(servers);
 
             //    var version = stratum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
 
             //    Console.WriteLine("\nVersion of electrum server: {0}\n", version);
-            //    var scriptHash = StratumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
+            //    var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
             //    var amount = stratum.BlockchainScriptHashGetBalance(scriptHash).Result;
             //    var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
             //    var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
@@ -410,12 +412,12 @@ namespace Liviano.CLI
 
             //    try
             //    {
-            //        var stratum = new StratumClient(servers);
+            //        var stratum = new ElectrumClient(servers);
 
             //        var version = stratum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
             //        Console.WriteLine("\nVersion of electrum server: {0}\n", version);
 
-            //        var scriptHash = StratumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
+            //        var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
             //        var amount = stratum.BlockchainScriptHashGetBalance(scriptHash).Result;
             //        var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
             //        var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);

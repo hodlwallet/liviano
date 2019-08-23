@@ -21,26 +21,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-using Liviano.Models;
-using System.Xml.Schema;
-using System.ComponentModel;
-using System.Security.Cryptography;
-using System.Diagnostics;
-using Liviano.Extensions;
-using System.IO;
-using Liviano.Interfaces;
-using Newtonsoft.Json;
 using NBitcoin;
-using Liviano.Utilities;
-using System.Reflection;
+
+using Newtonsoft.Json;
+
+using Liviano.Models;
+using Liviano.Extensions;
+using System.Diagnostics.Contracts;
 
 namespace Liviano.Electrum
 {
@@ -109,12 +107,35 @@ namespace Liviano.Electrum
             var json = File.ReadAllText(serversFileName);
             var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
 
-            // FIXME These severs should try to connect and send server.version to see if we can add them
-            connectedServers.AddRange(
-                ElectrumServers.FromDictionary(data).Servers.CompatibleServers()
-            );
+            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+            var tasks = new List<Task>();
+            var _lock = new object();
+            for (int i = 0, count = servers.Count; i < count; i++)
+            {
+                var s = servers[i];
 
-            // TODO Test if the servers connect
+                var t = new Task(() =>
+                {
+                    // Create an RPC server with just one server
+                    var clientName = nameof(Liviano);
+                    var versionNumber = Version.Number;
+
+                    var stratum = new ElectrumClient(new List<Server>() { s });
+
+                    var version = stratum.ServerVersion(clientName, new System.Version(versionNumber)).Result;
+
+                    Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
+
+                    lock (_lock)
+                    {
+                        connectedServers.Add(s);
+                    }
+                });
+
+                tasks.Add(t);
+            }
+
+            Task.WhenAll(tasks);
 
             File.WriteAllText(
                 RECENT_ELECTRUM_SERVERS_FILENAME,
@@ -157,7 +178,7 @@ namespace Liviano.Electrum
             return Convert.ToByte(num);
         }
 
-        bool TimesUp(NetworkStream stream, List<byte> acc, DateTime initTime)
+        bool TimesUp(NetworkStream _, List<byte> acc, DateTime initTime)
         {
             if (acc == null || !acc.Any())
             {

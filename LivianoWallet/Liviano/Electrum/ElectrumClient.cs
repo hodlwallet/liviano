@@ -1,5 +1,5 @@
 ﻿//
-// StratumClient.cs
+// ElectrumClient.cs
 //
 // Copyright (c) 2019 Hodl Wallet
 //
@@ -39,7 +39,7 @@ using Liviano.Models;
 
 namespace Liviano.Electrum
 {
-    public class StratumClient
+    public class ElectrumClient
     {
         public class Request
         {
@@ -110,7 +110,7 @@ namespace Liviano.Electrum
 
         JsonRpcClient _JsonRpcClient;
 
-        public StratumClient(List<Server> servers)
+        public ElectrumClient(List<Server> servers)
         {
             _JsonRpcClient = new JsonRpcClient(servers);
         }
