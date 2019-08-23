@@ -171,7 +171,6 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"Amount of severs {_Servers.Count}");
 
-            object _lock = new object();
             int count = 0;
             while (popableServers.Count > 0)
             {
