@@ -97,7 +97,7 @@ namespace Liviano.Tests.Liviano
             ValidateCheckpointsForNetwork(Network.TestNet);
         }
 
-        async void ValidateCheckpointsForNetwork(Network network)
+        void ValidateCheckpointsForNetwork(Network network)
         {
             string explorerApi = network == Network.Main ? BLOCKCYPHER_MAINNET_BLOCK_API : BLOCKCYPHER_TESTNET_BLOCK_API;
 
@@ -105,7 +105,7 @@ namespace Liviano.Tests.Liviano
             foreach (var checkpoint in network.GetCheckpoints())
             {
                 string url = string.Format(explorerApi, checkpoint.Height);
-                string content = await GetResponseFromUrlOrFile(url, checkpoint.Height, network);
+                string content = GetResponseFromUrlOrFile(url, checkpoint.Height, network).Result;
 
                 BlockcypherBlock block = Newtonsoft.Json.JsonConvert.DeserializeObject<BlockcypherBlock>(content);
                 string checkpointBlockHeaderHex = new HexEncoder().EncodeData(checkpoint.Header.ToBytes());
