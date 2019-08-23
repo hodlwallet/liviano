@@ -142,7 +142,36 @@ namespace Liviano.Electrum
             return Read(stream, acc, DateTime.UtcNow);
         }
 
-        async Task<string> RequestInternal(string request)
+        async Task<string> RequestInternal(string request, bool useSsl = true)
+        {
+            if (!useSsl)
+                return await RequestInternalNonSsl(request);
+
+            return await RequestInternalSsl(request);
+        }
+
+        async Task<string> RequestInternalSsl(string request)
+        {
+            using (var tcpClient = Connect())
+            {
+                var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+
+                if (!stream.CanTimeout) return null; // Handle exception outside of Request()
+
+                stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+                stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+
+                var bytes = Encoding.UTF8.GetBytes(request + "\n");
+
+                stream.Write(bytes, 0, bytes.Length);
+
+                stream.Flush();
+
+                return SslTcpClient.ReadMessage(stream);
+            }
+        }
+
+        async Task<string> RequestInternalNonSsl(string request)
         {
             using (var tcpClient = Connect())
             {
