@@ -59,6 +59,7 @@ namespace Liviano.Electrum
             // machineName is the host running the server application.
             TcpClient client = new TcpClient(machineName, port);
             Debug.WriteLine("Client connected.");
+
             // Create an SSL stream that will close the client's stream.
             SslStream sslStream = new SslStream(
                 client.GetStream(),
@@ -75,23 +76,31 @@ namespace Liviano.Electrum
             catch (AuthenticationException e)
             {
                 Debug.WriteLine("Exception: {0}", e.Message);
+
                 if (e.InnerException != null)
                 {
                     Debug.WriteLine("Inner exception: {0}", e.InnerException.Message);
                 }
+
                 Debug.WriteLine("Authentication failed - closing the connection.");
+
                 client.Close();
+
                 return;
             }
+
             // Encode a test message into a byte array.
             // Signal the end of the message using the "<EOF>".
             byte[] messsage = Encoding.UTF8.GetBytes("Hello from the client.<EOF>");
+
             // Send hello message to the server. 
             sslStream.Write(messsage);
             sslStream.Flush();
+
             // Read message from the server.
             string serverMessage = ReadMessage(sslStream);
             Debug.WriteLine("Server says: {0}", serverMessage);
+
             // Close the client connection.
             client.Close();
             Debug.WriteLine("Client closed.");
@@ -104,6 +113,7 @@ namespace Liviano.Electrum
             // "<EOF>" marker.
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
+
             int bytes = -1;
             do
             {
@@ -113,10 +123,12 @@ namespace Liviano.Electrum
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
                 char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
+
                 // Check for EOF.
-                if (messageData.ToString().IndexOf("<EOF>") != -1)
+                if (messageData.ToString().IndexOf("<EOF>", System.StringComparison.CurrentCulture) != -1)
                 {
                     break;
                 }
