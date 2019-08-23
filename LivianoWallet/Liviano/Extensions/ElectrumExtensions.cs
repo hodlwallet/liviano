@@ -40,7 +40,10 @@ namespace Liviano.Extensions
         /// <returns></returns>
         public static List<Server> CompatibleServers(this List<Server> servers)
         {
-            return servers.Where(x => !x.Domain.EndsWith(".onion", StringComparison.CurrentCulture)).ToList();
+            return servers.Where(server =>
+                !server.Domain.EndsWith(".onion", StringComparison.CurrentCulture) &&
+                server.PrivatePort != null
+            ).ToList();
         }
     }
 }

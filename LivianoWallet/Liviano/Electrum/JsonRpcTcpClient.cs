@@ -35,11 +35,19 @@ using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Diagnostics;
 using Liviano.Extensions;
+using System.IO;
+using Liviano.Interfaces;
+using Newtonsoft.Json;
+using NBitcoin;
+using Liviano.Utilities;
+using System.Reflection;
 
 namespace Liviano.Electrum
 {
     public class JsonRpcTcpClient
     {
+        static string RECENT_ELECTRUM_SERVERS_FILENAME => GetFileFullPath("recent_servers.json");
+
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(3.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
@@ -57,6 +65,58 @@ namespace Liviano.Electrum
         public JsonRpcTcpClient(List<Server> servers)
         {
             _Servers = servers;
+        }
+
+        /// <summary>
+        /// Gets a list of recently conneted servers, these would be ready to connect
+        /// </summary>
+        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
+        public static List<Server> GetRecentlyConnectedServers(Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            List<Server> recentServers = new List<Server>();
+            var fileName = Path.GetFullPath(RECENT_ELECTRUM_SERVERS_FILENAME);
+
+            if (!File.Exists(fileName))
+                PopulateRecentlyConnectedServers(network);
+
+            var content = File.ReadAllText(fileName);
+
+            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+
+            return recentServers;
+        }
+
+        /// <summary>
+        /// Creates the file of the recently connected
+        /// </summary>
+        public static void PopulateRecentlyConnectedServers(Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            List<Server> connectedServers = new List<Server>();
+
+            string serversFileName = GetFileFullPath(
+                "Electrum",
+                "servers",
+                $"{network.Name.ToLower()}.json"
+            );
+
+            if (!File.Exists(serversFileName))
+                throw new ArgumentException($"Invalid network: {network.Name}");
+
+            var json = File.ReadAllText(serversFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+
+            connectedServers.AddRange(
+                ElectrumServers.FromDictionary(data).Servers.CompatibleServers()
+            );
+
+            File.WriteAllText(
+                RECENT_ELECTRUM_SERVERS_FILENAME,
+                JsonConvert.SerializeObject(connectedServers)
+            );
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -231,6 +291,15 @@ namespace Liviano.Electrum
             Debug.WriteLine($"Processed amount of {count}");
 
             return null;
+        }
+
+        public static string GetFileFullPath(params string[] fileNames)
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(
+                    Assembly.GetCallingAssembly().Location
+                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            );
         }
     }
 }
