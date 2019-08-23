@@ -1,12 +1,14 @@
-using Liviano.Utilities;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
+
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+
+using Liviano.Extensions;
+using Liviano.Utilities;
 
 namespace Liviano.Behaviors
 {
@@ -78,7 +80,7 @@ namespace Liviano.Behaviors
             set
             {
                 AssertNotAttached();
-                _Chain = (PartialConcurrentChain) value;
+                _Chain = (PartialConcurrentChain)value;
             }
         }
 
@@ -123,7 +125,7 @@ namespace Liviano.Behaviors
             while (pindex != null)
             {
                 vHave.Add(pindex.HashBlock);
-                
+
                 // Stop when we have added the genesis block.
                 if (pindex.Height == activationBlock.Height)
                     break;

@@ -29,18 +29,26 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Electrum\" />
+    <Folder Include="Electrum\servers\" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Electrum\btc-servers.json" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Electrum\servers_regtest.json">
+    <None Update="Electrum\servers\servers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Electrum\servers_testnet.json">
+    <None Update="Electrum\servers\servers_testnet.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Electrum\servers.json">
+    <None Update="Electrum\servers\regtest.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Electrum\servers\main.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Electrum\servers\testnet.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

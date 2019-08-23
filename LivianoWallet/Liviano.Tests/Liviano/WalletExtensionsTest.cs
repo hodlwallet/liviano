@@ -11,6 +11,7 @@ using NBitcoin.DataEncoders;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
+using Liviano.Extensions;
 
 namespace Liviano.Tests.Liviano
 {
@@ -55,7 +56,7 @@ namespace Liviano.Tests.Liviano
 
                 ms.Write(merkleRootBytes);
 
-                byte[] timestampBytes = BitConverter.GetBytes((int) new DateTimeOffset(time).ToUnixTimeSeconds());
+                byte[] timestampBytes = BitConverter.GetBytes((int)new DateTimeOffset(time).ToUnixTimeSeconds());
 
                 ms.Write(timestampBytes);
 
@@ -72,7 +73,7 @@ namespace Liviano.Tests.Liviano
                 return new HexEncoder().EncodeData(ms.ToArray());
             }
         }
-}
+    }
 
     public class WalletExtensionsTest
     {

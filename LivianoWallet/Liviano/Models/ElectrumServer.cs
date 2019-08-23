@@ -50,7 +50,6 @@ namespace Liviano.Models
 
     public class ElectrumServers
     {
-        [JsonProperty("results")]
         public List<Server> Servers { get; set; }
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
@@ -84,30 +83,6 @@ namespace Liviano.Models
             }
 
             return servers;
-        }
-    }
-
-    public static class ServerExtensions
-    {
-        public static List<Server> CompatibleServers(this List<Server> servers)
-        {
-            return servers.Where(x => !x.Domain.EndsWith(".onion") && x.PrivatePort.HasValue).ToList();
-        }
-
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
-        {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
-
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
-
-                throw new TimeoutException("The operation has timed out.");
-            }
         }
     }
 }

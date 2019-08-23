@@ -16,6 +16,7 @@ using NBitcoin.SPV;
 using Liviano.Enums;
 using Liviano.Interfaces;
 using Liviano.Models;
+using Liviano.Extensions;
 
 namespace Liviano.Behaviors
 {

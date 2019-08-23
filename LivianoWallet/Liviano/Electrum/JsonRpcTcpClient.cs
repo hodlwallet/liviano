@@ -34,6 +34,7 @@ using System.Xml.Schema;
 using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Diagnostics;
+using Liviano.Extensions;
 
 namespace Liviano.Electrum
 {
