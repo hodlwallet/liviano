@@ -340,6 +340,13 @@ namespace Liviano.CLI
         {
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
+            var recentServers = JsonRpcClient.GetRecentlyConnectedServers();
+
+            if (recentServers.Count == 0)
+            {
+                JsonRpcClient.PopulateRecentlyConnectedServers();
+            }
+
             //const string CLIENT_NAME = "HODL Wallet";
             //System.Version PROTOCOL_VERSION = new System.Version("1.4");
             //string FILENAME = Path.Combine(Path.GetDirectoryName(

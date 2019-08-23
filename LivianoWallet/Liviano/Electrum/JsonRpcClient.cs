@@ -118,7 +118,7 @@ namespace Liviano.Electrum
 
             File.WriteAllText(
                 RECENT_ELECTRUM_SERVERS_FILENAME,
-                JsonConvert.SerializeObject(connectedServers)
+                JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
             );
         }
 
