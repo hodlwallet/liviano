@@ -135,7 +135,7 @@ namespace Liviano.Electrum
                 tasks.Add(t);
             }
 
-            Task.WhenAll(tasks);
+            Task.WhenAll(tasks).RunSynchronously();
 
             File.WriteAllText(
                 RECENT_ELECTRUM_SERVERS_FILENAME,
