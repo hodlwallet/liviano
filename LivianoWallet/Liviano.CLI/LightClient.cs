@@ -336,18 +336,21 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed(walletManager);
         }
 
-        public static void TestElectrumConnection(string address, string txHash)
+        public static void TestElectrumConnection(string address, string txHash, Network network = null)
         {
+            if (network is null) network = Network.Main;
+
+            _Logger.Information("Running on {network}", network.Name);
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
-            var recentServers = JsonRpcClient.GetRecentlyConnectedServers();
+            var recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
 
             if (recentServers.Count == 0)
             {
                 _Logger.Information("Looking for Electrum servers...");
 
-                JsonRpcClient.PopulateRecentlyConnectedServers();
-                recentServers = JsonRpcClient.GetRecentlyConnectedServers();
+                JsonRpcClient.PopulateRecentlyConnectedServers(network);
+                recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
             }
 
             if (recentServers.Count == 0)
@@ -377,7 +380,7 @@ namespace Liviano.CLI
                 var version = electrum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
 
                Console.WriteLine("\nVersion of electrum server: {0}\n", version);
-               var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
+               var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, network);
                var amount = electrum.BlockchainScriptHashGetBalance(scriptHash).Result;
                var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
                var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);

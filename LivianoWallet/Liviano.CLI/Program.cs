@@ -556,11 +556,11 @@ namespace Liviano.CLI
                 if (network == "main")
                 {
 
-                    LightClient.TestElectrumConnection("1HgFikZZi9C4t7B1gRohtiEon2FtmDvwnu", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74");
+                    LightClient.TestElectrumConnection("1HgFikZZi9C4t7B1gRohtiEon2FtmDvwnu", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74", Network.Main);
                 }
                 else
                 {
-                    LightClient.TestElectrumConnection("2NDkEKKqP5rqhMYBq4JSXn8LppFFdSg6gtn", "eae1eeba5a5fb87629e362e346688443d106bb4e835798ec0f311da75b9cc80f");
+                    LightClient.TestElectrumConnection("2NDkEKKqP5rqhMYBq4JSXn8LppFFdSg6gtn", "eae1eeba5a5fb87629e362e346688443d106bb4e835798ec0f311da75b9cc80f", Network.TestNet);
                 }
             });
         }

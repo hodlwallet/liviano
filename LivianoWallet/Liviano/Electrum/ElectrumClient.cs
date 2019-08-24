@@ -108,11 +108,14 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
+        Network _Network;
+
         JsonRpcClient _JsonRpcClient;
 
-        public ElectrumClient(List<Server> servers)
+        public ElectrumClient(List<Server> servers, Network network = null)
         {
-            _JsonRpcClient = new JsonRpcClient(servers);
+            _Network = network ?? Network.Main;
+            _JsonRpcClient = new JsonRpcClient(servers, network);
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver

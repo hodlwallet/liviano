@@ -44,7 +44,7 @@ namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        static string RECENT_ELECTRUM_SERVERS_FILENAME => GetFileFullPath("recent_servers.json");
+        Network _Network;
 
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(3.0);
 
@@ -60,9 +60,10 @@ namespace Liviano.Electrum
 
         public string Host { get; private set; }
 
-        public JsonRpcClient(List<Server> servers)
+        public JsonRpcClient(List<Server> servers, Network network = null)
         {
             _Servers = servers;
+            _Network = network ?? Network.Main;
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Liviano.Electrum
             if (network is null) network = Network.Main;
 
             List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(RECENT_ELECTRUM_SERVERS_FILENAME);
+            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
 
             if (!File.Exists(fileName))
                 return recentServers;
@@ -165,7 +166,7 @@ namespace Liviano.Electrum
                 Task.WaitAll(tasks.ToArray());
 
                 File.WriteAllText(
-                    RECENT_ELECTRUM_SERVERS_FILENAME,
+                    GetRecentlyConnectedServersFileName(network),
                     JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
                 );
 
@@ -355,6 +356,11 @@ namespace Liviano.Electrum
                     Assembly.GetCallingAssembly().Location
                 ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
             );
+        }
+
+        static string GetRecentlyConnectedServersFileName(Network network)
+        {
+            return GetFileFullPath($"recent_servers_{network.Name.ToLower()}.json");
         }
     }
 }
