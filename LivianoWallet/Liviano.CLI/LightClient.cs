@@ -340,8 +340,6 @@ namespace Liviano.CLI
         {
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
-            JsonRpcClient.PopulateRecentlyConnectedServers();
-
             var recentServers = JsonRpcClient.GetRecentlyConnectedServers();
 
             if (recentServers.Count == 0)
@@ -349,100 +347,58 @@ namespace Liviano.CLI
                 JsonRpcClient.PopulateRecentlyConnectedServers();
             }
 
-            //const string CLIENT_NAME = "HODL Wallet";
-            //System.Version PROTOCOL_VERSION = new System.Version("1.4");
-            //string FILENAME = Path.Combine(Path.GetDirectoryName(
-            //    Assembly.GetCallingAssembly().Location), "Electrum", "servers", "main.json"
-            //);
+            Console.WriteLine("Connected servers:\n");
 
-            //var server = new Server
-            //{
-            //    Domain = "electrum.networkingfanatic.com",
-            //    PrivatePort = 50002,
-            //    UnencryptedPort = 50001,
-            //    Pruning = "-",
-            //    Version = "1.4"
-            //};
+            foreach(var s in recentServers)
+            {
+                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version}");
+            }
 
-            //try
-            //{
-            //    var servers = new List<Server>() { server };
-            //    var stratum = new ElectrumClient(servers);
+            if (recentServers.Count == 0)
+            {
+                Debug.WriteLine("Found no one to connect :(");
 
-            //    var version = stratum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
+                // Try again!
+                TestElectrumConnection(address, txHash);
 
-            //    Console.WriteLine("\nVersion of electrum server: {0}\n", version);
-            //    var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
-            //    var amount = stratum.BlockchainScriptHashGetBalance(scriptHash).Result;
-            //    var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
-            //    var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
-            //    Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
-            //    Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
+                return;
+            }
 
-            //    var utxoList = stratum.BlockchainScriptHashListUnspent(scriptHash).Result;
-            //    Console.WriteLine("List of Unspent Transactions:\n");
+            const string CLIENT_NAME = "HODL Wallet";
+            System.Version PROTOCOL_VERSION = new System.Version("1.4");
 
-            //    foreach (var tx in utxoList.Result)
-            //    {
-            //        Console.WriteLine("Transaction Hash: {0}\n" +
-            //                          "Transaction Position: {1}\n" +
-            //                          "Transaction Value: {2}\n" +
-            //                          "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
-            //    }
+            try
+            {
+                var electrum = new ElectrumClient(recentServers);
 
-            //    var txRaw = stratum.BlockchainTransactionGet(txHash).Result.Result;
-            //    Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //}
+                var version = electrum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
 
-            //using (var reader = new StreamReader(FILENAME))
-            //{
-            //    var json = reader.ReadToEnd();
-            //    var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+               Console.WriteLine("\nVersion of electrum server: {0}\n", version);
+               var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
+               var amount = electrum.BlockchainScriptHashGetBalance(scriptHash).Result;
+               var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
+               var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
+               Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
+               Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
 
-            //    var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+               var utxoList = electrum.BlockchainScriptHashListUnspent(scriptHash).Result;
+               Console.WriteLine("List of Unspent Transactions:\n");
 
-            //    foreach (var server in servers)
-            //    {
-            //        Console.WriteLine("Domain: {0}\nPruning: {1}\nPort: {2}\nVersion: {3}\n", server.Domain, server.Pruning, server.UnencryptedPort, server.Version);
-            //    }
+               foreach (var tx in utxoList.Result)
+               {
+                   Console.WriteLine("Transaction Hash: {0}\n" +
+                                     "Transaction Position: {1}\n" +
+                                     "Transaction Value: {2}\n" +
+                                     "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
+               }
 
-            //    try
-            //    {
-            //        var stratum = new ElectrumClient(servers);
-
-            //        var version = stratum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
-            //        Console.WriteLine("\nVersion of electrum server: {0}\n", version);
-
-            //        var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, Network.Main);
-            //        var amount = stratum.BlockchainScriptHashGetBalance(scriptHash).Result;
-            //        var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
-            //        var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
-            //        Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
-            //        Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
-
-            //        var utxoList = stratum.BlockchainScriptHashListUnspent(scriptHash).Result;
-            //        Console.WriteLine("List of Unspent Transactions:\n");
-
-            //        foreach (var tx in utxoList.Result)
-            //        {
-            //            Console.WriteLine("Transaction Hash: {0}\n" +
-            //                              "Transaction Position: {1}\n" +
-            //                              "Transaction Value: {2}\n" +
-            //                              "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
-            //        }
-
-            //        var txRaw = stratum.BlockchainTransactionGet(txHash).Result.Result;
-            //        Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex.Message);
-            //    }
-            //}
+               var txRaw = electrum.BlockchainTransactionGet(txHash).Result.Result;
+               Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
+            }
+            catch (Exception ex)
+            {
+               Console.WriteLine(ex.Message);
+            }
         }
 
         private static void WaitUntilEscapeIsPressed(WalletManager walletManager)

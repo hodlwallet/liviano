@@ -59,7 +59,8 @@ namespace Liviano.Electrum
             Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors);
 
             // Do not allow this client to communicate with unauthenticated servers.
-            return false;
+            // NOTE: Ummm this is debatable in this case, so we return true
+            return true;
         }
 
         /// <summary>
