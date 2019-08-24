@@ -114,7 +114,8 @@ namespace Liviano.Electrum
             {
                 var s = servers[i];
 
-                var t = new Task(() =>
+
+                var t = Task.Factory.StartNew(async () =>
                 {
                     // Create an RPC server with just one server
                     var clientName = nameof(Liviano);
@@ -122,7 +123,7 @@ namespace Liviano.Electrum
 
                     var stratum = new ElectrumClient(new List<Server>() { s });
 
-                    var version = stratum.ServerVersion(clientName, new System.Version(versionNumber)).Result;
+                    var version = await stratum.ServerVersion(clientName, new System.Version(versionNumber));
 
                     Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
 
@@ -135,7 +136,7 @@ namespace Liviano.Electrum
                 tasks.Add(t);
             }
 
-            Task.WhenAll(tasks).RunSynchronously();
+            Task.WhenAll(tasks).GetAwaiter().GetResult();
 
             File.WriteAllText(
                 RECENT_ELECTRUM_SERVERS_FILENAME,
