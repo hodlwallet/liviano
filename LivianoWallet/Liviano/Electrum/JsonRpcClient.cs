@@ -119,11 +119,11 @@ namespace Liviano.Electrum
                 {
                     // Create an RPC server with just one server
                     var clientName = nameof(Liviano);
-                    var versionNumber = Version.Number;
 
                     var stratum = new ElectrumClient(new List<Server>() { s });
 
-                    var version = await stratum.ServerVersion(clientName, new System.Version(versionNumber));
+                    // TODO set variable or global for electrum version
+                    var version = await stratum.ServerVersion(clientName, new System.Version("1.4"));
 
                     Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
 
