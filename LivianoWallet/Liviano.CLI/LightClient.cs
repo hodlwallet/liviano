@@ -344,6 +344,8 @@ namespace Liviano.CLI
 
             if (recentServers.Count == 0)
             {
+                _Logger.Information("Looking for Electrum servers...");
+
                 JsonRpcClient.PopulateRecentlyConnectedServers();
             }
 

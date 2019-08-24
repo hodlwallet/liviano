@@ -77,7 +77,7 @@ namespace Liviano.Electrum
             var fileName = Path.GetFullPath(RECENT_ELECTRUM_SERVERS_FILENAME);
 
             if (!File.Exists(fileName))
-                PopulateRecentlyConnectedServers(network);
+                return recentServers;
 
             var content = File.ReadAllText(fileName);
 
@@ -190,7 +190,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Debug.WriteLine(ex.Message);
                 throw new HttpListenerException(1, string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
             }
         }
