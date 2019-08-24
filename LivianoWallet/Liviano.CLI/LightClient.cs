@@ -351,7 +351,7 @@ namespace Liviano.CLI
 
             foreach(var s in recentServers)
             {
-                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version}");
+                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version})");
             }
 
             if (recentServers.Count == 0)
