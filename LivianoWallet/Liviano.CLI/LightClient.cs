@@ -347,13 +347,7 @@ namespace Liviano.CLI
                 _Logger.Information("Looking for Electrum servers...");
 
                 JsonRpcClient.PopulateRecentlyConnectedServers();
-            }
-
-            Console.WriteLine("Connected servers:\n");
-
-            foreach(var s in recentServers)
-            {
-                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version})");
+                recentServers = JsonRpcClient.GetRecentlyConnectedServers();
             }
 
             if (recentServers.Count == 0)
@@ -364,6 +358,13 @@ namespace Liviano.CLI
                 TestElectrumConnection(address, txHash);
 
                 return;
+            }
+
+            Console.WriteLine("Connected servers:\n");
+
+            foreach(var s in recentServers)
+            {
+                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version})");
             }
 
             const string CLIENT_NAME = "HODL Wallet";
