@@ -113,14 +113,17 @@ namespace Liviano.Electrum
             popableServers.AddRange(servers);
 
             var tasks = new List<Task>();
+            var cts = new CancellationTokenSource();
             var _lock = new object();
+            var clientName = nameof(Liviano);
+            var requestedVersion = new System.Version("1.4");
 
             while (popableServers.Count > 0)
             {
                 // pick 5 randos
                 int count = 0;
                 var randomServers = new List<Server>();
-                while (count < 5)
+                while (count < 4)
                 {
                     if (popableServers.Count == 0) break;
 
@@ -142,21 +145,25 @@ namespace Liviano.Electrum
                 for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
                 {
                     var s = randomServers[i];
-                    var t = Task.Factory.StartNew(async (cts) =>
+                    var t = Task.Factory.StartNew(async (_) =>
                     {
-                        // Create an RPC server with just one server
-                        var clientName = nameof(Liviano);
+                        if (cts.IsCancellationRequested) return;
 
                         var stratum = new ElectrumClient(new List<Server>() { s });
 
                         // TODO set variable or global for electrum version
-                        var version = await stratum.ServerVersion(clientName, new System.Version("1.4"));
+                        var version = await stratum.ServerVersion(clientName, requestedVersion);
 
                         Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
 
                         lock (_lock)
                         {
                             connectedServers.Add(s);
+                        }
+
+                        if (connectedServers.Count >= 4)
+                        {
+                            cts.Cancel();
                         }
                     }, CancellationToken.None);
 
@@ -172,6 +179,8 @@ namespace Liviano.Electrum
 
                 if (connectedServers.Count > 4)
                     break;
+
+                Task.Delay(100);
             }
         }
 
@@ -269,6 +278,8 @@ namespace Liviano.Electrum
 
         async Task<string> RequestInternalSsl(string request)
         {
+            await Task.Delay(1);
+
             using (var tcpClient = Connect())
             {
                 var stream = SslTcpClient.GetSslStream(tcpClient, Host);
@@ -290,6 +301,8 @@ namespace Liviano.Electrum
 
         async Task<string> RequestInternalNonSsl(string request)
         {
+            await Task.Delay(1);
+
             using (var tcpClient = Connect())
             {
                 var stream = tcpClient.GetStream();
