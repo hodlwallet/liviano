@@ -16,6 +16,7 @@ using Liviano.Exceptions;
 using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Extensions;
+using Liviano.Providers;
 
 namespace Liviano.Managers
 {

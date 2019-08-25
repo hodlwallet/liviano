@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
+using Liviano.Providers;
 
 namespace Liviano.CLI
 {

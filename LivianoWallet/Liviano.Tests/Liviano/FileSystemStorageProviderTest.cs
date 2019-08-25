@@ -6,6 +6,8 @@ using Xunit.Sdk;
 using NBitcoin;
 using Liviano.Models;
 
+using Liviano.Providers;
+
 namespace Liviano.Tests.Liviano
 {
     public class BeforeAfterFileStorageProviderTest : BeforeAfterTestAttribute

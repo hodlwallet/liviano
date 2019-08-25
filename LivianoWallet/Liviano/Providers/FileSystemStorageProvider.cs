@@ -7,7 +7,7 @@ using Liviano.Models;
 using Liviano.Utilities;
 using Newtonsoft.Json;
 
-namespace Liviano
+namespace Liviano.Providers
 {
     public class FileSystemStorageProvider : IStorageProvider
     {

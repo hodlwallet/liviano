@@ -13,7 +13,7 @@ using NBitcoin.DataEncoders;
 
 namespace Liviano
 {
-    public class HdOperations
+    public static class HdOperations
     {
         /// <summary>
         /// a list of accepted mnemonic wordlists
