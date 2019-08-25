@@ -35,6 +35,11 @@ namespace Liviano
             }
         }
 
+        public static System.Version ToSystemVersion()
+        {
+            return new System.Version(Number);
+        }
+
         public static new string ToString()
         {
             return $"{Name} ({Number})";
@@ -48,7 +53,7 @@ namespace Liviano
             }
         }
 
-        private static System.Version AssemblyVersion
+        static System.Version AssemblyVersion
         {
             get
             {
@@ -56,7 +61,7 @@ namespace Liviano
             }
         }
 
-        private static Assembly CurrentAssembly
+        static Assembly CurrentAssembly
         {
             get
             {

@@ -50,6 +50,8 @@ namespace Liviano.Models
 
     public class ElectrumServers
     {
+        public static System.Version REQUESTED_VERSION = new System.Version("1.4");
+
         public List<Server> Servers { get; set; }
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)

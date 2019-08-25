@@ -46,7 +46,9 @@ namespace Liviano.Electrum
     {
         Network _Network;
 
-        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(3.0);
+        const int NUMBER_OF_RECENT_SERVERS = 4;
+
+        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
 
@@ -115,15 +117,12 @@ namespace Liviano.Electrum
             var tasks = new List<Task>();
             var cts = new CancellationTokenSource();
             var _lock = new object();
-            var clientName = nameof(Liviano);
-            var requestedVersion = new System.Version("1.4");
-
             while (popableServers.Count > 0)
             {
                 // pick 5 randos
                 int count = 0;
                 var randomServers = new List<Server>();
-                while (count < 4)
+                while (count < NUMBER_OF_RECENT_SERVERS)
                 {
                     if (popableServers.Count == 0) break;
 
@@ -152,19 +151,21 @@ namespace Liviano.Electrum
                         var stratum = new ElectrumClient(new List<Server>() { s });
 
                         // TODO set variable or global for electrum version
-                        var version = await stratum.ServerVersion(clientName, requestedVersion);
+                        var version = await stratum.ServerVersion(
+                            ElectrumClient.CLIENT_NAME,
+                            ElectrumServers.REQUESTED_VERSION
+                        );
 
-                        Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
+                        Debug.WriteLine(
+                            "Connected to: {0}:{1}({2})",
+                            s.Domain,
+                            s.PrivatePort,
+                            version
+                        );
 
-                        lock (_lock)
-                        {
-                            connectedServers.Add(s);
-                        }
+                        lock (_lock) connectedServers.Add(s);
 
-                        if (connectedServers.Count >= 4)
-                        {
-                            cts.Cancel();
-                        }
+                        if (connectedServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
                     }, CancellationToken.None);
 
                     tasks.Add(t);
@@ -177,7 +178,7 @@ namespace Liviano.Electrum
                     JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
                 );
 
-                if (connectedServers.Count > 4)
+                if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
                     break;
 
                 Task.Delay(100);

@@ -41,6 +41,8 @@ namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
+        public static string CLIENT_NAME = Liviano.Version.ToString();
+
         public class Request
         {
             public int Id { get; set; }
