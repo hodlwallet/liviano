@@ -16,6 +16,7 @@ using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using NBitcoin;
+using System.Diagnostics.Contracts;
 
 namespace Liviano.CLI
 {
@@ -27,156 +28,162 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions>(args)
-            .WithParsed<MnemonicOptions>(o => {
-               string wordlist = "english";
-               int wordCount = 24;
+            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions>(args)
+            .WithParsed<MnemonicOptions>(o =>
+            {
+                string wordlist = "english";
+                int wordCount = 24;
 
-               if (o.WordCount != 0)
-               {
-                   wordCount = o.WordCount;
-               }
+                if (o.WordCount != 0)
+                {
+                    wordCount = o.WordCount;
+                }
 
-               if (o.Wordlist != null)
-               {
-                   wordlist = o.Wordlist;
-               }
+                if (o.Wordlist != null)
+                {
+                    wordlist = o.Wordlist;
+                }
 
-               Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
+                Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
             })
-            .WithParsed<ExtendedKeyOptions>(o => {
-               string mnemonic = null;
-               string passphrase = null;
-               string network = "main";
+            .WithParsed<ExtendedKeyOptions>(o =>
+            {
+                string mnemonic = null;
+                string passphrase = null;
+                string network = "main";
 
-               if (o.Mnemonic != null)
-               {
-                   mnemonic = o.Mnemonic;
-               }
-               else
-               {
-                   mnemonic = Console.ReadLine();
-               }
+                if (o.Mnemonic != null)
+                {
+                    mnemonic = o.Mnemonic;
+                }
+                else
+                {
+                    mnemonic = Console.ReadLine();
+                }
 
-               if (o.Passphrase != null)
-               {
-                   passphrase = o.Passphrase;
-               }
+                if (o.Passphrase != null)
+                {
+                    passphrase = o.Passphrase;
+                }
 
-               if (o.Testnet)
-               {
-                   network = "testnet";
-               }
-               else if (o.Regtest)
-               {
-                   network = "regtest";
-               }
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
 
-               var extKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
-               var wif = HdOperations.GetWif(extKey, network);
+                var extKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
+                var wif = HdOperations.GetWif(extKey, network);
 
-               Console.WriteLine(wif.ToString());
+                Console.WriteLine(wif.ToString());
             })
-            .WithParsed<ExtendedPubKeyOptions>(o => {
-               string wif;
-               string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-               string network = "main";
+            .WithParsed<ExtendedPubKeyOptions>(o =>
+            {
+                string wif;
+                string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
+                string network = "main";
 
-               if (o.Wif != null)
-               {
-                   wif = o.Wif;
-               }
-               else
-               {
-                   wif = Console.ReadLine();
-               }
+                if (o.Wif != null)
+                {
+                    wif = o.Wif;
+                }
+                else
+                {
+                    wif = Console.ReadLine();
+                }
 
-               if (o.Testnet)
-               {
-                   network = "testnet";
-               }
-               else if (o.Regtest)
-               {
-                   network = "regtest";
-               }
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
 
-               if (o.HdPath != null)
-               {
-                   hdPath = o.HdPath;
-               }
+                if (o.HdPath != null)
+                {
+                    hdPath = o.HdPath;
+                }
 
-               var extPubKey = HdOperations.GetExtendedPublicKey(wif, hdPath, network);
-               var extPubKeyWif = HdOperations.GetWif(extPubKey, network);
+                var extPubKey = HdOperations.GetExtendedPublicKey(wif, hdPath, network);
+                var extPubKeyWif = HdOperations.GetWif(extPubKey, network);
 
-               Console.WriteLine(extPubKeyWif.ToString());
+                Console.WriteLine(extPubKeyWif.ToString());
             })
-            .WithParsed<DeriveAddressOptions>(o => {
-               string wif;
-               int index = 1;
-               bool isChange = false;
-               string network = "main";
-               string type = "p2wpkh";
+            .WithParsed<DeriveAddressOptions>(o =>
+            {
+                string wif;
+                int index = 1;
+                bool isChange = false;
+                string network = "main";
+                string type = "p2wpkh";
 
-               if (o.Wif != null)
-               {
-                   wif = o.Wif;
-               }
-               else
-               {
-                   wif = Console.ReadLine();
-               }
+                if (o.Wif != null)
+                {
+                    wif = o.Wif;
+                }
+                else
+                {
+                    wif = Console.ReadLine();
+                }
 
-               if (o.Index != null)
-               {
-                   index = (int) o.Index;
-               }
+                if (o.Index != null)
+                {
+                    index = (int)o.Index;
+                }
 
-               if (o.IsChange)
-               {
-                   isChange = o.IsChange;
-               }
+                if (o.IsChange)
+                {
+                    isChange = o.IsChange;
+                }
 
-               if (o.Testnet)
-               {
-                   network = "testnet";
-               }
-               else if (o.Regtest)
-               {
-                   network = "regtest";
-               }
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
 
-               if (o.Type != null)
-               {
-                   type = o.Type;
-               }
+                if (o.Type != null)
+                {
+                    type = o.Type;
+                }
 
-               Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
+                Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
             })
-            .WithParsed<AddressToScriptPubKeyOptions>(o => {
-               string network = "main";
-               string address = null;
+            .WithParsed<AddressToScriptPubKeyOptions>(o =>
+            {
+                string network = "main";
+                string address = null;
 
-               if (o.Testnet)
-               {
-                   network = "testnet";
-               }
-               else if (o.Regtest)
-               {
-                   network = "regtest";
-               }
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else if (o.Regtest)
+                {
+                    network = "regtest";
+                }
 
-               if (o.Address != null)
-               {
-                   address = o.Address;
-               }
-               else
-               {
-                   address = Console.ReadLine();
-               }
+                if (o.Address != null)
+                {
+                    address = o.Address;
+                }
+                else
+                {
+                    address = Console.ReadLine();
+                }
 
-               Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
+                Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
             })
-            .WithParsed<NewWalletOptions>(o => {
+            .WithParsed<NewWalletOptions>(o =>
+            {
                 string mnemonic = null;
                 string name = Guid.NewGuid().ToString();
                 string network = "main";
@@ -240,7 +247,8 @@ namespace Liviano.CLI
 
                 Console.WriteLine(name);
             })
-            .WithParsed<WalletBalanceOptions>(o => {
+            .WithParsed<WalletBalanceOptions>(o =>
+            {
                 string walletId = null;
                 Config config = null;
 
@@ -331,7 +339,8 @@ namespace Liviano.CLI
                     }
                 }
             })
-            .WithParsed<NewAddressOptions>(o => {
+            .WithParsed<NewAddressOptions>(o =>
+            {
                 string walletId = null;
                 Config config = null;
 
@@ -395,7 +404,8 @@ namespace Liviano.CLI
 
                 Console.WriteLine($"{address.Address}");
             })
-            .WithParsed<SendOptions>(async o => {
+            .WithParsed<SendOptions>(async o =>
+            {
                 string walletId = null;
                 Config config = null;
 
@@ -462,11 +472,12 @@ namespace Liviano.CLI
                     Console.WriteLine($"{input.PrevOut.Hash} ({input.PrevOut.N})");
                 }
 
-                Console.WriteLine($"Fees: {new Money((long) tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
+                Console.WriteLine($"Fees: {new Money((long)tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
 
                 Console.WriteLine($"Hex: {tx.ToHex()}");
             })
-            .WithParsed<StartOptions>(o => {
+            .WithParsed<StartOptions>(o =>
+            {
                 string network = "main";
                 string walletId = null;
                 Config config = null;
@@ -514,6 +525,43 @@ namespace Liviano.CLI
                 config.SaveChanges();
 
                 LightClient.Start(config, o.Password, o.DateTime, o.DropTransactions);
+            })
+            .WithParsed<ElectrumTestOptions>(o =>
+            {
+                Config config;
+                string network;
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else
+                {
+                    network = "main";
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+                }
+                else
+                {
+                    config = new Config("electrum-test", network);
+                }
+
+                config.Network = network;
+
+                config.SaveChanges();
+
+                if (network == "main")
+                {
+
+                    LightClient.TestElectrumConnection("1HgFikZZi9C4t7B1gRohtiEon2FtmDvwnu", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74", Network.Main);
+                }
+                else
+                {
+                    LightClient.TestElectrumConnection("2NDkEKKqP5rqhMYBq4JSXn8LppFFdSg6gtn", "eae1eeba5a5fb87629e362e346688443d106bb4e835798ec0f311da75b9cc80f", Network.TestNet);
+                }
             });
         }
     }

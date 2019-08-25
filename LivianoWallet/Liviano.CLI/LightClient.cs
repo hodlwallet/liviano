@@ -20,10 +20,15 @@ using Liviano.Interfaces;
 using Liviano.Enums;
 
 using NBitcoin.DataEncoders;
+using System.Reflection;
+using Newtonsoft.Json;
+using Liviano.Electrum;
+using System.ComponentModel.DataAnnotations;
+using Liviano.Extensions;
 
 namespace Liviano.CLI
 {
-    public class LightClient
+    public static class LightClient
     {
         private static object _Lock = new object();
 
@@ -69,7 +74,7 @@ namespace Liviano.CLI
 
         private static PartialConcurrentChain GetChain()
         {
-            lock(_Lock)
+            lock (_Lock)
             {
                 if (_ConParams != null)
                 {
@@ -110,10 +115,10 @@ namespace Liviano.CLI
         {
             await Task.Factory.StartNew(() =>
             {
-                lock(_Lock)
+                lock (_Lock)
                 {
                     GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                    using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                    using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                     {
                         PartialConcurrentChain chain = GetChain();
                         chain.WriteTo(new BitcoinStream(fs, true));
@@ -331,6 +336,77 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed(walletManager);
         }
 
+        public static void TestElectrumConnection(string address, string txHash, Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            _Logger.Information("Running on {network}", network.Name);
+            _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
+
+            var recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
+
+            if (recentServers.Count == 0)
+            {
+                _Logger.Information("Looking for Electrum servers...");
+
+                JsonRpcClient.PopulateRecentlyConnectedServers(network);
+                recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
+            }
+
+            if (recentServers.Count == 0)
+            {
+                Debug.WriteLine("Found no one to connect :(");
+
+                // Try again!
+                TestElectrumConnection(address, txHash);
+
+                return;
+            }
+
+            Console.WriteLine("Connected servers:\n");
+
+            foreach(var s in recentServers)
+            {
+                Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version})");
+            }
+
+            const string CLIENT_NAME = "HODL Wallet";
+            System.Version PROTOCOL_VERSION = new System.Version("1.4");
+
+            try
+            {
+                var electrum = new ElectrumClient(recentServers);
+
+                var version = electrum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
+
+               Console.WriteLine("\nVersion of electrum server: {0}\n", version);
+               var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, network);
+               var amount = electrum.BlockchainScriptHashGetBalance(scriptHash).Result;
+               var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
+               var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
+               Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
+               Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
+
+               var utxoList = electrum.BlockchainScriptHashListUnspent(scriptHash).Result;
+               Console.WriteLine("List of Unspent Transactions:\n");
+
+               foreach (var tx in utxoList.Result)
+               {
+                   Console.WriteLine("Transaction Hash: {0}\n" +
+                                     "Transaction Position: {1}\n" +
+                                     "Transaction Value: {2}\n" +
+                                     "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
+               }
+
+               var txRaw = electrum.BlockchainTransactionGet(txHash).Result.Result;
+               Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
+            }
+            catch (Exception ex)
+            {
+               Console.WriteLine(ex.Message);
+            }
+        }
+
         private static void WaitUntilEscapeIsPressed(WalletManager walletManager)
         {
             bool quit = false;
@@ -374,10 +450,10 @@ namespace Liviano.CLI
 
         private static void Cleanup(WalletManager walletManager)
         {
-            lock(_Lock)
+            lock (_Lock)
             {
                 GetAddressManager().SavePeerFile(AddrmanFile(), _Network);
-                using(var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
+                using (var fs = File.Open(ChainFile(), FileMode.OpenOrCreate))
                 {
                     PartialConcurrentChain chain = GetChain();
 
@@ -450,9 +526,10 @@ namespace Liviano.CLI
 
             nodeConnectionParameters.UserAgent = Liviano.Version.UserAgent;
             nodeConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false , SkipPoWCheck = true});
+            nodeConnectionParameters.TemplateBehaviors.Add(new PartialChainBehavior(chain, _Network) { CanRespondToGetHeaders = false, SkipPoWCheck = true });
             nodeConnectionParameters.TemplateBehaviors.Add(new WalletSyncManagerBehavior(logger, walletSyncManager, scriptTypes));
-            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement() {
+            NodesGroup nodesGroup = new NodesGroup(network, nodeConnectionParameters, new NodeRequirement()
+            {
                 RequiredServices = NodeServices.Network
             });
 
@@ -492,7 +569,7 @@ namespace Liviano.CLI
                 scanLocation.Blocks.AddRange(
                     network.GetCheckpoints().Select(checkpoint => checkpoint.HashBlock)
                 );
-                
+
                 // Finally the closest on our partial chain to the creation of the wallet
                 scanLocation.Blocks.Add(closestChainedBlock.HashBlock);
 

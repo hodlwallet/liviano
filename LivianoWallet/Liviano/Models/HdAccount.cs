@@ -8,6 +8,7 @@ using System.Text;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using Liviano.Enums;
+using Liviano.Extensions;
 
 namespace Liviano.Models
 {

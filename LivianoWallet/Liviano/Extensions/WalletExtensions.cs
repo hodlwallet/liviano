@@ -13,7 +13,7 @@ using NBitcoin.RPC;
 using Liviano.Utilities;
 using Liviano.Enums;
 
-namespace Liviano
+namespace Liviano.Extensions
 {
     public static class WalletExtensions
     {

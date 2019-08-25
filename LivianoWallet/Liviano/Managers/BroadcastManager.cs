@@ -26,11 +26,11 @@ namespace Liviano.Managers
             _Nodes = nodeGroup.ConnectedNodes;
             this.Broadcasts = new ConcurrentDictionary<TransactionBroadcastEntry, object>(2, 0);
 
-            _EventHub = MessageHub.Instance;
+            _EventHub = new MessageHub();
 
         }
         //Concurrent dictionary ignoring the value
-        public ConcurrentDictionary<TransactionBroadcastEntry,object> Broadcasts { get; }
+        public ConcurrentDictionary<TransactionBroadcastEntry, object> Broadcasts { get; }
 
         public EventHandler<TransactionBroadcastEntry> TransactionStateChanged;
 
@@ -41,7 +41,7 @@ namespace Liviano.Managers
             if (broadcastEntry == null)
             {
                 broadcastEntry = new TransactionBroadcastEntry(transaction, state, errorMessage);
-                this.Broadcasts.TryAdd(broadcastEntry,new object());
+                this.Broadcasts.TryAdd(broadcastEntry, new object());
             }
             else if (broadcastEntry.State != state)
             {
