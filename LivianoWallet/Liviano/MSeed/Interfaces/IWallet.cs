@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 
-namespace Liviano.MSeed
+namespace Liviano.MSeed.Interfaces
 {
     public interface IWallet
     {

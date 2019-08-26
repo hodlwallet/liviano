@@ -4,12 +4,27 @@ using Newtonsoft.Json;
 
 using NBitcoin;
 
+using Liviano.Utilities.JsonConverters;
+
 namespace Liviano.MSeed.Interfaces
 {
     public interface IAccount
     {
         [JsonProperty(PropertyName = "id")]
         string Id { get; set; }
+
+        [JsonProperty(PropertyName = "accountType")]
+        string AccountType { get; set; }
+
+        [JsonProperty(PropertyName = "walletId")]
+        string WalletId { get; set; }
+
+        /// <summary>
+        /// The network this wallets belongs to.
+        /// </summary>
+        [JsonProperty(PropertyName = "network")]
+        [JsonConverter(typeof(NetworkConverter))]
+        Network Network { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         string Name { get; set; }
@@ -31,7 +46,7 @@ namespace Liviano.MSeed.Interfaces
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        BitcoinAddress GetReceivingAddress(int n);
+        BitcoinAddress[] GetReceivingAddress(int n);
 
         /// <summary>
         /// Gets 1 change address
@@ -44,6 +59,6 @@ namespace Liviano.MSeed.Interfaces
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        BitcoinAddress GetChangeAddress(int n);
+        BitcoinAddress[] GetChangeAddress(int n);
     }
 }
