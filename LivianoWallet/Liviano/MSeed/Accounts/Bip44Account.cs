@@ -23,11 +23,23 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using NBitcoin;
+
 namespace Liviano.MSeed.Accounts
 {
     public class Bip44Account : Bip32Account
     {
         public override string AccountType => "bip44";
         public override string HdPathFormat => "m/44'/0'/{0}'";
+
+        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Legacy;
+        public override ScriptPubKeyType ScriptPubKeyType
+        {
+            get => _ScriptPubKeyType;
+            set
+            {
+                _ScriptPubKeyType = value;
+            }
+        }
     }
 }

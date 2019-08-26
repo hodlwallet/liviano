@@ -30,17 +30,31 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.MSeed.Interfaces;
+using Newtonsoft.Json.Converters;
 
 namespace Liviano.MSeed.Accounts
 {
     public abstract class HdAccount : IAccount
     {
+        /// <summary>
+        /// Gap limit is the amount of addresses we need to find "empty"
+        /// in order to consider to not continue looking when syncing
+        /// </summary>
         public const int GAP_LIMIT = 20;
 
+        /// <summary>
+        /// Id of the account, usually a guid
+        /// </summary>
         public string Id { get; set; }
 
+        /// <summary>
+        /// Account type, a string e.g.: "bip141"
+        /// </summary>
         public abstract string AccountType { get; }
 
+        /// <summary>
+        /// The id of the wallet that this belongs to
+        /// </summary>
         public string WalletId { get; set; }
 
         /// <summary>
@@ -77,12 +91,6 @@ namespace Liviano.MSeed.Accounts
         [JsonProperty(PropertyName = "hdPath")]
         public string HdPath { get; set; }
 
-        public Network Network { get; set; }
-
-        public string Name { get; set; }
-
-        public List<string> TxIds { get; set; }
-
         /// <summary>
         /// An extended priv key used to generate addresses.
         /// </summary>
@@ -101,12 +109,19 @@ namespace Liviano.MSeed.Accounts
         [JsonProperty(PropertyName = "index")]
         public int Index { get; set; }
 
+        [JsonProperty(PropertyName = "scriptPubKeyType")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public abstract ScriptPubKeyType ScriptPubKeyType { get; set; }
+
+        #region IAccountFields
+        public Network Network { get; set; }
+        public string Name { get; set; }
+        public List<string> TxIds { get; set; }
+
         public abstract BitcoinAddress GetReceiveAddress();
-
         public abstract BitcoinAddress[] GetReceiveAddress(int n);
-
         public abstract BitcoinAddress GetChangeAddress();
-
         public abstract BitcoinAddress[] GetChangeAddress(int n);
+        #endregion
     }
 }

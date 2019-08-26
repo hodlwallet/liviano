@@ -27,41 +27,16 @@ using System;
 using System.Collections.Generic;
 
 using NBitcoin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Liviano.MSeed.Accounts
 {
     public abstract class Bip32Account : HdAccount
     {
-        public override string AccountType => "bip32";
-
-        // Because of hodl wallet 1.0
         public abstract string HdPathFormat { get; }
 
-        // Our default is bech32
-        const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
-
-        ScriptPubKeyType _ScriptPubKeyType;
-
-        [JsonProperty(PropertyName = "scriptPubKeyType")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public ScriptPubKeyType ScriptPubKeyType
-        {
-            get => _ScriptPubKeyType;
-            set
-            {
-                if (value != ScriptPubKeyType.Segwit && value != ScriptPubKeyType.Legacy && value != ScriptPubKeyType.SegwitP2SH)
-                    throw new ArgumentException($"Invalid script type {value.ToString()}");
-
-                _ScriptPubKeyType = value;
-            }
-        }
-
-        public Bip32Account(int index = 0)
+        protected Bip32Account(int index = 0)
         {
             Id = Guid.NewGuid().ToString();
-            ScriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;

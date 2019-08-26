@@ -49,7 +49,7 @@ namespace Liviano.MSeed
 
         ExtKey _ExtKey;
 
-        public string[] AccountTypes => new string[] { "bip141", "paper" };
+        public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper" };
 
         public string Id { get; set; }
 
@@ -127,6 +127,12 @@ namespace Liviano.MSeed
 
             switch (accountType)
             {
+                case "bip44":
+                    throw new NotImplementedException("bip44 is not implemented yet");
+                case "bip49":
+                    throw new NotImplementedException("bip49 is not implemented yet");
+                case "bip84":
+                    throw new NotImplementedException("bip84 is not implemented yet");
                 case "bip141":
                     return NewBip141Account(accountName, options);
                 case "paper":
