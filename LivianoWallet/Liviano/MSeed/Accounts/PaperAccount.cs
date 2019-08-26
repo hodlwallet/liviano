@@ -32,6 +32,7 @@ using NBitcoin;
 
 using Liviano.MSeed.Interfaces;
 using Liviano.Utilities;
+using Liviano.Utilities.JsonConverters;
 
 namespace Liviano.MSeed.Accounts
 {
@@ -54,9 +55,11 @@ namespace Liviano.MSeed.Accounts
         public ScriptPubKeyType ScriptPubKeyType { get; set; }
 
         [JsonProperty(PropertyName = "privateKey")]
+        [JsonConverter(typeof(PrivateKeyConverter))]
         public Key PrivateKey { get; set; }
 
         [JsonProperty(PropertyName = "publicKey")]
+        [JsonConverter(typeof(PublicKeyConverter))]
         public PubKey PublicKey { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null)
