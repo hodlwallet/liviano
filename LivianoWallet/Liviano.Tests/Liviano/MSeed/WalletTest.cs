@@ -28,8 +28,8 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.Equal("Testy Wallet", w.Name);
             Assert.NotNull(w.Id);
 
-            Assert.True(JsonConvert.SerializeObject(w).Contains($"\"id\":\"{w.Id}\""));
-            Assert.True(JsonConvert.SerializeObject(w).Contains($"\"accountTypes\":[{GetExpectedAccountTypesStr(w)}]"));
+            Assert.Contains($"\"id\":\"{w.Id}\"", JsonConvert.SerializeObject(w));
+            Assert.Contains($"\"accountTypes\":[{GetExpectedAccountTypesStr(w)}]", JsonConvert.SerializeObject(w));
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace Liviano.Tests.Liviano.MSeed
 
             w.AddAccount("bip141", "Old Hodl Account");
 
-            Assert.Equal(1, w.Accounts.Count);
+            Assert.NotEmpty(w.Accounts);
 
             var a = w.Accounts[0];
 

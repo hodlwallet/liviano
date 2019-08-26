@@ -1,5 +1,7 @@
 using Xunit;
 
+using NBitcoin;
+
 using Liviano.MSeed;
 using Liviano.MSeed.Accounts;
 
@@ -20,6 +22,16 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.NotNull(address);
 
             Assert.Equal("bc1qgv52mt89gpev6p56huggl970sppqkgftxakv7f", address.ToString());
+
+            // Reset account count to test legacy address generation
+            account.ExternalAddressesCount = 0;
+            account.ScriptPubKeyType = ScriptPubKeyType.Legacy;
+
+            address = account.GetReceiveAddress();
+
+            Assert.NotNull(address);
+
+            Assert.Equal("17871ErDqdevLTLWBH6WzjUc1EKGDQzCMA", address.ToString());
         }
 
         Bip141Account GetAccount()
