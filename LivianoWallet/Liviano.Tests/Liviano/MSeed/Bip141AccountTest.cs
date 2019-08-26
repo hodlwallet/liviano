@@ -15,7 +15,7 @@ namespace Liviano.Tests.Liviano.MSeed
         {
             var account = GetAccount();
 
-            var address = account.GetReceivingAddress();
+            var address = account.GetReceiveAddress();
 
             Assert.NotNull(address);
 

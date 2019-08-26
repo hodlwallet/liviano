@@ -45,7 +45,7 @@ namespace Liviano.MSeed.Accounts
             HdRootPath = DEFAULT_HD_ROOT_PATH;
         }
 
-        public override BitcoinAddress GetReceivingAddress()
+        public override BitcoinAddress GetReceiveAddress()
         {
             var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
@@ -55,7 +55,7 @@ namespace Liviano.MSeed.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetReceivingAddress(int n = GAP_LIMIT)
+        public override BitcoinAddress[] GetReceiveAddress(int n = GAP_LIMIT)
         {
             var addresses = new List<BitcoinAddress>();
 

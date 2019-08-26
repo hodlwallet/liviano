@@ -36,14 +36,14 @@ namespace Liviano.MSeed.Interfaces
         /// Gets 1 receiving address
         /// </summary>
         /// <returns></returns>
-        BitcoinAddress GetReceivingAddress();
+        BitcoinAddress GetReceiveAddress();
 
         /// <summary>
         /// Gets n receiving addresses
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        BitcoinAddress[] GetReceivingAddress(int n);
+        BitcoinAddress[] GetReceiveAddress(int n);
 
         /// <summary>
         /// Gets 1 change address

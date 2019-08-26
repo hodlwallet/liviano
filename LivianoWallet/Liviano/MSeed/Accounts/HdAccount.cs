@@ -71,9 +71,9 @@ namespace Liviano.MSeed.Accounts
         [JsonProperty(PropertyName = "extPrivKey")]
         public string ExtendedPrivKey { get; set; }
 
-        public abstract BitcoinAddress GetReceivingAddress();
+        public abstract BitcoinAddress GetReceiveAddress();
 
-        public abstract BitcoinAddress[] GetReceivingAddress(int n);
+        public abstract BitcoinAddress[] GetReceiveAddress(int n);
 
         public abstract BitcoinAddress GetChangeAddress();
 
