@@ -16,7 +16,7 @@ namespace Liviano.MSeed.Accounts
 
         public string Id { get; set; }
 
-        public abstract string AccountType { get; set; }
+        public abstract string AccountType { get; }
 
         public string WalletId { get; set; }
 

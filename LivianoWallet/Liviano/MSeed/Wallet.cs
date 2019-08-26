@@ -11,6 +11,7 @@ using Liviano.Utilities.JsonConverters;
 using Liviano.MSeed.Interfaces;
 using Liviano.MSeed.Accounts;
 using Liviano.Utilities;
+using System.Reflection;
 
 namespace Liviano.MSeed
 {
@@ -23,7 +24,7 @@ namespace Liviano.MSeed
 
         ExtKey _ExtKey;
 
-        public string[] AccountTypes => new string[] { "bip141" };
+        public string[] AccountTypes => new string[] { "bip141", "paper" };
 
         public string Id { get; set; }
 
@@ -78,21 +79,21 @@ namespace Liviano.MSeed
             return _PrivateKey;
         }
 
-        public void AddAccount(string accountType = "", string accountName = null)
+        public void AddAccount(string accountType = "", string accountName = null, object options = null)
         {
-            var account = NewAccount(accountType, accountName);
+            var account = NewAccount(accountType, accountName, options);
 
             Accounts.Add(account);
         }
 
-        IAccount NewAccount(string accountType = "", string accountName = null)
+        IAccount NewAccount(string accountType = "", string accountName = null, object options = null)
         {
             Guard.NotEmpty(accountType, nameof(accountType));
 
             if (!AccountTypes.Contains(accountType))
                 throw new ArgumentException($"Invalid account type: {accountType}");
 
-             // TODO get this from the wallet I guess we need translations in Liviano as well
+            // TODO get this from the wallet I guess we need translations in Liviano as well
             if (string.IsNullOrEmpty(accountName) && Accounts.Count == 0)
                 accountName = DEFAULT_ACCOUNT_NAME;
 
@@ -102,16 +103,38 @@ namespace Liviano.MSeed
             switch (accountType)
             {
                 case "bip141":
-                    return NewBip141Account(accountName);
-                default:
-                    break;
+                    return NewBip141Account(accountName, options);
+                case "paper":
+                    return NewPaperAccount(accountName, options);
             }
 
             // This is a default account.
-            return NewBip141Account(accountName);
+            return NewBip141Account(accountName, options);
         }
 
-        Bip141Account NewBip141Account(string accountName)
+        PaperAccount NewPaperAccount(string accountName, object options)
+        {
+            var kwargs = OptionsToDict(options);
+
+            string wif = kwargs.ContainsKey("Wif")
+                ? (string)kwargs["Wif"]
+                : null;
+
+            ScriptPubKeyType scriptPubKeyType = kwargs.ContainsKey("ScriptPubKeyType")
+                ? (ScriptPubKeyType)kwargs["ScriptPubKeyType"]
+                : PaperAccount.DEFAULT_SCRIPT_PUB_KEY_TYPE;
+
+            var account = new PaperAccount(
+                accountName,
+                scriptPubKeyType,
+                wif,
+                Network
+            );
+
+            return account;
+        }
+
+        Bip141Account NewBip141Account(string accountName, object options = null)
         {
             var account = new Bip141Account()
             {
@@ -155,6 +178,29 @@ namespace Liviano.MSeed
                 _ExtKey = new ExtKey(_PrivateKey, ChainCode);
 
             return _ExtKey;
+        }
+
+        Dictionary<string, object> OptionsToDict(object options = null)
+        {
+            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+
+            if (options is null) return kwargs;
+
+            foreach (PropertyInfo prop in options.GetType().GetProperties())
+            {
+                string propName = prop.Name;
+                var val = options.GetType().GetProperty(propName).GetValue(options, null);
+                if (val != null)
+                {
+                    kwargs.Add(propName, val);
+                }
+                else
+                {
+                    kwargs.Add(propName, null);
+                }
+            }
+
+            return kwargs;
         }
     }
 }

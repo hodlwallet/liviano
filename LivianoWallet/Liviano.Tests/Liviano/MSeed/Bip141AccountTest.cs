@@ -4,7 +4,6 @@ using NBitcoin;
 
 using Liviano.MSeed;
 using Liviano.MSeed.Accounts;
-using System.Reflection;
 
 namespace Liviano.Tests.Liviano.MSeed
 {

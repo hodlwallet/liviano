@@ -13,13 +13,7 @@ namespace Liviano.MSeed.Accounts
         // Because of hodl wallet 1.0
         const string DEFAULT_HD_ROOT_PATH = "m/0'";
 
-        public override string AccountType
-        {
-            get => "bip141";
-            set
-            {
-            }
-        }
+        public override string AccountType => "bip141";
 
         ScriptPubKeyType _ScriptPubKeyType;
         public ScriptPubKeyType ScriptPubKeyType

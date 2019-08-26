@@ -33,7 +33,7 @@ namespace Liviano.Tests.Liviano.MSeed
         }
 
         [Fact]
-        public void TestAddAccount()
+        public void TestAddBip141Account()
         {
             var w = new Wallet();
 
@@ -49,10 +49,27 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.NotEmpty(a.Id);
         }
 
+        [Fact]
+        public void TestAddPaperAccount()
+        {
+            var w = new Wallet();
+
+            w.Init(MNEMONIC);
+
+            w.AddAccount("paper", "My Paper Wallet");
+
+            Assert.NotEmpty(w.Accounts);
+
+            var a = w.Accounts[0];
+
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
+        }
+
         string GetExpectedAccountTypesStr(Wallet wallet)
         {
             var expectedAccountTypes = string.Empty;
-            foreach(var at in wallet.AccountTypes)
+            foreach (var at in wallet.AccountTypes)
                 expectedAccountTypes += $"\"{at}\",";
             expectedAccountTypes = expectedAccountTypes.Remove(expectedAccountTypes.Length - 1);
 

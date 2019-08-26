@@ -14,7 +14,7 @@ namespace Liviano.MSeed.Interfaces
         string Id { get; set; }
 
         [JsonProperty(PropertyName = "accountType")]
-        string AccountType { get; set; }
+        string AccountType { get; }
 
         [JsonProperty(PropertyName = "walletId")]
         string WalletId { get; set; }
