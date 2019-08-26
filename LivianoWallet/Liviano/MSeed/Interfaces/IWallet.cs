@@ -43,6 +43,13 @@ namespace Liviano.MSeed.Interfaces
         string EncryptedSeed { get; set; }
 
         /// <summary>
+        /// The chain code.
+        /// </summary>
+        [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ByteArrayConverter))]
+        byte[] ChainCode { get; set; }
+
+        /// <summary>
         /// Tx ids linked to the wallet, usually this will be located also in the accounts,
         /// the wallet will find them in {walletId}/transactions
         /// </summary>
@@ -61,7 +68,7 @@ namespace Liviano.MSeed.Interfaces
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(Network network = null, List<string> txIds = null, List<Dictionary<string, string>> accountIds = null);
+        void Init(string mnemonic, string password = "", string name = null, Network network = null);
 
         /// <summary>
         /// Gets a private key this method also caches it on memory

@@ -29,9 +29,6 @@ namespace Liviano.MSeed.Interfaces
         [JsonProperty(PropertyName = "name")]
         string Name { get; set; }
 
-        [JsonProperty(PropertyName = "addressCount")]
-        int AddressCount { get; set; }
-
         [JsonProperty(PropertyName = "txIds")]
         List<string> TxIds { get; set; }
 

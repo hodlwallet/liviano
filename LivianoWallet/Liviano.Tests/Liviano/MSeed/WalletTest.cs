@@ -12,6 +12,8 @@ namespace Liviano.Tests.Liviano.MSeed
 {
     public class WalletTest
     {
+        const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+
         [Fact]
         public void TestWalletInit()
         {
@@ -20,24 +22,41 @@ namespace Liviano.Tests.Liviano.MSeed
                 Name = "Testy Wallet"
             };
 
-            w.Init();
+            w.Init(MNEMONIC);
 
             Assert.Equal(Network.Main, w.Network);
             Assert.Equal("Testy Wallet", w.Name);
             Assert.NotNull(w.Id);
 
             Assert.True(JsonConvert.SerializeObject(w).Contains($"\"id\":\"{w.Id}\""));
+            Assert.True(JsonConvert.SerializeObject(w).Contains($"\"accountTypes\":[{GetExpectedAccountTypesStr(w)}]"));
+        }
 
-            Console.WriteLine(JsonConvert.SerializeObject(w));
+        [Fact]
+        public void TestAddAccount()
+        {
+            var w = new Wallet();
 
+            w.Init(MNEMONIC);
+
+            w.AddAccount("bip141", "Old Hodl Account");
+
+            Assert.Equal(1, w.Accounts.Count);
+
+            var a = w.Accounts[0];
+
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
+        }
+
+        string GetExpectedAccountTypesStr(Wallet wallet)
+        {
             var expectedAccountTypes = string.Empty;
-            foreach(var at in w.AccountTypes)
+            foreach(var at in wallet.AccountTypes)
                 expectedAccountTypes += $"\"{at}\",";
             expectedAccountTypes = expectedAccountTypes.Remove(expectedAccountTypes.Length - 1);
 
-            Console.WriteLine(expectedAccountTypes);
-
-            Assert.True(JsonConvert.SerializeObject(w).Contains($"\"accountTypes\":[{expectedAccountTypes}]"));
+            return expectedAccountTypes;
         }
     }
 }

@@ -18,23 +18,25 @@ namespace Liviano.MSeed.Accounts
             get => "bip141";
             set
             {
-                AccountType = value;
             }
         }
 
-        public ScriptPubKeyType ScriptPubKeyType {
-            get => ScriptPubKeyType;
+        ScriptPubKeyType _ScriptPubKeyType;
+        public ScriptPubKeyType ScriptPubKeyType
+        {
+            get => _ScriptPubKeyType;
             set
             {
-                if (value != ScriptPubKeyType.Segwit || value != ScriptPubKeyType.Legacy || value != ScriptPubKeyType.SegwitP2SH)
+                if (value != ScriptPubKeyType.Segwit && value != ScriptPubKeyType.Legacy && value != ScriptPubKeyType.SegwitP2SH)
                     throw new ArgumentException($"Invalid script type {value.ToString()}");
 
-                ScriptPubKeyType = value;
+                _ScriptPubKeyType = value;
             }
         }
 
         public Bip141Account()
         {
+            Id = Guid.NewGuid().ToString();
             ScriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
             InternalAddressesCount = 0;
@@ -43,17 +45,17 @@ namespace Liviano.MSeed.Accounts
             HdRootPath = DEFAULT_HD_ROOT_PATH;
         }
 
-        public override BitcoinAddress GetReceivingAddress(bool incrementCount = false)
+        public override BitcoinAddress GetReceivingAddress()
         {
             var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
-            if (incrementCount) ExternalAddressesCount++;
+            ExternalAddressesCount++;
 
             return address;
         }
 
-        public override BitcoinAddress[] GetReceivingAddress(int n = GAP_LIMIT, bool incrementCount = false)
+        public override BitcoinAddress[] GetReceivingAddress(int n = GAP_LIMIT)
         {
             var addresses = new List<BitcoinAddress>();
 
@@ -63,23 +65,23 @@ namespace Liviano.MSeed.Accounts
 
                 addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
 
-                if (incrementCount) ExternalAddressesCount++;
+                ExternalAddressesCount++;
             }
 
             return addresses.ToArray();
         }
 
-        public override BitcoinAddress GetChangeAddress(bool incrementCount = false)
+        public override BitcoinAddress GetChangeAddress()
         {
             var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
-            if (incrementCount) InternalAddressesCount++;
+            InternalAddressesCount++;
 
             return address;
         }
 
-        public override BitcoinAddress[] GetChangeAddress(int n = GAP_LIMIT, bool incrementCount = false)
+        public override BitcoinAddress[] GetChangeAddress(int n = GAP_LIMIT)
         {
             var addresses = new List<BitcoinAddress>();
 
@@ -89,7 +91,7 @@ namespace Liviano.MSeed.Accounts
 
                 addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
 
-                if (incrementCount) InternalAddressesCount++;
+                InternalAddressesCount++;
             }
 
             return addresses.ToArray();
