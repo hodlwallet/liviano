@@ -33,6 +33,7 @@ using NBitcoin;
 using Liviano.MSeed.Interfaces;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
+using Newtonsoft.Json.Converters;
 
 namespace Liviano.MSeed.Accounts
 {
@@ -52,6 +53,8 @@ namespace Liviano.MSeed.Accounts
 
         public List<string> TxIds { get; set; }
 
+        [JsonProperty(PropertyName = "scriptPubKeyType")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public ScriptPubKeyType ScriptPubKeyType { get; set; }
 
         [JsonProperty(PropertyName = "privateKey")]
@@ -78,12 +81,12 @@ namespace Liviano.MSeed.Accounts
 
         public BitcoinAddress GetChangeAddress()
         {
-            throw new ArgumentException($"Paper accounts cannot generate change addresses");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
         }
 
         public BitcoinAddress[] GetChangeAddress(int n)
         {
-            throw new ArgumentException($"Paper accounts cannot generate change addresses");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
         }
 
         public BitcoinAddress GetReceiveAddress()
@@ -95,7 +98,7 @@ namespace Liviano.MSeed.Accounts
 
         public BitcoinAddress[] GetReceiveAddress(int n)
         {
-            throw new ArgumentException($"Paper accounts cannot generate more than 1 and only 1 address");
+            throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
         void Initialize(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null)

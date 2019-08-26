@@ -1,8 +1,8 @@
-using NBitcoin;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
+
+using Newtonsoft.Json;
+
+using NBitcoin;
 
 namespace Liviano.Utilities.JsonConverters
 {

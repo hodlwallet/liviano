@@ -25,9 +25,9 @@
 // THE SOFTWARE.
 namespace Liviano.MSeed.Accounts
 {
-    public class Bip84Account : Bip32Account
+    public class Bip49Account : Bip32Account
     {
-        public override string AccountType => "bip84";
-        public override string HdPathFormat => "m/84'/0'/{0}'";
+        public override string AccountType => "bip49";
+        public override string HdPathFormat => "m/49'/0'/{0}'";
     }
 }
