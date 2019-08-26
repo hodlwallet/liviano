@@ -47,7 +47,7 @@ namespace Liviano.MSeed.Accounts
             return pubKey.GetAddress(ScriptPubKeyType, Network);
         }
 
-        public override BitcoinAddress[] GetReceivingAddress(int n)
+        public override BitcoinAddress[] GetReceivingAddress(int n = GAP_LIMIT)
         {
             var addresses = new List<BitcoinAddress>();
 
@@ -68,7 +68,7 @@ namespace Liviano.MSeed.Accounts
             return pubKey.GetAddress(ScriptPubKeyType, Network);
         }
 
-        public override BitcoinAddress[] GetChangeAddress(int n)
+        public override BitcoinAddress[] GetChangeAddress(int n = GAP_LIMIT)
         {
             var addresses = new List<BitcoinAddress>();
 
