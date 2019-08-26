@@ -10,7 +10,8 @@ namespace Liviano.MSeed.Accounts
         // Our default is bech32
         const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
-        PubKey _PubKey;
+        // This was chosen because of hodl wallet 1.0
+        const string DEFAULT_HD_ROOT_PATH = "m/0'";
 
         public override string AccountType
         {
@@ -38,6 +39,8 @@ namespace Liviano.MSeed.Accounts
 
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;
+
+            HdRootPath = DEFAULT_HD_ROOT_PATH;
         }
 
         public override BitcoinAddress GetReceivingAddress()

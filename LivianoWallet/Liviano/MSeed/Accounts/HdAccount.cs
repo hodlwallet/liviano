@@ -13,7 +13,7 @@ namespace Liviano.MSeed.Accounts
     public abstract class HdAccount : IAccount
     {
         public const int GAP_LIMIT = 20;
-        
+
         public string Id { get; set; }
 
         public abstract string AccountType { get; set; }

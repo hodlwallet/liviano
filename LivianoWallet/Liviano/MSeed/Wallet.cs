@@ -15,6 +15,8 @@ namespace Liviano.MSeed
     {
         Key _PrivateKey;
 
+        public string[] AccountTypes => new string[] { "bip141" };
+
         public string Id { get; set; }
 
         public string Name { get; set; }

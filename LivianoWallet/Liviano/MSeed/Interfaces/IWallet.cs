@@ -11,12 +11,15 @@ namespace Liviano.MSeed.Interfaces
 {
     public interface IWallet
     {
+        [JsonProperty(PropertyName = "accountTypes")]
+        string[] AccountTypes { get; }
+
         /// <summary>
         /// Id of the wallet, this will be in the filesystem
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "id")]
-        string Id { get; set; }
+        string Id { get; }
 
         /// <summary>
         /// Name to show for the wallet, probably user provided or default

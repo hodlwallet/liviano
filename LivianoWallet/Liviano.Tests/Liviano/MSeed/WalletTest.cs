@@ -27,6 +27,17 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.NotNull(w.Id);
 
             Assert.True(JsonConvert.SerializeObject(w).Contains($"\"id\":\"{w.Id}\""));
+
+            Console.WriteLine(JsonConvert.SerializeObject(w));
+
+            var expectedAccountTypes = string.Empty;
+            foreach(var at in w.AccountTypes)
+                expectedAccountTypes += $"\"{at}\",";
+            expectedAccountTypes = expectedAccountTypes.Remove(expectedAccountTypes.Length - 1);
+
+            Console.WriteLine(expectedAccountTypes);
+
+            Assert.True(JsonConvert.SerializeObject(w).Contains($"\"accountTypes\":[{expectedAccountTypes}]"));
         }
     }
 }
