@@ -4,6 +4,7 @@ using NBitcoin;
 
 using Liviano.MSeed;
 using Liviano.MSeed.Accounts;
+using System.Reflection;
 
 namespace Liviano.Tests.Liviano.MSeed
 {
@@ -32,6 +33,22 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.NotNull(address);
 
             Assert.Equal("17871ErDqdevLTLWBH6WzjUc1EKGDQzCMA", address.ToString());
+
+            account.ScriptPubKeyType = ScriptPubKeyType.Segwit;
+
+            address = account.GetChangeAddress();
+
+            Assert.NotNull(account);
+            Assert.Equal("bc1qunmfkdmckn76c8nmf3g22du699gne5q8c3xqhl", address.ToString());
+
+            // generate legacy change address for some reason... should never be called
+            account.InternalAddressesCount = 0;
+            account.ScriptPubKeyType = ScriptPubKeyType.Legacy;
+
+            address = account.GetChangeAddress();
+
+            Assert.NotNull(address);
+            Assert.Equal("1MseVFBWLkbPeGMpkAsahBujinBq3QjGo4", address.ToString());
         }
 
         Bip141Account GetAccount()
