@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using NBitcoin;
 
@@ -6,7 +7,10 @@ namespace Liviano.MSeed.Accounts
 {
     public class Bip141Account : HdAccount
     {
-        const ScriptType DEFAULT_SCRIPT_TYPE = ScriptType.P2WPKH;
+        // Our default is bech32
+        const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
+
+        PubKey _PubKey;
 
         public override string AccountType
         {
@@ -17,40 +21,65 @@ namespace Liviano.MSeed.Accounts
             }
         }
 
-        public ScriptType ScriptType {
-            get => ScriptType;
+        public ScriptPubKeyType ScriptPubKeyType {
+            get => ScriptPubKeyType;
             set
             {
-                if (value != ScriptType.P2WPKH || value != ScriptType.P2PKH)
+                if (value != ScriptPubKeyType.Segwit || value != ScriptPubKeyType.Legacy)
                     throw new ArgumentException($"Invalid script type {value.ToString()}");
 
-                ScriptType = value;
+                ScriptPubKeyType = value;
             }
         }
 
         public Bip141Account()
         {
-            ScriptType = DEFAULT_SCRIPT_TYPE;
+            ScriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
+
+            InternalAddressesCount = 0;
+            ExternalAddressesCount = 0;
         }
 
         public override BitcoinAddress GetReceivingAddress()
         {
-            throw new NotImplementedException("Not implemented");
+            var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
+
+            return pubKey.GetAddress(ScriptPubKeyType, Network);
         }
 
         public override BitcoinAddress[] GetReceivingAddress(int n)
         {
-            throw new NotImplementedException("Not implemented");
+            var addresses = new List<BitcoinAddress>();
+
+            for (int i = 0; i < n; i++)
+            {
+                var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
+
+                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
+            }
+
+            return addresses.ToArray();
         }
 
         public override BitcoinAddress GetChangeAddress()
         {
-            throw new NotImplementedException("Not implemented");
+            var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
+
+            return pubKey.GetAddress(ScriptPubKeyType, Network);
         }
 
         public override BitcoinAddress[] GetChangeAddress(int n)
         {
-            throw new NotImplementedException("Not implemented");
+            var addresses = new List<BitcoinAddress>();
+
+            for (int i = 0; i < n; i++)
+            {
+                var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
+
+                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
+            }
+
+            return addresses.ToArray();
         }
     }
 }
