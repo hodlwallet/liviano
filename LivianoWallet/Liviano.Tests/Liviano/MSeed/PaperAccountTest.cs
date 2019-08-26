@@ -29,6 +29,7 @@ using NBitcoin;
 
 using Liviano.MSeed;
 using Liviano.MSeed.Accounts;
+using System;
 
 namespace Liviano.Tests.Liviano.MSeed
 {
@@ -44,6 +45,14 @@ namespace Liviano.Tests.Liviano.MSeed
             var a = GetAccount(ScriptPubKeyType.Segwit);
 
             Assert.NotEqual(w.GetPrivateKey(), a.PrivateKey);
+        }
+
+        [Fact]
+        public void TestCannotGenerateChangeAddress()
+        {
+            var a = GetAccount(ScriptPubKeyType.Legacy);
+
+            Assert.Throws<ArgumentException>(() => a.GetChangeAddress());
         }
 
         [Fact]
@@ -71,13 +80,9 @@ namespace Liviano.Tests.Liviano.MSeed
             var w = GetWallet();
 
             if (wif is null)
-            {
                 w.AddAccount("paper", "My Paper Wallet", new { ScriptPubKeyType = scriptPubKeyType });
-            }
             else
-            {
                 w.AddAccount("paper", "My Paper Wallet", new { Wif = wif, ScriptPubKeyType = scriptPubKeyType });
-            }
 
             return (PaperAccount)w.Accounts[0];
         }

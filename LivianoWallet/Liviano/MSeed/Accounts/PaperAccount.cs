@@ -26,21 +26,22 @@
 using System;
 using System.Collections.Generic;
 
+using Newtonsoft.Json;
+
 using NBitcoin;
 
 using Liviano.MSeed.Interfaces;
 using Liviano.Utilities;
-using System.ComponentModel.Design;
 
 namespace Liviano.MSeed.Accounts
 {
     public class PaperAccount : IAccount
     {
+        public string AccountType => "paper";
+
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
         public string Id { get; set; }
-
-        public string AccountType => "paper";
 
         public string WalletId { get; set; }
 
@@ -52,8 +53,10 @@ namespace Liviano.MSeed.Accounts
 
         public ScriptPubKeyType ScriptPubKeyType { get; set; }
 
+        [JsonProperty(PropertyName = "privateKey")]
         public Key PrivateKey { get; set; }
 
+        [JsonProperty(PropertyName = "publicKey")]
         public PubKey PublicKey { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null)

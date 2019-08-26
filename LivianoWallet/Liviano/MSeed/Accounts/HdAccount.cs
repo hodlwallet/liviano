@@ -1,11 +1,34 @@
-using System;
+//
+// PaperAccount.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 using System.Collections.Generic;
 
 using NBitcoin;
 
 using Newtonsoft.Json;
 
-using Liviano.MSeed;
 using Liviano.MSeed.Interfaces;
 
 namespace Liviano.MSeed.Accounts
@@ -41,17 +64,18 @@ namespace Liviano.MSeed.Accounts
         public Wallet Wallet { get; set; }
 
         /// <summary>
-        /// Hd root path, e.g. "m/0'", "m/84'/0'/0'"
-        /// these will be change to full paths, e.g:
+        /// Hd path, e.g. "m/0'", "m/84'/0'/0'"
+        /// these will be change to full paths, with addresses, e.g:
         ///
-        /// "m/84'/0'/2'/0/1 => For the 2nd address of account #3
+        /// "m/84'/0'/2'/0/1 => For the 2nd, receiving (0), address of account #3
         ///                     rootPath => "m/84'/0'/2'"
         ///
-        /// "m/0'/0/1        => For the 2nd address of account #1 (and only)
+        /// "m/0'/0/1        => For the 2nd, receiving (0), address of account #1 (and only)
         ///                     rootPath => "m/0'"
         /// </summary>
         /// <value></value>
-        public string HdRootPath { get; set; }
+        [JsonProperty(PropertyName = "hdPath")]
+        public string HdPath { get; set; }
 
         public Network Network { get; set; }
 
@@ -70,6 +94,12 @@ namespace Liviano.MSeed.Accounts
         /// </summary>
         [JsonProperty(PropertyName = "extPrivKey")]
         public string ExtendedPrivKey { get; set; }
+
+        /// <summary>
+        /// The account index, corresponding to e.g.: m/{0}'
+        /// </summary>
+        [JsonProperty(PropertyName = "index")]
+        public int Index { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress();
 
