@@ -65,6 +65,9 @@ namespace Liviano.MSeed
 
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
+
+            _ = GetPrivateKey(password);
+            _ = GetExtendedKey(password);
         }
 
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
@@ -118,6 +121,12 @@ namespace Liviano.MSeed
                 Wallet = this,
                 Network = Network
             };
+
+            var extPrivKey = _ExtKey.Derive(new KeyPath(account.HdRootPath));
+            var extPubKey = extPrivKey.Neuter();
+
+            account.ExtendedPrivKey = extPrivKey.ToString(Network);
+            account.ExtendedPubKey = extPubKey.ToString(Network);
 
             return account;
         }
