@@ -35,32 +35,62 @@ namespace Liviano.Tests.Liviano.MSeed
     public class PaperAccountTest
     {
         const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        Wallet _Wallet;
+
+        [Fact]
+        public void TestDifferentPrivateKeysInWallet()
+        {
+            var w = GetWallet();
+            var a = GetAccount(ScriptPubKeyType.Segwit);
+
+            Assert.NotEqual(w.GetPrivateKey(), a.PrivateKey);
+        }
 
         [Fact]
         public void TestAddress()
         {
-            var account = GetAccount("KyXW8nD6SgQgVfwQFhhCKhHvJ79pCyWGsYgoAPz2DT7zbdKfEVBs");
+            var account = GetAccount(ScriptPubKeyType.SegwitP2SH, "KyXW8nD6SgQgVfwQFhhCKhHvJ79pCyWGsYgoAPz2DT7zbdKfEVBs");
 
             var address = account.GetReceiveAddress();
 
             Assert.Equal("3Ee2GJq8rLd1LodKY1XfDGnQnJ73GV4k8r", address.ToString());
         }
 
-        PaperAccount GetAccount(string wif)
+        [Fact]
+        public void TestBitAddress()
+        {
+            var account = GetAccount(ScriptPubKeyType.Legacy, "L475uGVDmBAu1389Ey4EscdnGTa9HFozBB5GdpHXHR4WkSfocy4M");
+
+            var address = account.GetReceiveAddress();
+
+            Assert.Equal("19Vydw6ChsuCgptKSYro4Gc2z1h7mYKbXp", address.ToString());
+        }
+
+        PaperAccount GetAccount(ScriptPubKeyType scriptPubKeyType, string wif = null)
         {
             var w = GetWallet();
 
-            w.AddAccount("paper", "My Paper Wallet", new { Wif = wif, ScriptPubKeyType = ScriptPubKeyType.SegwitP2SH });
+            if (wif is null)
+            {
+                w.AddAccount("paper", "My Paper Wallet", new { ScriptPubKeyType = scriptPubKeyType });
+            }
+            else
+            {
+                w.AddAccount("paper", "My Paper Wallet", new { Wif = wif, ScriptPubKeyType = scriptPubKeyType });
+            }
 
             return (PaperAccount)w.Accounts[0];
         }
 
         Wallet GetWallet()
         {
-            var w = new Wallet();
-            w.Init(MNEMONIC);
+            if (_Wallet is null)
+            {
+                _Wallet = new Wallet();
+                _Wallet.Init(MNEMONIC);
+            }
 
-            return w;
+            return _Wallet;
         }
     }
 }
