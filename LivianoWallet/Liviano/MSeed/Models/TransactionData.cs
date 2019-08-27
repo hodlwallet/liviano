@@ -57,11 +57,17 @@ namespace Liviano.MSeed.Models
         [JsonConverter(typeof(MoneyJsonConverter))]
         public Money TotalFees { get; set; }
 
+        /// <summary>
+        /// This means is a send, the output that belongs to you was sent to a change (internal) address
+        /// </summary>
         [JsonProperty(PropertyName = "isSend", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsSend { get; set; }
+        public bool IsSend { get; set; }
 
+        /// <summary>
+        /// This means is receive, the output that is to a receive (external) address
+        /// </summary>
         [JsonProperty(PropertyName = "isReceive", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsReceive { get; set; }
+        public bool IsReceive { get; set; }
 
         /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
@@ -109,9 +115,9 @@ namespace Liviano.MSeed.Models
         /// <summary>
         /// The script pub key for the address we sent to
         /// </summary>
-        [JsonProperty(PropertyName = "sentToScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "sentScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script SentToScriptPubKey { get; set; }
+        public Script SentScriptPubKey { get; set; }
 
         /// <summary>
         /// Hexadecimal representation of this transaction.
