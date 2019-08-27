@@ -1,5 +1,5 @@
 //
-// PaperAccount.cs
+// IWallet.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>

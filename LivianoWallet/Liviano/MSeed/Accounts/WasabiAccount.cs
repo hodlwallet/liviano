@@ -1,5 +1,5 @@
 ﻿//
-// Bip44Account.cs
+// WasabiAccount.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -27,12 +27,12 @@ using NBitcoin;
 
 namespace Liviano.MSeed.Accounts
 {
-    public class Bip44Account : Bip32Account
+    public class WasabiAccount : Bip32Account
     {
-        public override string AccountType => "bip44";
-        public override string HdPathFormat => "m/44'/0'/{0}'";
+        public override string AccountType => "wasabi";
+        public override string HdPathFormat => "m/84'/0'/{0}'";
 
-        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Legacy;
+        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Segwit;
         public override ScriptPubKeyType ScriptPubKeyType
         {
             get => _ScriptPubKeyType;

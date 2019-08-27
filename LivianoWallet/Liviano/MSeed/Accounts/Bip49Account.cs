@@ -1,5 +1,5 @@
 ﻿//
-// Bip84Account.cs
+// Bip49Account.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>

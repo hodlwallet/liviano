@@ -1,5 +1,5 @@
 //
-// PaperAccount.cs
+// Bip141Account.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>

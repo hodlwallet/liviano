@@ -1,5 +1,5 @@
 //
-// PaperAccount.cs
+// Wallet.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -174,7 +174,7 @@ namespace Liviano.MSeed
                     account = new Bip49Account();
                     break;
                 case "bip84":
-                    account = new Bip84Account();
+                    account = new WasabiAccount();
                     break;
                 case "bip141":
                     account = new Bip141Account();

@@ -1,5 +1,5 @@
 //
-// PaperAccount.cs
+// HdAccount.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
