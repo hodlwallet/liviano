@@ -17,6 +17,13 @@ namespace Liviano.MSeed.Models
         public uint256 Id { get; set; }
 
         /// <summary>
+        /// The network this tx belongs to.
+        /// </summary>
+        [JsonProperty(PropertyName = "network")]
+        [JsonConverter(typeof(NetworkConverter))]
+        Network Network { get; set; }
+
+        /// <summary>
         /// The transaction amount.
         /// </summary>
         [JsonProperty(PropertyName = "amount", DefaultValueHandling = (long)0)]
@@ -117,7 +124,7 @@ namespace Liviano.MSeed.Models
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
         [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsPropagated { get; set; }
+        public bool IsPropagated { get; set; }
 
         /// <summary>
         /// The details of the transaction in which the output referenced in this transaction is spent.
@@ -141,11 +148,9 @@ namespace Liviano.MSeed.Models
             return IsSend == false && SpendingDetails == null;
         }
 
-        public Transaction GetTransaction(Network network = null)
+        public Transaction GetTransaction()
         {
-            if (network is null) network = Network.Main;
-
-            return Transaction.Parse(Hex, network);
+            return Transaction.Parse(Hex, Network);
         }
 
         public Money SpendableAmount(bool confirmedOnly)
