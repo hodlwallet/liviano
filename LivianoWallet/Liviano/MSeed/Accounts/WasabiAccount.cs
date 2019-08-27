@@ -40,6 +40,8 @@ namespace Liviano.MSeed.Accounts
 
         ExtKey _ExtKey;
 
+        ExtKey _AccountExtKey;
+
         /// <summary>
         /// Encrypted seed usually from a mnemonic
         /// </summary>
@@ -70,12 +72,12 @@ namespace Liviano.MSeed.Accounts
             _ = GetPrivateKey(password);
             _ = GetExtendedKey(password);
 
-            var accountExtKey = _ExtKey.Derive(
+            _AccountExtKey = _ExtKey.Derive(
                new KeyPath(HdPath)
             );
 
-            ExtendedPrivKey = accountExtKey.ToString(Network);
-            ExtendedPubKey = accountExtKey.Neuter().ToString(Network);
+            ExtendedPrivKey = _AccountExtKey.ToString(Network);
+            ExtendedPubKey = _AccountExtKey.Neuter().ToString(Network);
         }
 
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
