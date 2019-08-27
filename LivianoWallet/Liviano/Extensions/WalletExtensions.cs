@@ -12,6 +12,7 @@ using NBitcoin.RPC;
 
 using Liviano.Utilities;
 using Liviano.Enums;
+using System.Reflection;
 
 namespace Liviano.Extensions
 {
@@ -314,6 +315,29 @@ namespace Liviano.Extensions
             if (network == null) network = Network.Main;
 
             try { BitcoinAddress.Create(address, network); return true; } catch { return false; }
+        }
+
+        public static Dictionary<string, object> ToDict(this object options)
+        {
+            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+
+            if (options is null) return kwargs;
+
+            foreach (PropertyInfo prop in options.GetType().GetProperties())
+            {
+                string propName = prop.Name;
+                var val = options.GetType().GetProperty(propName).GetValue(options, null);
+                if (val != null)
+                {
+                    kwargs.Add(propName, val);
+                }
+                else
+                {
+                    kwargs.Add(propName, null);
+                }
+            }
+
+            return kwargs;
         }
     }
 }

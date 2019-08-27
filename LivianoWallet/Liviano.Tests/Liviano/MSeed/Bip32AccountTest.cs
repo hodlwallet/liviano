@@ -7,8 +7,7 @@ using Liviano.MSeed.Accounts;
 
 namespace Liviano.Tests.Liviano.MSeed
 {
-
-    public class Bip141AccountTest
+    public class Bip32AccountTest
     {
         const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 

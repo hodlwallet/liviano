@@ -29,14 +29,10 @@ using System.Linq;
 
 using NBitcoin;
 
-using Newtonsoft.Json;
-
-using Liviano.Utilities.JsonConverters;
-
 using Liviano.MSeed.Interfaces;
 using Liviano.MSeed.Accounts;
 using Liviano.Utilities;
-using System.Reflection;
+using Liviano.Extensions;
 
 namespace Liviano.MSeed
 {
@@ -86,7 +82,7 @@ namespace Liviano.MSeed
             AccountIds = AccountIds ?? new List<Dictionary<string, string>>();
             Accounts = Accounts ?? new List<IAccount>();
 
-            var mnemonicObj = MnemonicFromString(mnemonic);
+            var mnemonicObj = HdOperations.MnemonicFromString(mnemonic);
             var extKey = HdOperations.GetExtendedKey(mnemonicObj, password);
 
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
@@ -125,27 +121,28 @@ namespace Liviano.MSeed
             if (string.IsNullOrEmpty(accountName))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            switch (accountType)
-            {
-                case "bip44":
-                    throw new NotImplementedException("bip44 is not implemented yet");
-                case "bip49":
-                    throw new NotImplementedException("bip49 is not implemented yet");
-                case "bip84":
-                    throw new NotImplementedException("bip84 is not implemented yet");
-                case "bip141":
-                    return NewBip141Account(accountName, options);
-                case "paper":
-                    return NewPaperAccount(accountName, options);
-            }
-
-            // This is a default account.
-            return NewBip141Account(accountName, options);
+            return CreateAccount(accountType, accountName, options);
         }
 
-        PaperAccount NewPaperAccount(string accountName, object options)
+        IAccount CreateAccount(string type, string name, object options)
         {
-            var kwargs = OptionsToDict(options);
+            switch (type)
+            {
+                case "bip44":
+                case "bip49":
+                case "bip84":
+                case "bip141":
+                    return CreateBip32Account(type, name, options);
+                case "paper":
+                    return CreatePaperAccount(name, options);
+            }
+
+            return CreateBip32Account(name, name, options);
+        }
+
+        PaperAccount CreatePaperAccount(string name, object options)
+        {
+            var kwargs = options.ToDict();
 
             string wif = kwargs.ContainsKey("Wif")
                 ? (string)kwargs["Wif"]
@@ -156,7 +153,7 @@ namespace Liviano.MSeed
                 : PaperAccount.DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
             var account = new PaperAccount(
-                accountName,
+                name,
                 scriptPubKeyType,
                 wif,
                 Network
@@ -165,16 +162,32 @@ namespace Liviano.MSeed
             return account;
         }
 
-        Bip141Account NewBip141Account(string accountName, object options = null)
+        Bip32Account CreateBip32Account(string type, string name, object options = null)
         {
-            var account = new Bip141Account()
+            Bip32Account account = null;
+            switch (type)
             {
-                Id = NewAccountGuid(),
-                Name = accountName,
-                WalletId = Id,
-                Wallet = this,
-                Network = Network
-            };
+                case "bip44":
+                    account = new Bip44Account();
+                    break;
+                case "bip49":
+                    account = new Bip49Account();
+                    break;
+                case "bip84":
+                    account = new Bip84Account();
+                    break;
+                case "bip141":
+                    account = new Bip141Account();
+                    break;
+            }
+
+            if (account is null)
+                throw new ArgumentException($"Incorrect account type: {type}");
+
+            account.Name = name;
+            account.WalletId = Id;
+            account.Wallet = this;
+            account.Network = Network;
 
             var extPrivKey = _ExtKey.Derive(new KeyPath(account.HdPath));
             var extPubKey = extPrivKey.Neuter();
@@ -183,18 +196,6 @@ namespace Liviano.MSeed
             account.ExtendedPubKey = extPubKey.ToString(Network);
 
             return account;
-        }
-
-        string NewAccountGuid()
-        {
-            return Guid.NewGuid().ToString();
-        }
-
-        Mnemonic MnemonicFromString(string mnemonic)
-        {
-            Guard.NotEmpty(mnemonic, nameof(mnemonic));
-
-            return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
         }
 
         ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
@@ -209,29 +210,6 @@ namespace Liviano.MSeed
                 _ExtKey = new ExtKey(_PrivateKey, ChainCode);
 
             return _ExtKey;
-        }
-
-        Dictionary<string, object> OptionsToDict(object options = null)
-        {
-            Dictionary<string, object> kwargs = new Dictionary<string, object>();
-
-            if (options is null) return kwargs;
-
-            foreach (PropertyInfo prop in options.GetType().GetProperties())
-            {
-                string propName = prop.Name;
-                var val = options.GetType().GetProperty(propName).GetValue(options, null);
-                if (val != null)
-                {
-                    kwargs.Add(propName, val);
-                }
-                else
-                {
-                    kwargs.Add(propName, null);
-                }
-            }
-
-            return kwargs;
         }
     }
 }

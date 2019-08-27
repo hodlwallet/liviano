@@ -47,7 +47,7 @@ namespace Liviano
         public static BitcoinAddress GetAddress(string extPubKeyWif, int index, bool isChange, string network, string addressType = null)
         {
             PubKey pubKey = GeneratePublicKey(extPubKeyWif, index, isChange);
-            
+
             switch (addressType)
             {
                 case "p2pkh":
@@ -178,12 +178,12 @@ namespace Liviano
             switch (purpose)
             {
                 case null:
-                return $"m/84'/{coinType}'/{accountIndex}'";
+                    return $"m/84'/{coinType}'/{accountIndex}'";
                 case "32":
                 case "141":
-                return $"m/0'"; // This is a very very very assumption.
+                    return $"m/0'"; // This is a very very very assumption.
                 default:
-                return $"m/{purpose}'/{coinType}'/{accountIndex}'";
+                    return $"m/{purpose}'/{coinType}'/{accountIndex}'";
             }
         }
 
@@ -274,7 +274,7 @@ namespace Liviano
             {
                 if (hdPath.StartsWith("m/"))
                 {
-                    return (int) CoinType.Bitcoin;
+                    return (int)CoinType.Bitcoin;
                 }
 
                 throw new WalletException($"Could not parse CoinType from HdPath {hdPath}.");
@@ -460,7 +460,7 @@ namespace Liviano
         {
             Guard.NotEmpty(word, nameof(word));
             Guard.NotEmpty(wordlist, nameof(wordlist));
-            
+
             return WordlistFromString(wordlist).WordExists(word, out var unused);
         }
 
@@ -481,12 +481,12 @@ namespace Liviano
         public static bool IsMnemonicOfWallet(Mnemonic mnemonic, Wallet wallet, Network network = null, string password = null)
         {
             if (wallet == null) return false;
-            
+
             if (network == null) network = Network.Main;
             if (password == null) password = "";
 
             ExtKey extKeyFromMnemonic = GetExtendedKey(mnemonic, password);
-            
+
             return extKeyFromMnemonic.PrivateKey.GetWif(network).ToString() == wallet.EncryptedSeed;
         }
 
@@ -495,6 +495,13 @@ namespace Liviano
             var m = new Mnemonic(mnemonic);
 
             return IsMnemonicOfWallet(m, wallet);
+        }
+
+        public static Mnemonic MnemonicFromString(string mnemonic)
+        {
+            Guard.NotEmpty(mnemonic, nameof(mnemonic));
+
+            return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
         }
     }
 }
