@@ -31,6 +31,7 @@
     <Folder Include="Electrum\" />
     <Folder Include="Electrum\servers\" />
     <Folder Include="Extensions\" />
+    <Folder Include="MSeed\Models\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Electrum\btc-servers.json" />
