@@ -17,6 +17,12 @@ namespace Liviano.MSeed.Models
         public uint256 Id { get; set; }
 
         /// <summary>
+        /// Account id the tx belongs to
+        /// </summary>
+        [JsonProperty(PropertyName = "accountId", NullValueHandling = NullValueHandling.Ignore)]
+        public string AccountId { get; set; }
+
+        /// <summary>
         /// The network this tx belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
