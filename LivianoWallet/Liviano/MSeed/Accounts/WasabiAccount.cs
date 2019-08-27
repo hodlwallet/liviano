@@ -23,7 +23,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
+using Liviano.Utilities.JsonConverters;
 using NBitcoin;
+using Newtonsoft.Json;
 
 namespace Liviano.MSeed.Accounts
 {
@@ -32,14 +35,31 @@ namespace Liviano.MSeed.Accounts
         public override string AccountType => "wasabi";
         public override string HdPathFormat => "m/84'/0'/{0}'";
 
-        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Segwit;
         public override ScriptPubKeyType ScriptPubKeyType
         {
-            get => _ScriptPubKeyType;
+            get => ScriptPubKeyType.Segwit;
             set
             {
-                _ScriptPubKeyType = value;
+                throw new ArgumentException($"Cannot be set to: {value.ToString()}, its only script pub key type is Segwit.");
             }
+        }
+
+        /// <summary>
+        /// Encrypted seed usually from a mnemonic
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "encryptedSeed")]
+        string EncryptedSeed { get; set; }
+
+        /// <summary>
+        /// The chain code.
+        /// </summary>
+        [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ByteArrayConverter))]
+        byte[] ChainCode { get; set; }
+
+        public WasabiAccount() : base()
+        {
         }
     }
 }

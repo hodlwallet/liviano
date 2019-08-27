@@ -133,11 +133,18 @@ namespace Liviano.MSeed
                 case "bip84":
                 case "bip141":
                     return CreateBip32Account(type, name, options);
+                case "wasabi":
+                    return CreateWasabiAccount(name, options);
                 case "paper":
                     return CreatePaperAccount(name, options);
             }
 
             return CreateBip32Account(name, name, options);
+        }
+
+        WasabiAccount CreateWasabiAccount(string name, object options)
+        {
+
         }
 
         PaperAccount CreatePaperAccount(string name, object options)
@@ -174,7 +181,7 @@ namespace Liviano.MSeed
                     account = new Bip49Account();
                     break;
                 case "bip84":
-                    account = new WasabiAccount();
+                    account = new Bip84Account();
                     break;
                 case "bip141":
                     account = new Bip141Account();
