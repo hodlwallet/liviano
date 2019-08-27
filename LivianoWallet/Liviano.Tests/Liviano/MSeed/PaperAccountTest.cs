@@ -80,9 +80,9 @@ namespace Liviano.Tests.Liviano.MSeed
             var w = GetWallet();
 
             if (wif is null)
-                w.AddAccount("paper", "My Paper Wallet", new { ScriptPubKeyType = scriptPubKeyType });
+                w.AddAccount("paper", "My Paper Wallet", new { ScriptPubKeyType = scriptPubKeyType, w.Network });
             else
-                w.AddAccount("paper", "My Paper Wallet", new { Wif = wif, ScriptPubKeyType = scriptPubKeyType });
+                w.AddAccount("paper", "My Paper Wallet", new { Wif = wif, ScriptPubKeyType = scriptPubKeyType, w.Network });
 
             return (PaperAccount)w.Accounts[0];
         }

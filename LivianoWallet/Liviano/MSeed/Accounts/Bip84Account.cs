@@ -41,5 +41,10 @@ namespace Liviano.MSeed.Accounts
                 _ScriptPubKeyType = value;
             }
         }
+
+        public Bip84Account(int index = 0) : base(index)
+        {
+
+        }
     }
 }

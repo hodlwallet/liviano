@@ -24,42 +24,87 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using Liviano.Extensions;
+using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using Newtonsoft.Json;
 
 namespace Liviano.MSeed.Accounts
 {
-    public class WasabiAccount : Bip32Account
+    public class WasabiAccount : Bip84Account
     {
         public override string AccountType => "wasabi";
-        public override string HdPathFormat => "m/84'/0'/{0}'";
 
-        public override ScriptPubKeyType ScriptPubKeyType
-        {
-            get => ScriptPubKeyType.Segwit;
-            set
-            {
-                throw new ArgumentException($"Cannot be set to: {value.ToString()}, its only script pub key type is Segwit.");
-            }
-        }
+        Key _PrivateKey;
+
+        ExtKey _ExtKey;
 
         /// <summary>
         /// Encrypted seed usually from a mnemonic
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "encryptedSeed")]
-        string EncryptedSeed { get; set; }
+        public string EncryptedSeed { get; set; }
 
         /// <summary>
         /// The chain code.
         /// </summary>
         [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ByteArrayConverter))]
-        byte[] ChainCode { get; set; }
+        public byte[] ChainCode { get; set; }
 
-        public WasabiAccount() : base()
+        public WasabiAccount(int index = 0) : base(index)
         {
+        }
+
+        public WasabiAccount(string mnemonic, string password = "", int index = 0) : base(index)
+        {
+            var mnemonicObj = HdOperations.MnemonicFromString(mnemonic);
+            var extKey = HdOperations.GetExtendedKey(mnemonicObj, password);
+
+            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
+            ChainCode = extKey.ChainCode;
+
+            _ = GetPrivateKey(password);
+            _ = GetExtendedKey(password);
+        }
+
+        public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
+        {
+            if (_PrivateKey == null || forcePasswordVerification)
+                _PrivateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
+
+            return _PrivateKey;
+        }
+
+        public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
+        {
+            Guard.NotNull(_PrivateKey, nameof(_PrivateKey));
+            Guard.NotNull(ChainCode, nameof(ChainCode));
+
+            if (forcePasswordVerification)
+                _PrivateKey = GetPrivateKey(password, forcePasswordVerification);
+
+            if (_ExtKey is null || forcePasswordVerification)
+                _ExtKey = new ExtKey(_PrivateKey, ChainCode);
+
+            return _ExtKey;
+        }
+
+        public new static WasabiAccount Create(string name, object options)
+        {
+            var kwargs = options.ToDict();
+
+            var mnemonic = (string)kwargs.TryGet("Mnemonic");
+            var password = (string)kwargs.TryGet("Password");
+
+            var account = new WasabiAccount(mnemonic, password)
+            {
+                Name = name
+            };
+
+            return account;
         }
     }
 }

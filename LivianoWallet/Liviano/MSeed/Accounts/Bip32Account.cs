@@ -25,7 +25,9 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-
+using Liviano.Extensions;
+using Liviano.MSeed.Interfaces;
+using Liviano.Utilities;
 using NBitcoin;
 
 namespace Liviano.MSeed.Accounts
@@ -95,6 +97,57 @@ namespace Liviano.MSeed.Accounts
             }
 
             return addresses.ToArray();
+        }
+
+        /// <summary>
+        /// Creates a account based on a type string
+        /// </summary>
+        /// <param name="name">Name of the account</param>
+        /// <returns></returns>
+        public static Bip32Account Create(string name, object options)
+        {
+            Guard.NotEmpty(name, nameof(name));
+
+            var kwargs = options.ToDict();
+
+            var type = (string)kwargs.TryGet("Type");
+            var network = (Network)kwargs.TryGet("Network");
+            var wallet = (IWallet)kwargs.TryGet("Wallet");
+
+            Bip32Account account;
+            switch (type)
+            {
+                case "bip44":
+                    account = new Bip44Account();
+                    break;
+                case "bip49":
+                    account = new Bip49Account();
+                    break;
+                case "bip84":
+                    account = new Bip84Account();
+                    break;
+                case "bip141":
+                    account = new Bip141Account();
+                    break;
+                default:
+                    throw new ArgumentException($"Invalid account type {type}");
+            }
+
+            if (account is null)
+                throw new ArgumentException($"Incorrect account type: {type}");
+
+            account.Name = name;
+            account.WalletId = wallet.Id;
+            account.Wallet = wallet;
+            account.Network = network;
+
+            var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));
+            var extPubKey = extPrivKey.Neuter();
+
+            account.ExtendedPrivKey = extPrivKey.ToString(network);
+            account.ExtendedPubKey = extPubKey.ToString(network);
+
+            return account;
         }
     }
 }

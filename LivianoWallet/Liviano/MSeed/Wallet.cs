@@ -45,7 +45,7 @@ namespace Liviano.MSeed
 
         ExtKey _ExtKey;
 
-        public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper" };
+        public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
         public string Id { get; set; }
 
@@ -100,112 +100,7 @@ namespace Liviano.MSeed
             return _PrivateKey;
         }
 
-        public void AddAccount(string accountType = "", string accountName = null, object options = null)
-        {
-            var account = NewAccount(accountType, accountName, options);
-
-            Accounts.Add(account);
-        }
-
-        IAccount NewAccount(string accountType = "", string accountName = null, object options = null)
-        {
-            Guard.NotEmpty(accountType, nameof(accountType));
-
-            if (!AccountTypes.Contains(accountType))
-                throw new ArgumentException($"Invalid account type: {accountType}");
-
-            // TODO get this from the wallet I guess we need translations in Liviano as well
-            if (string.IsNullOrEmpty(accountName) && Accounts.Count == 0)
-                accountName = DEFAULT_ACCOUNT_NAME;
-
-            if (string.IsNullOrEmpty(accountName))
-                throw new ArgumentException("Invalid account name: It cannot be empty!");
-
-            return CreateAccount(accountType, accountName, options);
-        }
-
-        IAccount CreateAccount(string type, string name, object options)
-        {
-            switch (type)
-            {
-                case "bip44":
-                case "bip49":
-                case "bip84":
-                case "bip141":
-                    return CreateBip32Account(type, name, options);
-                case "wasabi":
-                    return CreateWasabiAccount(name, options);
-                case "paper":
-                    return CreatePaperAccount(name, options);
-            }
-
-            return CreateBip32Account(name, name, options);
-        }
-
-        WasabiAccount CreateWasabiAccount(string name, object options)
-        {
-
-        }
-
-        PaperAccount CreatePaperAccount(string name, object options)
-        {
-            var kwargs = options.ToDict();
-
-            string wif = kwargs.ContainsKey("Wif")
-                ? (string)kwargs["Wif"]
-                : null;
-
-            ScriptPubKeyType scriptPubKeyType = kwargs.ContainsKey("ScriptPubKeyType")
-                ? (ScriptPubKeyType)kwargs["ScriptPubKeyType"]
-                : PaperAccount.DEFAULT_SCRIPT_PUB_KEY_TYPE;
-
-            var account = new PaperAccount(
-                name,
-                scriptPubKeyType,
-                wif,
-                Network
-            );
-
-            return account;
-        }
-
-        Bip32Account CreateBip32Account(string type, string name, object options = null)
-        {
-            Bip32Account account = null;
-            switch (type)
-            {
-                case "bip44":
-                    account = new Bip44Account();
-                    break;
-                case "bip49":
-                    account = new Bip49Account();
-                    break;
-                case "bip84":
-                    account = new Bip84Account();
-                    break;
-                case "bip141":
-                    account = new Bip141Account();
-                    break;
-            }
-
-            if (account is null)
-                throw new ArgumentException($"Incorrect account type: {type}");
-
-            account.Name = name;
-            account.WalletId = Id;
-            account.Wallet = this;
-            account.Network = Network;
-
-            var extPrivKey = _ExtKey.Derive(new KeyPath(account.HdPath));
-            var extPubKey = extPrivKey.Neuter();
-
-            account.ExtendedPrivKey = extPrivKey.ToString(Network);
-            account.ExtendedPubKey = extPubKey.ToString(Network);
-
-            return account;
-        }
-
-        ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
+        public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
         {
             Guard.NotNull(_PrivateKey, nameof(_PrivateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
@@ -217,6 +112,43 @@ namespace Liviano.MSeed
                 _ExtKey = new ExtKey(_PrivateKey, ChainCode);
 
             return _ExtKey;
+        }
+
+        public void AddAccount(string type = "", string name = null, object options = null)
+        {
+            var account = NewAccount(type, name, options);
+
+            Accounts.Add(account);
+        }
+
+        IAccount NewAccount(string type, string name, object options)
+        {
+            Guard.NotEmpty(type, nameof(type));
+
+            if (!AccountTypes.Contains(type))
+                throw new ArgumentException($"Invalid account type: {type}");
+
+            // TODO get this from the wallet I guess we need translations in Liviano as well
+            if (string.IsNullOrEmpty(name) && Accounts.Count == 0)
+                name = DEFAULT_ACCOUNT_NAME;
+
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Invalid account name: It cannot be empty!");
+
+            switch (type)
+            {
+                case "bip44":
+                case "bip49":
+                case "bip84":
+                case "bip141":
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type });
+                case "wasabi":
+                    return WasabiAccount.Create(name, options);
+                case "paper":
+                    return PaperAccount.Create(name, options);
+            }
+
+            return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141" });
         }
     }
 }

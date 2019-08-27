@@ -104,5 +104,13 @@ namespace Liviano.MSeed.Interfaces
         /// <param name="forcePasswordVerification">Force the password verification, avoid cache! Default false</param>
         /// <returns></returns>
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
+
+        /// <summary>
+        /// Gets a extended private key this method also caches it on memory
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="forcePasswordVerification"></param>
+        /// <returns></returns>
+        ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
     }
 }

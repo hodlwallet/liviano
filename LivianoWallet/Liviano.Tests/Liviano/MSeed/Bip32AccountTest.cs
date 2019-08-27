@@ -74,13 +74,13 @@ namespace Liviano.Tests.Liviano.MSeed
             Assert.Equal("1MseVFBWLkbPeGMpkAsahBujinBq3QjGo4", address.ToString());
         }
 
-        WasabiAccount GetAccount()
+        Bip32Account GetAccount()
         {
             var w = GetWallet();
 
             w.AddAccount("bip141");
 
-            return (WasabiAccount)w.Accounts[0];
+            return (Bip32Account)w.Accounts[0];
         }
 
         Wallet GetWallet()

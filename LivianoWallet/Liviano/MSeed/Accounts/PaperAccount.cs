@@ -34,6 +34,7 @@ using Liviano.MSeed.Interfaces;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using Newtonsoft.Json.Converters;
+using Liviano.Extensions;
 
 namespace Liviano.MSeed.Accounts
 {
@@ -99,6 +100,29 @@ namespace Liviano.MSeed.Accounts
         public BitcoinAddress[] GetReceiveAddress(int n)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
+        }
+
+        public static PaperAccount Create(string name, object options)
+        {
+            var kwargs = options.ToDict();
+
+            var wif = (string)kwargs.TryGet("Wif");
+            var network = (Network)kwargs.TryGet("Network");
+
+            Guard.NotNull(network, nameof(network));
+
+            ScriptPubKeyType scriptPubKeyType = kwargs.ContainsKey("ScriptPubKeyType")
+                ? (ScriptPubKeyType)kwargs["ScriptPubKeyType"]
+                : DEFAULT_SCRIPT_PUB_KEY_TYPE;
+
+            var account = new PaperAccount(
+                name,
+                scriptPubKeyType,
+                wif,
+                network
+            );
+
+            return account;
         }
 
         void Initialize(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null)

@@ -31,6 +31,8 @@ using Newtonsoft.Json;
 
 using Liviano.MSeed.Interfaces;
 using Newtonsoft.Json.Converters;
+using System;
+using Liviano.Utilities;
 
 namespace Liviano.MSeed.Accounts
 {
@@ -75,7 +77,7 @@ namespace Liviano.MSeed.Accounts
         /// Wallet the account belongs to
         /// </summary>
         /// <value></value>
-        public Wallet Wallet { get; set; }
+        public IWallet Wallet { get; set; }
 
         /// <summary>
         /// Hd path, e.g. "m/0'", "m/84'/0'/0'"
