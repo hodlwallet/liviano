@@ -80,7 +80,9 @@ namespace Liviano.Tests.Liviano.MSeed
         {
             var w = GetWallet();
 
-            w.AddAccount("wasabi");
+            w.AddAccount("wasabi", "My Wasabi Account",
+                new { Network = Network.Main, Mnemonic = WASABI_MNEMONIC, Password = WASABI_PASSWORD }
+            );
 
             return (WasabiAccount)w.Accounts[0];
         }

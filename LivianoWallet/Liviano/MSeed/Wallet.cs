@@ -92,6 +92,12 @@ namespace Liviano.MSeed
             _ = GetExtendedKey(password);
         }
 
+        /// <summary>
+        /// Gets the private key, and puts it into <see cref="_PrivateKey"/>
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="forcePasswordVerification"></param>
+        /// <returns></returns>
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
         {
             if (_PrivateKey == null || forcePasswordVerification)
@@ -100,6 +106,12 @@ namespace Liviano.MSeed
             return _PrivateKey;
         }
 
+        /// <summary>
+        /// Gets the ext key and puts it into <see cref="_ExtKey"/>
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="forcePasswordVerification"></param>
+        /// <returns></returns>
         public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
         {
             Guard.NotNull(_PrivateKey, nameof(_PrivateKey));
@@ -114,13 +126,27 @@ namespace Liviano.MSeed
             return _ExtKey;
         }
 
+        /// <summary>
+        /// Adds an account to the wallet
+        /// </summary>
+        /// <param name="type">Check <see cref="Wallet.AccountTypes"/> for the list</param>
+        /// <param name="name">Name of the account default is <see cref="Wallet.DEFAULT_WALLET_NAME"/></param>
+        /// <param name="options">
+        ///     Options can be passed to this  function this way, e.g:
+        ///
+        ///     AddAccount("bip141", "My Bitcoins", new {Network = Network.TestNet})
+        /// </param>
         public void AddAccount(string type = "", string name = null, object options = null)
         {
             var account = NewAccount(type, name, options);
 
             Accounts.Add(account);
         }
-
+        /// <summary>
+        /// Read <see cref="AddAccount(string, string, object)"/>
+        /// </summary>
+        /// <param name="options">Check <see cref="AddAccount(string, string, object)"/> for an example</param>
+        /// <returns></returns>
         IAccount NewAccount(string type, string name, object options)
         {
             Guard.NotEmpty(type, nameof(type));

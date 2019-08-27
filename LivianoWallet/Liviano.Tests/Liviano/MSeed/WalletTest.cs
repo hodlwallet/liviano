@@ -79,7 +79,7 @@ namespace Liviano.Tests.Liviano.MSeed
 
             w.Init(MNEMONIC);
 
-            w.AddAccount("paper", "My Paper Wallet");
+            w.AddAccount("paper", "My Paper Wallet", new { w.Network });
 
             Assert.NotEmpty(w.Accounts);
 

@@ -58,16 +58,20 @@ namespace Liviano.MSeed.Accounts
         {
         }
 
-        public WasabiAccount(string mnemonic, string password = "", int index = 0) : base(index)
+        public WasabiAccount(string mnemonic, string password = "", Network network = null, int index = 0) : base(index)
         {
             var mnemonicObj = HdOperations.MnemonicFromString(mnemonic);
             var extKey = HdOperations.GetExtendedKey(mnemonicObj, password);
 
-            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
+            Network = network;
+            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif();
             ChainCode = extKey.ChainCode;
 
             _ = GetPrivateKey(password);
             _ = GetExtendedKey(password);
+
+            ExtendedPrivKey = _ExtKey.ToString();
+            ExtendedPubKey = _ExtKey.Neuter().ToString();
         }
 
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
@@ -98,8 +102,9 @@ namespace Liviano.MSeed.Accounts
 
             var mnemonic = (string)kwargs.TryGet("Mnemonic");
             var password = (string)kwargs.TryGet("Password");
+            var network = (Network)kwargs.TryGet("Network");
 
-            var account = new WasabiAccount(mnemonic, password)
+            var account = new WasabiAccount(mnemonic, password, network)
             {
                 Name = name
             };
