@@ -28,8 +28,6 @@ namespace Liviano.Tests.Liviano.MSeed
 {
     public class WasabiAccountTest
     {
-        public WasabiTest()
-        {
-        }
+        const string MNEMONIC = "uphold universe great security drink equal address fossil spice ready foil able";
     }
 }
