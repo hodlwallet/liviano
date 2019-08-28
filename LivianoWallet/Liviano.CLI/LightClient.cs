@@ -26,6 +26,7 @@ using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
 using Liviano.Providers;
+using Serilog.Core;
 
 namespace Liviano.CLI
 {
@@ -344,21 +345,25 @@ namespace Liviano.CLI
             _Logger.Information("Running on {network}", network.Name);
             _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
-            var recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
+            var recentServers = ElectrumClient.GetRecentlyConnectedServers(network);
 
             if (recentServers.Count == 0)
             {
                 _Logger.Information("Looking for Electrum servers...");
 
-                JsonRpcClient.PopulateRecentlyConnectedServers(network);
-                recentServers = JsonRpcClient.GetRecentlyConnectedServers(network);
+                ElectrumClient.PopulateRecentlyConnectedServers(network);
+                recentServers = ElectrumClient.GetRecentlyConnectedServers(network);
             }
 
             if (recentServers.Count == 0)
             {
-                Debug.WriteLine("Found no one to connect :(");
+                _Logger.Information("Found no one to connect :(");
+
+                Thread.Sleep(2000);
 
                 // Try again!
+                Console.Clear();
+
                 TestElectrumConnection(address, txHash);
 
                 return;
@@ -366,7 +371,7 @@ namespace Liviano.CLI
 
             Console.WriteLine("Connected servers:\n");
 
-            foreach(var s in recentServers)
+            foreach (var s in recentServers)
             {
                 Console.WriteLine($"{s.Domain}:{s.PrivatePort} ({s.Version})");
             }
@@ -380,31 +385,31 @@ namespace Liviano.CLI
 
                 var version = electrum.ServerVersion(CLIENT_NAME, PROTOCOL_VERSION).Result;
 
-               Console.WriteLine("\nVersion of electrum server: {0}\n", version);
-               var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, network);
-               var amount = electrum.BlockchainScriptHashGetBalance(scriptHash).Result;
-               var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
-               var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
-               Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
-               Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
+                Console.WriteLine("\nVersion of electrum server: {0}\n", version);
+                var scriptHash = ElectrumClient.GetElectrumScriptHashFromAddress(address, network);
+                var amount = electrum.BlockchainScriptHashGetBalance(scriptHash).Result;
+                var confirmed = new Money(amount.Result.Confirmed, MoneyUnit.Satoshi);
+                var unconfirmed = new Money(Math.Abs(amount.Result.Unconfirmed), MoneyUnit.Satoshi);
+                Console.WriteLine("Confirmed Balance: BTC {0}", confirmed.ToUnit(MoneyUnit.BTC));
+                Console.WriteLine("Unconfirmed Balance: BTC {0}\n", unconfirmed.ToUnit(MoneyUnit.BTC));
 
-               var utxoList = electrum.BlockchainScriptHashListUnspent(scriptHash).Result;
-               Console.WriteLine("List of Unspent Transactions:\n");
+                var utxoList = electrum.BlockchainScriptHashListUnspent(scriptHash).Result;
+                Console.WriteLine("List of Unspent Transactions:\n");
 
-               foreach (var tx in utxoList.Result)
-               {
-                   Console.WriteLine("Transaction Hash: {0}\n" +
-                                     "Transaction Position: {1}\n" +
-                                     "Transaction Value: {2}\n" +
-                                     "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
-               }
+                foreach (var tx in utxoList.Result)
+                {
+                    Console.WriteLine("Transaction Hash: {0}\n" +
+                                      "Transaction Position: {1}\n" +
+                                      "Transaction Value: {2}\n" +
+                                      "Transaction Height: {3}\n", tx.TxHash, tx.TxPos, new Money(tx.Value).ToUnit(MoneyUnit.BTC), tx.Height);
+                }
 
-               var txRaw = electrum.BlockchainTransactionGet(txHash).Result.Result;
-               Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
+                var txRaw = electrum.BlockchainTransactionGet(txHash).Result.Result;
+                Console.WriteLine("Transaction Raw Hash: {0}", txRaw);
             }
             catch (Exception ex)
             {
-               Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.Message);
             }
         }
 

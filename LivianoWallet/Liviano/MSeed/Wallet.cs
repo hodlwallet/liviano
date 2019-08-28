@@ -63,10 +63,6 @@ namespace Liviano.MSeed
 
         public List<IAccount> Accounts { get; set; }
 
-        public Wallet()
-        {
-        }
-
         public void Init(string mnemonic, string password = "", string name = null, Network network = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
@@ -134,7 +130,7 @@ namespace Liviano.MSeed
         /// <param name="options">
         ///     Options can be passed to this  function this way, e.g:
         ///
-        ///     AddAccount("bip141", "My Bitcoins", new {Network = Network.TestNet})
+        ///     AddAccount("bip141", "My Bitcoins", new {Wallet = this, WalletId = this.Id, Network = Network.TestNet})
         /// </param>
         public void AddAccount(string type = "", string name = null, object options = null)
         {

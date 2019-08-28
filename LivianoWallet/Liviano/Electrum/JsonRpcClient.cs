@@ -46,7 +46,7 @@ namespace Liviano.Electrum
     {
         Network _Network;
 
-        const int NUMBER_OF_RECENT_SERVERS = 4;
+
 
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
@@ -66,123 +66,6 @@ namespace Liviano.Electrum
         {
             _Servers = servers;
             _Network = network ?? Network.Main;
-        }
-
-        /// <summary>
-        /// Gets a list of recently conneted servers, these would be ready to connect
-        /// </summary>
-        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
-        public static List<Server> GetRecentlyConnectedServers(Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return recentServers;
-
-            var content = File.ReadAllText(fileName);
-
-            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
-
-            return recentServers;
-        }
-
-        /// <summary>
-        /// Creates the file of the recently connected
-        /// </summary>
-        public static void PopulateRecentlyConnectedServers(Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> connectedServers = new List<Server>();
-
-            string serversFileName = GetFileFullPath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            if (!File.Exists(serversFileName))
-                throw new ArgumentException($"Invalid network: {network.Name}");
-
-            var json = File.ReadAllText(serversFileName);
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-            var popableServers = new List<Server>();
-            popableServers.AddRange(servers);
-
-            var tasks = new List<Task>();
-            var cts = new CancellationTokenSource();
-            var _lock = new object();
-            while (popableServers.Count > 0)
-            {
-                // pick 5 randos
-                int count = 0;
-                var randomServers = new List<Server>();
-                while (count < NUMBER_OF_RECENT_SERVERS)
-                {
-                    if (popableServers.Count == 0) break;
-
-                    var rng = new Random();
-                    var i = rng.Next(popableServers.Count);
-                    var s = popableServers[i];
-
-                    if (!randomServers.Contains(s))
-                    {
-                        randomServers.Add(s);
-                        popableServers.Remove(s);
-                    }
-                    count += 1;
-                }
-
-                if (popableServers.Count == 0 && randomServers.Count == 0)
-                    break;
-
-                for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
-                {
-                    var s = randomServers[i];
-                    var t = Task.Factory.StartNew(async (_) =>
-                    {
-                        if (cts.IsCancellationRequested) return;
-
-                        var stratum = new ElectrumClient(new List<Server>() { s });
-
-                        // TODO set variable or global for electrum version
-                        var version = await stratum.ServerVersion(
-                            ElectrumClient.CLIENT_NAME,
-                            ElectrumServers.REQUESTED_VERSION
-                        );
-
-                        Debug.WriteLine(
-                            "Connected to: {0}:{1}({2})",
-                            s.Domain,
-                            s.PrivatePort,
-                            version
-                        );
-
-                        lock (_lock) connectedServers.Add(s);
-
-                        if (connectedServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
-                    }, CancellationToken.None);
-
-                    tasks.Add(t);
-                }
-
-                Task.WaitAll(tasks.ToArray());
-
-                File.WriteAllText(
-                    GetRecentlyConnectedServersFileName(network),
-                    JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
-                );
-
-                if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
-                    break;
-
-                Task.Delay(100);
-            }
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -323,7 +206,7 @@ namespace Liviano.Electrum
             }
         }
 
-        public async Task<string> Request(string request)
+        public async Task<string> Request(string request, bool useSsl = true)
         {
             var rng = new Random();
             List<Server> popableServers = new List<Server>();
@@ -341,9 +224,9 @@ namespace Liviano.Electrum
                 {
                     Host = server.Domain;
                     _IpAddress = ResolveHost(server.Domain).Result;
-                    _Port = server.PrivatePort.Value; // Make this dynamic.
+                    _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value; // Make this dynamic.
 
-                    var stringOption = await RequestInternal(request).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                    var stringOption = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
                     if (stringOption == null) throw new HttpListenerException(1, "Timeout when trying to communicate with UtxoCoin server");
 
                     return stringOption;
@@ -361,20 +244,6 @@ namespace Liviano.Electrum
             Debug.WriteLine($"Processed amount of {count}");
 
             return null;
-        }
-
-        public static string GetFileFullPath(params string[] fileNames)
-        {
-            return Path.Combine(
-                Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
-                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
-            );
-        }
-
-        static string GetRecentlyConnectedServersFileName(Network network)
-        {
-            return GetFileFullPath($"recent_servers_{network.Name.ToLower()}.json");
         }
     }
 }

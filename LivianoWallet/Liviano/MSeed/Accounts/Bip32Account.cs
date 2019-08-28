@@ -130,15 +130,16 @@ namespace Liviano.MSeed.Accounts
                     account = new Bip141Account();
                     break;
                 default:
-                    throw new ArgumentException($"Invalid account type {type}");
+                    account = null;
+                    break;
             }
 
             if (account is null)
                 throw new ArgumentException($"Incorrect account type: {type}");
 
             account.Name = name;
-            account.WalletId = wallet.Id;
             account.Wallet = wallet;
+            account.WalletId = wallet.Id;
             account.Network = network;
 
             var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));

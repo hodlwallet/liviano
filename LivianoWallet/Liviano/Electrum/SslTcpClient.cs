@@ -72,38 +72,39 @@ namespace Liviano.Electrum
         public static SslStream GetSslStream(TcpClient client, string serverName)
         {
             // Create an SSL stream that will close the client's stream.
-            using (SslStream sslStream = new SslStream(
-                client.GetStream(),
-                false,
-                new RemoteCertificateValidationCallback(ValidateServerCertificate),
-                null
-            ))
+#pragma warning disable IDE0068 // Use recommended dispose pattern
+            SslStream sslStream = new SslStream(
+                 client.GetStream(),
+                 false,
+                 new RemoteCertificateValidationCallback(ValidateServerCertificate),
+                 null
+            );
+#pragma warning restore IDE0068 // Use recommended dispose pattern
+
+            Debug.WriteLine("[GetSslStream] Client connected via ssl.");
+
+            // The server name must match the name on the server certificate.
+            try
             {
-                Debug.WriteLine("[GetSslStream] Client connected via ssl.");
-
-                // The server name must match the name on the server certificate.
-                try
-                {
-                    sslStream.AuthenticateAsClient(serverName);
-                }
-                catch (AuthenticationException e)
-                {
-                    Debug.WriteLine("[GetSslStream] Exception: {0}", e.Message);
-
-                    if (e.InnerException != null)
-                    {
-                        Debug.WriteLine("[GetSslStream] Inner exception: {0}", e.InnerException.Message);
-                    }
-
-                    Debug.WriteLine("[GetSslStream] Authentication failed - Closing the connection.");
-
-                    client.Close();
-
-                    return null;
-                }
-
-                return sslStream;
+                sslStream.AuthenticateAsClient(serverName);
             }
+            catch (AuthenticationException e)
+            {
+                Debug.WriteLine("[GetSslStream] Exception: {0}", e.Message);
+
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine("[GetSslStream] Inner exception: {0}", e.InnerException.Message);
+                }
+
+                Debug.WriteLine("[GetSslStream] Authentication failed - Closing the connection.");
+
+                client.Close();
+
+                return null;
+            }
+
+            return sslStream;
         }
 
         /// <summary>

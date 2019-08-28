@@ -37,12 +37,18 @@ using NBitcoin.DataEncoders;
 
 using Liviano.Models;
 using Liviano.Extensions;
+using System.Threading;
+using System.IO;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
-        public static string CLIENT_NAME = Liviano.Version.ToString();
+        public static string CLIENT_NAME = Version.ToString(); // Liviano (X.Y.Z)
+
+        const int NUMBER_OF_RECENT_SERVERS = 4;
 
         public class Request
         {
@@ -118,7 +124,7 @@ namespace Liviano.Electrum
         public ElectrumClient(List<Server> servers, Network network = null)
         {
             _Network = network ?? Network.Main;
-            _JsonRpcClient = new JsonRpcClient(servers, network);
+            _JsonRpcClient = new JsonRpcClient(servers, _Network);
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
@@ -274,6 +280,152 @@ namespace Liviano.Electrum
             var bitcoinAddress = BitcoinAddress.Create(publicAddress, network);
 
             return bitcoinAddress.ToScriptHash().ToHex();
+        }
+
+        /// <summary>
+        /// Gets a list of recently conneted servers, these would be ready to connect
+        /// </summary>
+        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
+        public static List<Server> GetRecentlyConnectedServers(Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            List<Server> recentServers = new List<Server>();
+            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return recentServers;
+
+            var content = File.ReadAllText(fileName);
+
+            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+
+            return recentServers;
+        }
+
+        /// <summary>
+        /// Creates the file of the recently connected
+        /// </summary>
+        public static void PopulateRecentlyConnectedServers(Network network = null)
+        {
+            if (network is null) network = Network.Main;
+
+            List<Server> connectedServers = new List<Server>();
+
+            string serversFileName = GetLocalConfigFilePath(
+                "Electrum",
+                "servers",
+                $"{network.Name.ToLower()}.json"
+            );
+
+            if (!File.Exists(serversFileName))
+                throw new ArgumentException($"Invalid network: {network.Name}");
+
+            var json = File.ReadAllText(serversFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+
+            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+            var popableServers = new List<Server>();
+            popableServers.AddRange(servers);
+
+            var rng = new Random();
+
+#pragma warning disable IDE0067 // Dispose objects before losing scope
+            var cts = new CancellationTokenSource();
+#pragma warning restore IDE0067 // Dispose objects before losing scope
+
+            var _lock = new object();
+            while (popableServers.Count > 0)
+            {
+                var tasks = new List<Task>();
+
+                // pick 5 randos
+                int count = 0;
+                var randomServers = new List<Server>();
+                while (count < NUMBER_OF_RECENT_SERVERS)
+                {
+                    if (popableServers.Count == 0) break;
+
+                    var i = rng.Next(popableServers.Count);
+                    var s = popableServers[i];
+
+                    if (!randomServers.Contains(s))
+                    {
+                        randomServers.Add(s);
+                        popableServers.Remove(s);
+                    }
+                    count += 1;
+                }
+
+                if (popableServers.Count == 0 && randomServers.Count == 0)
+                    break;
+
+                for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
+                {
+                    var s = randomServers[i];
+                    var t = Task.Factory.StartNew(async (_) =>
+                    {
+                        if (cts.IsCancellationRequested) return;
+
+                        var stratum = new ElectrumClient(new List<Server>() { s });
+
+                        // TODO set variable or global for electrum version
+                        var version = await stratum.ServerVersion(
+                            CLIENT_NAME,
+                            ElectrumServers.REQUESTED_VERSION
+                        );
+
+                        Debug.WriteLine(
+                            "Connected to: {0}:{1}({2})",
+                            s.Domain,
+                            s.PrivatePort,
+                            version
+                        );
+
+                        lock (_lock) connectedServers.Add(s);
+
+                        if (connectedServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                    }, CancellationToken.None);
+
+                    tasks.Add(t);
+                }
+
+                Task.WaitAll(tasks.ToArray());
+
+                if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
+                    break;
+
+                Task.Delay(100);
+            }
+
+            if (connectedServers.Count == 0)
+                Debug.WriteLine("Cound not connect to any server...");
+
+            if (connectedServers.Count < 4)
+                Debug.WriteLine("Conneted to too few servers {0}", connectedServers.Count);
+
+            if (connectedServers.Count > 0)
+            {
+                lock (_lock)
+                    File.WriteAllText(
+                        GetRecentlyConnectedServersFileName(network),
+                        JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
+                    );
+            }
+        }
+
+        public static string GetLocalConfigFilePath(params string[] fileNames)
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(
+                    Assembly.GetCallingAssembly().Location
+                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            );
+        }
+
+        static string GetRecentlyConnectedServersFileName(Network network)
+        {
+            return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
         }
     }
 }
