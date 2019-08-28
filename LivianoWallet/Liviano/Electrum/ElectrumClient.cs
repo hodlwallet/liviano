@@ -32,8 +32,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.DataEncoders;
 
 using Liviano.Models;
 using Liviano.Extensions;
@@ -41,7 +39,6 @@ using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
-using System.Diagnostics.SymbolStore;
 
 namespace Liviano.Electrum
 {
