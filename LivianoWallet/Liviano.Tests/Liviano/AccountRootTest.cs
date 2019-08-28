@@ -14,7 +14,7 @@ namespace Liviano.Tests.Liviano
         public void GetFirstUnusedAccountWithoutAccountsReturnsNull()
         {
             var wallet = new Wallet();
-            wallet.AccountsRoot.Add(new AccountRoot(CoinType.Bitcoin,new List<HdAccount>()));
+            wallet.AccountsRoot.Add(new AccountRoot(CoinType.Bitcoin, new List<HdAccount>()));
 
 
             HdAccount result = wallet.GetFirstUnusedAccount(CoinType.Bitcoin);
@@ -65,7 +65,7 @@ namespace Liviano.Tests.Liviano
             var key = new Key();
             var address = new HdAddress
             {
-                Address = key.PubKey.GetAddress(Network.Main).ToString(),
+                Address = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ToString(),
                 HdPath = hdPath,
                 ScriptPubKey = key.ScriptPubKey
             };
