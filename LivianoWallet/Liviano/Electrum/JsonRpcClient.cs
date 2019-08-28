@@ -212,7 +212,7 @@ namespace Liviano.Electrum
             List<Server> popableServers = new List<Server>();
             popableServers.AddRange(_Servers);
 
-            Debug.WriteLine($"Amount of severs {_Servers.Count}");
+            Debug.WriteLine($"[Request] Sending request: {request}");
 
             int count = 0;
             while (popableServers.Count > 0)
@@ -233,7 +233,7 @@ namespace Liviano.Electrum
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine($"[Request] {ex.Message}");
                     Debug.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
                 }
 
@@ -241,7 +241,7 @@ namespace Liviano.Electrum
                 popableServers.RemoveAt(index);
             }
 
-            Debug.WriteLine($"Processed amount of {count}");
+            Debug.WriteLine($"[Request] Could not process request: {request}");
 
             return null;
         }

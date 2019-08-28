@@ -27,6 +27,10 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Net;
+using System.Threading;
+using System.IO;
+using System.Diagnostics;
+using System.Reflection;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -35,10 +39,7 @@ using NBitcoin;
 
 using Liviano.Models;
 using Liviano.Extensions;
-using System.Threading;
-using System.IO;
-using System.Diagnostics;
-using System.Reflection;
+using Liviano.Exceptions;
 
 namespace Liviano.Electrum
 {
@@ -154,7 +155,7 @@ namespace Liviano.Electrum
 
             if (string.IsNullOrEmpty(rawResponse))
             {
-                throw new HttpListenerException(1, string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", _JsonRpcClient.Host, jsonRequest));
+                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", _JsonRpcClient.Host, jsonRequest));
             }
 
             try
@@ -163,7 +164,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                throw new HttpListenerException(1, ex.Message);
+                throw new ElectrumException(ex.Message);
             }
         }
 
@@ -178,10 +179,10 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                throw new HttpListenerException(1, string.Format("Failed deserializing JSON response (to check for error) '{0}' to type '{1}'\n{2}", resultTrimmed, typeof(T).FullName, ex.Message));
+                throw new ElectrumException(string.Format("Failed deserializing JSON response (to check for error) '{0}' to type '{1}'\n{2}", resultTrimmed, typeof(T).FullName, ex.Message));
             }
 
-            if (maybeError != null && maybeError.Error != null) throw new HttpListenerException(1, string.Format("{0}\n{1}", maybeError.Error.Message, maybeError.Error.Code));
+            if (maybeError != null && maybeError.Error != null) throw new ElectrumException(string.Format("{0}\n{1}", maybeError.Error.Message, maybeError.Error.Code));
 
             T deserializedValue;
 
@@ -191,12 +192,12 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                throw new HttpListenerException(1, string.Format("Failed deserializing JSON response '{0}' to type '{1}'\n{2}", resultTrimmed, typeof(T).FullName, ex.Message));
+                throw new ElectrumException(string.Format("Failed deserializing JSON response '{0}' to type '{1}'\n{2}", resultTrimmed, typeof(T).FullName, ex.Message));
             }
 
             if (deserializedValue == null)
             {
-                throw new HttpListenerException(1, string.Format("Failed deserializing JSON response {0} to type {1} (result was null)", resultTrimmed, typeof(T).FullName));
+                throw new ElectrumException(string.Format("Failed deserializing JSON response {0} to type {1} (result was null)", resultTrimmed, typeof(T).FullName));
             }
 
             return deserializedValue;
@@ -225,7 +226,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
+                throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
             }
         }
 
