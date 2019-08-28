@@ -32,7 +32,6 @@ using NBitcoin;
 using Liviano.MSeed.Interfaces;
 using Liviano.MSeed.Accounts;
 using Liviano.Utilities;
-using Liviano.Extensions;
 
 namespace Liviano.MSeed
 {

@@ -41,6 +41,7 @@ using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
+using System.Diagnostics.SymbolStore;
 
 namespace Liviano.Electrum
 {
@@ -49,6 +50,10 @@ namespace Liviano.Electrum
         public static string CLIENT_NAME = Version.ToString(); // Liviano (X.Y.Z)
 
         const int NUMBER_OF_RECENT_SERVERS = 4;
+
+        Network _Network;
+
+        JsonRpcClient _JsonRpcClient;
 
         public class Request
         {
@@ -62,6 +67,8 @@ namespace Liviano.Electrum
             public int Id { get; set; }
             public string Result { get; set; }
         }
+
+        public class BannerResult : ResultAsString { }
 
         public class ServerVersionResult
         {
@@ -116,10 +123,6 @@ namespace Liviano.Electrum
             public int Id { get; set; }
             public ErrorInnerResult Error { get; set; }
         }
-
-        Network _Network;
-
-        JsonRpcClient _JsonRpcClient;
 
         public ElectrumClient(List<Server> servers, Network network = null)
         {
@@ -227,6 +230,16 @@ namespace Liviano.Electrum
             {
                 throw new Exception(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
             }
+        }
+
+        public async Task<string> ServerBanner()
+        {
+            var obj = new Request { Id = 0, Method = "server.banner", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            BannerResult resObj = await RequestInternal<BannerResult>(json);
+
+            return resObj.Result;
         }
 
         public async Task<System.Version> ServerVersion(string clientName, System.Version protocolVersion)
@@ -367,19 +380,14 @@ namespace Liviano.Electrum
                     {
                         if (cts.IsCancellationRequested) return;
 
-                        var stratum = new ElectrumClient(new List<Server>() { s });
-
-                        // TODO set variable or global for electrum version
-                        var version = await stratum.ServerVersion(
-                            CLIENT_NAME,
-                            ElectrumServers.REQUESTED_VERSION
-                        );
+                        var electrum = new ElectrumClient(new List<Server>() { s });
+                        var banner = await electrum.ServerBanner();
 
                         Debug.WriteLine(
-                            "Connected to: {0}:{1}({2})",
+                            "Connected to: {0}:{1} => {2}",
                             s.Domain,
                             s.PrivatePort,
-                            version
+                            banner
                         );
 
                         lock (_lock) connectedServers.Add(s);
