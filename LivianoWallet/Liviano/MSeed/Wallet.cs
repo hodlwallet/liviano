@@ -63,7 +63,9 @@ namespace Liviano.MSeed
 
         public List<IAccount> Accounts { get; set; }
 
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null)
+        public DateTimeOffset? CreatedAt { get; set; }
+
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -72,6 +74,8 @@ namespace Liviano.MSeed
             Name = Name ?? name ?? DEFAULT_WALLET_NAME;
 
             Network = Network ?? network ?? Network.Main;
+
+            CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
 
             TxIds = TxIds ?? new List<string>();
 

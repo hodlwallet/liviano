@@ -30,6 +30,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
+using System;
 
 namespace Liviano.MSeed.Interfaces
 {
@@ -92,10 +93,17 @@ namespace Liviano.MSeed.Interfaces
         List<Dictionary<string, string>> AccountIds { get; set; }
 
         /// <summary>
+        /// The time this wallet was created.
+        /// </summary>
+        [JsonProperty(PropertyName = "createdAt", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(DateTimeOffsetConverter))]
+        DateTimeOffset? CreatedAt { get; set; }
+
+        /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string password = "", string name = null, Network network = null);
+        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null);
 
         /// <summary>
         /// Gets a private key this method also caches it on memory
