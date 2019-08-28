@@ -339,5 +339,15 @@ namespace Liviano.Extensions
 
             return kwargs;
         }
+
+        public static byte[] ToScriptHash(this BitcoinAddress address)
+        {
+            return Hashes.SHA256(address.ScriptPubKey.ToBytes()).Reverse().ToArray();
+        }
+
+        public static string ToHex(this byte[] bytes)
+        {
+            return Encoders.Hex.EncodeData(bytes);
+        }
     }
 }
