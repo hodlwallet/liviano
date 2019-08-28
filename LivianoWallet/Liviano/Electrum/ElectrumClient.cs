@@ -59,6 +59,14 @@ namespace Liviano.Electrum
             public IEnumerable Params { get; set; }
         }
 
+        public class ResultAsObject
+        {
+            public int Id { get; set; }
+            public object Result { get; set; }
+        }
+
+        public class PingResult : ResultAsObject { }
+
         public class ResultAsString
         {
             public int Id { get; set; }
@@ -239,6 +247,16 @@ namespace Liviano.Electrum
             return resObj.Result;
         }
 
+        public async Task<object> ServerPing()
+        {
+            var obj = new Request { Id = 0, Method = "server.ping", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            BannerResult resObj = await RequestInternal<BannerResult>(json);
+
+            return resObj.Result;
+        }
+
         public async Task<System.Version> ServerVersion(string clientName, System.Version protocolVersion)
         {
             var obj = new Request { Id = 0, Method = "server.version", Params = new List<string> { clientName, protocolVersion.ToString() } };
@@ -378,13 +396,13 @@ namespace Liviano.Electrum
                         if (cts.IsCancellationRequested) return;
 
                         var electrum = new ElectrumClient(new List<Server>() { s });
-                        var banner = await electrum.ServerBanner();
+                        var res = await electrum.ServerPing() == null;
 
                         Debug.WriteLine(
                             "Connected to: {0}:{1} => {2}",
                             s.Domain,
                             s.PrivatePort,
-                            banner
+                            res ? "Pong" : ":("
                         );
 
                         lock (_lock) connectedServers.Add(s);
