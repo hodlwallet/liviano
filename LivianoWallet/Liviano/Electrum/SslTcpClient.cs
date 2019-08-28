@@ -145,7 +145,7 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            Debug.WriteLine("[ReadMessage] Read message {0}", msg);
+            Debug.WriteLine($"[ReadMessage] Read message {msg}");
 
             return msg;
         }
