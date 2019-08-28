@@ -36,6 +36,7 @@ using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 
 using Liviano.Models;
+using Liviano.Extensions;
 
 namespace Liviano.Electrum
 {
@@ -271,9 +272,8 @@ namespace Liviano.Electrum
         public static string GetElectrumScriptHashFromAddress(string publicAddress, Network network)
         {
             var bitcoinAddress = BitcoinAddress.Create(publicAddress, network);
-            var scriptHashBytes = Hashes.SHA256(bitcoinAddress.ScriptPubKey.ToBytes()).Reverse().ToArray();
 
-            return Encoders.Hex.EncodeData(scriptHashBytes);
+            return bitcoinAddress.ToScriptHash().ToHex();
         }
     }
 }
