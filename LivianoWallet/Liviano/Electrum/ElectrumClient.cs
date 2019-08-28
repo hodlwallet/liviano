@@ -399,19 +399,21 @@ namespace Liviano.Electrum
             }
 
             if (connectedServers.Count == 0)
+            {
                 Debug.WriteLine("Cound not connect to any server...");
 
-            if (connectedServers.Count < 4)
+                return;
+            }
+
+            if (connectedServers.Count < NUMBER_OF_RECENT_SERVERS)
                 Debug.WriteLine("Conneted to too few servers {0}", connectedServers.Count);
 
-            if (connectedServers.Count > 0)
-            {
-                lock (_lock)
-                    File.WriteAllText(
-                        GetRecentlyConnectedServersFileName(network),
-                        JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
-                    );
-            }
+
+            lock (_lock)
+                File.WriteAllText(
+                    GetRecentlyConnectedServersFileName(network),
+                    JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
+                );
         }
 
         public static string GetLocalConfigFilePath(params string[] fileNames)
