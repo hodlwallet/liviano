@@ -33,6 +33,7 @@ using Liviano.Interfaces;
 using Liviano.Accounts;
 using Liviano.Utilities;
 using Liviano.Bips;
+using Liviano.Storages;
 
 namespace Liviano
 {
@@ -65,7 +66,9 @@ namespace Liviano
 
         public DateTimeOffset? CreatedAt { get; set; }
 
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null)
+        public IStorage Storage { get; set; }
+
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -76,6 +79,9 @@ namespace Liviano
             Network = Network ?? network ?? Network.Main;
 
             CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
+
+            Storage = Storage ?? storage ?? new FileSystemStorage(Id, network: Network);
+            Storage.Wallet = this;
 
             TxIds = TxIds ?? new List<string>();
 

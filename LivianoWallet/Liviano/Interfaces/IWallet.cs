@@ -104,11 +104,13 @@ namespace Liviano.Interfaces
         [JsonConverter(typeof(DateTimeOffsetConverter))]
         DateTimeOffset? CreatedAt { get; set; }
 
+        IStorage Storage { get; set; }
+
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null);
+        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
 
         /// <summary>
         /// Gets a private key this method also caches it on memory
