@@ -104,14 +104,6 @@ namespace Liviano.Accounts
             return _ExtKey;
         }
 
-        public override IAccount CastToAccountType()
-        {
-            if (AccountType != "wasabi")
-                return base.CastToAccountType();
-
-            return this;
-        }
-
         public new static WasabiAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();
