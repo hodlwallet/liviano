@@ -63,6 +63,8 @@ namespace Liviano.Storages
 
             var w = JsonConvert.DeserializeObject<IWallet>(contents);
 
+            // TODO: Load accounts with transactions into it!
+
             return w;
         }
 
@@ -78,6 +80,8 @@ namespace Liviano.Storages
             var contents = JsonConvert.SerializeObject(Wallet);
 
             File.WriteAllText(filePath, contents);
+
+            // TODO: Save accounts and transactions in wallet!
         }
 
         string GetWalletDirectory()
