@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 
 using NBitcoin;
@@ -30,11 +31,11 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
-using System;
+using Liviano.Models;
 
 namespace Liviano.Interfaces
 {
-    public interface IWallet
+    public interface IWallet : IHasTxs
     {
         /// <summary>
         /// A list of types of accounts, e.g. "bip44", "bip141"...
@@ -91,6 +92,12 @@ namespace Liviano.Interfaces
         /// <value></value>
         [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
         List<string> TxIds { get; set; }
+
+        /// <summary>
+        /// All the txs on all the accounts
+        /// </summary>
+        [JsonIgnore]
+        List<Tx> Txs { get; set; }
 
         /// <summary>
         /// Account ids of the wallet, these go under {walletId}/accounts

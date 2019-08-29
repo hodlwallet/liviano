@@ -35,6 +35,8 @@ using Liviano.Utilities;
 using Liviano.Bips;
 using Liviano.Storages;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using Liviano.Models;
 
 namespace Liviano
 {
@@ -53,6 +55,8 @@ namespace Liviano
 
         public string Name { get; set; }
 
+        public DateTimeOffset? CreatedAt { get; set; }
+
         public Network Network { get; set; }
 
         public string EncryptedSeed { get; set; }
@@ -60,12 +64,9 @@ namespace Liviano
         public byte[] ChainCode { get; set; }
 
         public List<string> TxIds { get; set; }
+        public List<Tx> Txs { get; set; }
 
         public List<string> AccountIds { get; set; }
-
-        public DateTimeOffset? CreatedAt { get; set; }
-
-        [JsonIgnore]
         public List<IAccount> Accounts { get; set; }
 
         IStorage _Storage;
@@ -143,6 +144,51 @@ namespace Liviano
                 _ExtKey = new ExtKey(_PrivateKey, ChainCode);
 
             return _ExtKey;
+        }
+
+        public void AddTx(Tx tx)
+        {
+            if (TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet already has a tx with id: {tx.Id}");
+
+                return;
+            }
+
+            TxIds.Add(tx.Id.ToString());
+            Txs.Add(tx);
+        }
+
+        public void RemoveTx(Tx tx)
+        {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
+            Txs.Remove(tx);
+            TxIds.Remove(tx.Id.ToString());
+        }
+
+        public void UpdateTx(Tx tx)
+        {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
+            for (int i = 0, count = Txs.Count; i < count; i++)
+            {
+                if (Txs[i].Id == tx.Id)
+                {
+                    Txs[i] = tx;
+                    break;
+                }
+            }
         }
 
         /// <summary>
