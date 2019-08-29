@@ -24,11 +24,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.IO;
 using Liviano.Interfaces;
 using Liviano.Utilities;
 using NBitcoin;
 using Newtonsoft.Json;
+using Liviano.Exceptions;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Liviano.Storages
 {
@@ -61,11 +65,14 @@ namespace Liviano.Storages
             var filePath = GetWalletFilePath();
             var contents = File.ReadAllText(filePath);
 
-            var w = JsonConvert.DeserializeObject<IWallet>(contents);
+            Wallet = JsonConvert.DeserializeObject<IWallet>(contents);
 
-            // TODO: Load accounts with transactions into it!
+            Wallet.Accounts = LoadAccounts();
+            Wallet.AccountIds = Wallet.Accounts.Select((a) => a.Id).ToList();
 
-            return w;
+            // TODO: Deal with transcations saving into accounts
+
+            return Wallet;
         }
 
         public void Save()
@@ -81,19 +88,76 @@ namespace Liviano.Storages
 
             File.WriteAllText(filePath, contents);
 
-            // TODO: Save accounts and transactions in wallet!
+            SaveAccounts();
+
+            // TODO: Deal with transcations saving
+        }
+
+        List<IAccount> LoadAccounts()
+        {
+            Guard.NotNull(Wallet, nameof(Wallet));
+            Guard.Assert(Wallet.Accounts is null);
+
+            var path = GetWalletDirectory();
+            var accountsPath = $"{path}{Path.DirectorySeparatorChar}accounts";
+            var accounts = new List<IAccount>();
+
+            foreach (var accountId in Wallet.AccountIds)
+            {
+                var fileName = $"{accountsPath}{Path.DirectorySeparatorChar}{accountId}.json";
+
+                if (!File.Exists(fileName))
+                {
+                    Debug.WriteLine("FATAL! Unable to find account {fileName}");
+
+                    continue;
+                }
+
+                var content = File.ReadAllText(fileName);
+                var account = JsonConvert.DeserializeObject<IAccount>(content);
+
+                accounts.Add(account.CastToAccountType());
+            }
+
+            return accounts;
+        }
+
+        void SaveAccounts()
+        {
+            var path = GetWalletDirectory();
+            var accountsPath = $"{path}{Path.DirectorySeparatorChar}accounts";
+
+            // Create "accounts" path
+            if (!Directory.Exists(accountsPath))
+                Directory.CreateDirectory(accountsPath);
+
+            foreach (var account in Wallet.Accounts)
+            {
+                var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{account.Id}.json";
+                var content = JsonConvert.SerializeObject(account);
+
+                File.WriteAllText(singleAccountPath, content);
+            }
         }
 
         string GetWalletDirectory()
         {
             // e.g.: "/home/igor/.liviano"
-            string path = RootDirectory;
+            var path = RootDirectory;
 
             // "\" or "/"
             path += Path.DirectorySeparatorChar;
 
             // "main" or "testnet"
             path += Network.Name.ToLower();
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            path += Path.DirectorySeparatorChar;
+
+            // "de88e127-8c41-4b70-a226-de38189b38b1"
+            path += Id;
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -109,8 +173,8 @@ namespace Liviano.Storages
             // "\" or "/"
             path += Path.DirectorySeparatorChar;
 
-            // e.g.: "/home/igor/.liviano/testnet/de88e127-8c41-4b70-a226-de38189b38b1.json"
-            path += $"{Wallet.Id}.json";
+            // e.g.: "/home/igor/.liviano/testnet/de88e127-8c41-4b70-a226-de38189b38b1/wallet.json"
+            path += "wallet.json";
 
             return path;
         }

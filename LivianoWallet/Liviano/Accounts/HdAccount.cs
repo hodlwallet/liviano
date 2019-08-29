@@ -124,6 +124,7 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetReceiveAddress(int n);
         public abstract BitcoinAddress GetChangeAddress();
         public abstract BitcoinAddress[] GetChangeAddress(int n);
+        public abstract IAccount CastToAccountType();
         #endregion
     }
 }

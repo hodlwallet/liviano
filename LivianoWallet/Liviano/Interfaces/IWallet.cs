@@ -90,7 +90,12 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "accountIds")]
-        List<Dictionary<string, string>> AccountIds { get; set; }
+        List<string> AccountIds { get; set; }
+
+        /// <summary>
+        /// All the accounts objects
+        /// </summary>
+        List<IAccount> Accounts { get; set; }
 
         /// <summary>
         /// The time this wallet was created.

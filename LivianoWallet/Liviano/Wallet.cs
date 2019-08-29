@@ -59,7 +59,7 @@ namespace Liviano
 
         public List<string> TxIds { get; set; }
 
-        public List<Dictionary<string, string>> AccountIds { get; set; }
+        public List<string> AccountIds { get; set; }
 
         public List<IAccount> Accounts { get; set; }
 
@@ -79,7 +79,7 @@ namespace Liviano
 
             TxIds = TxIds ?? new List<string>();
 
-            AccountIds = AccountIds ?? new List<Dictionary<string, string>>();
+            AccountIds = AccountIds ?? new List<string>();
             Accounts = Accounts ?? new List<IAccount>();
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
@@ -140,6 +140,7 @@ namespace Liviano
         {
             var account = NewAccount(type, name, options);
 
+            AccountIds.Add(account.Id);
             Accounts.Add(account);
         }
         /// <summary>

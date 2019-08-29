@@ -82,5 +82,11 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <returns></returns>
         BitcoinAddress[] GetChangeAddress(int n);
+
+        /// <summary>
+        /// Helper function to allow the IAccount to be casted to e.g.: Bip141Account or any other account
+        /// </summary>
+        /// <returns></returns>
+        IAccount CastToAccountType();
     }
 }
