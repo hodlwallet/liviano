@@ -29,6 +29,7 @@
     <Folder Include="Models\" />
     <Folder Include="Bips\" />
     <Folder Include="Accounts\" />
+    <Folder Include="Storages\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Electrum\btc-servers.json" />
