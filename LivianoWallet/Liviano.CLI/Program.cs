@@ -75,8 +75,8 @@ namespace Liviano.CLI
                     network = "regtest";
                 }
 
-                var extKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
-                var wif = HdOperations.GetWif(extKey, network);
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var wif = Hd.GetWif(extKey, network);
 
                 Console.WriteLine(wif.ToString());
             })
@@ -109,8 +109,8 @@ namespace Liviano.CLI
                     hdPath = o.HdPath;
                 }
 
-                var extPubKey = HdOperations.GetExtendedPublicKey(wif, hdPath, network);
-                var extPubKeyWif = HdOperations.GetWif(extPubKey, network);
+                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network);
+                var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
                 Console.WriteLine(extPubKeyWif.ToString());
             })
@@ -155,7 +155,7 @@ namespace Liviano.CLI
                     type = o.Type;
                 }
 
-                Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
+                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type).ToString());
             })
             .WithParsed<AddressToScriptPubKeyOptions>(o =>
             {
@@ -180,7 +180,7 @@ namespace Liviano.CLI
                     address = Console.ReadLine();
                 }
 
-                Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
+                Console.WriteLine(Hd.GetScriptPubKey(address, network).ToString());
             })
             .WithParsed<NewWalletOptions>(o =>
             {

@@ -30,6 +30,8 @@ using Liviano.Interfaces;
 using Liviano.Utilities;
 using NBitcoin;
 
+using Liviano.Bips;
+
 namespace Liviano.Accounts
 {
     public abstract class Bip32Account : HdAccount
@@ -49,7 +51,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetReceiveAddress()
         {
-            var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
+            var pubKey = Hd.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             ExternalAddressesCount++;
@@ -63,7 +65,7 @@ namespace Liviano.Accounts
 
             for (int i = 0; i < n; i++)
             {
-                var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
+                var pubKey = Hd.GeneratePublicKey(ExtendedPubKey, ExternalAddressesCount, false);
 
                 addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
 
@@ -75,7 +77,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetChangeAddress()
         {
-            var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
+            var pubKey = Hd.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             InternalAddressesCount++;
@@ -89,7 +91,7 @@ namespace Liviano.Accounts
 
             for (int i = 0; i < n; i++)
             {
-                var pubKey = HdOperations.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
+                var pubKey = Hd.GeneratePublicKey(ExtendedPubKey, InternalAddressesCount, true);
 
                 addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
 

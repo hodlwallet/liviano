@@ -25,7 +25,7 @@ namespace Liviano.Tests.Liviano
             string rootpriv = "zprvAWgYBBk7JR8Gjrh4UJQ2uJdG1r3WNRRfURiABBE3RvMXYSrRJL62XuezvGdPvG6GFBZduosCc1YP5wixPox7zhZLfiUm8aunE96BBa4Kei5";
             string rootpub  = "zpub6jftahH18ngZxLmXaKw3GSZzZsszmt9WqedkyZdezFtWRFBZqsQH5hyUmb4pCEeZGmVfQuP5bedXTB8is6fTv19U1GQRyQUKQGUTzyHACMF";
 
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
             ExtPubKey extPubKey = extKey.Neuter();
             string zprv = Bip84.GetZPrv(extKey, network);
             string zpub = Bip84.GetZPub(extPubKey, network);

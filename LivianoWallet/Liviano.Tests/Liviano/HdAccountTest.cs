@@ -322,7 +322,7 @@ namespace Liviano.Tests.Liviano
             string hdPath = "m/0'/0/0";
             string firstAddress = "bc1qgv52mt89gpev6p56huggl970sppqkgftxakv7f";
 
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
 
             // First lets check with normal pub key derivation
             PubKey pubKey = extKey.Derive(new KeyPath(hdPath)).Neuter().PubKey;
@@ -348,7 +348,7 @@ namespace Liviano.Tests.Liviano
 
             HdAccount account = wallet.GetAccountByCoinType("Account 0", CoinType.Bitcoin);
 
-            Assert.Equal("m/0'", HdOperations.GetAccountHdPath((int) CoinType.Bitcoin, 0, "32"));
+            Assert.Equal("m/0'", Hd.GetAccountHdPath((int) CoinType.Bitcoin, 0, "32"));
 
             account.CreateAddresses(network, 1, false, "141");
 

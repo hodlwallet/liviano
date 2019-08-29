@@ -40,7 +40,7 @@ namespace Liviano.Tests.Liviano
 
             // Set Mnemonic and get the priv ext key
             string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
             List<AccountRoot> accountsRoot = new List<AccountRoot>
             {
                 new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),

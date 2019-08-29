@@ -131,7 +131,7 @@ namespace Liviano.CLI
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
         {
-            _Network = HdOperations.GetNetwork(config.Network);
+            _Network = Hd.GetNetwork(config.Network);
 
             var chain = GetChain();
             var addressManager = GetAddressManager();
@@ -225,7 +225,7 @@ namespace Liviano.CLI
         {
             List<(string, string, Money, Money)> balances = new List<(string, string, Money, Money)>();
 
-            _Network = HdOperations.GetNetwork(config.Network);
+            _Network = Hd.GetNetwork(config.Network);
 
             WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
 
@@ -250,7 +250,7 @@ namespace Liviano.CLI
 
         public static HdAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
         {
-            _Network = HdOperations.GetNetwork(config.Network);
+            _Network = Hd.GetNetwork(config.Network);
 
             HdAccount account = null;
             WalletManager walletManager = new WalletManager(_Logger, _Network, config.WalletId);
@@ -275,7 +275,7 @@ namespace Liviano.CLI
 
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
-            _Network = HdOperations.GetNetwork(config.Network);
+            _Network = Hd.GetNetwork(config.Network);
 
             if (password == null)
                 password = "";
@@ -289,7 +289,7 @@ namespace Liviano.CLI
 
         public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
         {
-            _Network = HdOperations.GetNetwork(config.Network);
+            _Network = Hd.GetNetwork(config.Network);
 
             var result = CreateWalletManager(
                 _Logger,

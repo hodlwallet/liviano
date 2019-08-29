@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ using NBitcoin;
 using Liviano.Interfaces;
 using Liviano.Accounts;
 using Liviano.Utilities;
+using Liviano.Bips;
 
 namespace Liviano
 {
@@ -81,8 +82,8 @@ namespace Liviano
             AccountIds = AccountIds ?? new List<Dictionary<string, string>>();
             Accounts = Accounts ?? new List<IAccount>();
 
-            var mnemonicObj = HdOperations.MnemonicFromString(mnemonic);
-            var extKey = HdOperations.GetExtendedKey(mnemonicObj, password);
+            var mnemonicObj = Hd.MnemonicFromString(mnemonic);
+            var extKey = Hd.GetExtendedKey(mnemonicObj, password);
 
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
@@ -100,7 +101,7 @@ namespace Liviano
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
         {
             if (_PrivateKey == null || forcePasswordVerification)
-                _PrivateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
+                _PrivateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
 
             return _PrivateKey;
         }

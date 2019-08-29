@@ -13,17 +13,17 @@ using NBitcoin.DataEncoders;
 
 namespace Liviano.Tests.Liviano
 {
-    public class HdOperationsTest
+    public class HdTest
     {
         [Fact]
         public void GetNetworkTest()
         {
-            Assert.Equal(Network.Main, HdOperations.GetNetwork());
-            Assert.Equal(Network.Main, HdOperations.GetNetwork("main"));
-            Assert.Equal(Network.TestNet, HdOperations.GetNetwork("testnet"));
-            Assert.Equal(Network.RegTest, HdOperations.GetNetwork("regtest"));
+            Assert.Equal(Network.Main, Hd.GetNetwork());
+            Assert.Equal(Network.Main, Hd.GetNetwork("main"));
+            Assert.Equal(Network.TestNet, Hd.GetNetwork("testnet"));
+            Assert.Equal(Network.RegTest, Hd.GetNetwork("regtest"));
 
-            Assert.Throws<WalletException>(() => HdOperations.GetNetwork("Liviano"));
+            Assert.Throws<WalletException>(() => Hd.GetNetwork("Liviano"));
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace Liviano.Tests.Liviano
         {
             Assert.Equal(
                 "m/84'/0'/0'/0/0",
-                HdOperations.CreateHdPath(
+                Hd.CreateHdPath(
                     0 /* Bitcoin */,
                     0,
                     false,
@@ -41,7 +41,7 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 "m/84'/0'/0'/1/0",
-                HdOperations.CreateHdPath(
+                Hd.CreateHdPath(
                     0 /* Bitcoin */,
                     0,
                     true,
@@ -55,19 +55,19 @@ namespace Liviano.Tests.Liviano
         {
             Assert.Equal(
                 0,
-                HdOperations.GetCoinType("m/84'/0'/0'/0/1")
+                Hd.GetCoinType("m/84'/0'/0'/0/1")
             );
 
             Assert.Throws<WalletException>(() => {
-                HdOperations.GetCoinType("INVALID_HDPATH");
+                Hd.GetCoinType("INVALID_HDPATH");
             });
         }
 
         [Fact]
         public void IsChangeAddressTest()
         {
-            Assert.True(HdOperations.IsChangeAddress("m/44'/0'/0'/1/0"));
-            Assert.False(HdOperations.IsChangeAddress("m/44'/0'/0'/0/0"));
+            Assert.True(Hd.IsChangeAddress("m/44'/0'/0'/1/0"));
+            Assert.False(Hd.IsChangeAddress("m/44'/0'/0'/0/0"));
         }
 
         [Fact]
@@ -80,12 +80,12 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 expectedWif,
-                HdOperations.GetExtendedKey(mnemonic).GetWif(Network.Main).ToString()
+                Hd.GetExtendedKey(mnemonic).GetWif(Network.Main).ToString()
             );
 
             Assert.Equal(
                 expectedWifWithPassphrase,
-                HdOperations.GetExtendedKey(mnemonic, passphrase).GetWif(Network.Main).ToString()
+                Hd.GetExtendedKey(mnemonic, passphrase).GetWif(Network.Main).ToString()
             );
         }
 
@@ -99,7 +99,7 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 expectedExtPubKeyWif,
-                HdOperations.GetExtendedPublicKey(wif, hdPath, network).GetWif(Network.Main).ToString()
+                Hd.GetExtendedPublicKey(wif, hdPath, network).GetWif(Network.Main).ToString()
             );
         }
 
@@ -110,22 +110,22 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 "1Cd2SkZ4bUbWk5Etyvq5g2PVJv4gcig1yn",
-                HdOperations.GetAddress(wif, 0, false, "main", "p2pkh").ToString()
+                Hd.GetAddress(wif, 0, false, "main", "p2pkh").ToString()
             );
 
             Assert.Equal(
                 "39k4tnAD4faY5w5GRTKvYCYqQJLQzs94oA",
-                HdOperations.GetAddress(wif, 0, false, "main", "p2sh-p2wpkh").ToString()
+                Hd.GetAddress(wif, 0, false, "main", "p2sh-p2wpkh").ToString()
             );
 
             Assert.Equal(
                 "bc1q0aueqjtnjyyhm7m6unvkkp4c0p3fdt8qjtuq2j",
-                HdOperations.GetAddress(wif, 0, false, "main", "p2wpkh").ToString()
+                Hd.GetAddress(wif, 0, false, "main", "p2wpkh").ToString()
             );
 
             Assert.Equal(
                 "bc1q0aueqjtnjyyhm7m6unvkkp4c0p3fdt8qjtuq2j",
-                HdOperations.GetAddress(wif, 0, false, "main").ToString()
+                Hd.GetAddress(wif, 0, false, "main").ToString()
             );
         }
 
@@ -136,7 +136,7 @@ namespace Liviano.Tests.Liviano
             string language = "english";
             int amountAround = 4; // Total of 5 becaues the word to guess is added
 
-            string[] guessWords = HdOperations.GenerateGuessWords(wordToGuess, language, amountAround);
+            string[] guessWords = Hd.GenerateGuessWords(wordToGuess, language, amountAround);
 
             Assert.Contains(wordToGuess, guessWords);
             Assert.Equal(amountAround + 1, guessWords.Length);
@@ -147,8 +147,8 @@ namespace Liviano.Tests.Liviano
         {
             string mnemonic = "ugly dilemma idle crowd toast virus film funny laundry little gossip pair";
 
-            Assert.True(HdOperations.IsInMnemonicAtIndex(mnemonic, "dilemma", 1));
-            Assert.False(HdOperations.IsInMnemonicAtIndex(mnemonic, "film", 3));
+            Assert.True(Hd.IsInMnemonicAtIndex(mnemonic, "dilemma", 1));
+            Assert.False(Hd.IsInMnemonicAtIndex(mnemonic, "film", 3));
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace Liviano.Tests.Liviano
 
             // Set Mnemonic and get the priv ext key
             string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
 
             // Creates a new wallet
             Wallet wallet = new Wallet
@@ -299,7 +299,7 @@ namespace Liviano.Tests.Liviano
             // Set Mnemonic and get the priv ext key
             string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
             string password = "test";
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic, password);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic, password);
 
             // Creates a new wallet
             Wallet wallet = new Wallet

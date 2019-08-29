@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using Liviano.Bips;
 using Liviano.Extensions;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
@@ -62,8 +63,8 @@ namespace Liviano.Accounts
 
         public WasabiAccount(string mnemonic, string password = "", Network network = null, int index = 0) : base(index)
         {
-            var mnemonicObj = HdOperations.MnemonicFromString(mnemonic);
-            var extKey = HdOperations.GetExtendedKey(mnemonicObj, password);
+            var mnemonicObj = Hd.MnemonicFromString(mnemonic);
+            var extKey = Hd.GetExtendedKey(mnemonicObj, password);
 
             Network = network;
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network).ToWif();
@@ -83,7 +84,7 @@ namespace Liviano.Accounts
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
         {
             if (_PrivateKey == null || forcePasswordVerification)
-                _PrivateKey = HdOperations.DecryptSeed(EncryptedSeed, Network, password);
+                _PrivateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
 
             return _PrivateKey;
         }
