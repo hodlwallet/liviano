@@ -24,14 +24,91 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.IO;
 using Liviano.Interfaces;
+using Liviano.Utilities;
+using NBitcoin;
+using Newtonsoft.Json;
 
 namespace Liviano.Storages
 {
     public class FileSystemStorage : IStorage
     {
-        public FileSystemStorage()
+        public string Id { get; set; }
+        public Network Network { get; set; }
+        public IWallet Wallet { get; set; }
+        public string RootDirectory { get; set; }
+
+        public FileSystemStorage(string id = null, string directory = "data", Network network = null)
         {
+            directory = Path.GetFullPath(directory);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            Id = id;
+            RootDirectory = directory;
+            Network = network;
+        }
+
+        public IWallet Load()
+        {
+            Guard.NotNull(Id, nameof(Id));
+            Guard.NotNull(Network, nameof(Network));
+            Guard.Assert(Wallet is null);
+
+            var filePath = GetWalletFilePath();
+            var contents = File.ReadAllText(filePath);
+
+            var w = JsonConvert.DeserializeObject<IWallet>(contents);
+
+            return w;
+        }
+
+        public void Save()
+        {
+            Guard.NotNull(Wallet, nameof(Wallet));
+            Guard.NotNull(RootDirectory, nameof(RootDirectory));
+
+            Id = Wallet.Id;
+            Network = Wallet.Network;
+
+            var filePath = GetWalletFilePath();
+            var contents = JsonConvert.SerializeObject(Wallet);
+
+            File.WriteAllText(filePath, contents);
+        }
+
+        string GetWalletDirectory()
+        {
+            // e.g.: "/home/igor/.liviano"
+            string path = RootDirectory;
+
+            // "\" or "/"
+            path += Path.DirectorySeparatorChar;
+
+            // "main" or "testnet"
+            path += Network.Name.ToLower();
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            return path;
+        }
+
+        string GetWalletFilePath()
+        {
+            // e.g.: "/home/igor/.liviano/testnet"
+            var path = GetWalletDirectory();
+
+            // "\" or "/"
+            path += Path.DirectorySeparatorChar;
+
+            // e.g.: "/home/igor/.liviano/testnet/de88e127-8c41-4b70-a226-de38189b38b1.json"
+            path += $"{Wallet.Id}.json";
+
+            return path;
         }
     }
 }

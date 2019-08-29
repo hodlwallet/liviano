@@ -24,9 +24,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using NBitcoin;
+
 namespace Liviano.Interfaces
 {
     public interface IStorage
     {
+        string Id { get; set; }
+        string RootDirectory { get; set; }
+        IWallet Wallet { get; set; }
+        Network Network { get; set; }
+
+        IWallet Load();
+        void Save();
     }
 }
