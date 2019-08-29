@@ -149,5 +149,29 @@ namespace Liviano.Accounts
                 PublicKey = PrivateKey.PubKey;
             }
         }
+
+        public void AddTx(Tx tx)
+        {
+            TxIds.Add(tx.Id.ToString());
+            Txs.Add(tx);
+        }
+
+        public void RemoveTx(Tx tx)
+        {
+            Txs.Remove(tx);
+            TxIds.Remove(tx.Id.ToString());
+        }
+
+        public void UpdateTx(Tx tx)
+        {
+            for (int i = 0, count = Txs.Count; i < count; i++)
+            {
+                if (Txs[i].Id == tx.Id)
+                {
+                    Txs[i] = tx;
+                    break;
+                }
+            }
+        }
     }
 }

@@ -85,5 +85,24 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <returns></returns>
         BitcoinAddress[] GetChangeAddress(int n);
+
+        /// <summary>
+        /// Adds transaction to this account
+        /// </summary>
+        /// <param name="tx">A <see cref="Tx"/> to be added</param>
+        void AddTx(Tx tx);
+
+        /// <summary>
+        /// Updates a tx that matches tx.Id
+        /// </summary>
+        /// <param name="tx">A <see cref="Tx"/> to update</param>
+        void UpdateTx(Tx tx);
+
+
+        /// <summary>
+        /// Removes a tx from the tx list
+        /// </summary>
+        /// <param name="tx">A <see cref="Tx"/> †o remove</param>
+        void RemoveTx(Tx tx);
     }
 }

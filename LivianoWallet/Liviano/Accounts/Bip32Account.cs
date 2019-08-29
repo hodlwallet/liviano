@@ -31,6 +31,7 @@ using Liviano.Utilities;
 using NBitcoin;
 
 using Liviano.Bips;
+using Liviano.Models;
 
 namespace Liviano.Accounts
 {
@@ -99,6 +100,30 @@ namespace Liviano.Accounts
             }
 
             return addresses.ToArray();
+        }
+
+        public override void AddTx(Tx tx)
+        {
+            TxIds.Add(tx.Id.ToString());
+            Txs.Add(tx);
+        }
+
+        public override void RemoveTx(Tx tx)
+        {
+            Txs.Remove(tx);
+            TxIds.Remove(tx.Id.ToString());
+        }
+
+        public override void UpdateTx(Tx tx)
+        {
+            for (int i = 0, count = Txs.Count; i < count; i++)
+            {
+                if (Txs[i].Id == tx.Id)
+                {
+                    Txs[i] = tx;
+                    break;
+                }
+            }
         }
 
         /// <summary>
