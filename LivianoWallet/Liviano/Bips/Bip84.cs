@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 
-namespace Liviano
+namespace Liviano.Bips
 {
     /// <summary>
     /// Implements BIP84's utility functions to parse and convert BIP44's format prefixes (xpub and xprv) to BIP84's prefixes (zpub and zprv)

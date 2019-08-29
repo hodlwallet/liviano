@@ -29,12 +29,12 @@ using NBitcoin;
 
 using Newtonsoft.Json;
 
-using Liviano.MSeed.Interfaces;
+using Liviano.Interfaces;
 using Newtonsoft.Json.Converters;
 using System;
 using Liviano.Utilities;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
     public abstract class HdAccount : IAccount
     {

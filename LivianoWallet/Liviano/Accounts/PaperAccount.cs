@@ -30,13 +30,13 @@ using Newtonsoft.Json;
 
 using NBitcoin;
 
-using Liviano.MSeed.Interfaces;
+using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
     public class PaperAccount : IAccount
     {

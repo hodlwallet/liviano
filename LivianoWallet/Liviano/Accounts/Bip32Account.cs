@@ -26,11 +26,11 @@
 using System;
 using System.Collections.Generic;
 using Liviano.Extensions;
-using Liviano.MSeed.Interfaces;
+using Liviano.Interfaces;
 using Liviano.Utilities;
 using NBitcoin;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
     public abstract class Bip32Account : HdAccount
     {

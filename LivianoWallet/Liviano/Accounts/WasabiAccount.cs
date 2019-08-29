@@ -30,7 +30,7 @@ using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using Newtonsoft.Json;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
     public class WasabiAccount : Bip84Account
     {

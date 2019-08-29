@@ -31,7 +31,7 @@ using NBitcoin;
 
 using Liviano.Utilities.JsonConverters;
 
-namespace Liviano.MSeed.Interfaces
+namespace Liviano.Interfaces
 {
     public interface IAccount
     {

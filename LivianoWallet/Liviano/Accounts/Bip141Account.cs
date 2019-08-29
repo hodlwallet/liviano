@@ -25,7 +25,7 @@
 // THE SOFTWARE.
 using NBitcoin;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
     public class Bip141Account : Bip32Account
     {

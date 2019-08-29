@@ -1,12 +1,40 @@
-using Liviano.Utilities.JsonConverters;
+//
+// Wallet.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 HODL Wallet
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+using System;
+
+using Newtonsoft.Json;
+
 using NBitcoin;
 using NBitcoin.JsonConverters;
-using Newtonsoft.Json;
-using System;
+
+using Liviano.Utilities.JsonConverters;
 
 namespace Liviano.Models
 {
-    public class TransactionData
+    public class Tx
     {
         /// <summary>
         /// Transaction id.
@@ -14,6 +42,19 @@ namespace Liviano.Models
         [JsonProperty(PropertyName = "id")]
         [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 Id { get; set; }
+
+        /// <summary>
+        /// Account id the tx belongs to
+        /// </summary>
+        [JsonProperty(PropertyName = "accountId", NullValueHandling = NullValueHandling.Ignore)]
+        public string AccountId { get; set; }
+
+        /// <summary>
+        /// The network this tx belongs to.
+        /// </summary>
+        [JsonProperty(PropertyName = "network")]
+        [JsonConverter(typeof(NetworkConverter))]
+        Network Network { get; set; }
 
         /// <summary>
         /// The transaction amount.
@@ -44,19 +85,16 @@ namespace Liviano.Models
         public Money TotalFees { get; set; }
 
         /// <summary>
-        /// A value indicating whether this is a coin stake transaction or not.
+        /// This means is a send, the output that belongs to you was sent to a change (internal) address
         /// </summary>
-        [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsCoinStake { get; set; }
-
-        [JsonProperty(PropertyName = "isCoinBase", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsCoinBase { get; set; }
-
         [JsonProperty(PropertyName = "isSend", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsSend { get; set; }
+        public bool IsSend { get; set; }
 
+        /// <summary>
+        /// This means is receive, the output that is to a receive (external) address
+        /// </summary>
         [JsonProperty(PropertyName = "isReceive", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsReceive { get; set; }
+        public bool IsReceive { get; set; }
 
         /// <summary>
         /// The index of this scriptPubKey in the transaction it is contained.
@@ -104,9 +142,9 @@ namespace Liviano.Models
         /// <summary>
         /// The script pub key for the address we sent to
         /// </summary>
-        [JsonProperty(PropertyName = "sentToScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "sentScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ScriptJsonConverter))]
-        public Script SentToScriptPubKey { get; set; }
+        public Script SentScriptPubKey { get; set; }
 
         /// <summary>
         /// Hexadecimal representation of this transaction.
@@ -125,13 +163,7 @@ namespace Liviano.Models
         /// </summary>
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
         [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsPropagated { get; set; }
-
-        /// <summary>
-        /// The details of the transaction in which the output referenced in this transaction is spent.
-        /// </summary>
-        [JsonProperty(PropertyName = "spendingDetails", NullValueHandling = NullValueHandling.Ignore)]
-        public SpendingDetails SpendingDetails { get; set; }
+        public bool IsPropagated { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -146,14 +178,12 @@ namespace Liviano.Models
         /// </summary>
         public bool IsSpendable()
         {
-            return IsSend == false && SpendingDetails == null;
+            return IsSend == false;
         }
 
-        public Transaction GetTransaction(Network network = null)
+        public Transaction GetTransaction()
         {
-            if (network is null) network = Network.Main;
-
-            return Transaction.Parse(Hex, network);
+            return Transaction.Parse(Hex, Network);
         }
 
         public Money SpendableAmount(bool confirmedOnly)

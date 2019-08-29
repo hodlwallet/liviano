@@ -29,11 +29,11 @@ using System.Linq;
 
 using NBitcoin;
 
-using Liviano.MSeed.Interfaces;
-using Liviano.MSeed.Accounts;
+using Liviano.Interfaces;
+using Liviano.Accounts;
 using Liviano.Utilities;
 
-namespace Liviano.MSeed
+namespace Liviano
 {
     public class Wallet : IWallet
     {

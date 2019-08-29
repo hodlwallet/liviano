@@ -1,5 +1,5 @@
 ﻿//
-// Bip84Account.cs
+// Bip49Account.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -25,14 +25,14 @@
 // THE SOFTWARE.
 using NBitcoin;
 
-namespace Liviano.MSeed.Accounts
+namespace Liviano.Accounts
 {
-    public class Bip84Account : Bip32Account
+    public class Bip49Account : Bip32Account
     {
-        public override string AccountType => "bip84";
-        public override string HdPathFormat => "m/84'/0'/{0}'";
+        public override string AccountType => "bip49";
+        public override string HdPathFormat => "m/49'/0'/{0}'";
 
-        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Segwit;
+        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.SegwitP2SH;
         public override ScriptPubKeyType ScriptPubKeyType
         {
             get => _ScriptPubKeyType;
@@ -40,11 +40,6 @@ namespace Liviano.MSeed.Accounts
             {
                 _ScriptPubKeyType = value;
             }
-        }
-
-        public Bip84Account(int index = 0) : base(index)
-        {
-
         }
     }
 }
