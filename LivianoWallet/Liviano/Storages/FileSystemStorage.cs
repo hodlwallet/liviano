@@ -35,8 +35,6 @@ using Newtonsoft.Json;
 using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Extensions;
-using System.Xml;
-using NBitcoin.Protocol;
 using Liviano.Models;
 
 namespace Liviano.Storages
@@ -240,6 +238,13 @@ namespace Liviano.Storages
             path += "wallet.json";
 
             return path;
+        }
+
+        public bool Exists()
+        {
+            Guard.NotNull(Id, nameof(Id));
+
+            return File.Exists(GetWalletFilePath());
         }
     }
 }
