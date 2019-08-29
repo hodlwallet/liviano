@@ -26,6 +26,7 @@
 using System;
 using Liviano.Bips;
 using Liviano.Extensions;
+using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using NBitcoin;
@@ -101,6 +102,14 @@ namespace Liviano.Accounts
                 _ExtKey = new ExtKey(_PrivateKey, ChainCode);
 
             return _ExtKey;
+        }
+
+        public override IAccount CastToAccountType()
+        {
+            if (AccountType != "wasabi")
+                return base.CastToAccountType();
+
+            return this;
         }
 
         public new static WasabiAccount Create(string name, object options)

@@ -101,23 +101,6 @@ namespace Liviano.Accounts
             return addresses.ToArray();
         }
 
-        public override IAccount CastToAccountType()
-        {
-            switch (AccountType)
-            {
-                case "bip44":
-                    return (Bip44Account)this;
-                case "bip49":
-                    return (Bip49Account)this;
-                case "bip84":
-                    return (Bip84Account)this;
-                case "bip141":
-                    return (Bip141Account)this;
-                default:
-                    throw new ArgumentException($"Invalid account type {AccountType}");
-            }
-        }
-
         /// <summary>
         /// Creates a account based on a type string
         /// </summary>
@@ -147,6 +130,10 @@ namespace Liviano.Accounts
                     break;
                 case "bip141":
                     account = new Bip141Account();
+                    break;
+                case "wasabi":
+                    // This makes very little sence, but it's here just in case
+                    account = new WasabiAccount();
                     break;
                 default:
                     account = null;

@@ -35,6 +35,7 @@ using Liviano.Utilities;
 using Liviano.Utilities.JsonConverters;
 using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
+using Liviano.Models;
 
 namespace Liviano.Accounts
 {
@@ -53,6 +54,8 @@ namespace Liviano.Accounts
         public string Name { get; set; }
 
         public List<string> TxIds { get; set; }
+
+        public List<Tx> Txs { get; set; }
 
         [JsonProperty(PropertyName = "scriptPubKeyType")]
         [JsonConverter(typeof(StringEnumConverter))]

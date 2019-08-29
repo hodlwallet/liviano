@@ -30,6 +30,7 @@ using Newtonsoft.Json;
 using NBitcoin;
 
 using Liviano.Utilities.JsonConverters;
+using Liviano.Models;
 
 namespace Liviano.Interfaces
 {
@@ -57,6 +58,8 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "txIds")]
         List<string> TxIds { get; set; }
 
+        List<Tx> Txs { get; set; }
+
         /// <summary>
         /// Gets 1 receiving address
         /// </summary>
@@ -82,11 +85,5 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <returns></returns>
         BitcoinAddress[] GetChangeAddress(int n);
-
-        /// <summary>
-        /// Helper function to allow the IAccount to be casted to e.g.: Bip141Account or any other account
-        /// </summary>
-        /// <returns></returns>
-        IAccount CastToAccountType();
     }
 }

@@ -23,16 +23,21 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
 using System.Linq;
 using System.IO;
-using Liviano.Interfaces;
-using Liviano.Utilities;
-using NBitcoin;
-using Newtonsoft.Json;
-using Liviano.Exceptions;
 using System.Diagnostics;
 using System.Collections.Generic;
+
+using NBitcoin;
+
+using Newtonsoft.Json;
+
+using Liviano.Interfaces;
+using Liviano.Utilities;
+using Liviano.Extensions;
+using System.Xml;
+using NBitcoin.Protocol;
+using Liviano.Models;
 
 namespace Liviano.Storages
 {
@@ -67,10 +72,13 @@ namespace Liviano.Storages
 
             Wallet = JsonConvert.DeserializeObject<IWallet>(contents);
 
-            Wallet.Accounts = LoadAccounts();
+            Wallet.Accounts = GetAccounts();
             Wallet.AccountIds = Wallet.Accounts.Select((a) => a.Id).ToList();
 
-            // TODO: Deal with transcations saving into accounts
+            foreach (var account in Wallet.Accounts)
+            {
+                account.Txs = GetTxs(account);
+            }
 
             return Wallet;
         }
@@ -89,17 +97,35 @@ namespace Liviano.Storages
             File.WriteAllText(filePath, contents);
 
             SaveAccounts();
-
-            // TODO: Deal with transcations saving
+            SaveTransactions();
         }
 
-        List<IAccount> LoadAccounts()
+        List<Tx> GetTxs(IAccount account)
+        {
+            Guard.NotNull(Wallet, nameof(Wallet));
+
+            var txsPath = GetTransactionsPath();
+            var txs = new List<Tx>();
+
+            foreach (var txId in account.TxIds)
+            {
+                var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}";
+
+                var contents = File.ReadAllText(txFilePath);
+                var tx = JsonConvert.DeserializeObject<Tx>(contents);
+
+                txs.Add(tx);
+            }
+
+            return txs;
+        }
+
+        List<IAccount> GetAccounts()
         {
             Guard.NotNull(Wallet, nameof(Wallet));
             Guard.Assert(Wallet.Accounts is null);
 
-            var path = GetWalletDirectory();
-            var accountsPath = $"{path}{Path.DirectorySeparatorChar}accounts";
+            var accountsPath = GetAccountsPath();
             var accounts = new List<IAccount>();
 
             foreach (var accountId in Wallet.AccountIds)
@@ -108,7 +134,7 @@ namespace Liviano.Storages
 
                 if (!File.Exists(fileName))
                 {
-                    Debug.WriteLine("FATAL! Unable to find account {fileName}");
+                    Debug.WriteLine($"FATAL! Unable to find account: {fileName}");
 
                     continue;
                 }
@@ -124,8 +150,7 @@ namespace Liviano.Storages
 
         void SaveAccounts()
         {
-            var path = GetWalletDirectory();
-            var accountsPath = $"{path}{Path.DirectorySeparatorChar}accounts";
+            var accountsPath = GetAccountsPath();
 
             // Create "accounts" path
             if (!Directory.Exists(accountsPath))
@@ -138,6 +163,44 @@ namespace Liviano.Storages
 
                 File.WriteAllText(singleAccountPath, content);
             }
+        }
+
+        void SaveTransactions()
+        {
+            var txsPath = GetTransactionsPath();
+
+            foreach (var account in Wallet.Accounts)
+            {
+                foreach (var tx in account.Txs)
+                {
+                    var filePath = $"{txsPath}{Path.DirectorySeparatorChar}{tx.Id}.json";
+                    var contents = JsonConvert.SerializeObject(tx);
+
+                    File.WriteAllText(filePath, contents);
+                }
+            }
+        }
+
+        string GetAccountsPath()
+        {
+            var path = GetWalletDirectory();
+            var accountsPath = $"{path}{Path.DirectorySeparatorChar}accounts";
+
+            if (!Directory.Exists(accountsPath))
+                Directory.CreateDirectory(accountsPath);
+
+            return accountsPath;
+        }
+
+        string GetTransactionsPath()
+        {
+            var path = GetWalletDirectory();
+            var transactionsPath = $"{path}{Path.DirectorySeparatorChar}transactions";
+
+            if (!Directory.Exists(transactionsPath))
+                Directory.CreateDirectory(transactionsPath);
+
+            return transactionsPath;
         }
 
         string GetWalletDirectory()

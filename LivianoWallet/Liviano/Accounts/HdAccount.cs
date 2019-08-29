@@ -28,11 +28,10 @@ using System.Collections.Generic;
 using NBitcoin;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using Liviano.Interfaces;
-using Newtonsoft.Json.Converters;
-using System;
-using Liviano.Utilities;
+using Liviano.Models;
 
 namespace Liviano.Accounts
 {
@@ -119,12 +118,12 @@ namespace Liviano.Accounts
         public Network Network { get; set; }
         public string Name { get; set; }
         public List<string> TxIds { get; set; }
+        public List<Tx> Txs { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress();
         public abstract BitcoinAddress[] GetReceiveAddress(int n);
         public abstract BitcoinAddress GetChangeAddress();
         public abstract BitcoinAddress[] GetChangeAddress(int n);
-        public abstract IAccount CastToAccountType();
         #endregion
     }
 }
