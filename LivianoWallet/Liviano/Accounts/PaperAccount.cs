@@ -36,6 +36,7 @@ using Liviano.Utilities.JsonConverters;
 using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
+using System.Diagnostics;
 
 namespace Liviano.Accounts
 {
@@ -152,18 +153,39 @@ namespace Liviano.Accounts
 
         public void AddTx(Tx tx)
         {
+            if (TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet already has a tx with id: {tx.Id}");
+
+                return;
+            }
+
             TxIds.Add(tx.Id.ToString());
             Txs.Add(tx);
         }
 
         public void RemoveTx(Tx tx)
         {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
             Txs.Remove(tx);
             TxIds.Remove(tx.Id.ToString());
         }
 
         public void UpdateTx(Tx tx)
         {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
             for (int i = 0, count = Txs.Count; i < count; i++)
             {
                 if (Txs[i].Id == tx.Id)

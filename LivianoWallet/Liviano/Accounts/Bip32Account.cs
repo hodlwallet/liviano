@@ -25,13 +25,15 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using Liviano.Extensions;
-using Liviano.Interfaces;
-using Liviano.Utilities;
+using System.Diagnostics;
+
 using NBitcoin;
 
 using Liviano.Bips;
 using Liviano.Models;
+using Liviano.Extensions;
+using Liviano.Interfaces;
+using Liviano.Utilities;
 
 namespace Liviano.Accounts
 {
@@ -104,18 +106,39 @@ namespace Liviano.Accounts
 
         public override void AddTx(Tx tx)
         {
+            if (TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet already has a tx with id: {tx.Id}");
+
+                return;
+            }
+
             TxIds.Add(tx.Id.ToString());
             Txs.Add(tx);
         }
 
         public override void RemoveTx(Tx tx)
         {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
             Txs.Remove(tx);
             TxIds.Remove(tx.Id.ToString());
         }
 
         public override void UpdateTx(Tx tx)
         {
+            if (!TxIds.Contains(tx.Id.ToString()))
+            {
+                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+
+                return;
+            }
+
             for (int i = 0, count = Txs.Count; i < count; i++)
             {
                 if (Txs[i].Id == tx.Id)
