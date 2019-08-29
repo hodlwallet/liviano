@@ -39,7 +39,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// A list of types of accounts, e.g. "bip44", "bip141"...
         /// </summary>
-        [JsonProperty(PropertyName = "accountTypes")]
+        [JsonIgnore]
         string[] AccountTypes { get; }
 
         /// <summary>
@@ -55,6 +55,13 @@ namespace Liviano.Interfaces
         /// <value></value>
         [JsonProperty(PropertyName = "name")]
         string Name { get; set; }
+
+        /// <summary>
+        /// The time this wallet was created.
+        /// </summary>
+        [JsonProperty(PropertyName = "createdAt", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(DateTimeOffsetConverter))]
+        DateTimeOffset? CreatedAt { get; set; }
 
         /// <summary>
         /// The network this wallets belongs to.
@@ -82,28 +89,24 @@ namespace Liviano.Interfaces
         /// the wallet will find them in {walletId}/transactions
         /// </summary>
         /// <value></value>
-        [JsonProperty(PropertyName = "txIds")]
+        [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
         List<string> TxIds { get; set; }
 
         /// <summary>
         /// Account ids of the wallet, these go under {walletId}/accounts
         /// </summary>
         /// <value></value>
-        [JsonProperty(PropertyName = "accountIds")]
+        [JsonProperty(PropertyName = "accountIds", DefaultValueHandling = DefaultValueHandling.Ignore)]
         List<string> AccountIds { get; set; }
 
         /// <summary>
         /// All the accounts objects
         /// </summary>
+        [JsonIgnore]
         List<IAccount> Accounts { get; set; }
 
-        /// <summary>
-        /// The time this wallet was created.
-        /// </summary>
-        [JsonProperty(PropertyName = "createdAt", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
-        DateTimeOffset? CreatedAt { get; set; }
 
+        [JsonIgnore]
         IStorage Storage { get; set; }
 
         /// <summary>

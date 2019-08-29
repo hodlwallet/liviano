@@ -51,13 +51,14 @@ namespace Liviano.Interfaces
         /// <summary>
         /// The network this wallets belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "network")]
+        [JsonProperty(PropertyName = "network", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(NetworkConverter))]
         Network Network { get; set; }
 
-        [JsonProperty(PropertyName = "txIds")]
+        [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
         List<string> TxIds { get; set; }
 
+        [JsonIgnore]
         List<Tx> Txs { get; set; }
 
         /// <summary>

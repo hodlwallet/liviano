@@ -34,6 +34,7 @@ using Liviano.Accounts;
 using Liviano.Utilities;
 using Liviano.Bips;
 using Liviano.Storages;
+using Newtonsoft.Json;
 
 namespace Liviano
 {
@@ -62,11 +63,24 @@ namespace Liviano
 
         public List<string> AccountIds { get; set; }
 
-        public List<IAccount> Accounts { get; set; }
-
         public DateTimeOffset? CreatedAt { get; set; }
 
-        public IStorage Storage { get; set; }
+        [JsonIgnore]
+        public List<IAccount> Accounts { get; set; }
+
+        IStorage _Storage;
+        public IStorage Storage
+        {
+            get => _Storage;
+            set
+            {
+                _Storage = value;
+
+                _Storage.Id = Id;
+                _Storage.Network = Network;
+                _Storage.Wallet = this;
+            }
+        }
 
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
         {
@@ -81,7 +95,6 @@ namespace Liviano
             CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
 
             Storage = Storage ?? storage ?? new FileSystemStorage(Id, network: Network);
-            Storage.Wallet = this;
 
             TxIds = TxIds ?? new List<string>();
 

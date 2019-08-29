@@ -46,7 +46,7 @@ namespace Liviano.Storages
         public IWallet Wallet { get; set; }
         public string RootDirectory { get; set; }
 
-        public FileSystemStorage(string id = null, string directory = "data", Network network = null)
+        public FileSystemStorage(string id = null, string directory = "wallets", Network network = null)
         {
             directory = Path.GetFullPath(directory);
             if (!Directory.Exists(directory))
@@ -90,7 +90,7 @@ namespace Liviano.Storages
             Network = Wallet.Network;
 
             var filePath = GetWalletFilePath();
-            var contents = JsonConvert.SerializeObject(Wallet);
+            var contents = JsonConvert.SerializeObject(Wallet, Formatting.Indented);
 
             File.WriteAllText(filePath, contents);
 
@@ -154,10 +154,12 @@ namespace Liviano.Storages
             if (!Directory.Exists(accountsPath))
                 Directory.CreateDirectory(accountsPath);
 
+            if (Wallet.Accounts is null) return;
+
             foreach (var account in Wallet.Accounts)
             {
                 var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{account.Id}.json";
-                var content = JsonConvert.SerializeObject(account);
+                var content = JsonConvert.SerializeObject(account, Formatting.Indented);
 
                 File.WriteAllText(singleAccountPath, content);
             }
@@ -169,10 +171,12 @@ namespace Liviano.Storages
 
             foreach (var account in Wallet.Accounts)
             {
+                if (account.Txs is null) continue;
+
                 foreach (var tx in account.Txs)
                 {
                     var filePath = $"{txsPath}{Path.DirectorySeparatorChar}{tx.Id}.json";
-                    var contents = JsonConvert.SerializeObject(tx);
+                    var contents = JsonConvert.SerializeObject(tx, Formatting.Indented);
 
                     File.WriteAllText(filePath, contents);
                 }

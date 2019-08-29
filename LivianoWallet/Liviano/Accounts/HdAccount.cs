@@ -76,6 +76,7 @@ namespace Liviano.Accounts
         /// Wallet the account belongs to
         /// </summary>
         /// <value></value>
+        [JsonIgnore]
         public IWallet Wallet { get; set; }
 
         /// <summary>
