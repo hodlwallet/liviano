@@ -25,7 +25,9 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NBitcoin;
 
@@ -34,10 +36,7 @@ using Liviano.Accounts;
 using Liviano.Utilities;
 using Liviano.Bips;
 using Liviano.Storages;
-using Newtonsoft.Json;
-using System.Diagnostics;
 using Liviano.Models;
-using System.Threading.Tasks;
 using Liviano.Electrum;
 
 namespace Liviano
@@ -110,8 +109,9 @@ namespace Liviano
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            _ = GetPrivateKey(password);
-            _ = GetExtendedKey(password);
+            // To cache them
+            GetPrivateKey(password);
+            GetExtendedKey(password);
         }
 
         /// <summary>
@@ -213,30 +213,37 @@ namespace Liviano
 
         public async Task Sync()
         {
-            Debug.WriteLine($"[Sync] Attempting to sync wallet {Id}.");
+            Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
 
             var recentServers = await GetRecentlyConnectedServers();
         }
 
-        public Task Resync()
+        public async Task Resync()
         {
-            throw new NotImplementedException();
+            Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
+
+            var recentServers = await GetRecentlyConnectedServers();
         }
 
-        async Task<List<Server>> GetRecentlyConnectedServers()
+        async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)
         {
-            Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers.");
+            Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers");
 
             var recentServers = ElectrumClient.GetRecentlyConnectedServers();
 
             if (recentServers.Count == 0)
             {
-                Debug.WriteLine("[GetRecentlyConnectedServers] Failed to fetch connected servers. Populating list.");
+                Debug.WriteLine("[GetRecentlyConnectedServers] Failed to fetch connected servers. Populating list");
+
+                // Waits 2 seconds if we need to reconnect, only on retry
+                if (retrying) await Task.Delay(2000);
 
                 ElectrumClient.PopulateRecentlyConnectedServers();
 
-                return await GetRecentlyConnectedServers();
+                return await GetRecentlyConnectedServers(retrying: true);
             }
+
+            Debug.WriteLine($"Found {recentServers.Count} servers to connect");
 
             return recentServers;
         }
