@@ -39,7 +39,6 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
-using System.Runtime.CompilerServices;
 
 namespace Liviano.Electrum
 {
@@ -61,7 +60,9 @@ namespace Liviano.Electrum
             public IEnumerable Params { get; set; }
         }
 
-        public class ResultAsObject
+        public class BaseResult { }
+
+        public class ResultAsObject : BaseResult
         {
             public int Id { get; set; }
             public object Result { get; set; }
@@ -69,7 +70,7 @@ namespace Liviano.Electrum
 
         public class PingResult : ResultAsObject { }
 
-        public class ResultAsString
+        public class ResultAsString : BaseResult
         {
             public int Id { get; set; }
             public string Result { get; set; }
@@ -77,25 +78,25 @@ namespace Liviano.Electrum
 
         public class BannerResult : ResultAsString { }
 
-        public class ServerVersionResult
+        public class ServerVersionResult : BaseResult
         {
             public int Id { get; set; }
             public string[] Result { get; set; }
         }
 
-        public class BlockchainScriptHashGetBalanceInnerResult
+        public class BlockchainScriptHashGetBalanceInnerResult : BaseResult
         {
             public long Confirmed { get; set; }
             public long Unconfirmed { get; set; }
         }
 
-        public class BlockchainScriptHashGetBalanceResult
+        public class BlockchainScriptHashGetBalanceResult : BaseResult
         {
             public int Id { get; set; }
             public BlockchainScriptHashGetBalanceInnerResult Result { get; set; }
         }
 
-        public class BlockchainScriptHashListUnspentInnerResult
+        public class BlockchainScriptHashListUnspentInnerResult : BaseResult
         {
             public string TxHash { get; set; }
             public int TxPos { get; set; }
@@ -103,7 +104,20 @@ namespace Liviano.Electrum
             public long Height { get; set; }
         }
 
-        public class BlockchainScriptHashListUnspentResult
+        public class BlockchainScriptHashGetHistoryTxsResult : BaseResult
+        {
+            public string TxHash { get; set; }
+            public int Height { get; set; }
+            public int Fee { get; set; }
+        }
+
+        public class BlockchainScriptHashGetHistoryResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainScriptHashGetHistoryTxsResult[] Result { get; set; }
+        }
+
+        public class BlockchainScriptHashListUnspentResult : BaseResult
         {
             public int Id { get; set; }
             public BlockchainScriptHashListUnspentInnerResult[] Result { get; set; }
@@ -111,7 +125,56 @@ namespace Liviano.Electrum
 
         public class BlockchainTransactionGetResult : ResultAsString { }
 
-        public class BlockchainEstimateFeeResult
+        public class BlockchainScriptSigResult : BaseResult
+        {
+            public string Asm { get; set; }
+            public string Hex { get; set; }
+        }
+
+        public class BlockchainVinResult : BaseResult
+        {
+            public string Txid { get; set; }
+            public int Vout { get; set; }
+            public BlockchainScriptSigResult ScriptSig { get; set; }
+            public List<string> Txinwitness { get; set; }
+            public long Sequence { get; set; }
+        }
+
+        public class BlockchainScriptPubKeyResult : BaseResult
+        {
+            public string Asm { get; set; }
+            public string Hex { get; set; }
+            public int ReqSigs { get; set; }
+            public string Type { get; set; }
+            public List<string> Addresses { get; set; }
+        }
+
+        public class BlockchainVoutResult : BaseResult
+        {
+            public double Value { get; set; }
+            public int N { get; set; }
+            public BlockchainScriptPubKeyResult ScriptPubKey { get; set; }
+        }
+
+        public class BlockchainTransactionGetVerboseResult : BaseResult
+        {
+            public string Txid { get; set; }
+            public string Hash { get; set; }
+            public int Sersion { get; set; }
+            public int Size { get; set; }
+            public int Vsize { get; set; }
+            public int Weight { get; set; }
+            public int Locktime { get; set; }
+            public List<BlockchainVinResult> Vin { get; set; }
+            public List<BlockchainVoutResult> Vout { get; set; }
+            public string Hex { get; set; }
+            public string Blockhash { get; set; }
+            public int Confirmations { get; set; }
+            public int Time { get; set; }
+            public int Blocktime { get; set; }
+        }
+
+        public class BlockchainEstimateFeeResult : BaseResult
         {
             public int Id { get; set; }
             public double Result { get; set; }
@@ -119,13 +182,13 @@ namespace Liviano.Electrum
 
         public class BlockchainTransactionBroadcastResult : ResultAsString { }
 
-        public class ErrorInnerResult
+        public class ErrorInnerResult : BaseResult
         {
             public string Message { get; set; }
             public int Code { get; set; }
         }
 
-        public class ErrorResult
+        public class ErrorResult : BaseResult
         {
             public int Id { get; set; }
             public ErrorInnerResult Error { get; set; }
@@ -220,25 +283,6 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashGetBalanceResult>(json);
         }
 
-        System.Version CreateVersion(string versionStr)
-        {
-            string correctedVersion = versionStr;
-
-            if (versionStr.EndsWith("+", StringComparison.Ordinal))
-            {
-                correctedVersion = versionStr.Substring(0, versionStr.Length - 1);
-            }
-
-            try
-            {
-                return new System.Version(correctedVersion);
-            }
-            catch (Exception ex)
-            {
-                throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
-            }
-        }
-
         public async Task<string> ServerBanner()
         {
             var obj = new Request { Id = 0, Method = "server.banner", Params = new List<string> { } };
@@ -277,12 +321,25 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashListUnspentResult>(json);
         }
 
-        public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)
+        public async Task<BlockchainScriptHashGetHistoryResult> BlockchainScriptHashGetHistory(string scriptHash)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = new List<string> { txhash } };
+            var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            return await RequestInternal<BlockchainTransactionGetResult>(json);
+            return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
+        }
+
+        public async Task<BaseResult> BlockchainTransactionGet(string txhash, bool verbose = true)
+        {
+            List<object> @params = new List<object> { txhash, verbose };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var json = Serialize(obj);
+
+            if (verbose)
+                return await RequestInternal<BlockchainTransactionGetResult>(json);
+            else
+                return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
         }
 
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)
@@ -446,6 +503,25 @@ namespace Liviano.Electrum
                     Assembly.GetCallingAssembly().Location
                 ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
             );
+        }
+
+        System.Version CreateVersion(string versionStr)
+        {
+            string correctedVersion = versionStr;
+
+            if (versionStr.EndsWith("+", StringComparison.Ordinal))
+            {
+                correctedVersion = versionStr.Substring(0, versionStr.Length - 1);
+            }
+
+            try
+            {
+                return new System.Version(correctedVersion);
+            }
+            catch (Exception ex)
+            {
+                throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
+            }
         }
 
         static string GetRecentlyConnectedServersFileName(Network network)

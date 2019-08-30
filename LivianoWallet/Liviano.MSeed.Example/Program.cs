@@ -7,6 +7,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Extensions;
+using Liviano.Interfaces;
 
 namespace Liviano.MSeed.Example
 {
@@ -42,7 +43,7 @@ namespace Liviano.MSeed.Example
             w.Init(mnemonic, "", network: Network.TestNet);
 
             w.AddAccount("bip141");
-            var account = (Bip141Account)w.Accounts[0];
+            var account = (HdAccount)w.Accounts[0];
 
             Console.WriteLine($"Added account with path: {account.HdPath}");
 
@@ -50,13 +51,14 @@ namespace Liviano.MSeed.Example
 
             Console.WriteLine("Saved Wallet!");
 
-            int n = 20;
+            int n = HdAccount.GAP_LIMIT;
             Console.WriteLine($"Addresses ({n})");
 
             foreach (var addr in account.GetReceiveAddress(n))
             {
-                Console.WriteLine($"{addr.ToString()}");
+                Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
             }
+            account.ExternalAddressesCount = 0; // After printing them we reset
         }
     }
 }
