@@ -250,7 +250,7 @@ namespace Liviano
                 Debug.WriteLine("[GetRecentlyConnectedServers] Failed to fetch connected servers. Populating list");
 
                 // Waits 2 seconds if we need to reconnect, only on retry
-                if (retrying) await Task.Delay(2000);
+                if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
                 ElectrumClient.PopulateRecentlyConnectedServers();
 
