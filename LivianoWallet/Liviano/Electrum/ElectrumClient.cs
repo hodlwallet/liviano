@@ -39,12 +39,14 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using System.Runtime.CompilerServices;
 
 namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
         public static string CLIENT_NAME = Version.ToString(); // Liviano (X.Y.Z)
+        public static System.Version REQUESTED_VERSION = new System.Version("1.4");
 
         const int NUMBER_OF_RECENT_SERVERS = 4;
 
@@ -396,13 +398,13 @@ namespace Liviano.Electrum
                         if (cts.IsCancellationRequested) return;
 
                         var electrum = new ElectrumClient(new List<Server>() { s });
-                        var res = await electrum.ServerPing() == null;
+                        var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
 
                         Debug.WriteLine(
                             "Connected to: {0}:{1} => {2}",
                             s.Domain,
                             s.PrivatePort,
-                            res ? "Pong" : ":("
+                            res
                         );
 
                         lock (_lock) connectedServers.Add(s);
@@ -417,8 +419,6 @@ namespace Liviano.Electrum
 
                 if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
                     break;
-
-                Task.Delay(100);
             }
 
             if (connectedServers.Count == 0)

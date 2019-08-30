@@ -38,6 +38,7 @@ using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
+using System.Xml.Schema;
 
 namespace Liviano
 {
@@ -215,14 +216,27 @@ namespace Liviano
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
 
-            var recentServers = await GetRecentlyConnectedServers();
+            var electrum = await GetElectrumClient();
         }
 
         public async Task Resync()
         {
             Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
 
+            var electrum = await GetElectrumClient();
+        }
+
+        async Task<ElectrumClient> GetElectrumClient()
+        {
             var recentServers = await GetRecentlyConnectedServers();
+
+            Debug.WriteLine("[GetElectrumClient] Will connect to:");
+            foreach (var server in recentServers)
+            {
+                Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version}");
+            }
+
+            return new ElectrumClient(recentServers, Network);
         }
 
         async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)
