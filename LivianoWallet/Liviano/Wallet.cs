@@ -37,6 +37,8 @@ using Liviano.Storages;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using Liviano.Models;
+using System.Threading.Tasks;
+using Liviano.Electrum;
 
 namespace Liviano
 {
@@ -208,6 +210,37 @@ namespace Liviano
             AccountIds.Add(account.Id);
             Accounts.Add(account);
         }
+
+        public async Task Sync()
+        {
+            Debug.WriteLine($"[Sync] Attempting to sync wallet {Id}.");
+
+            var recentServers = await GetRecentlyConnectedServers();
+        }
+
+        public Task Resync()
+        {
+            throw new NotImplementedException();
+        }
+
+        async Task<List<Server>> GetRecentlyConnectedServers()
+        {
+            Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers.");
+
+            var recentServers = ElectrumClient.GetRecentlyConnectedServers();
+
+            if (recentServers.Count == 0)
+            {
+                Debug.WriteLine("[GetRecentlyConnectedServers] Failed to fetch connected servers. Populating list.");
+
+                ElectrumClient.PopulateRecentlyConnectedServers();
+
+                return await GetRecentlyConnectedServers();
+            }
+
+            return recentServers;
+        }
+
         /// <summary>
         /// Read <see cref="AddAccount(string, string, object)"/>
         /// </summary>

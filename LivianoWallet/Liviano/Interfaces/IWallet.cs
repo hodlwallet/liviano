@@ -32,6 +32,8 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
+using Liviano.Electrum;
+using System.Threading.Tasks;
 
 namespace Liviano.Interfaces
 {
@@ -112,7 +114,6 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         List<IAccount> Accounts { get; set; }
 
-
         [JsonIgnore]
         IStorage Storage { get; set; }
 
@@ -121,6 +122,18 @@ namespace Liviano.Interfaces
         /// a new guid is created and the default for network is Main
         /// </summary>
         void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
+
+        /// <summary>
+        /// Syncing, used to start syncing from 0 and also to continue after booting
+        /// </summary>
+        /// <returns></returns>
+        Task Sync();
+
+        /// <summary>
+        /// Resyncing is done to start from 0 always, and discover the HD accounts attached to it.
+        /// </summary>
+        /// <returns></returns>
+        Task Resync();
 
         /// <summary>
         /// Gets a private key this method also caches it on memory
