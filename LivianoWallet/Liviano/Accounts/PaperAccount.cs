@@ -37,6 +37,7 @@ using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Liviano.Accounts
 {
@@ -86,6 +87,30 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "publicKey")]
         [JsonConverter(typeof(PublicKeyConverter))]
         public PubKey PublicKey { get; set; }
+
+        public int InternalAddressesCount
+        {
+            get => 0;
+            set { }
+        }
+
+        public int ExternalAddressesCount
+        {
+            get => 0;
+            set { }
+        }
+
+        public int Index
+        {
+            get => 0;
+            set { }
+        }
+
+        public IWallet Wallet { get; set; }
+
+        public string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public string ExtendedPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public string ExtendedPrivKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
 
         public PaperAccount(string name, string wif = null, Network network = null)
         {

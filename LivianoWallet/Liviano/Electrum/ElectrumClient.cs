@@ -335,8 +335,8 @@ namespace Liviano.Electrum
 
             if (verbose)
                 return await RequestInternal<BlockchainTransactionGetResult>(json);
-            else
-                return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
+
+            return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
         }
 
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)

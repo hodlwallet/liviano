@@ -40,28 +40,36 @@ namespace Liviano.MSeed.Example
 
             w.Init(mnemonic, "", network: Network.TestNet);
 
+            //w.AddAccount("paper", options: new { Network = Network.TestNet });
             w.AddAccount("bip141");
             var account = w.Accounts[0].CastToAccountType();
 
             Console.WriteLine($"Account Type: {account.GetType()}");
-            Console.WriteLine($"Added account with path: {account.TryGetProperty("HdPath")}");
+            Console.WriteLine($"Added account with path: {account.HdPath}");
 
             w.Storage.Save();
 
             Console.WriteLine("Saved Wallet!");
 
-            int n = account.GapLimit;
-            Console.WriteLine($"Addresses ({n})");
-
-            foreach (var addr in account.GetReceiveAddress(n))
+            if (account.AccountType == "paper")
             {
+                var addr = account.GetReceiveAddress();
                 Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
             }
+            else
+            {
+                int n = account.GapLimit;
+                Console.WriteLine($"Addresses ({n})");
 
-            account.TrySetProperty("ExternalAddressesCount", 0);
+                foreach (var addr in account.GetReceiveAddress(n))
+                {
+                    Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
+                }
+
+                account.ExternalAddressesCount = 0;
+            }
 
             Console.WriteLine("Press [ESC] to stop!\n");
-
 
             Console.WriteLine("Syncing.");
 

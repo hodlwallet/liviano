@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
@@ -38,7 +39,7 @@ using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
-using System.Threading;
+using Liviano.Extensions;
 
 namespace Liviano
 {
@@ -224,12 +225,54 @@ namespace Liviano
                 {
                     Console.WriteLine("[Sync] Syncing...");
 
-                    while (true)
+                    var accountsWithAddresses = new Dictionary<IAccount, List<BitcoinAddress>>();
+                    foreach (var account in Accounts)
                     {
-                        await Task.Delay(1000);
+                        var addresses = new List<BitcoinAddress>();
 
-                        Console.WriteLine($"[Sync] Still Syncing... {DateTime.UtcNow.ToLongTimeString()}");
+                        if (account.AccountType == "paper")
+                        {
+                            // Paper accounts only have one address, that's the point
+                            addresses.Add(account.GetReceiveAddress());
+                        }
+                        else
+                        {
+                            // Everything else, very likely, is an HD Account.
+
+                            // External addresses
+                            var externalCount = account.ExternalAddressesCount;
+                            addresses.AddRange(account.GetReceiveAddress(account.GapLimit));
+                            account.ExternalAddressesCount = externalCount;
+
+                            // Internal addresses
+                            var internalCount = account.InternalAddressesCount;
+                            addresses.AddRange(account.GetChangeAddress(account.GapLimit));
+                            account.InternalAddressesCount = internalCount;
+                        }
+
+                        accountsWithAddresses.Add(account, addresses);
                     }
+
+                    var tasks = new List<Task>();
+                    foreach (KeyValuePair<IAccount, List<BitcoinAddress>> entry in accountsWithAddresses)
+                    {
+                        var t = Task.Factory.StartNew(async (obj) =>
+                        {
+                            var dict = (KeyValuePair<IAccount, List<BitcoinAddress>>)obj;
+
+                            var account = dict.Key;
+                            var addresses = dict.Value;
+
+                            foreach (var addr in addresses)
+                            {
+                                var res = await electrum.BlockchainScriptHashGetHistory(addr.ToScriptHash().ToHex());
+                            }
+                        }, entry, TaskCreationOptions.LongRunning);
+
+                        tasks.Add(t);
+                    }
+
+                    Task.WaitAll(tasks.ToArray());
                 }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
         }

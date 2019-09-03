@@ -32,6 +32,7 @@ using Newtonsoft.Json.Converters;
 
 using Liviano.Interfaces;
 using Liviano.Models;
+using System;
 
 namespace Liviano.Accounts
 {
@@ -51,6 +52,21 @@ namespace Liviano.Accounts
         /// The id of the wallet that this belongs to
         /// </summary>
         public string WalletId { get; set; }
+
+        /// <summary>
+        /// This is the amount of address to generate
+        /// </summary>
+        int _GapLimit = 20;
+        public int GapLimit
+        {
+            get => _GapLimit;
+            set
+            {
+                if (value < 0) throw new ArgumentException($"Invalid value {value}");
+
+                _GapLimit = value;
+            }
+        }
 
         /// <summary>
         /// Change addresses count
@@ -114,7 +130,6 @@ namespace Liviano.Accounts
         public string Name { get; set; }
         public List<string> TxIds { get; set; }
         public List<Tx> Txs { get; set; }
-        public int GapLimit { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress();
         public abstract BitcoinAddress[] GetReceiveAddress(int n);

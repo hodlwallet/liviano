@@ -31,6 +31,7 @@ using NBitcoin;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
+using Newtonsoft.Json.Converters;
 
 namespace Liviano.Interfaces
 {
@@ -52,11 +53,68 @@ namespace Liviano.Interfaces
         int GapLimit { get; set; }
 
         /// <summary>
+        /// Change addresses count
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "internalAddressesCount")]
+        int InternalAddressesCount { get; set; }
+
+        /// <summary>
+        /// Receive addresess count
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "externalAddressesCount")]
+        int ExternalAddressesCount { get; set; }
+
+        /// <summary>
+        /// Wallet the account belongs to
+        /// </summary>
+        /// <value></value>
+        [JsonIgnore]
+        IWallet Wallet { get; set; }
+
+        /// <summary>
         /// The network this wallets belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(NetworkConverter))]
         Network Network { get; set; }
+
+        /// <summary>
+        /// Hd path, e.g. "m/0'", "m/84'/0'/0'"
+        /// these will be change to full paths, with addresses, e.g:
+        ///
+        /// "m/84'/0'/2'/0/1 => For the 2nd, receiving (0), address of account #3
+        ///                     rootPath => "m/84'/0'/2'"
+        ///
+        /// "m/0'/0/1        => For the 2nd, receiving (0), address of account #1 (and only)
+        ///                     rootPath => "m/0'"
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "hdPath")]
+        string HdPath { get; set; }
+
+        /// <summary>
+        /// An extended priv key used to generate addresses.
+        /// </summary>
+        [JsonProperty(PropertyName = "extPubKey")]
+        string ExtendedPubKey { get; set; }
+
+        /// <summary>
+        /// An extended pub key used to generate addresses.
+        /// </summary>
+        [JsonProperty(PropertyName = "extPrivKey")]
+        string ExtendedPrivKey { get; set; }
+
+        /// <summary>
+        /// The account index, corresponding to e.g.: m/{0}'
+        /// </summary>
+        [JsonProperty(PropertyName = "index")]
+        int Index { get; set; }
+
+        [JsonProperty(PropertyName = "scriptPubKeyType")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        ScriptPubKeyType ScriptPubKeyType { get; set; }
 
         [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
         List<string> TxIds { get; set; }
