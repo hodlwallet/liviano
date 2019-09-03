@@ -43,7 +43,7 @@ namespace Liviano.MSeed.Example
             w.AddAccount("bip141");
             var account = w.Accounts[0].CastToAccountType();
 
-            Console.WriteLine($"{account.GetType()}");
+            Console.WriteLine($"Account Type: {account.GetType()}");
             Console.WriteLine($"Added account with path: {account.TryGetProperty("HdPath")}");
 
             w.Storage.Save();
@@ -60,9 +60,13 @@ namespace Liviano.MSeed.Example
 
             account.TrySetProperty("ExternalAddressesCount", 0);
 
+            Console.WriteLine("Press [ESC] to stop!\n");
+
+
             Console.WriteLine("Syncing.");
 
-            Console.WriteLine("Press [ESC] to stop!");
+            _ = w.Sync();
+
             while (true)
             {
                 var input = Console.ReadKey();

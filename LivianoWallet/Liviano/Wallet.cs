@@ -39,6 +39,7 @@ using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
 using System.Xml.Schema;
+using System.Threading;
 
 namespace Liviano
 {
@@ -217,6 +218,21 @@ namespace Liviano
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
 
             var electrum = await GetElectrumClient();
+
+            using (var cts = new CancellationTokenSource())
+            {
+                await Task.Factory.StartNew(async () =>
+                {
+                    Console.WriteLine("[Sync] Syncing...");
+
+                    while (true)
+                    {
+                        await Task.Delay(1000);
+
+                        Console.WriteLine($"[Sync] Still Syncing... {DateTime.UtcNow.ToLongTimeString()}");
+                    }
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
         }
 
         public async Task Resync()
