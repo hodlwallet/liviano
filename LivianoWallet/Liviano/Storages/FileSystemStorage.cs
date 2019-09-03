@@ -64,6 +64,7 @@ namespace Liviano.Storages
             Guard.NotNull(Id, nameof(Id));
             Guard.NotNull(Network, nameof(Network));
             Guard.Assert(Wallet is null);
+            Guard.Assert(Exists());
 
             var filePath = GetWalletFilePath();
             var contents = File.ReadAllText(filePath);
