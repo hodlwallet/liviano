@@ -150,41 +150,6 @@ namespace Liviano.Electrum
             return msg;
         }
 
-        /// <summary>
-        /// Example how to use the library
-        /// </summary>
-        /// <param name="serverName"></param>
-        /// <param name="port"></param>
-        public static void RunClientExample(string serverName, int port = 443)
-        {
-            // Create a TCP/IP client socket.
-            // machineName is the host running the server application.
-            TcpClient client = new TcpClient(serverName, port);
-
-            Debug.WriteLine($"[RunClientExample] Connected to: {serverName}:{port}");
-
-            using (var sslStream = GetSslStream(client, serverName))
-            {
-                // Encode a test message into a byte array.
-                // Signal the end of the message using the "<EOF>".
-                byte[] messsage = Encoding.UTF8.GetBytes(
-                    @"{""id"": ""1"", ""method"": ""server.version"", ""params"": [""HODL"", ""1.4""]}"
-                );
-
-                // Send version message to the server. 
-                sslStream.Write(messsage);
-                sslStream.Flush();
-
-                // Read message from the server.
-                string serverMessage = ReadMessage(sslStream);
-                Debug.WriteLine("[RunClientExample] Response: {0}", serverMessage);
-            }
-
-            // Close the client connection.
-            client.Close();
-            Debug.WriteLine("[RunClientExample] Client closed.");
-        }
-
         static bool CanParseToJson(string message)
         {
             try

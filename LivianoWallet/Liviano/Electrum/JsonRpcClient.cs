@@ -24,8 +24,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Reflection;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Net;
@@ -34,6 +32,7 @@ using System.Threading;
 
 using Liviano.Models;
 using Liviano.Extensions;
+using Liviano.Exceptions;
 
 namespace Liviano.Electrum
 {
@@ -75,7 +74,7 @@ namespace Liviano.Electrum
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                throw new HttpListenerException(1, string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
+                throw new ElectrumException(string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
             }
         }
 
@@ -99,7 +98,7 @@ namespace Liviano.Electrum
             {
                 if (DateTime.UtcNow > initTime + DEFAULT_NETWORK_TIMEOUT)
                 {
-                    throw new HttpListenerException(1, "No response received after request.");
+                    throw new ElectrumException("No response received after request.");
                 }
 
                 return false;
@@ -118,7 +117,7 @@ namespace Liviano.Electrum
 
             if (!isConnected)
             {
-                throw new HttpListenerException(1, "Server is unresponsive.");
+                throw new ElectrumException("Server is unresponsive.");
             }
 
             return tcpClient;
@@ -217,7 +216,7 @@ namespace Liviano.Electrum
                     _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value; // Make this dynamic.
 
                     var stringOption = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                    if (stringOption == null) throw new HttpListenerException(1, "Timeout when trying to communicate with UtxoCoin server");
+                    if (stringOption == null) throw new ElectrumException("Timeout when trying to communicate with UtxoCoin server");
 
                     return stringOption;
                 }
