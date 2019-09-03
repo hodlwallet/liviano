@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Net.NetworkInformation;
-using Liviano;
-using Liviano.Accounts;
+
 using NBitcoin;
+
 using Newtonsoft.Json;
 
 using Liviano.Extensions;
-using Liviano.Interfaces;
 
 namespace Liviano.MSeed.Example
 {
@@ -43,22 +41,35 @@ namespace Liviano.MSeed.Example
             w.Init(mnemonic, "", network: Network.TestNet);
 
             w.AddAccount("bip141");
-            var account = (HdAccount)w.Accounts[0];
+            var account = w.Accounts[0].CastToAccountType();
 
-            Console.WriteLine($"Added account with path: {account.HdPath}");
+            Console.WriteLine($"{account.GetType()}");
+            Console.WriteLine($"Added account with path: {account.TryGetProperty("HdPath")}");
 
             w.Storage.Save();
 
             Console.WriteLine("Saved Wallet!");
 
-            int n = HdAccount.GAP_LIMIT;
+            int n = account.GapLimit;
             Console.WriteLine($"Addresses ({n})");
 
             foreach (var addr in account.GetReceiveAddress(n))
             {
                 Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
             }
-            account.ExternalAddressesCount = 0; // After printing them we reset
+
+            account.TrySetProperty("ExternalAddressesCount", 0);
+
+            Console.WriteLine("Syncing.");
+
+            Console.WriteLine("Press [ESC] to stop!");
+            while (true)
+            {
+                var input = Console.ReadKey();
+
+                if (input.Key == ConsoleKey.Escape)
+                    break;
+            }
         }
     }
 }

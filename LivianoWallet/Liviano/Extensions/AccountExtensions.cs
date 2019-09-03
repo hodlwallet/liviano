@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-
+using System.Diagnostics;
 using Liviano.Accounts;
 using Liviano.Interfaces;
 
@@ -55,6 +55,32 @@ namespace Liviano.Extensions
                     return (PaperAccount)account;
                 default:
                     throw new ArgumentException($"Invalid account type {account.AccountType}");
+            }
+        }
+
+        public static object TryGetProperty(this IAccount account, string name)
+        {
+            var prop = account.GetType().GetProperty(name);
+
+            if (prop is null) return null;
+
+            return prop.GetValue(account);
+        }
+
+        public static void TrySetProperty(this IAccount account, string name, object value)
+        {
+            var prop = account.GetType().GetProperty(name);
+
+            if (prop is null) return;
+
+            try
+            {
+                prop.SetValue(account, value);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TrySetProperty] Unable to set property of {name} on account, incorrect value {value}");
+                Debug.WriteLine($"[TrySetProperty] Error: {ex.Message}");
             }
         }
     }

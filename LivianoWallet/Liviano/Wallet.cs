@@ -236,7 +236,7 @@ namespace Liviano
                 Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version}");
             }
 
-            return new ElectrumClient(recentServers, Network);
+            return new ElectrumClient(recentServers);
         }
 
         async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)

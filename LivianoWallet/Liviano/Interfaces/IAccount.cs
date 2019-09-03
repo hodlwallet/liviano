@@ -48,6 +48,9 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "walletId")]
         string WalletId { get; set; }
 
+        [JsonProperty(PropertyName = "gapLimit")]
+        int GapLimit { get; set; }
+
         /// <summary>
         /// The network this wallets belongs to.
         /// </summary>

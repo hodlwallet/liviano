@@ -39,6 +39,8 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using System.Runtime.InteropServices.ComTypes;
+using Liviano.Utilities;
 
 namespace Liviano.Electrum
 {
@@ -48,8 +50,6 @@ namespace Liviano.Electrum
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
 
         const int NUMBER_OF_RECENT_SERVERS = 4;
-
-        Network _Network;
 
         JsonRpcClient _JsonRpcClient;
 
@@ -194,10 +194,9 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
-        public ElectrumClient(List<Server> servers, Network network = null)
+        public ElectrumClient(List<Server> servers)
         {
-            _Network = network ?? Network.Main;
-            _JsonRpcClient = new JsonRpcClient(servers, _Network);
+            _JsonRpcClient = new JsonRpcClient(servers);
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
@@ -450,6 +449,7 @@ namespace Liviano.Electrum
                 for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
                 {
                     var s = randomServers[i];
+
                     var t = Task.Factory.StartNew(async (_) =>
                     {
                         if (cts.IsCancellationRequested) return;

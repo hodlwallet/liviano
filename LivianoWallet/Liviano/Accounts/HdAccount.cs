@@ -38,12 +38,6 @@ namespace Liviano.Accounts
     public abstract class HdAccount : IAccount
     {
         /// <summary>
-        /// Gap limit is the amount of addresses we need to find "empty"
-        /// in order to consider to not continue looking when syncing
-        /// </summary>
-        public const int GAP_LIMIT = 20;
-
-        /// <summary>
         /// Id of the account, usually a guid
         /// </summary>
         public string Id { get; set; }
@@ -120,6 +114,7 @@ namespace Liviano.Accounts
         public string Name { get; set; }
         public List<string> TxIds { get; set; }
         public List<Tx> Txs { get; set; }
+        public int GapLimit { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress();
         public abstract BitcoinAddress[] GetReceiveAddress(int n);

@@ -44,6 +44,23 @@ namespace Liviano.Accounts
     {
         public string AccountType => "paper";
 
+        int _GapLimit;
+        public int GapLimit
+        {
+            get
+            {
+                return _GapLimit;
+            }
+
+            set
+            {
+                // Paper accounts have no Gap limit!
+                Guard.Assert(value == 0);
+
+                _GapLimit = value;
+            }
+        }
+
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
         public string Id { get; set; }
