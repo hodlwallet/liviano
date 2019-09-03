@@ -32,22 +32,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-using NBitcoin;
-
-using Newtonsoft.Json;
-
 using Liviano.Models;
 using Liviano.Extensions;
-using System.Diagnostics.Contracts;
 
 namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        Network _Network;
-
-
-
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
@@ -62,10 +53,9 @@ namespace Liviano.Electrum
 
         public string Host { get; private set; }
 
-        public JsonRpcClient(List<Server> servers, Network network = null)
+        public JsonRpcClient(List<Server> servers)
         {
             _Servers = servers;
-            _Network = network ?? Network.Main;
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
