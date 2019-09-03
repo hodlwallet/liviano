@@ -129,22 +129,22 @@ namespace Liviano.Electrum
             public string Hex { get; set; }
         }
 
+        public class BlockchainScriptPubKeyResult : BaseResult
+        {
+            public string Asm { get; set; }
+            public string Hex { get; set; }
+            public int Reqsigs { get; set; }
+            public string Type { get; set; }
+            public string[] Addresses { get; set; }
+        }
+
         public class BlockchainVinResult : BaseResult
         {
             public string Txid { get; set; }
             public int Vout { get; set; }
             public BlockchainScriptSigResult ScriptSig { get; set; }
-            public List<string> Txinwitness { get; set; }
+            public string[] Txinwitness { get; set; }
             public long Sequence { get; set; }
-        }
-
-        public class BlockchainScriptPubKeyResult : BaseResult
-        {
-            public string Asm { get; set; }
-            public string Hex { get; set; }
-            public int ReqSigs { get; set; }
-            public string Type { get; set; }
-            public List<string> Addresses { get; set; }
         }
 
         public class BlockchainVoutResult : BaseResult
@@ -158,13 +158,13 @@ namespace Liviano.Electrum
         {
             public string Txid { get; set; }
             public string Hash { get; set; }
-            public int Sersion { get; set; }
+            public int Version { get; set; }
             public int Size { get; set; }
             public int Vsize { get; set; }
             public int Weight { get; set; }
             public int Locktime { get; set; }
-            public List<BlockchainVinResult> Vin { get; set; }
-            public List<BlockchainVoutResult> Vout { get; set; }
+            public BlockchainVinResult[] Vin { get; set; }
+            public BlockchainVoutResult[] Vout { get; set; }
             public string Hex { get; set; }
             public string Blockhash { get; set; }
             public int Confirmations { get; set; }
@@ -326,15 +326,22 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
         }
 
-        public async Task<BaseResult> BlockchainTransactionGet(string txhash, bool verbose = true)
+        public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)
         {
-            List<object> @params = new List<object> { txhash, verbose };
+            List<object> @params = new List<object> { txhash, false };
 
             var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
 
-            if (verbose)
-                return await RequestInternal<BlockchainTransactionGetResult>(json);
+            return await RequestInternal<BlockchainTransactionGetResult>(json);
+        }
+
+        public async Task<BlockchainTransactionGetVerboseResult> BlockchainTransactionGetVerbose(string txhash)
+        {
+            List<object> @params = new List<object> { txhash, true };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
         }

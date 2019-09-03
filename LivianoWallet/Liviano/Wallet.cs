@@ -40,6 +40,7 @@ using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano
 {
@@ -219,76 +220,96 @@ namespace Liviano
             var start = DateTime.UtcNow;
 
             var electrum = await GetElectrumClient();
-
+            var @lock = new object();
             using (var cts = new CancellationTokenSource())
             {
                 await Task.Factory.StartNew(async () =>
                 {
                     Console.WriteLine("[Sync] Syncing...");
 
-                    var accountsWithAddresses = new Dictionary<IAccount, List<BitcoinAddress>>();
+                    var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
                     foreach (var account in Accounts)
                     {
-                        var addresses = new List<BitcoinAddress>();
+                        var addresses = new Dictionary<string, BitcoinAddress[]>();
 
                         if (account.AccountType == "paper")
                         {
                             // Paper accounts only have one address, that's the point
-                            addresses.Add(account.GetReceiveAddress());
+                            lock (@lock)
+                            {
+                                addresses.Add("internal", new BitcoinAddress[] { });
+                                addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
+                            }
                         }
                         else
                         {
-                            // Everything else, very likely, is an HD Account.
+                            lock (@lock)
+                            {
+                                // Everything else, very likely, is an HD Account.
 
-                            // External addresses
-                            var externalCount = account.ExternalAddressesCount;
-                            addresses.AddRange(account.GetReceiveAddress(account.GapLimit));
-                            account.ExternalAddressesCount = externalCount;
+                                // External addresses
+                                var externalCount = account.ExternalAddressesCount;
+                                account.ExternalAddressesCount = 0;
+                                addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
+                                account.ExternalAddressesCount = externalCount;
 
-                            // Internal addresses
-                            var internalCount = account.InternalAddressesCount;
-                            addresses.AddRange(account.GetChangeAddress(account.GapLimit));
-                            account.InternalAddressesCount = internalCount;
+                                // Internal addresses
+                                var internalCount = account.InternalAddressesCount;
+                                account.InternalAddressesCount = 0;
+                                addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
+                                account.InternalAddressesCount = internalCount;
+                            }
                         }
 
                         accountsWithAddresses.Add(account, addresses);
                     }
 
                     var tasks = new List<Task>();
-                    foreach (KeyValuePair<IAccount, List<BitcoinAddress>> entry in accountsWithAddresses)
+                    foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
                     {
-                        var t = Task.Factory.StartNew(async (obj) =>
+                        var t = Task.Run(async () =>
                         {
-                            var dict = (KeyValuePair<IAccount, List<BitcoinAddress>>)obj;
+                            var account = entry.Key;
+                            var addresses = new List<BitcoinAddress>() { };
 
-                            var account = dict.Key;
-                            var addresses = dict.Value;
+                            addresses.AddRange(entry.Value["internal"]);
+                            addresses.AddRange(entry.Value["external"]);
 
                             foreach (var addr in addresses)
                             {
                                 Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
 
-                                var res = await electrum.BlockchainScriptHashGetHistory(addr.ToScriptHash().ToHex());
+                                var historyRes = await electrum.BlockchainScriptHashGetHistory(addr.ToScriptHash().ToHex());
 
-                                foreach (var r in res.Result)
+                                foreach (var r in historyRes.Result)
                                 {
                                     Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+
+                                    var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
+                                    var tx = Tx.CreateFromHex(txRes.Result, account, Network, entry.Value["internal"], entry.Value["external"]);
+
+                                    if (TxIds.Contains(tx.Id.ToString()))
+                                    {
+                                        UpdateTx(tx);
+                                        account.UpdateTx(tx);
+                                    }
+                                    else
+                                    {
+                                        AddTx(tx);
+                                        account.AddTx(tx);
+                                    }
                                 }
                             }
-                        }, entry, TaskCreationOptions.AttachedToParent);
+                        });
 
                         tasks.Add(t);
                     }
 
                     await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
                     {
-                        Console.WriteLine($"[Sync] Finished {completedTasks.Length} tasks");
-
                         var end = DateTime.UtcNow;
                         Console.WriteLine($"[Sync] Finished syncing wallet in: {(end - start).TotalSeconds} seconds");
                     });
-
-                    await Task.WhenAll(tasks.ToArray());
                 }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
         }

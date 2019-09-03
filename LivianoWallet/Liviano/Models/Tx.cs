@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 
 using Newtonsoft.Json;
 
@@ -31,6 +32,8 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 
 using Liviano.Utilities.JsonConverters;
+using Liviano.Interfaces;
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Models
 {
@@ -49,19 +52,22 @@ namespace Liviano.Models
         [JsonProperty(PropertyName = "accountId", NullValueHandling = NullValueHandling.Ignore)]
         public string AccountId { get; set; }
 
+        [JsonIgnore]
+        public IAccount Account { get; set; }
+
         /// <summary>
         /// The network this tx belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
         [JsonConverter(typeof(NetworkConverter))]
-        Network Network { get; set; }
+        public Network Network { get; set; }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
-        [JsonProperty(PropertyName = "amount", DefaultValueHandling = (long)0)]
+        [JsonProperty(PropertyName = "amountReceived", DefaultValueHandling = (long)0)]
         [JsonConverter(typeof(MoneyJsonConverter))]
-        public Money Amount { get; set; }
+        public Money AmountReceived { get; set; }
 
         /// <summary>
         /// The transaction amount.
@@ -198,10 +204,56 @@ namespace Liviano.Models
                     return Money.Zero;
                 }
 
-                return Amount;
+                return AmountReceived;
             }
 
             return Money.Zero;
+        }
+
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] internalAddresses, BitcoinAddress[] externalAddresses)
+        {
+            var transaction = Transaction.Parse(hex, network);
+
+            var tx = new Tx()
+            {
+                Id = transaction.GetHash(),
+                Account = account,
+                AccountId = account.Id,
+                Network = network,
+                Hex = hex
+            };
+            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
+
+            foreach (var addr in addresses)
+            {
+                if (internalAddresses.Contains(addr))
+                {
+                    tx.IsSend = true;
+                    tx.IsReceive = false;
+                }
+
+                if (externalAddresses.Contains(addr))
+                {
+                    tx.IsReceive = true;
+                    tx.IsSend = false;
+                }
+            }
+
+            return tx;
+        }
+
+        public static Tx CreateFromElectrumResult(BlockchainTransactionGetVerboseResult result, IAccount account, Network network)
+        {
+            var tx = new Tx()
+            {
+                Id = uint256.Parse(result.Txid),
+                Account = account,
+                AccountId = account.Id,
+                Network = network,
+                Hex = result.Hex
+            };
+
+            return tx;
         }
     }
 }
