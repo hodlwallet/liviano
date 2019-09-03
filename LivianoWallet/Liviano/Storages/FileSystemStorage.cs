@@ -76,6 +76,10 @@ namespace Liviano.Storages
             foreach (var account in Wallet.Accounts)
             {
                 account.Txs = GetTxs(account);
+                account.TxIds = account.Txs.Select((tx) => tx.Id.ToString()).ToList();
+
+                Wallet.Txs.AddRange(account.Txs);
+                Wallet.TxIds.AddRange(account.TxIds);
             }
 
             return Wallet;
@@ -95,14 +99,14 @@ namespace Liviano.Storages
             File.WriteAllText(filePath, contents);
 
             SaveAccounts();
-            SaveTransactions();
+            SaveTxs();
         }
 
         List<Tx> GetTxs(IAccount account)
         {
             Guard.NotNull(Wallet, nameof(Wallet));
 
-            var txsPath = GetTransactionsPath();
+            var txsPath = GetTxsPath();
             var txs = new List<Tx>();
 
             foreach (var txId in account.TxIds)
@@ -165,9 +169,9 @@ namespace Liviano.Storages
             }
         }
 
-        void SaveTransactions()
+        void SaveTxs()
         {
-            var txsPath = GetTransactionsPath();
+            var txsPath = GetTxsPath();
 
             foreach (var account in Wallet.Accounts)
             {
@@ -194,7 +198,7 @@ namespace Liviano.Storages
             return accountsPath;
         }
 
-        string GetTransactionsPath()
+        string GetTxsPath()
         {
             var path = GetWalletDirectory();
             var transactionsPath = $"{path}{Path.DirectorySeparatorChar}transactions";

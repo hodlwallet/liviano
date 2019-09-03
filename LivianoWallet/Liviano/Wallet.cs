@@ -38,7 +38,6 @@ using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
-using System.Xml.Schema;
 using System.Threading;
 
 namespace Liviano
