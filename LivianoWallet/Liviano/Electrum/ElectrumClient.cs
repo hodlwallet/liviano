@@ -39,8 +39,6 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
-using System.Runtime.InteropServices.ComTypes;
-using Liviano.Utilities;
 
 namespace Liviano.Electrum
 {
@@ -390,36 +388,45 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
-        /// Creates the file of the recently connected
+        /// Creates the file of the recently connected,
+        /// this functions picks up to <see cref="NUMBER_OF_RECENT_SERVERS"/> servers at the time, and try to send
+        /// a server.version() to the electrum server, if we get 1.4 then we're good,
+        /// the server get added, this all happens and we wait for it to finish,
+        /// then we get out once we get <see cref="NUMBER_OF_RECENT_SERVERS"/> servers
         /// </summary>
+        /// <param name="network">Bitcoin network to connect to, <see cref="Network.Main"/> is the default</param>
         public static void PopulateRecentlyConnectedServers(Network network = null)
         {
             if (network is null) network = Network.Main;
 
             List<Server> connectedServers = new List<Server>();
 
+            // Get network list of servers
             string serversFileName = GetLocalConfigFilePath(
                 "Electrum",
                 "servers",
                 $"{network.Name.ToLower()}.json"
             );
-
             if (!File.Exists(serversFileName))
                 throw new ArgumentException($"Invalid network: {network.Name}");
 
+            // Get the servers list from the file.
             var json = File.ReadAllText(serversFileName);
             var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-
             var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+
+            // Able to pop servers so we can check their version
             var popableServers = new List<Server>();
             popableServers.AddRange(servers);
 
+            // We need to get a ranom server from the list, this will be the index
             var rng = new Random();
 
 #pragma warning disable IDE0067 // Dispose objects before losing scope
             var cts = new CancellationTokenSource();
 #pragma warning restore IDE0067 // Dispose objects before losing scope
 
+            // Lock for the servers collection
             var _lock = new object();
             while (popableServers.Count > 0)
             {
@@ -428,7 +435,7 @@ namespace Liviano.Electrum
                 // pick 5 randos
                 int count = 0;
                 var randomServers = new List<Server>();
-                while (count < NUMBER_OF_RECENT_SERVERS)
+                while (count < NUMBER_OF_RECENT_SERVERS) // Remove this amount from the the popable
                 {
                     if (popableServers.Count == 0) break;
 
@@ -443,6 +450,7 @@ namespace Liviano.Electrum
                     count += 1;
                 }
 
+                // Get out if we don't have any serves to process anymore
                 if (popableServers.Count == 0 && randomServers.Count == 0)
                     break;
 
@@ -450,6 +458,7 @@ namespace Liviano.Electrum
                 {
                     var s = randomServers[i];
 
+                    // We create a task, for each server that checks for the version
                     var t = Task.Factory.StartNew(async (state) =>
                     {
                         var connServers = (List<Server>)state;
@@ -468,18 +477,22 @@ namespace Liviano.Electrum
 
                         lock (_lock) connectedServers.Add(s);
 
+                        // When we get NUMBER_OF_RECENT_SERVERS we get out
                         if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
                     }, connectedServers);
 
                     tasks.Add(t);
                 }
 
+                // Executute (usually) NUMBER_OF_RECENT_SERVERS tasks...
                 Task.WaitAll(tasks.ToArray());
 
+                // Get out once we got enough
                 if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
                     break;
             }
 
+            // Sadly, none connected...
             if (connectedServers.Count == 0)
             {
                 Debug.WriteLine("Cound not connect to any server...");
@@ -487,10 +500,12 @@ namespace Liviano.Electrum
                 return;
             }
 
+            // Show warning over connected to less than the prefered amount
             if (connectedServers.Count < NUMBER_OF_RECENT_SERVERS)
                 Debug.WriteLine("Conneted to too few servers {0}", connectedServers.Count);
 
 
+            // Save our file now.
             lock (_lock)
                 File.WriteAllText(
                     GetRecentlyConnectedServersFileName(network),
