@@ -450,8 +450,10 @@ namespace Liviano.Electrum
                 {
                     var s = randomServers[i];
 
-                    var t = Task.Factory.StartNew(async (_) =>
+                    var t = Task.Factory.StartNew(async (state) =>
                     {
+                        var connServers = (List<Server>)state;
+
                         if (cts.IsCancellationRequested) return;
 
                         var electrum = new ElectrumClient(new List<Server>() { s });
@@ -466,8 +468,8 @@ namespace Liviano.Electrum
 
                         lock (_lock) connectedServers.Add(s);
 
-                        if (connectedServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
-                    }, CancellationToken.None);
+                        if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                    }, connectedServers);
 
                     tasks.Add(t);
                 }
