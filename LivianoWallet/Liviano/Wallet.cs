@@ -216,12 +216,13 @@ namespace Liviano
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
+            var start = DateTime.UtcNow;
 
             var electrum = await GetElectrumClient();
 
             using (var cts = new CancellationTokenSource())
             {
-                await Task.Factory.StartNew(() =>
+                await Task.Factory.StartNew(async () =>
                 {
                     Console.WriteLine("[Sync] Syncing...");
 
@@ -274,13 +275,21 @@ namespace Liviano
                                     Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
                                 }
                             }
-                        }, entry, TaskCreationOptions.LongRunning);
+                        }, entry, TaskCreationOptions.AttachedToParent);
 
                         tasks.Add(t);
                     }
 
-                    Task.WaitAll(tasks.ToArray());
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
+                    {
+                        Console.WriteLine($"[Sync] Finished {completedTasks.Length} tasks");
+
+                        var end = DateTime.UtcNow;
+                        Console.WriteLine($"[Sync] Finished syncing wallet in: {(end - start).TotalSeconds} seconds");
+                    });
+
+                    await Task.WhenAll(tasks.ToArray());
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
         }
 
@@ -308,7 +317,7 @@ namespace Liviano
         {
             Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers");
 
-            var recentServers = ElectrumClient.GetRecentlyConnectedServers();
+            var recentServers = ElectrumClient.GetRecentlyConnectedServers(Network);
 
             if (recentServers.Count == 0)
             {
@@ -317,7 +326,7 @@ namespace Liviano
                 // Waits 2 seconds if we need to reconnect, only on retry
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
-                ElectrumClient.PopulateRecentlyConnectedServers();
+                ElectrumClient.PopulateRecentlyConnectedServers(Network);
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }
