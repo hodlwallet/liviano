@@ -221,7 +221,7 @@ namespace Liviano
 
             using (var cts = new CancellationTokenSource())
             {
-                await Task.Factory.StartNew(async () =>
+                await Task.Factory.StartNew(() =>
                 {
                     Console.WriteLine("[Sync] Syncing...");
 
@@ -265,7 +265,14 @@ namespace Liviano
 
                             foreach (var addr in addresses)
                             {
+                                Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
+
                                 var res = await electrum.BlockchainScriptHashGetHistory(addr.ToScriptHash().ToHex());
+
+                                foreach (var r in res.Result)
+                                {
+                                    Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+                                }
                             }
                         }, entry, TaskCreationOptions.LongRunning);
 
