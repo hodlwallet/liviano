@@ -41,6 +41,7 @@ using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
 using static Liviano.Electrum.ElectrumClient;
+using Newtonsoft.Json;
 
 namespace Liviano
 {
@@ -228,8 +229,10 @@ namespace Liviano
                     Console.WriteLine("[Sync] Syncing...");
 
                     var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
-                    foreach (var account in Accounts)
+                    foreach (var item in Accounts)
                     {
+                        // We create a deep copy of the item, by serializing and deserializing...
+                        var account = JsonConvert.DeserializeObject<IAccount>(JsonConvert.SerializeObject(item));
                         var addresses = new Dictionary<string, BitcoinAddress[]>();
 
                         if (account.AccountType == "paper")
@@ -286,7 +289,14 @@ namespace Liviano
                                     Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
                                     var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
-                                    var tx = Tx.CreateFromHex(txRes.Result, account, Network, entry.Value["internal"], entry.Value["external"]);
+
+                                    var tx = Tx.CreateFromHex(
+                                        txRes.Result,
+                                        account,
+                                        Network,
+                                        entry.Value["internal"],
+                                        entry.Value["external"]
+                                    );
 
                                     if (TxIds.Contains(tx.Id.ToString()))
                                     {

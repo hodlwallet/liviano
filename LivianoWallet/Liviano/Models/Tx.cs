@@ -212,8 +212,8 @@ namespace Liviano.Models
 
         public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] internalAddresses, BitcoinAddress[] externalAddresses)
         {
+            // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
-
             var tx = new Tx()
             {
                 Id = transaction.GetHash(),
@@ -222,21 +222,36 @@ namespace Liviano.Models
                 Network = network,
                 Hex = hex
             };
-            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
 
+            // Decide if the tx is a send tx or a receive tx
+            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
             foreach (var addr in addresses)
             {
-                if (internalAddresses.Contains(addr))
-                {
-                    tx.IsSend = true;
-                    tx.IsReceive = false;
-                }
-
                 if (externalAddresses.Contains(addr))
                 {
                     tx.IsReceive = true;
                     tx.IsSend = false;
+                    break;
                 }
+
+                if (internalAddresses.Contains(addr))
+                {
+                    tx.IsSend = true;
+                    tx.IsReceive = false;
+                    break;
+                }
+            }
+
+            // Amounts
+            tx.TotalAmount = transaction.TotalOut;
+
+            if (tx.IsSend)
+            {
+                tx.AmountReceived = transaction.Outputs.Sum((o) => o.Value);
+            }
+            else
+            {
+                tx.AmountSent = 0;
             }
 
             return tx;
