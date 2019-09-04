@@ -199,6 +199,13 @@ namespace Liviano.Bips
             return mnemonic.DeriveExtKey(passphrase);
         }
 
+        public static ExtKey GetExtendedKey(string mnemonic, string passphrase = null)
+        {
+            Guard.NotNull(mnemonic, nameof(mnemonic));
+
+            return GetExtendedKey(new Mnemonic(mnemonic), passphrase);
+        }
+
         public static BitcoinExtKey GetWif(ExtKey extKey, string network)
         {
             Guard.NotEmpty(network, nameof(network));

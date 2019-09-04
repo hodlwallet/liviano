@@ -144,6 +144,14 @@ namespace Liviano.Interfaces
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
+        /// Gets a extended private key this method also caches it on memory
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="forcePasswordVerification"></param>
+        /// <returns></returns>
+        ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
+
+        /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
         event EventHandler SyncStarted;

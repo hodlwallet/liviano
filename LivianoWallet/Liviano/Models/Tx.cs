@@ -33,9 +33,10 @@ using NBitcoin.JsonConverters;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Interfaces;
-using static Liviano.Electrum.ElectrumClient;
 using Liviano.Exceptions;
 using System.Diagnostics;
+
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Models
 {
@@ -131,7 +132,7 @@ namespace Liviano.Models
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
         [JsonConverter(typeof(Liviano.Utilities.JsonConverters.DateTimeOffsetConverter))]
-        public DateTimeOffset CreationTime { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
         /// Gets or sets the Merkle proof for this transaction.
@@ -224,6 +225,7 @@ namespace Liviano.Models
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
+                CreatedAt = DateTimeOffset.UtcNow, // TODO this is incorrect...
                 Network = network,
                 Hex = hex
             };

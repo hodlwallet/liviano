@@ -74,7 +74,7 @@ namespace Liviano.CLI
                     network = "regtest";
                 }
 
-                var extKey = Hd.GetExtendedKey(new Mnemonic(mnemonic), passphrase);
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
                 var wif = Hd.GetWif(extKey, network);
 
                 Console.WriteLine(wif);
