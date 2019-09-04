@@ -288,6 +288,14 @@ namespace Liviano
 
                                 foreach (var r in historyRes.Result)
                                 {
+#if DEBUG
+                                    // Upps... This is what happens when you test some bitcoin wallets,
+                                    // this happened because I sent to a change address so the software thinks is a receive...
+                                    // now I don't have a way to tell if the tx is receive or send...
+                                    if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
+                                        continue;
+#endif
+
                                     Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
                                     var txRes = await electrum.BlockchainTransactionGet(r.TxHash);

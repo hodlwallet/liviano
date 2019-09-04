@@ -218,6 +218,7 @@ namespace Liviano.Models
 
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
+
             var tx = new Tx()
             {
                 Id = transaction.GetHash(),
@@ -249,6 +250,8 @@ namespace Liviano.Models
                     break;
                 }
             }
+
+
 
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
