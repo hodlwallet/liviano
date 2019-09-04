@@ -50,8 +50,10 @@ namespace Liviano.Models
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
         {
-            var servers = new ElectrumServers();
-            servers.Servers = new List<Server>();
+            var servers = new ElectrumServers
+            {
+                Servers = new List<Server>()
+            };
 
             foreach (var item in dict)
             {

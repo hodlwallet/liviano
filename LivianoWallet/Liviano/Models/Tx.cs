@@ -34,6 +34,7 @@ using NBitcoin.JsonConverters;
 using Liviano.Utilities.JsonConverters;
 using Liviano.Interfaces;
 using static Liviano.Electrum.ElectrumClient;
+using Liviano.Exceptions;
 
 namespace Liviano.Models
 {
@@ -242,17 +243,44 @@ namespace Liviano.Models
                 }
             }
 
-            // Amounts
+            // Amounts.
             tx.TotalAmount = transaction.TotalOut;
 
-            if (tx.IsSend)
+            if (tx.IsReceive)
             {
-                tx.AmountReceived = transaction.Outputs.Sum((o) => o.Value);
+                // When sending every output that belongs to our external addresses
+                // gets summed in
+                tx.AmountReceived = transaction.Outputs.Sum((@out) =>
+                {
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+
+                    if (externalAddresses.Contains(outAddr))
+                        return @out.Value;
+
+                    return Money.Zero;
+                });
+            }
+            else if (tx.IsSend)
+            {
+                // When 
+                tx.AmountSent = transaction.Outputs.Sum((@out) =>
+                {
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+
+                    if (!internalAddresses.Contains(outAddr))
+                        return @out.Value;
+
+                    return Money.Zero;
+                });
             }
             else
             {
-                tx.AmountSent = 0;
+                throw new WalletException("Could not decide if the tx is send or receive...");
             }
+
+            tx.BlockHash = 0; // TODO
+            tx.IsPropagated = true; // TODO
+            tx.TotalFees = Money.Zero; // TODO
 
             return tx;
         }

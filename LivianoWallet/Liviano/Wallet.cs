@@ -221,47 +221,41 @@ namespace Liviano
             var start = DateTime.UtcNow;
 
             var electrum = await GetElectrumClient();
-            var @lock = new object();
             using (var cts = new CancellationTokenSource())
             {
                 await Task.Factory.StartNew(async () =>
                 {
                     Console.WriteLine("[Sync] Syncing...");
 
+                    // This is a data structure that's really useful to create a transaction
                     var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
-                    foreach (var item in Accounts)
+                    foreach (var account in Accounts)
                     {
                         // We create a deep copy of the item, by serializing and deserializing...
-                        var account = JsonConvert.DeserializeObject<IAccount>(JsonConvert.SerializeObject(item));
+                        var accountCopy = JsonConvert.DeserializeObject<IAccount>(JsonConvert.SerializeObject(account));
                         var addresses = new Dictionary<string, BitcoinAddress[]>();
 
-                        if (account.AccountType == "paper")
+                        if (accountCopy.AccountType == "paper")
                         {
                             // Paper accounts only have one address, that's the point
-                            lock (@lock)
-                            {
-                                addresses.Add("internal", new BitcoinAddress[] { });
-                                addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
-                            }
+                            addresses.Add("internal", new BitcoinAddress[] { });
+                            addresses.Add("external", new BitcoinAddress[] { accountCopy.GetReceiveAddress() });
                         }
                         else
                         {
-                            lock (@lock)
-                            {
-                                // Everything else, very likely, is an HD Account.
+                            // Everything else, very likely, is an HD Account.
 
-                                // External addresses
-                                var externalCount = account.ExternalAddressesCount;
-                                account.ExternalAddressesCount = 0;
-                                addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
-                                account.ExternalAddressesCount = externalCount;
+                            // We generate accounts until the gap limit is reached,
+                            // based on their respective external and internal addresses count
+                            // External addresses (receive)
+                            var externalCount = accountCopy.ExternalAddressesCount;
+                            accountCopy.ExternalAddressesCount = 0;
+                            addresses.Add("external", accountCopy.GetReceiveAddress(externalCount + accountCopy.GapLimit));
 
-                                // Internal addresses
-                                var internalCount = account.InternalAddressesCount;
-                                account.InternalAddressesCount = 0;
-                                addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
-                                account.InternalAddressesCount = internalCount;
-                            }
+                            // Internal addresses (send)
+                            var internalCount = accountCopy.InternalAddressesCount;
+                            accountCopy.InternalAddressesCount = 0;
+                            addresses.Add("internal", accountCopy.GetChangeAddress(internalCount + accountCopy.GapLimit));
                         }
 
                         accountsWithAddresses.Add(account, addresses);
@@ -273,7 +267,7 @@ namespace Liviano
                         var t = Task.Run(async () =>
                         {
                             var account = entry.Key;
-                            var addresses = new List<BitcoinAddress>() { };
+                            var addresses = new List<BitcoinAddress> { };
 
                             addresses.AddRange(entry.Value["internal"]);
                             addresses.AddRange(entry.Value["external"]);
@@ -282,7 +276,8 @@ namespace Liviano
                             {
                                 Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
 
-                                var historyRes = await electrum.BlockchainScriptHashGetHistory(addr.ToScriptHash().ToHex());
+                                var scriptHashHex = addr.ToScriptHash().ToHex();
+                                var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
 
                                 foreach (var r in historyRes.Result)
                                 {
@@ -328,7 +323,21 @@ namespace Liviano
         {
             Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
 
-            var electrum = await GetElectrumClient();
+            // First we do a cleanup so we can rediscover txs
+            TxIds = new List<string> { };
+            Txs = new List<Tx> { };
+
+            foreach (var account in Accounts)
+            {
+                account.InternalAddressesCount = 0;
+                account.ExternalAddressesCount = 0;
+
+                account.TxIds = new List<string> { };
+                account.Txs = new List<Tx> { };
+            }
+
+            //  And we do the regular sync
+            await Sync();
         }
 
         async Task<ElectrumClient> GetElectrumClient()
