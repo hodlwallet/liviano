@@ -43,7 +43,7 @@ namespace Liviano.CLI
                     wordlist = o.Wordlist;
                 }
 
-                //Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
+                Console.WriteLine(Wallet.NewMnemonic(wordlist, wordCount));
             })
             .WithParsed<ExtendedKeyOptions>(o =>
             {
@@ -77,7 +77,7 @@ namespace Liviano.CLI
                 var extKey = Hd.GetExtendedKey(new Mnemonic(mnemonic), passphrase);
                 var wif = Hd.GetWif(extKey, network);
 
-                Console.WriteLine(wif.ToString());
+                Console.WriteLine(wif);
             })
             .WithParsed<ExtendedPubKeyOptions>(o =>
             {
@@ -111,7 +111,7 @@ namespace Liviano.CLI
                 var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network);
                 var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
-                Console.WriteLine(extPubKeyWif.ToString());
+                Console.WriteLine(extPubKeyWif);
             })
             .WithParsed<DeriveAddressOptions>(o =>
             {
@@ -154,7 +154,7 @@ namespace Liviano.CLI
                     type = o.Type;
                 }
 
-                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type).ToString());
+                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type));
             })
             .WithParsed<AddressToScriptPubKeyOptions>(o =>
             {
@@ -179,7 +179,7 @@ namespace Liviano.CLI
                     address = Console.ReadLine();
                 }
 
-                Console.WriteLine(Hd.GetScriptPubKey(address, network).ToString());
+                Console.WriteLine(Hd.GetScriptPubKey(address, network));
             })
             .WithParsed<NewWalletOptions>(o =>
             {
@@ -208,7 +208,7 @@ namespace Liviano.CLI
                     network = "testnet";
                 }
 
-                if (String.IsNullOrEmpty(mnemonic))
+                if (string.IsNullOrEmpty(mnemonic))
                 {
                     _Logger.Error("Empty mnemonic");
 

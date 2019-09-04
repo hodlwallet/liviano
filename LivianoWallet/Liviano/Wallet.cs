@@ -428,5 +428,17 @@ namespace Liviano
 
             return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141" });
         }
+
+        public static Mnemonic NewMnemonic(string wordlist = "english", int wordCount = 12)
+        {
+            var mnemonic = new Mnemonic(
+                Hd.WordlistFromString(wordlist),
+                Hd.WordCountFromInt(wordCount)
+            );
+
+            Debug.WriteLine($"New Mnemonic generated: {mnemonic.ToString()}");
+
+            return mnemonic;
+        }
     }
 }
