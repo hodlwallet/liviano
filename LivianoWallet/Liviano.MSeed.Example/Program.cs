@@ -99,7 +99,10 @@ namespace Liviano.MSeed.Example
                 var input = Console.ReadKey();
 
                 if (input.Key == ConsoleKey.Escape)
+                {
+                    Console.Write("\n");
                     break;
+                }
             }
         }
     }

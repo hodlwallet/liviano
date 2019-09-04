@@ -333,13 +333,17 @@ namespace Liviano
             TxIds = new List<string> { };
             Txs = new List<Tx> { };
 
+            var @lock = new object();
             foreach (var account in Accounts)
             {
-                account.InternalAddressesCount = 0;
-                account.ExternalAddressesCount = 0;
+                lock (@lock)
+                {
+                    account.InternalAddressesCount = 0;
+                    account.ExternalAddressesCount = 0;
 
-                account.TxIds = new List<string> { };
-                account.Txs = new List<Tx> { };
+                    account.TxIds = new List<string> { };
+                    account.Txs = new List<Tx> { };
+                }
             }
 
             //  And we do the regular sync
