@@ -268,6 +268,7 @@ namespace Liviano.Models
 
                     return Money.Zero;
                 });
+                tx.AmountSent = Money.Zero;
             }
             else if (tx.IsSend)
             {
@@ -281,6 +282,8 @@ namespace Liviano.Models
 
                     return Money.Zero;
                 });
+
+                tx.AmountReceived = Money.Zero;
             }
             else
             {
