@@ -104,7 +104,8 @@ namespace Liviano.CLI
 
             Console.WriteLine("Delete previous wallets");
 
-            Directory.Delete("wallets", recursive: true);
+            if (Directory.Exists("wallets"))
+                Directory.Delete("wallets", recursive: true);
 
             //Console.WriteLine(contents);
             var mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";

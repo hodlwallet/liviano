@@ -10,13 +10,12 @@ using Serilog;
 using Easy.MessageHub;
 
 using Liviano;
-using Liviano.Behaviors;
-using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using NBitcoin;
 using System.Diagnostics.Contracts;
+using Liviano.Bips;
 
 namespace Liviano.CLI
 {
@@ -44,7 +43,7 @@ namespace Liviano.CLI
                     wordlist = o.Wordlist;
                 }
 
-                Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
+                //Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
             })
             .WithParsed<ExtendedKeyOptions>(o =>
             {
@@ -75,7 +74,7 @@ namespace Liviano.CLI
                     network = "regtest";
                 }
 
-                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var extKey = Hd.GetExtendedKey(new Mnemonic(mnemonic), passphrase);
                 var wif = Hd.GetWif(extKey, network);
 
                 Console.WriteLine(wif.ToString());
@@ -376,7 +375,7 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
-                HdAddress address = null;
+                BitcoinAddress address = null;
 
                 try
                 {
@@ -402,7 +401,7 @@ namespace Liviano.CLI
                     return;
                 }
 
-                Console.WriteLine($"{address.Address}");
+                Console.WriteLine($"{address.ToString()}");
             })
             .WithParsed<SendOptions>(async o =>
             {
