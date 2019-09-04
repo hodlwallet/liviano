@@ -43,7 +43,7 @@ namespace Liviano.CLI
                     wordlist = o.Wordlist;
                 }
 
-                Console.WriteLine(Wallet.NewMnemonic(wordlist, wordCount));
+                Console.WriteLine(Hd.NewMnemonic(wordlist, wordCount));
             })
             .WithParsed<ExtendedKeyOptions>(o =>
             {

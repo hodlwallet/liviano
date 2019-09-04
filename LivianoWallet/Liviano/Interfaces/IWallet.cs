@@ -144,22 +144,6 @@ namespace Liviano.Interfaces
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
-        /// Gets a extended private key this method also caches it on memory
-        /// </summary>
-        /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
-        /// <returns></returns>
-        ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
-
-        /// <summary>
-        /// Creates a new random mnemonic
-        /// </summary>
-        /// <param name="wordlist">Dictionary of words</param>
-        /// <param name="wordCount">Number of words</param>
-        /// <returns></returns>
-        Mnemonic NewMnemonic(string wordlist = "english", int wordCount = 12);
-
-        /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
         event EventHandler SyncStarted;

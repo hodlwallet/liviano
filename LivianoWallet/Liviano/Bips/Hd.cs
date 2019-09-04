@@ -7,6 +7,7 @@ using NBitcoin;
 
 using Liviano.Utilities;
 using Liviano.Exceptions;
+using System.Diagnostics;
 
 namespace Liviano.Bips
 {
@@ -454,6 +455,24 @@ namespace Liviano.Bips
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
 
             return new Mnemonic(mnemonic, Wordlist.AutoDetect(mnemonic));
+        }
+
+        /// <summary>
+        /// Creates a new random mnemonic
+        /// </summary>
+        /// <param name="wordlist">Dictionary of words</param>
+        /// <param name="wordCount">Number of words</param>
+        /// <returns></returns>
+        public static Mnemonic NewMnemonic(string wordlist, int wordCount)
+        {
+            var mnemonic = new Mnemonic(
+                WordlistFromString(wordlist),
+                WordCountFromInt(wordCount)
+            );
+
+            Debug.WriteLine($"[NewMnemonic] New Mnemonic generated: \"{mnemonic.ToString()}\"");
+
+            return mnemonic;
         }
     }
 }
