@@ -88,6 +88,8 @@ namespace Liviano.MSeed.Example
 
                 Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
                 Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
+
+                w.Storage.Save();
             };
 
             _ = w.Sync();
@@ -97,11 +99,7 @@ namespace Liviano.MSeed.Example
                 var input = Console.ReadKey();
 
                 if (input.Key == ConsoleKey.Escape)
-                {
-                    w.Storage.Save();
-
                     break;
-                }
             }
         }
     }
