@@ -212,7 +212,7 @@ namespace Liviano.Models
             return Money.Zero;
         }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] internalAddresses, BitcoinAddress[] externalAddresses)
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
 

@@ -240,8 +240,8 @@ namespace Liviano
                         if (account.AccountType == "paper")
                         {
                             // Paper accounts only have one address, that's the point
-                            addresses.Add("internal", new BitcoinAddress[] { });
                             addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
+                            addresses.Add("internal", new BitcoinAddress[] { });
                         }
                         else
                         {
@@ -276,8 +276,8 @@ namespace Liviano
                             var account = entry.Key;
                             var addresses = new List<BitcoinAddress> { };
 
-                            addresses.AddRange(entry.Value["internal"]);
                             addresses.AddRange(entry.Value["external"]);
+                            addresses.AddRange(entry.Value["internal"]);
 
                             foreach (var addr in addresses)
                             {
@@ -296,8 +296,8 @@ namespace Liviano
                                         txRes.Result,
                                         account,
                                         Network,
-                                        entry.Value["internal"],
-                                        entry.Value["external"]
+                                        entry.Value["external"],
+                                        entry.Value["internal"]
                                     );
 
                                     if (TxIds.Contains(tx.Id.ToString()))
