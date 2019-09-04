@@ -221,6 +221,7 @@ namespace Liviano
             var start = DateTime.UtcNow;
 
             var electrum = await GetElectrumClient();
+            var @lock = new object();
             using (var cts = new CancellationTokenSource())
             {
                 await Task.Factory.StartNew(async () =>
@@ -231,15 +232,13 @@ namespace Liviano
                     var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
                     foreach (var account in Accounts)
                     {
-                        // We create a deep copy of the item, by serializing and deserializing...
-                        var accountCopy = JsonConvert.DeserializeObject<IAccount>(JsonConvert.SerializeObject(account));
                         var addresses = new Dictionary<string, BitcoinAddress[]>();
 
-                        if (accountCopy.AccountType == "paper")
+                        if (account.AccountType == "paper")
                         {
                             // Paper accounts only have one address, that's the point
                             addresses.Add("internal", new BitcoinAddress[] { });
-                            addresses.Add("external", new BitcoinAddress[] { accountCopy.GetReceiveAddress() });
+                            addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
                         }
                         else
                         {
@@ -248,14 +247,19 @@ namespace Liviano
                             // We generate accounts until the gap limit is reached,
                             // based on their respective external and internal addresses count
                             // External addresses (receive)
-                            var externalCount = accountCopy.ExternalAddressesCount;
-                            accountCopy.ExternalAddressesCount = 0;
-                            addresses.Add("external", accountCopy.GetReceiveAddress(externalCount + accountCopy.GapLimit));
+                            lock (@lock)
+                            {
+                                var externalCount = account.ExternalAddressesCount;
+                                account.ExternalAddressesCount = 0;
+                                addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
+                                account.ExternalAddressesCount = externalCount;
 
-                            // Internal addresses (send)
-                            var internalCount = accountCopy.InternalAddressesCount;
-                            accountCopy.InternalAddressesCount = 0;
-                            addresses.Add("internal", accountCopy.GetChangeAddress(internalCount + accountCopy.GapLimit));
+                                // Internal addresses (send)
+                                var internalCount = account.InternalAddressesCount;
+                                account.InternalAddressesCount = 0;
+                                addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
+                                account.InternalAddressesCount = internalCount;
+                            }
                         }
 
                         accountsWithAddresses.Add(account, addresses);
