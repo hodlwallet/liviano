@@ -1,100 +1,100 @@
-using System;
-using System.Linq;
-
-using NBitcoin;
+//
+// WalletTest.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.using Xunit;
 using Xunit;
 
-using Liviano.Models;
-using System.Collections.Generic;
-using Liviano.Exceptions;
+using NBitcoin;
+
+using Newtonsoft.Json;
 
 namespace Liviano.Tests.Liviano
 {
     public class WalletTest
     {
-        [Fact]
-        public void InitTest()
-        {
-            Wallet w = new Wallet(
-                name: "1st Wallet",
-                creationTime: new DateTimeOffset(DateTime.Parse("2018-10-12"))
-            );
+        const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
-            Assert.Equal("1st Wallet", w.Name);
+        [Fact]
+        public void TestWalletInit()
+        {
+            var w = new Wallet()
+            {
+                Name = "Testy Wallet"
+            };
+
+            w.Init(MNEMONIC);
+
             Assert.Equal(Network.Main, w.Network);
-            Assert.Equal(w.BlockLocator.OfType<uint256>().First(), Network.Main.GenesisHash);
-            Assert.Equal(1, w.BlockLocator.Count);
+            Assert.Equal("Testy Wallet", w.Name);
+            Assert.NotNull(w.Id);
 
-            Assert.Empty(w.AccountsRoot);
-            Assert.Empty(w.ChainCode);
-            Assert.Empty(w.EncryptedSeed);
-
-            Assert.True(w.IsExtPubKeyWallet);
-            Assert.Equal(w.CreationTime, new DateTimeOffset(DateTime.Parse("2018-10-12")));
+            Assert.Contains($"\"id\":\"{w.Id}\"", JsonConvert.SerializeObject(w));
+            Assert.Contains($"\"accountTypes\":[{GetExpectedAccountTypesStr(w)}]", JsonConvert.SerializeObject(w));
         }
 
         [Fact]
-        public void CreateWalletWithMultipleAccountsOnDifferentHdPathsTest()
+        public void TestAddBip141Account()
         {
-            Network network = Network.Main;
+            var w = new Wallet();
 
-            // Set Mnemonic and get the priv ext key
-            string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
-            List<AccountRoot> accountsRoot = new List<AccountRoot>
-            {
-                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "44"),
-                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "49"),
-                new AccountRoot(CoinType.Bitcoin, new List<HdAccount>(), "84")
-            };
+            w.Init(MNEMONIC);
 
-            // Creates a new wallet
-            Wallet wallet = new Wallet
-            {
-                Name = "multiple_accounts_wallet",
-                EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret("", network).ToWif(),
-                ChainCode = extKey.ChainCode,
-                CreationTime = DateTimeOffset.Now,
-                Network = network,
-                AccountsRoot = accountsRoot,
-            };
+            w.AddAccount("bip141", "Old Hodl Account");
 
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "44");
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "49");
-            wallet.AddNewAccount(CoinType.Bitcoin, DateTimeOffset.Now, "", "84");
+            Assert.NotEmpty(w.Accounts);
 
-            List<HdAccount> accounts = wallet.GetAccountsByCoinType(CoinType.Bitcoin).ToList();
+            var a = w.Accounts[0];
 
-            for (int i = 0; i < accounts.Count; i++)
-            {
-                accounts[i].CreateAddresses(network, 1, false, accountsRoot[i].Purpose);
-            }
-
-            foreach (HdAccount account in accounts)
-            {
-                HdAddress address = account.GetFirstUnusedReceivingAddress();
-
-                switch (account.HdPath)
-                {
-                    case "m/44'/0'/0'":
-                    Assert.StartsWith("1", address.Address);
-                    break;
-                    case "m/49'/0'/0'":
-                    Assert.StartsWith("3", address.Address);
-                    break;
-                    case "m/84'/0'/0'":
-                    Assert.StartsWith("bc", address.Address);
-                    break;
-                    default:
-                    throw new WalletException("Invalid hd path on account");
-                }
-            }
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
         }
 
         [Fact]
-        public void IsMaximilist()
+        public void TestAddPaperAccount()
         {
-            Assert.True(CoinType.Bitcoin == 0);
+            var w = new Wallet();
+
+            w.Init(MNEMONIC);
+
+            w.AddAccount("paper", "My Paper Wallet", new { w.Network });
+
+            Assert.NotEmpty(w.Accounts);
+
+            var a = w.Accounts[0];
+
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
+        }
+
+        string GetExpectedAccountTypesStr(Wallet wallet)
+        {
+            var expectedAccountTypes = string.Empty;
+            foreach (var at in wallet.AccountTypes)
+                expectedAccountTypes += $"\"{at}\",";
+            expectedAccountTypes = expectedAccountTypes.Remove(expectedAccountTypes.Length - 1);
+
+            return expectedAccountTypes;
         }
     }
 }
