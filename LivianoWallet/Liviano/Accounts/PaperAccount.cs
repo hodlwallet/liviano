@@ -118,6 +118,9 @@ namespace Liviano.Accounts
 
             var scriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
+            TxIds = TxIds ?? new List<string>();
+            Txs = Txs ?? new List<Tx>();
+
             Initialize(name, scriptPubKeyType, wif, network);
         }
 

@@ -103,6 +103,7 @@ namespace Liviano
             Storage = Storage ?? storage ?? new FileSystemStorage(Id, network: Network);
 
             TxIds = TxIds ?? new List<string>();
+            Txs = Txs ?? new List<Tx>();
 
             AccountIds = AccountIds ?? new List<string>();
             Accounts = Accounts ?? new List<IAccount>();

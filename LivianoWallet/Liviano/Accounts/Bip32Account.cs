@@ -45,6 +45,9 @@ namespace Liviano.Accounts
         {
             Id = Guid.NewGuid().ToString();
 
+            TxIds = TxIds ?? new List<string>();
+            Txs = Txs ?? new List<Tx>();
+
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;
 
