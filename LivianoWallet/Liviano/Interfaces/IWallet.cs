@@ -150,5 +150,11 @@ namespace Liviano.Interfaces
         /// <param name="forcePasswordVerification"></param>
         /// <returns></returns>
         ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
+
+        /// <summary>
+        /// Event handlers for syncing, start and end...
+        /// </summary>
+        event EventHandler SyncStarted;
+        event EventHandler SyncFinished;
     }
 }

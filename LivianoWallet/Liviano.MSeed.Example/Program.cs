@@ -73,6 +73,23 @@ namespace Liviano.MSeed.Example
 
             Console.WriteLine("Syncing...");
 
+            var start = new DateTimeOffset();
+            var end = new DateTimeOffset();
+            w.SyncStarted += (obj, _) =>
+            {
+                start = DateTimeOffset.UtcNow;
+
+                Console.WriteLine($"Syncing started at {start.LocalDateTime.ToLongTimeString()}");
+            };
+
+            w.SyncFinished += (obj, _) =>
+            {
+                end = DateTimeOffset.UtcNow;
+
+                Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
+                Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
+            };
+
             _ = w.Sync();
 
             while (true)

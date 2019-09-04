@@ -40,8 +40,6 @@ using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
-using static Liviano.Electrum.ElectrumClient;
-using Newtonsoft.Json;
 
 namespace Liviano
 {
@@ -75,6 +73,10 @@ namespace Liviano
         public List<IAccount> Accounts { get; set; }
 
         IStorage _Storage;
+
+        public event EventHandler SyncStarted;
+        public event EventHandler SyncFinished;
+
         public IStorage Storage
         {
             get => _Storage;
@@ -219,7 +221,7 @@ namespace Liviano
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
-            var start = DateTime.UtcNow;
+            SyncStarted?.Invoke(this, null);
 
             var electrum = await GetElectrumClient();
             var @lock = new object();
@@ -317,8 +319,7 @@ namespace Liviano
 
                     await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
                     {
-                        var end = DateTime.UtcNow;
-                        Console.WriteLine($"[Sync] Finished syncing wallet in: {(end - start).TotalSeconds} seconds");
+                        SyncFinished?.Invoke(this, null);
                     });
                 }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
