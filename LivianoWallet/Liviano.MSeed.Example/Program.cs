@@ -69,9 +69,9 @@ namespace Liviano.MSeed.Example
                 account.ExternalAddressesCount = 0;
             }
 
-            Console.WriteLine("Press [ESC] to stop!\n");
+            Console.WriteLine("\nPress [ESC] to stop!\n");
 
-            Console.WriteLine("Syncing.");
+            Console.WriteLine("Syncing...");
 
             _ = w.Sync();
 

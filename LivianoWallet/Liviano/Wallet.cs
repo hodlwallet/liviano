@@ -347,7 +347,7 @@ namespace Liviano
             Debug.WriteLine("[GetElectrumClient] Will connect to:");
             foreach (var server in recentServers)
             {
-                Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version}");
+                Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version})");
             }
 
             return new ElectrumClient(recentServers);

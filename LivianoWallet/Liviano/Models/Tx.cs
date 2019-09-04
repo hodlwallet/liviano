@@ -35,6 +35,7 @@ using Liviano.Utilities.JsonConverters;
 using Liviano.Interfaces;
 using static Liviano.Electrum.ElectrumClient;
 using Liviano.Exceptions;
+using System.Diagnostics;
 
 namespace Liviano.Models
 {
@@ -213,6 +214,8 @@ namespace Liviano.Models
 
         public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] internalAddresses, BitcoinAddress[] externalAddresses)
         {
+            Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
+
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
             var tx = new Tx()
@@ -230,6 +233,8 @@ namespace Liviano.Models
             {
                 if (externalAddresses.Contains(addr))
                 {
+                    Debug.WriteLine($"[CreateFromHex] Address was found in external addresses (tx is receive), address: {addr}");
+
                     tx.IsReceive = true;
                     tx.IsSend = false;
                     break;
@@ -237,6 +242,8 @@ namespace Liviano.Models
 
                 if (internalAddresses.Contains(addr))
                 {
+                    Debug.WriteLine($"[CreateFromHex] Address was found in internal addresses (tx is send), address: {addr}");
+
                     tx.IsSend = true;
                     tx.IsReceive = false;
                     break;
@@ -245,6 +252,8 @@ namespace Liviano.Models
 
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
+
+            Debug.WriteLine($"[CreateFromHex] Total amount: {tx.TotalAmount}");
 
             if (tx.IsReceive)
             {
@@ -277,6 +286,10 @@ namespace Liviano.Models
             {
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
+
+            Debug.WriteLine($"[CreateFromHex] Amount Received: {tx.AmountReceived}");
+            Debug.WriteLine($"[CreateFromHex] Amount Sent: {tx.AmountSent}");
+
 
             tx.BlockHash = 0; // TODO
             tx.IsPropagated = true; // TODO
