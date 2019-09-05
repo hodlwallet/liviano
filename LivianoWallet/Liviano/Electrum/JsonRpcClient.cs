@@ -209,6 +209,8 @@ namespace Liviano.Electrum
                 var index = rng.Next(popableServers.Count);
                 var server = popableServers[index];
 
+                Debug.WriteLine($"[Request] Server: {server.Domain}:{server.PrivatePort} ({server.Version})");
+
                 try
                 {
                     Host = server.Domain;
@@ -223,7 +225,7 @@ namespace Liviano.Electrum
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[Request] {ex.Message}");
-                    Debug.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
+                    Debug.WriteLine(string.Format("[Request] Failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
                 }
 
                 count += 1;
