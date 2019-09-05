@@ -220,6 +220,7 @@ namespace Liviano
 
         public async Task Sync()
         {
+            // TODO This method needs to be broken down, it's too long
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
             SyncStarted?.Invoke(this, null);
 
@@ -298,14 +299,24 @@ namespace Liviano
 
                                     Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
+                                    var externalAddresses = entry.Value["external"];
+                                    var internalAddresses = entry.Value["internal"];
+
                                     var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
 
                                     var tx = Tx.CreateFromHex(
                                         txRes.Result,
                                         account,
                                         Network,
-                                        entry.Value["external"],
-                                        entry.Value["internal"]
+                                        externalAddresses,
+                                        internalAddresses
+                                    );
+
+                                    var txAddresses = Transaction.Parse(
+                                        tx.Hex,
+                                        Network
+                                    ).Outputs.Select(
+                                        (o) => o.ScriptPubKey.GetDestinationAddress(Network)
                                     );
 
                                     if (TxIds.Contains(tx.Id.ToString()))
@@ -318,6 +329,26 @@ namespace Liviano
                                         AddTx(tx);
                                         account.AddTx(tx);
                                     }
+
+                                    foreach (var txAddr in txAddresses)
+                                    {
+                                        if (externalAddresses.Contains(txAddr))
+                                        {
+                                            if (account.UsedInternalAddresses.Contains(txAddr))
+                                                continue;
+
+                                            account.UsedExternalAddresses.Add(txAddr);
+                                        }
+
+                                        if (internalAddresses.Contains(txAddr))
+                                        {
+                                            if (account.UsedInternalAddresses.Contains(txAddr))
+                                                continue;
+
+                                            account.UsedInternalAddresses.Add(txAddr);
+                                        }
+                                    }
+
                                 }
                             }
                         });
