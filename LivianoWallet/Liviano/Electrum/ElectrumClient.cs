@@ -39,6 +39,7 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using System.Runtime.CompilerServices;
 
 namespace Liviano.Electrum
 {
@@ -237,6 +238,11 @@ namespace Liviano.Electrum
             }
         }
 
+        async Task<T> SubscribeInternal<T>(string jsonRequest)
+        {
+
+        }
+
         public static T Deserialize<T>(string result)
         {
             var resultTrimmed = result.Trim();
@@ -324,6 +330,13 @@ namespace Liviano.Electrum
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
+        }
+
+        public async Task BlockchainScriptHashSubscribe(string scriptHash)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
+            var json = Serialize(obj);
+
         }
 
         public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)

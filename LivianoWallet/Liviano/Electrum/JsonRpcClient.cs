@@ -157,20 +157,21 @@ namespace Liviano.Electrum
 
             using (var tcpClient = Connect())
             {
-                var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+                using (var stream = SslTcpClient.GetSslStream(tcpClient, Host))
+                {
+                    if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-                if (!stream.CanTimeout) return null; // Handle exception outside of Request()
+                    stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+                    stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
 
-                stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-                stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+                    var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-                var bytes = Encoding.UTF8.GetBytes(request + "\n");
+                    stream.Write(bytes, 0, bytes.Length);
 
-                stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush();
 
-                stream.Flush();
-
-                return SslTcpClient.ReadMessage(stream);
+                    return SslTcpClient.ReadMessage(stream);
+                }
             }
         }
 
