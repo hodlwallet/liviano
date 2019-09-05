@@ -366,20 +366,13 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainTransactionBroadcastResult>(json);
         }
 
-        public static string GetElectrumScriptHashFromAddress(string publicAddress, Network network)
-        {
-            var bitcoinAddress = BitcoinAddress.Create(publicAddress, network);
-
-            return bitcoinAddress.ToScriptHash().ToHex();
-        }
-
         /// <summary>
         /// Gets a list of recently conneted servers, these would be ready to connect
         /// </summary>
         /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
         public static List<Server> GetRecentlyConnectedServers(Network network = null)
         {
-            if (network is null) network = Network.Main;
+            network = network ?? Network.Main;
 
             List<Server> recentServers = new List<Server>();
             var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));

@@ -109,9 +109,11 @@ namespace Liviano.Electrum
 
         TcpClient Connect()
         {
-            var tcpClient = new TcpClient(_IpAddress.AddressFamily);
-            tcpClient.SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            tcpClient.ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            var tcpClient = new TcpClient(_IpAddress.AddressFamily)
+            {
+                SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
+                ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds)
+            };
 
             var isConnected = tcpClient.ConnectAsync(_IpAddress, _Port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
@@ -209,18 +211,20 @@ namespace Liviano.Electrum
                 var index = rng.Next(popableServers.Count);
                 var server = popableServers[index];
 
-                Debug.WriteLine($"[Request] Server: {server.Domain}:{server.PrivatePort} ({server.Version})");
-
                 try
                 {
                     Host = server.Domain;
                     _IpAddress = ResolveHost(server.Domain).Result;
-                    _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value; // Make this dynamic.
+                    _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
 
-                    var stringOption = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                    if (stringOption == null) throw new ElectrumException("Timeout when trying to communicate with UtxoCoin server");
+                    Debug.WriteLine(
+                        $"[Request] Server: {Host}:{_Port} ({server.Version})"
+                    );
 
-                    return stringOption;
+                    var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                    if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
+
+                    return result;
                 }
                 catch (Exception ex)
                 {
