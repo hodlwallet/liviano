@@ -41,6 +41,8 @@ using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
 
+using static Liviano.Electrum.ElectrumClient;
+
 namespace Liviano
 {
     public class Wallet : IWallet
@@ -220,148 +222,10 @@ namespace Liviano
 
         public async Task Sync()
         {
-            // TODO This method needs to be broken down, it's too long
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
             SyncStarted?.Invoke(this, null);
 
-            var electrum = await GetElectrumClient();
-            var @lock = new object();
-            using (var cts = new CancellationTokenSource())
-            {
-                await Task.Factory.StartNew(async () =>
-                {
-                    Console.WriteLine("[Sync] Syncing...");
-
-                    // This is a data structure that's really useful to create a transaction
-                    var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
-                    foreach (var account in Accounts)
-                    {
-                        var addresses = new Dictionary<string, BitcoinAddress[]>();
-
-                        if (account.AccountType == "paper")
-                        {
-                            // Paper accounts only have one address, that's the point
-                            addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
-                            addresses.Add("internal", new BitcoinAddress[] { });
-                        }
-                        else
-                        {
-                            // Everything else, very likely, is an HD Account.
-
-                            // We generate accounts until the gap limit is reached,
-                            // based on their respective external and internal addresses count
-                            // External addresses (receive)
-                            lock (@lock)
-                            {
-                                var externalCount = account.ExternalAddressesCount;
-                                account.ExternalAddressesCount = 0;
-                                addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
-                                account.ExternalAddressesCount = externalCount;
-
-                                // Internal addresses (send)
-                                var internalCount = account.InternalAddressesCount;
-                                account.InternalAddressesCount = 0;
-                                addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
-                                account.InternalAddressesCount = internalCount;
-                            }
-                        }
-
-                        accountsWithAddresses.Add(account, addresses);
-                    }
-
-                    var tasks = new List<Task>();
-                    foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
-                    {
-                        var t = Task.Run(async () =>
-                        {
-                            var account = entry.Key;
-                            var addresses = new List<BitcoinAddress> { };
-
-                            addresses.AddRange(entry.Value["external"]);
-                            addresses.AddRange(entry.Value["internal"]);
-
-                            foreach (var addr in addresses)
-                            {
-                                Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
-
-                                var scriptHashHex = addr.ToScriptHash().ToHex();
-                                var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
-
-                                foreach (var r in historyRes.Result)
-                                {
-#if DEBUG
-                                    // Upps... This is what happens when you test some bitcoin wallets,
-                                    // this happened because I sent to a change address so the software thinks is a receive...
-                                    // now I don't have a way to tell if the tx is receive or send...
-                                    if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
-                                        continue;
-#endif
-
-                                    Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
-
-                                    var externalAddresses = entry.Value["external"];
-                                    var internalAddresses = entry.Value["internal"];
-
-                                    var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
-
-                                    var tx = Tx.CreateFromHex(
-                                        txRes.Result,
-                                        account,
-                                        Network,
-                                        externalAddresses,
-                                        internalAddresses
-                                    );
-
-                                    var txAddresses = Transaction.Parse(
-                                        tx.Hex,
-                                        Network
-                                    ).Outputs.Select(
-                                        (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                                    );
-
-                                    if (TxIds.Contains(tx.Id.ToString()))
-                                    {
-                                        UpdateTx(tx);
-                                        account.UpdateTx(tx);
-                                    }
-                                    else
-                                    {
-                                        AddTx(tx);
-                                        account.AddTx(tx);
-                                    }
-
-                                    foreach (var txAddr in txAddresses)
-                                    {
-                                        if (externalAddresses.Contains(txAddr))
-                                        {
-                                            if (account.UsedInternalAddresses.Contains(txAddr))
-                                                continue;
-
-                                            account.UsedExternalAddresses.Add(txAddr);
-                                        }
-
-                                        if (internalAddresses.Contains(txAddr))
-                                        {
-                                            if (account.UsedInternalAddresses.Contains(txAddr))
-                                                continue;
-
-                                            account.UsedInternalAddresses.Add(txAddr);
-                                        }
-                                    }
-
-                                }
-                            }
-                        });
-
-                        tasks.Add(t);
-                    }
-
-                    await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-                    {
-                        SyncFinished?.Invoke(this, null);
-                    });
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
-            }
+            await _SyncTask();
         }
 
         public async Task Resync()
@@ -387,6 +251,165 @@ namespace Liviano
 
             //  And we do the regular sync
             await Sync();
+        }
+
+        async Task _SyncTask()
+        {
+            var electrum = await GetElectrumClient();
+            var @lock = new object();
+            using (var cts = new CancellationTokenSource())
+            {
+                await Task.Factory.StartNew(async () =>
+                {
+                    Console.WriteLine("[Sync] Syncing...");
+
+                    // This is a data structure that's really useful to create a transaction
+                    var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
+                    _AccountWithAddresses(@lock, accountsWithAddresses);
+
+                    var tasks = new List<Task>();
+                    foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
+                    {
+                        var t = _GetAccountTask(entry, electrum);
+
+                        tasks.Add(t);
+                    }
+
+                    await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
+                    {
+                        SyncFinished?.Invoke(this, null);
+                    });
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+            }
+        }
+
+        Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
+        {
+            var t = Task.Run(async () =>
+            {
+                var account = entry.Key;
+                var addresses = new List<BitcoinAddress> { };
+
+                addresses.AddRange(entry.Value["external"]);
+                addresses.AddRange(entry.Value["internal"]);
+
+                foreach (var addr in addresses)
+                {
+                    Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
+
+                    var scriptHashHex = addr.ToScriptHash().ToHex();
+                    var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
+
+                    await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
+                }
+            });
+
+            return t;
+        }
+
+        async Task _InsertTransactionsFromHistory(BlockchainScriptHashGetHistoryResult result, IAccount account, ElectrumClient electrum, KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry)
+        {
+            foreach (var r in result.Result)
+            {
+#if DEBUG
+                // Upps... This is what happens when you test some bitcoin wallets,
+                // this happened because I sent to a change address so the software thinks is a receive...
+                // now I don't have a way to tell if the tx is receive or send...
+                if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
+                    continue;
+#endif
+
+                Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+
+                var externalAddresses = entry.Value["external"];
+                var internalAddresses = entry.Value["internal"];
+
+                var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
+
+                var tx = Tx.CreateFromHex(
+                    txRes.Result,
+                    account,
+                    Network,
+                    externalAddresses,
+                    internalAddresses
+                );
+
+                var txAddresses = Transaction.Parse(
+                    tx.Hex,
+                    Network
+                ).Outputs.Select(
+                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+                );
+
+                if (TxIds.Contains(tx.Id.ToString()))
+                {
+                    UpdateTx(tx);
+                    account.UpdateTx(tx);
+                }
+                else
+                {
+                    AddTx(tx);
+                    account.AddTx(tx);
+                }
+
+                foreach (var txAddr in txAddresses)
+                {
+                    if (externalAddresses.Contains(txAddr))
+                    {
+                        if (account.UsedInternalAddresses.Contains(txAddr))
+                            continue;
+
+                        account.UsedExternalAddresses.Add(txAddr);
+                    }
+
+                    if (internalAddresses.Contains(txAddr))
+                    {
+                        if (account.UsedInternalAddresses.Contains(txAddr))
+                            continue;
+
+                        account.UsedInternalAddresses.Add(txAddr);
+                    }
+                }
+
+            }
+        }
+
+        void _AccountWithAddresses(object @lock, Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> accountsWithAddresses)
+        {
+            foreach (var account in Accounts)
+            {
+                var addresses = new Dictionary<string, BitcoinAddress[]>();
+
+                if (account.AccountType == "paper")
+                {
+                    // Paper accounts only have one address, that's the point
+                    addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
+                    addresses.Add("internal", new BitcoinAddress[] { });
+                }
+                else
+                {
+                    // Everything else, very likely, is an HD Account.
+
+                    // We generate accounts until the gap limit is reached,
+                    // based on their respective external and internal addresses count
+                    // External addresses (receive)
+                    lock (@lock)
+                    {
+                        var externalCount = account.ExternalAddressesCount;
+                        account.ExternalAddressesCount = 0;
+                        addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
+                        account.ExternalAddressesCount = externalCount;
+
+                        // Internal addresses (send)
+                        var internalCount = account.InternalAddressesCount;
+                        account.InternalAddressesCount = 0;
+                        addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
+                        account.InternalAddressesCount = internalCount;
+                    }
+                }
+
+                accountsWithAddresses.Add(account, addresses);
+            }
         }
 
         async Task<ElectrumClient> GetElectrumClient()
