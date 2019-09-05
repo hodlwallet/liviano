@@ -130,6 +130,12 @@ namespace Liviano.Interfaces
         Task Sync();
 
         /// <summary>
+        /// Starts the wallet to listen for new transactions on every account
+        /// </summary>
+        /// <returns></returns>
+        Task Start();
+
+        /// <summary>
         /// Resyncing is done to start from 0 always, and discover the HD accounts attached to it.
         /// </summary>
         /// <returns></returns>

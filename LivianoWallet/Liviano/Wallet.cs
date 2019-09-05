@@ -220,6 +220,26 @@ namespace Liviano
             Accounts.Add(account);
         }
 
+        public async Task Start()
+        {
+            Debug.WriteLine($"[Start] Starting wallet: {Id}");
+
+            await Task.Delay(1);
+
+            foreach (var account in Accounts)
+            {
+                Debug.WriteLine($"[Start] Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
+
+                var t = Task.Factory.StartNew(async () =>
+                {
+                    while (true)
+                    {
+                        await Task.Delay(100);
+                    }
+                });
+            }
+        }
+
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
