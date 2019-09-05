@@ -111,6 +111,8 @@ namespace Liviano.Accounts
         public string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public string ExtendedPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public string ExtendedPrivKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public List<BitcoinAddress> UsedExternalAddresses { get; set; }
+        public List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null)
         {
@@ -120,6 +122,9 @@ namespace Liviano.Accounts
 
             TxIds = TxIds ?? new List<string>();
             Txs = Txs ?? new List<Tx>();
+
+            UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
+            UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
 
             Initialize(name, scriptPubKeyType, wif, network);
         }

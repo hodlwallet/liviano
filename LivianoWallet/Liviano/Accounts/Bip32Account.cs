@@ -51,6 +51,9 @@ namespace Liviano.Accounts
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;
 
+            UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
+            UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
+
             Index = index;
             HdPath = string.Format(HdPathFormat, Index);
         }

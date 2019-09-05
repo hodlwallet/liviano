@@ -125,6 +125,8 @@ namespace Liviano.Accounts
         [JsonConverter(typeof(StringEnumConverter))]
         public abstract ScriptPubKeyType ScriptPubKeyType { get; set; }
 
+
+
         #region IAccountFields
         public Network Network { get; set; }
         public string Name { get; set; }
@@ -135,6 +137,9 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetReceiveAddress(int n);
         public abstract BitcoinAddress GetChangeAddress();
         public abstract BitcoinAddress[] GetChangeAddress(int n);
+
+        public List<BitcoinAddress> UsedExternalAddresses { get; set; }
+        public List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);

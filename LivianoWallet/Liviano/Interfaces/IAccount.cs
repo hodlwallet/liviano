@@ -122,6 +122,12 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         List<Tx> Txs { get; set; }
 
+        [JsonProperty(PropertyName = "usedExternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
+        List<BitcoinAddress> UsedExternalAddresses { get; set; }
+
+        [JsonProperty(PropertyName = "usedInternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
+        List<BitcoinAddress> UsedInternalAddresses { get; set; }
+
         /// <summary>
         /// Gets 1 receiving address
         /// </summary>
