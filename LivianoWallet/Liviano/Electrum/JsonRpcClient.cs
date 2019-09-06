@@ -24,6 +24,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Net.Security;
 using System.Linq;
 using System.Text;
 using System.Net;
@@ -240,6 +241,53 @@ namespace Liviano.Electrum
             Debug.WriteLine($"[Request] Could not process request: {request}");
 
             return null;
+        }
+
+        public SslStream GetSslStream()
+        {
+            var rng = new Random();
+            var server = _Servers[rng.Next(_Servers.Count)];
+
+            Host = server.Domain;
+            _IpAddress = ResolveHost(server.Domain).Result;
+            _Port = server.PrivatePort.Value;
+
+            Debug.WriteLine(
+                $"[GetSslStream] From: {Host}:{_Port} ({server.Version})"
+            );
+
+            var stream = SslTcpClient.GetSslStream(Connect(), Host);
+
+            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+
+            return stream;
+        }
+
+        public async Task Subscribe(string request, Action<string> callback)
+        {
+            var bytes = Encoding.UTF8.GetBytes(request + "\n");
+
+            await Task.Factory.StartNew(async () =>
+            {
+                using (var stream = GetSslStream())
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+
+                    stream.Flush();
+
+                    while (true)
+                    {
+                        var res = SslTcpClient.ReadMessage(stream);
+
+                        if (res != null)
+                            callback(res);
+
+                        await Task.Delay(100);
+                    }
+                }
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+
         }
     }
 }
