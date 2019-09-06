@@ -228,7 +228,7 @@ namespace Liviano.Models
                 CreatedAt = DateTimeOffset.UtcNow, // TODO this is incorrect...
                 Network = network,
                 Hex = hex,
-                BlockHeight =
+                BlockHeight = blockHeight
             };
 
             // Decide if the tx is a send tx or a receive tx
