@@ -291,9 +291,9 @@ namespace Liviano.Electrum
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e.Message);
+                    Console.WriteLine($"[Subscribe] Error: {e.Message}");
 
-                    await Task.Delay(10_000); // Wait 10 seconds and reconnect, TODO make const
+                    await Task.Delay(1000); // Wait 10 seconds and reconnect, TODO make const
 
                     await Subscribe(request, callback);
                 }
