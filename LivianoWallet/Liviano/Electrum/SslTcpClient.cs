@@ -32,6 +32,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
 
 using Newtonsoft.Json;
+using System;
 
 namespace Liviano.Electrum
 {
@@ -75,7 +76,7 @@ namespace Liviano.Electrum
 #pragma warning disable IDE0068 // Use recommended dispose pattern
             SslStream sslStream = new SslStream(
                  client.GetStream(),
-                 false,
+                 true,
                  new RemoteCertificateValidationCallback(ValidateServerCertificate),
                  null
             );
@@ -86,7 +87,7 @@ namespace Liviano.Electrum
             // The server name must match the name on the server certificate.
             try
             {
-                sslStream.AuthenticateAsClient(serverName);
+                sslStream.AuthenticateAsClient(serverName, null, SslProtocols.Default, false);
             }
             catch (AuthenticationException e)
             {
@@ -120,7 +121,7 @@ namespace Liviano.Electrum
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
 
-            Debug.WriteLine("[ReadMessage] Reading message from: ", sslStream.ToString());
+            Console.WriteLine("[ReadMessage] Reading message from: {0}", sslStream);
 
             int bytes = -1;
             while (bytes != 0)
@@ -145,12 +146,12 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            Debug.WriteLine($"[ReadMessage] Read message {msg}");
+            Console.WriteLine($"[ReadMessage] Read message {msg}");
 
             return msg;
         }
 
-        static bool CanParseToJson(string message)
+        public static bool CanParseToJson(string message)
         {
             try
             {

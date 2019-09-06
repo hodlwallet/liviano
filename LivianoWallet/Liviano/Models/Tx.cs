@@ -213,7 +213,7 @@ namespace Liviano.Models
             return Money.Zero;
         }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, int blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
 
@@ -227,7 +227,8 @@ namespace Liviano.Models
                 AccountId = account.Id,
                 CreatedAt = DateTimeOffset.UtcNow, // TODO this is incorrect...
                 Network = network,
-                Hex = hex
+                Hex = hex,
+                BlockHeight =
             };
 
             // Decide if the tx is a send tx or a receive tx

@@ -177,16 +177,7 @@ namespace Liviano.CLI
 
             _ = w.Start();
 
-            while (true)
-            {
-                var input = Console.ReadKey();
-
-                if (input.Key == ConsoleKey.Escape)
-                {
-                    Console.Write("\n");
-                    break;
-                }
-            }
+            WaitUntilEscapeIsPressed();
         }
 
         private static void WaitUntilEscapeIsPressed()

@@ -39,7 +39,6 @@ using NBitcoin;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
-using System.Runtime.CompilerServices;
 
 namespace Liviano.Electrum
 {

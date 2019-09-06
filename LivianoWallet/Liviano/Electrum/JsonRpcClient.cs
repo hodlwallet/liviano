@@ -34,6 +34,7 @@ using System.Threading;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using NBitcoin.Protocol;
 
 namespace Liviano.Electrum
 {
@@ -256,7 +257,10 @@ namespace Liviano.Electrum
                 $"[GetSslStream] From: {Host}:{_Port} ({server.Version})"
             );
 
-            var stream = SslTcpClient.GetSslStream(Connect(), Host);
+            var tcpClient = Connect();
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+
+            var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
             stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
             stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
@@ -266,7 +270,8 @@ namespace Liviano.Electrum
 
         public async Task Subscribe(string request, Action<string> callback)
         {
-            var bytes = Encoding.UTF8.GetBytes(request + "\n");
+            var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
+            int count = 0;
 
             await Task.Factory.StartNew(async () =>
             {
@@ -274,24 +279,50 @@ namespace Liviano.Electrum
                 {
                     using (var stream = GetSslStream())
                     {
-                        stream.Write(bytes, 0, bytes.Length);
-
+                        stream.Write(requestBytes, 0, requestBytes.Length);
                         stream.Flush();
 
                         while (true)
                         {
-                            var res = SslTcpClient.ReadMessage(stream);
+                            byte[] buffer = new byte[2048];
+                            StringBuilder messageData = new StringBuilder();
 
-                            if (res != null)
-                                callback(res);
+                            if (!stream.CanRead)
+                            {
+                                await Task.Delay(100);
 
-                            await Task.Delay(1000); // Read new message every 1 sec, TODO make const
+                                continue;
+                            }
+
+                            int bytes = -1;
+                            while (bytes != 0)
+                            {
+                                bytes = stream.Read(buffer, 0, buffer.Length);
+
+                                // Use Decoder class to convert from bytes to UTF8
+                                // in case a character spans two buffers.
+                                Decoder decoder = Encoding.UTF8.GetDecoder();
+                                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                                messageData.Append(chars);
+
+                                count++;
+
+                                // Check for EOF && if the message is complete json... Usually this works with electrum
+                                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
+                                    SslTcpClient.CanParseToJson(messageData.ToString()))
+                                {
+                                    callback(messageData.ToString());
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"[Subscribe] Error: {e.Message}");
+                    Console.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
 
                     await Task.Delay(1000); // Wait 10 seconds and reconnect, TODO make const
 

@@ -229,7 +229,7 @@ namespace Liviano
 
             foreach (var account in Accounts)
             {
-                Debug.WriteLine($"[Start] Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
+                Console.WriteLine($"Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
 
                 var externalCount = account.ExternalAddressesCount;
                 var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
@@ -238,7 +238,8 @@ namespace Liviano
                 foreach (var addr in account.GetReceiveAddress(account.GapLimit))
                 {
                     var scriptHashStr = addr.ToScriptHash().ToHex();
-                    tasks.Add(electrum.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
+
+                    var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
                     {
                         var status = Deserialize<ResultAsString>(str);
 
@@ -246,14 +247,16 @@ namespace Liviano
                         {
                             Console.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
                         }
-                    }));
+                    });
+
+                    tasks.Add(t);
                 }
 
                 account.ExternalAddressesCount = 0;
             }
 
             // Runs all the script hash suscribers
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).WithCancellation(CancellationToken.None);
         }
 
         public async Task Sync()
@@ -315,7 +318,7 @@ namespace Liviano
                     {
                         SyncFinished?.Invoke(this, null);
                     });
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
         }
 
@@ -366,6 +369,7 @@ namespace Liviano
                     txRes.Result,
                     account,
                     Network,
+                    r.Height,
                     externalAddresses,
                     internalAddresses
                 );
@@ -392,7 +396,7 @@ namespace Liviano
                 {
                     if (externalAddresses.Contains(txAddr))
                     {
-                        if (account.UsedInternalAddresses.Contains(txAddr))
+                        if (account.UsedExternalAddresses.Contains(txAddr))
                             continue;
 
                         account.UsedExternalAddresses.Add(txAddr);
