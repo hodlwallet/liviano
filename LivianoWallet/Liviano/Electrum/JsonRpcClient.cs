@@ -258,8 +258,8 @@ namespace Liviano.Electrum
 
             var stream = SslTcpClient.GetSslStream(Connect(), Host);
 
-            // stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            // stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
 
             return stream;
         }
