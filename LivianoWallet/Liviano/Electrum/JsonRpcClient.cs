@@ -317,6 +317,8 @@ namespace Liviano.Electrum
                                     break;
                                 }
                             }
+
+                            messageData.Clear();
                         }
                     }
                 }
