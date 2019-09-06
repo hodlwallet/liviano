@@ -258,8 +258,8 @@ namespace Liviano.Electrum
 
             var stream = SslTcpClient.GetSslStream(Connect(), Host);
 
-            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            // stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            // stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
 
             return stream;
         }
@@ -270,24 +270,34 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(async () =>
             {
-                using (var stream = GetSslStream())
+                try
                 {
-                    stream.Write(bytes, 0, bytes.Length);
-
-                    stream.Flush();
-
-                    while (true)
+                    using (var stream = GetSslStream())
                     {
-                        var res = SslTcpClient.ReadMessage(stream);
+                        stream.Write(bytes, 0, bytes.Length);
 
-                        if (res != null)
-                            callback(res);
+                        stream.Flush();
 
-                        await Task.Delay(100);
+                        while (true)
+                        {
+                            var res = SslTcpClient.ReadMessage(stream);
+
+                            if (res != null)
+                                callback(res);
+
+                            await Task.Delay(1000); // Read new message every 1 sec, TODO make const
+                        }
                     }
                 }
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default)
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
 
+                    await Task.Delay(10_000); // Wait 10 seconds and reconnect, TODO make const
+
+                    await Subscribe(request, callback);
+                }
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
     }
 }

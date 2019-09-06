@@ -327,11 +327,15 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
         }
 
-        public async Task BlockchainScriptHashSubscribe(string scriptHash, Action foundTxCallback)
+        public async Task BlockchainScriptHashSubscribe(string scriptHash, Action<string> foundTxCallback)
         {
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
+            await _JsonRpcClient.Subscribe(json, (res) =>
+            {
+                foundTxCallback(res);
+            });
         }
 
         public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)

@@ -224,20 +224,36 @@ namespace Liviano
         {
             Debug.WriteLine($"[Start] Starting wallet: {Id}");
 
-            await Task.Delay(1);
+            var electrum = await GetElectrumClient();
+            var tasks = new List<Task>();
 
             foreach (var account in Accounts)
             {
                 Debug.WriteLine($"[Start] Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
 
-                var t = Task.Factory.StartNew(async () =>
+                var externalCount = account.ExternalAddressesCount;
+                var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
+                account.ExternalAddressesCount = externalCount;
+
+                foreach (var addr in account.GetReceiveAddress(account.GapLimit))
                 {
-                    while (true)
+                    var scriptHashStr = addr.ToScriptHash().ToHex();
+                    tasks.Add(electrum.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
                     {
-                        await Task.Delay(100);
-                    }
-                });
+                        var status = Deserialize<ResultAsString>(str);
+
+                        if (!string.IsNullOrEmpty(status.Result))
+                        {
+                            Console.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
+                        }
+                    }));
+                }
+
+                account.ExternalAddressesCount = 0;
             }
+
+            // Runs all the script hash suscribers
+            await Task.WhenAll(tasks);
         }
 
         public async Task Sync()

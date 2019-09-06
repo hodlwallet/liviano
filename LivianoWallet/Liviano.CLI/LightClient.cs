@@ -173,6 +173,10 @@ namespace Liviano.CLI
 
             _ = w.Sync();
 
+            Console.WriteLine("Started, now listening to txs");
+
+            _ = w.Start();
+
             while (true)
             {
                 var input = Console.ReadKey();
