@@ -158,7 +158,7 @@ namespace Liviano.CLI
                 Console.WriteLine($"Syncing started at {start.LocalDateTime.ToLongTimeString()}");
             };
 
-            w.SyncFinished += (obj, _) =>
+            w.SyncFinished += async (obj, _) =>
             {
                 end = DateTimeOffset.UtcNow;
 
@@ -169,13 +169,14 @@ namespace Liviano.CLI
                 //w.Accounts[0].UsedExternalAddresses = new List<BitcoinAddress>() { new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main) };
 
                 w.Storage.Save();
+
+                await w.Start();
             };
 
             _ = w.Sync();
 
             Console.WriteLine("Started, now listening to txs");
 
-            _ = w.Start();
 
             WaitUntilEscapeIsPressed();
         }
