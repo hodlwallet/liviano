@@ -88,6 +88,18 @@ namespace Liviano.Interfaces
         byte[] ChainCode { get; set; }
 
         /// <summary>
+        /// Current account the wallet is on
+        /// </summary>
+        [JsonProperty(PropertyName = "currentAccountId", NullValueHandling = NullValueHandling.Ignore)]
+        string CurrentAccountId { get; set; }
+
+        /// <summary>
+        /// Stores the account object pointed to from currentAccountId
+        /// </summary>
+        [JsonIgnore]
+        IAccount CurrentAccount { get; set; }
+
+        /// <summary>
         /// Tx ids linked to the wallet, usually this will be located also in the accounts,
         /// the wallet will find them in {walletId}/transactions
         /// </summary>

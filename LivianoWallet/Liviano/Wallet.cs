@@ -68,6 +68,9 @@ namespace Liviano
 
         public byte[] ChainCode { get; set; }
 
+        public string CurrentAccountId { get; set; }
+        public IAccount CurrentAccount { get; set; }
+
         public List<string> TxIds { get; set; }
         public List<Tx> Txs { get; set; }
 
@@ -218,6 +221,12 @@ namespace Liviano
 
             AccountIds.Add(account.Id);
             Accounts.Add(account);
+
+            if (Accounts.Count > 1)
+                return;
+
+            CurrentAccount = account;
+            CurrentAccountId = account.Id;
         }
 
         public async Task Start()
