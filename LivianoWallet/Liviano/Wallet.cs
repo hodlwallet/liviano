@@ -246,6 +246,11 @@ namespace Liviano
                         if (!string.IsNullOrEmpty(status.Result))
                         {
                             Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
+
+                            // TODO
+                            // 1. Get txs from listunspent*
+                            // 2. See if they are in the wallet and account
+                            // 3. Add then or modify the txs
                         }
                     });
 

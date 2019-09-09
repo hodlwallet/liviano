@@ -130,7 +130,7 @@ namespace Liviano.CLI
             if (account.AccountType == "paper")
             {
                 var addr = account.GetReceiveAddress();
-                Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
+                Console.WriteLine($"{addr.ToString()} => scriptHash: {addr.ToScriptHash().ToHex()}");
             }
             else
             {
@@ -139,7 +139,7 @@ namespace Liviano.CLI
 
                 foreach (var addr in account.GetReceiveAddress(n))
                 {
-                    Console.WriteLine($"{addr.ToString()}, scriptHash: {addr.ToScriptHash().ToHex()}");
+                    Console.WriteLine($"{addr.ToString()} => scriptHash: {addr.ToScriptHash().ToHex()}");
                 }
 
                 account.ExternalAddressesCount = 0;
