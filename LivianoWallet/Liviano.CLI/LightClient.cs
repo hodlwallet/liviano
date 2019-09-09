@@ -23,6 +23,8 @@ using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
 using Serilog.Core;
+using Liviano.Bips;
+using System.Data.Common;
 
 namespace Liviano.CLI
 {
@@ -30,35 +32,29 @@ namespace Liviano.CLI
     {
         private static object _Lock = new object();
 
-        private static NodeConnectionParameters _ConParams;
-
         private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
         private static Network _Network;
 
-        private static async void PeriodicSave()
+        private static IWallet _Wallet;
+
+        private static async Task PeriodicSave()
         {
             while (true)
             {
+                await Save();
+
                 await Task.Delay(30_000);
-
-                await SaveAsync();
-
             }
         }
 
-        private static string GetConfigFile(string fileName)
-        {
-            return Path.Combine(Directory.GetCurrentDirectory(), "data", fileName);
-        }
-
-        private static async Task SaveAsync()
+        private static async Task Save()
         {
             await Task.Factory.StartNew(() =>
             {
                 lock (_Lock)
                 {
-                    // TODO, save the wallet
+                    _Wallet.Storage.Save();
                 }
             });
         }
@@ -85,12 +81,25 @@ namespace Liviano.CLI
 
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
-            throw new NotImplementedException("TODO");
+            _Network = Hd.GetNetwork(config.Network);
+
+            if (password == null)
+                password = "";
+
+            _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+
+            var w = new Wallet()
+            {
+                Id = config.WalletId
+            };
+            w.Init(mnemonic, password, network: Network.TestNet);
+
+            w.Storage.Save();
         }
 
         public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
         {
-            throw new NotImplementedException("TODO");
+            _ = PeriodicSave();
         }
 
         public static void TestElectrumConnection(string address, string txHash, Network network = null)
