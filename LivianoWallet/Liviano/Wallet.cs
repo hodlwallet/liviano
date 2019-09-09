@@ -226,6 +226,7 @@ namespace Liviano
 
             var electrum = await GetElectrumClient();
             var tasks = new List<Task>();
+            var @lock = new object();
 
             foreach (var account in Accounts)
             {
@@ -235,11 +236,13 @@ namespace Liviano
                 var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
                 account.ExternalAddressesCount = externalCount;
 
+                var accountWithAddresses = _AccountsWithAddresses(@lock);
+
                 foreach (var addr in account.GetReceiveAddress(account.GapLimit))
                 {
                     var scriptHashStr = addr.ToScriptHash().ToHex();
 
-                    var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
+                    var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                     {
                         var status = Deserialize<ResultAsString>(str);
 
@@ -251,6 +254,13 @@ namespace Liviano
                             // 1. Get txs from listunspent*
                             // 2. See if they are in the wallet and account
                             // 3. Add then or modify the txs
+                            var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                            foreach (var unspentResult in unspent.Result)
+                            {
+                                var txHash = unspentResult.TxHash;
+                                var height = unspentResult.Height;
+                            }
                         }
                     });
 
@@ -308,8 +318,7 @@ namespace Liviano
                     Debug.WriteLine("[Sync] Syncing...");
 
                     // This is a data structure that's really useful to create a transaction
-                    var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
-                    _AccountWithAddresses(@lock, accountsWithAddresses);
+                    var accountsWithAddresses = _AccountsWithAddresses(@lock);
 
                     var tasks = new List<Task>();
                     foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
@@ -419,42 +428,53 @@ namespace Liviano
             }
         }
 
-        void _AccountWithAddresses(object @lock, Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> accountsWithAddresses)
+        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> _AccountsWithAddresses(object @lock)
         {
+            var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
+
             foreach (var account in Accounts)
             {
-                var addresses = new Dictionary<string, BitcoinAddress[]>();
-
-                if (account.AccountType == "paper")
-                {
-                    // Paper accounts only have one address, that's the point
-                    addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
-                    addresses.Add("internal", new BitcoinAddress[] { });
-                }
-                else
-                {
-                    // Everything else, very likely, is an HD Account.
-
-                    // We generate accounts until the gap limit is reached,
-                    // based on their respective external and internal addresses count
-                    // External addresses (receive)
-                    lock (@lock)
-                    {
-                        var externalCount = account.ExternalAddressesCount;
-                        account.ExternalAddressesCount = 0;
-                        addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
-                        account.ExternalAddressesCount = externalCount;
-
-                        // Internal addresses (send)
-                        var internalCount = account.InternalAddressesCount;
-                        account.InternalAddressesCount = 0;
-                        addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
-                        account.InternalAddressesCount = internalCount;
-                    }
-                }
+                var addresses = _GetAccountAddresses(account, @lock);
 
                 accountsWithAddresses.Add(account, addresses);
             }
+
+            return accountsWithAddresses;
+        }
+
+        Dictionary<string, BitcoinAddress[]> _GetAccountAddresses(IAccount account, object @lock)
+        {
+            var addresses = new Dictionary<string, BitcoinAddress[]>();
+
+            if (account.AccountType == "paper")
+            {
+                // Paper accounts only have one address, that's the point
+                addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
+                addresses.Add("internal", new BitcoinAddress[] { });
+            }
+            else
+            {
+                // Everything else, very likely, is an HD Account.
+
+                // We generate accounts until the gap limit is reached,
+                // based on their respective external and internal addresses count
+                // External addresses (receive)
+                lock (@lock)
+                {
+                    var externalCount = account.ExternalAddressesCount;
+                    account.ExternalAddressesCount = 0;
+                    addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
+                    account.ExternalAddressesCount = externalCount;
+
+                    // Internal addresses (send)
+                    var internalCount = account.InternalAddressesCount;
+                    account.InternalAddressesCount = 0;
+                    addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
+                    account.InternalAddressesCount = internalCount;
+                }
+            }
+
+            return addresses;
         }
 
         async Task<ElectrumClient> GetElectrumClient()
