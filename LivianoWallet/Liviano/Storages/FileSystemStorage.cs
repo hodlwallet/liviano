@@ -69,7 +69,7 @@ namespace Liviano.Storages
             var filePath = GetWalletFilePath();
             var contents = File.ReadAllText(filePath);
 
-            Wallet = JsonConvert.DeserializeObject<IWallet>(contents);
+            Wallet = JsonConvert.DeserializeObject<Wallet>(contents);
 
             Wallet.Accounts = GetAccounts();
             Wallet.AccountIds = Wallet.Accounts.Select((a) => a.Id).ToList();

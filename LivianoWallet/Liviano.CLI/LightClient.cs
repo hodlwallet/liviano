@@ -127,6 +127,8 @@ namespace Liviano.CLI
             _Wallet.Start();
 
             _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
         }
 
         public static void TestElectrumConnection(string address, string txHash, Network network = null)
