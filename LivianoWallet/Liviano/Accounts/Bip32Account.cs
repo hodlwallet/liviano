@@ -210,5 +210,25 @@ namespace Liviano.Accounts
 
             return account;
         }
+
+        public Money GetBalance()
+        {
+            var received = Money.Zero;
+            var sent = Money.Zero;
+
+            foreach (var tx in Txs)
+            {
+                if (tx.IsSend)
+                {
+                    sent += tx.AmountSent;
+                }
+                else
+                {
+                    received += tx.AmountReceived;
+                }
+            }
+
+            return received - sent;
+        }
     }
 }

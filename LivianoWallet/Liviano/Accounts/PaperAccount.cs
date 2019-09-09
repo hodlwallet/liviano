@@ -38,6 +38,7 @@ using Liviano.Extensions;
 using Liviano.Models;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using NBitcoin.OpenAsset;
 
 namespace Liviano.Accounts
 {
@@ -244,6 +245,26 @@ namespace Liviano.Accounts
                     break;
                 }
             }
+        }
+
+        public Money GetBalance()
+        {
+            var received = Money.Zero;
+            var sent = Money.Zero;
+
+            foreach (var tx in Txs)
+            {
+                if (tx.IsSend)
+                {
+                    sent += tx.AmountSent;
+                }
+                else
+                {
+                    received += tx.AmountReceived;
+                }
+            }
+
+            return received - sent;
         }
     }
 }

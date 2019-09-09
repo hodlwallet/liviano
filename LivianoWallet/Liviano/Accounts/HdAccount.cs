@@ -144,6 +144,8 @@ namespace Liviano.Accounts
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
+
+        public abstract Money GetBalance();
         #endregion
     }
 }

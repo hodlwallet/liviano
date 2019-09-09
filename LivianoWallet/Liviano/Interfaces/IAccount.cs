@@ -153,5 +153,11 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <returns></returns>
         BitcoinAddress[] GetChangeAddress(int n);
+
+        /// <summary>
+        /// Gets the balance of the account
+        /// </summary>
+        /// <returns>A <see cref="Money"/> of the balance of the account</returns>
+        Money GetBalance();
     }
 }

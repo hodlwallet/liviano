@@ -60,24 +60,71 @@ namespace Liviano.CLI
             });
         }
 
+        private static void LoadWallet(Config config)
+        {
+            _Network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, _Network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            _Wallet = storage.Load();
+        }
+
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
         {
+            LoadWallet(config);
+
             throw new NotImplementedException("TODO");
         }
 
-        public static (string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount) AccountBalance(Config config, string password, string accountName = null, string accountIndex = null)
+        public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)
         {
+            LoadWallet(config);
+
             throw new NotImplementedException("TODO");
         }
 
-        public static IEnumerable<(string Name, string HdPath, Money ConfirmedAmount, Money UnConfirmedAmount)> AllAccountsBalance(Config config, string password)
+        public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
         {
+            LoadWallet(config);
+
             throw new NotImplementedException("TODO");
         }
 
         public static BitcoinAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
         {
-            throw new NotImplementedException("TODO");
+            _Network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, _Network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+
+                return null;
+            }
+
+            _Wallet = storage.Load();
+
+            IAccount account;
+            if (accountName is null)
+            {
+                account = _Wallet.Accounts[int.Parse(accountIndex)];
+            }
+            else
+            {
+                account = _Wallet.Accounts.FirstOrDefault((i) => i.Name == accountName);
+            }
+
+            if (account is null) return null;
+
+            return account.GetReceiveAddress();
         }
 
         public static void CreateWallet(Config config, string password, string mnemonic)
@@ -98,18 +145,7 @@ namespace Liviano.CLI
 
         public static void Start(Config config, bool resync = false)
         {
-            _Network = Hd.GetNetwork(config.Network);
-
-            var storage = new FileSystemStorage(config.WalletId, _Network);
-
-            if (!storage.Exists())
-            {
-                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
-
-                return;
-            }
-
-            _Wallet = storage.Load();
+            LoadWallet(config);
 
             _Wallet.SyncStarted += (s, e) =>
             {
