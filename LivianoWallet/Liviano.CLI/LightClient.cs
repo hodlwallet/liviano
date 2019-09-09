@@ -88,13 +88,11 @@ namespace Liviano.CLI
 
             _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
-            var w = new Wallet()
-            {
-                Id = config.WalletId
-            };
-            w.Init(mnemonic, password, network: Network.TestNet);
+            _Wallet = new Wallet() { Id = config.WalletId };
 
-            w.Storage.Save();
+            _Wallet.Init(mnemonic, password, network: Network.TestNet);
+
+            _Wallet.Storage.Save();
         }
 
         public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
