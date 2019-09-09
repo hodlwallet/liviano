@@ -78,9 +78,6 @@ namespace Liviano.Storages
             {
                 account.Txs = GetTxs(account);
                 account.TxIds = account.Txs.Select((tx) => tx.Id.ToString()).ToList();
-
-                Wallet.Txs.AddRange(account.Txs);
-                Wallet.TxIds.AddRange(account.TxIds);
             }
 
             return Wallet;
