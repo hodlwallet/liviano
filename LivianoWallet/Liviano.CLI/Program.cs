@@ -523,7 +523,7 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
-                LightClient.Start(config, o.Password, o.DateTime, o.DropTransactions);
+                LightClient.Start(config, o.Password, o.Resync);
             })
             .WithParsed<ElectrumTestOptions>(o =>
             {

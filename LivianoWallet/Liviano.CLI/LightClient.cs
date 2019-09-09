@@ -88,16 +88,36 @@ namespace Liviano.CLI
 
             _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
 
-            _Wallet = new Wallet() { Id = config.WalletId };
+            _Wallet = new Wallet { Id = config.WalletId };
 
-            _Wallet.Init(mnemonic, password, network: Network.TestNet);
+            _Wallet.Init(mnemonic, password, network: _Network);
 
             _Wallet.Storage.Save();
         }
 
-        public static void Start(Config config, string password, string datetime = null, bool dropTransactions = false)
+        public static void Start(Config config, string password, bool resync = false)
         {
             _ = PeriodicSave();
+
+            _Network = Hd.GetNetwork(config.Network);
+            _Wallet = new Wallet { Id = config.WalletId };
+
+            _Wallet.Storage.Load();
+
+            _Wallet.SyncStarted += (s, e) =>
+            {
+                _Logger.Information("Sync started!");
+            };
+
+            _Wallet.SyncFinished += (s, e) =>
+            {
+                _Logger.Information("Sync finished!");
+            };
+
+            if (resync) _Wallet.Resync();
+            else _Wallet.Sync();
+
+            _Wallet.Start();
         }
 
         public static void TestElectrumConnection(string address, string txHash, Network network = null)
