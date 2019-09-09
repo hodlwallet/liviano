@@ -69,7 +69,26 @@ namespace Liviano
         public byte[] ChainCode { get; set; }
 
         public string CurrentAccountId { get; set; }
-        public IAccount CurrentAccount { get; set; }
+
+        IAccount _CurrentAccount;
+        public IAccount CurrentAccount
+        {
+            get
+            {
+                if (_CurrentAccount is null || _CurrentAccount.Id != CurrentAccountId)
+                {
+                    _CurrentAccount = Accounts.FirstOrDefault((a) => a.Id == CurrentAccountId);
+                }
+
+                return _CurrentAccount;
+            }
+
+            set
+            {
+                CurrentAccountId = value.Id;
+                _CurrentAccount = value;
+            }
+        }
 
         public List<string> TxIds { get; set; }
         public List<Tx> Txs { get; set; }
@@ -160,51 +179,6 @@ namespace Liviano
             return _ExtKey;
         }
 
-        public void AddTx(Tx tx)
-        {
-            if (TxIds.Contains(tx.Id.ToString()))
-            {
-                Debug.WriteLine($"Wallet already has a tx with id: {tx.Id}");
-
-                return;
-            }
-
-            TxIds.Add(tx.Id.ToString());
-            Txs.Add(tx);
-        }
-
-        public void RemoveTx(Tx tx)
-        {
-            if (!TxIds.Contains(tx.Id.ToString()))
-            {
-                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
-
-                return;
-            }
-
-            Txs.Remove(tx);
-            TxIds.Remove(tx.Id.ToString());
-        }
-
-        public void UpdateTx(Tx tx)
-        {
-            if (!TxIds.Contains(tx.Id.ToString()))
-            {
-                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
-
-                return;
-            }
-
-            for (int i = 0, count = Txs.Count; i < count; i++)
-            {
-                if (Txs[i].Id == tx.Id)
-                {
-                    Txs[i] = tx;
-                    break;
-                }
-            }
-        }
-
         /// <summary>
         /// Adds an account to the wallet
         /// </summary>
@@ -222,8 +196,7 @@ namespace Liviano
             AccountIds.Add(account.Id);
             Accounts.Add(account);
 
-            if (Accounts.Count > 1)
-                return;
+            if (Accounts.Count > 1) return;
 
             CurrentAccount = account;
             CurrentAccountId = account.Id;
@@ -275,12 +248,10 @@ namespace Liviano
                                 if (account.TxIds.Contains(tx.Id.ToString()))
                                 {
                                     account.UpdateTx(tx);
-                                    UpdateTx(tx);
                                 }
                                 else
                                 {
                                     account.AddTx(tx);
-                                    AddTx(tx);
                                 }
                             }
                         }
@@ -419,12 +390,10 @@ namespace Liviano
 
                 if (TxIds.Contains(tx.Id.ToString()))
                 {
-                    UpdateTx(tx);
                     account.UpdateTx(tx);
                 }
                 else
                 {
-                    AddTx(tx);
                     account.AddTx(tx);
                 }
 

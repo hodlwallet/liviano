@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using NBitcoin;
 
@@ -32,12 +33,10 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
-using Liviano.Electrum;
-using System.Threading.Tasks;
 
 namespace Liviano.Interfaces
 {
-    public interface IWallet : IHasTxs
+    public interface IWallet
     {
         /// <summary>
         /// A list of types of accounts, e.g. "bip44", "bip141"...
@@ -98,20 +97,6 @@ namespace Liviano.Interfaces
         /// </summary>
         [JsonIgnore]
         IAccount CurrentAccount { get; set; }
-
-        /// <summary>
-        /// Tx ids linked to the wallet, usually this will be located also in the accounts,
-        /// the wallet will find them in {walletId}/transactions
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
-        List<string> TxIds { get; set; }
-
-        /// <summary>
-        /// All the txs on all the accounts
-        /// </summary>
-        [JsonIgnore]
-        List<Tx> Txs { get; set; }
 
         /// <summary>
         /// Account ids of the wallet, these go under {walletId}/accounts
