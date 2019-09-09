@@ -87,7 +87,7 @@ namespace Liviano.Electrum
             // The server name must match the name on the server certificate.
             try
             {
-                sslStream.AuthenticateAsClient(serverName, null, SslProtocols.Default, false);
+                sslStream.AuthenticateAsClient(serverName);
             }
             catch (AuthenticationException e)
             {

@@ -35,6 +35,8 @@ using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
 using NBitcoin.Protocol;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Liviano.Electrum
 {
@@ -287,13 +289,6 @@ namespace Liviano.Electrum
                             byte[] buffer = new byte[2048];
                             StringBuilder messageData = new StringBuilder();
 
-                            if (!stream.CanRead)
-                            {
-                                await Task.Delay(100);
-
-                                continue;
-                            }
-
                             int bytes = -1;
                             while (bytes != 0)
                             {
@@ -309,11 +304,27 @@ namespace Liviano.Electrum
 
                                 count++;
 
-                                // Check for EOF && if the message is complete json... Usually this works with electrum
+                                // Check for EOF or if the message is complete json... Usually this works with electrum
                                 if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
                                     SslTcpClient.CanParseToJson(messageData.ToString()))
                                 {
-                                    callback(messageData.ToString());
+                                    var msg = messageData.ToString();
+                                    var res = JsonConvert.DeserializeObject<JObject>(msg);
+
+                                    if (string.IsNullOrEmpty(res.GetValue("result").ToString()))
+                                    {
+                                        Console.WriteLine("[Subscribe] Subscription returned empty");
+
+                                        // 10 seconds wait after getting nothing
+                                        await Task.Delay(TimeSpan.FromSeconds(10.0));
+
+                                        // Run again, after it...
+                                        await Subscribe(request, callback);
+
+                                        return;
+                                    }
+
+                                    callback(msg);
                                     break;
                                 }
                             }
@@ -326,8 +337,10 @@ namespace Liviano.Electrum
                 {
                     Console.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
 
-                    await Task.Delay(1000); // Wait 10 seconds and reconnect, TODO make const
+                    // Wait 10 seconds and reconnect, TODO make const
+                    await Task.Delay(TimeSpan.FromSeconds(10.0));
 
+                    // Run again, after the error
                     await Subscribe(request, callback);
                 }
             }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);

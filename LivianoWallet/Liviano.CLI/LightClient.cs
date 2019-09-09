@@ -165,9 +165,6 @@ namespace Liviano.CLI
                 Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
                 Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
 
-                // This is a test
-                //w.Accounts[0].UsedExternalAddresses = new List<BitcoinAddress>() { new Key().PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main) };
-
                 w.Storage.Save();
 
                 await w.Start();
