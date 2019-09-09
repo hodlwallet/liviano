@@ -241,6 +241,7 @@ namespace Liviano
                 foreach (var addr in account.GetReceiveAddress(account.GapLimit))
                 {
                     var scriptHashStr = addr.ToScriptHash().ToHex();
+                    var accountAddresses = _GetAccountAddresses(account);
 
                     var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                     {
@@ -250,16 +251,28 @@ namespace Liviano
                         {
                             Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
 
-                            // TODO
-                            // 1. Get txs from listunspent*
-                            // 2. See if they are in the wallet and account
-                            // 3. Add then or modify the txs
                             var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
 
                             foreach (var unspentResult in unspent.Result)
                             {
                                 var txHash = unspentResult.TxHash;
                                 var height = unspentResult.Height;
+
+                                var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                var txHex = blkChainTxGet.Result;
+
+                                var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                                if (account.TxIds.Contains(tx.Id.ToString()))
+                                {
+                                    account.UpdateTx(tx);
+                                    UpdateTx(tx);
+                                }
+                                else
+                                {
+                                    account.AddTx(tx);
+                                    AddTx(tx);
+                                }
                             }
                         }
                     });
@@ -428,8 +441,9 @@ namespace Liviano
             }
         }
 
-        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> _AccountsWithAddresses(object @lock)
+        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> _AccountsWithAddresses(object @lock = null)
         {
+            @lock = @lock ?? new object();
             var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
 
             foreach (var account in Accounts)
@@ -442,8 +456,9 @@ namespace Liviano
             return accountsWithAddresses;
         }
 
-        Dictionary<string, BitcoinAddress[]> _GetAccountAddresses(IAccount account, object @lock)
+        Dictionary<string, BitcoinAddress[]> _GetAccountAddresses(IAccount account, object @lock = null)
         {
+            @lock = @lock ?? new object();
             var addresses = new Dictionary<string, BitcoinAddress[]>();
 
             if (account.AccountType == "paper")

@@ -118,7 +118,7 @@ namespace Liviano.Models
         /// The height of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public int? BlockHeight { get; set; }
+        public long? BlockHeight { get; set; }
 
         /// <summary>
         /// The hash of the block including this transaction.
@@ -213,7 +213,7 @@ namespace Liviano.Models
             return Money.Zero;
         }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, int blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
 
