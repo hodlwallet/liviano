@@ -121,7 +121,7 @@ namespace Liviano.Electrum
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
 
-            Console.WriteLine("[ReadMessage] Reading message from: {0}", sslStream);
+            Debug.WriteLine("[ReadMessage] Reading message from: {0}", sslStream);
 
             int bytes = -1;
             while (bytes != 0)
@@ -146,7 +146,7 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            Console.WriteLine($"[ReadMessage] Read message {msg}");
+            Debug.WriteLine($"[ReadMessage] Read message {msg}");
 
             return msg;
         }

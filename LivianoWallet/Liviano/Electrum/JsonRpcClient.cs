@@ -313,7 +313,7 @@ namespace Liviano.Electrum
 
                                     if (string.IsNullOrEmpty(res.GetValue("result").ToString()))
                                     {
-                                        Console.WriteLine("[Subscribe] Subscription returned empty");
+                                        Debug.WriteLine("[Subscribe] Subscription returned empty");
 
                                         // 10 seconds wait after getting nothing
                                         await Task.Delay(TimeSpan.FromSeconds(10.0));
@@ -335,7 +335,7 @@ namespace Liviano.Electrum
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
+                    Debug.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
 
                     // Wait 10 seconds and reconnect, TODO make const
                     await Task.Delay(TimeSpan.FromSeconds(10.0));

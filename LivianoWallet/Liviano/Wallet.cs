@@ -229,7 +229,7 @@ namespace Liviano
 
             foreach (var account in Accounts)
             {
-                Console.WriteLine($"Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
+                Debug.WriteLine($"Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
 
                 var externalCount = account.ExternalAddressesCount;
                 var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
@@ -245,7 +245,7 @@ namespace Liviano
 
                         if (!string.IsNullOrEmpty(status.Result))
                         {
-                            Console.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
+                            Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
                         }
                     });
 
@@ -300,7 +300,7 @@ namespace Liviano
             {
                 await Task.Factory.StartNew(async () =>
                 {
-                    Console.WriteLine("[Sync] Syncing...");
+                    Debug.WriteLine("[Sync] Syncing...");
 
                     // This is a data structure that's really useful to create a transaction
                     var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
@@ -334,7 +334,7 @@ namespace Liviano
 
                 foreach (var addr in addresses)
                 {
-                    Console.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
+                    Debug.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
 
                     var scriptHashHex = addr.ToScriptHash().ToHex();
                     var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
@@ -358,7 +358,7 @@ namespace Liviano
                     continue;
 #endif
 
-                Console.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
                 var externalAddresses = entry.Value["external"];
                 var internalAddresses = entry.Value["internal"];
