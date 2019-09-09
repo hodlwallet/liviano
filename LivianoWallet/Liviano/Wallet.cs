@@ -196,7 +196,7 @@ namespace Liviano
             AccountIds.Add(account.Id);
             Accounts.Add(account);
 
-            if (Accounts.Count > 1) return;
+            if (!string.IsNullOrEmpty(CurrentAccountId)) return;
 
             CurrentAccount = account;
             CurrentAccountId = account.Id;
