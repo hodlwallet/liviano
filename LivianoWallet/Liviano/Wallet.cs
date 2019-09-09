@@ -240,18 +240,33 @@ namespace Liviano
                                 var txHash = unspentResult.TxHash;
                                 var height = unspentResult.Height;
 
-                                var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                var txHex = blkChainTxGet.Result;
+                                var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                                var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                // Tx is new
+                                if (currentTx is null)
+                                {
+                                    var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                    var txHex = blkChainTxGet.Result;
 
-                                if (account.TxIds.Contains(tx.Id.ToString()))
-                                {
-                                    account.UpdateTx(tx);
-                                }
-                                else
-                                {
+                                    var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
                                     account.AddTx(tx);
+
+                                    return;
+                                }
+
+                                // A potential update if tx heights are different
+                                if (currentTx.BlockHeight != height)
+                                {
+                                    var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                    var txHex = blkChainTxGet.Result;
+
+                                    var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                                    account.UpdateTx(tx);
+
+                                    // Here for safety, at any time somebody can add code to this
+                                    return;
                                 }
                             }
                         }
