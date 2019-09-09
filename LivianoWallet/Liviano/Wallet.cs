@@ -126,7 +126,7 @@ namespace Liviano
 
             CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
 
-            Storage = Storage ?? storage ?? new FileSystemStorage(Id, network: Network);
+            Storage = Storage ?? storage ?? new FileSystemStorage(Id, Network);
 
             TxIds = TxIds ?? new List<string>();
             Txs = Txs ?? new List<Tx>();

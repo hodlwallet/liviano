@@ -25,6 +25,7 @@ using Liviano.Extensions;
 using Serilog.Core;
 using Liviano.Bips;
 using System.Data.Common;
+using Liviano.Storages;
 
 namespace Liviano.CLI
 {
@@ -95,14 +96,20 @@ namespace Liviano.CLI
             _Wallet.Storage.Save();
         }
 
-        public static void Start(Config config, string password, bool resync = false)
+        public static void Start(Config config, bool resync = false)
         {
-            _ = PeriodicSave();
-
             _Network = Hd.GetNetwork(config.Network);
-            _Wallet = new Wallet { Id = config.WalletId };
 
-            _Wallet.Storage.Load();
+            var storage = new FileSystemStorage(config.WalletId, _Network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+
+                return;
+            }
+
+            _Wallet = storage.Load();
 
             _Wallet.SyncStarted += (s, e) =>
             {
@@ -118,6 +125,8 @@ namespace Liviano.CLI
             else _Wallet.Sync();
 
             _Wallet.Start();
+
+            _ = PeriodicSave();
         }
 
         public static void TestElectrumConnection(string address, string txHash, Network network = null)

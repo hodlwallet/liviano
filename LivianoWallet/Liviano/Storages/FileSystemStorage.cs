@@ -46,7 +46,7 @@ namespace Liviano.Storages
         public IWallet Wallet { get; set; }
         public string RootDirectory { get; set; }
 
-        public FileSystemStorage(string id = null, string directory = "wallets", Network network = null)
+        public FileSystemStorage(string id = null, Network network = null, string directory = "wallets")
         {
             directory = Path.GetFullPath(directory);
             if (!Directory.Exists(directory))
@@ -84,6 +84,8 @@ namespace Liviano.Storages
             {
                 Wallet.CurrentAccount = Wallet.Accounts[0];
             }
+
+            Wallet.Storage = this;
 
             return Wallet;
         }

@@ -171,9 +171,6 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet")]
-        public string Password { get; set; }
-
         [Option("wallet-id", HelpText = "Wallet name to use")]
         public string WalletId { get; set; }
 
