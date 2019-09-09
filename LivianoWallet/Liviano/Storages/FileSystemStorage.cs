@@ -80,6 +80,11 @@ namespace Liviano.Storages
                 account.TxIds = account.Txs.Select((tx) => tx.Id.ToString()).ToList();
             }
 
+            if (string.IsNullOrEmpty(Wallet.CurrentAccountId) && Wallet.Accounts.Count > 0)
+            {
+                Wallet.CurrentAccount = Wallet.Accounts[0];
+            }
+
             return Wallet;
         }
 

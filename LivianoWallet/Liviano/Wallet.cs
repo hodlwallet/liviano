@@ -134,6 +134,9 @@ namespace Liviano
             AccountIds = AccountIds ?? new List<string>();
             Accounts = Accounts ?? new List<IAccount>();
 
+            CurrentAccountId = CurrentAccountId ?? null;
+            _CurrentAccount = _CurrentAccount ?? null;
+
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             var extKey = Hd.GetExtendedKey(mnemonicObj, password);
 
