@@ -212,7 +212,9 @@ namespace Liviano.CLI
                 {
                     _Logger.Error("Empty mnemonic");
 
-                    throw new WalletException("Empty mnemonic");
+                    _Logger.Information("Generating new mnemonic");
+
+                    mnemonic = new Mnemonic(Hd.WordlistFromString(), Hd.WordCountFromInt()).ToString();
                 }
 
                 // If the configuration exists, we just add a new wallet
