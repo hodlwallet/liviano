@@ -91,6 +91,9 @@ namespace Liviano.Extensions
         public static Coin[] GetSpendableCoins(IAccount account, Network network)
         {
             var results = account.Txs
+            .Where(
+                o => o.IsSpendable() == true
+            )
             .Select(
                 o => Transaction.Parse(o.Hex, network)
             )
