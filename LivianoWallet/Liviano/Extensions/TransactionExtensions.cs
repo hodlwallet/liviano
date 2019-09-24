@@ -1,4 +1,11 @@
-﻿using System;
+﻿// TODO: Add License
+using System;
+using System.Linq;
+
+using NBitcoin;
+
+using Liviano.Interfaces;
+using Liviano.Exceptions;
 
 namespace Liviano.Extensions
 {
