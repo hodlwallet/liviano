@@ -87,22 +87,5 @@ namespace Liviano.Extensions
                 Debug.WriteLine($"[TrySetProperty] Error: {ex.Message}");
             }
         }
-
-        public static Coin[] GetSpendableCoins(IAccount account, Network network)
-        {
-            var results = account.Txs
-            .Where(
-                o => o.IsSpendable() == true
-            )
-            .Select(
-                o => Transaction.Parse(o.Hex, network)
-            )
-            .SelectMany(
-                o => o.Outputs.AsCoins()
-            )
-            .ToArray();
-
-            return results;
-        }
     }
 }
