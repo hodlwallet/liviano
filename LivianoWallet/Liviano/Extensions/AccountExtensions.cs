@@ -25,6 +25,10 @@
 // THE SOFTWARE.
 using System;
 using System.Diagnostics;
+using System.Linq;
+
+using NBitcoin;
+
 using Liviano.Accounts;
 using Liviano.Interfaces;
 
@@ -82,6 +86,20 @@ namespace Liviano.Extensions
                 Debug.WriteLine($"[TrySetProperty] Unable to set property of {name} on account, incorrect value {value}");
                 Debug.WriteLine($"[TrySetProperty] Error: {ex.Message}");
             }
+        }
+
+        public static Coin[] GetSpendableCoins(IAccount account, Network network)
+        {
+            var results = account.Txs
+            .Select(
+                o => Transaction.Parse(o.Hex, network)
+            )
+            .SelectMany(
+                o => o.Outputs.AsCoins()
+            )
+            .ToArray();
+
+            return results;
         }
     }
 }
