@@ -48,7 +48,7 @@ namespace Liviano.Extensions
             // Create transaction buidler with change and signing keys.
             Transaction txWithNoFees = noFeeBuilder
                 .AddCoins(coins)
-                .AddKeys(wallet.GetExtendedKey(password, true))
+                .AddKeys(wallet.GetPrivateKey(password, true))
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
                 .BuildTransaction(sign: true);
@@ -62,7 +62,7 @@ namespace Liviano.Extensions
                 var goodEnoughBuilder = network.CreateTransactionBuilder();
                 return goodEnoughBuilder
                     .AddCoins(coins)
-                    .AddKeys(wallet.GetExtendedKey(password, true))
+                    .AddKeys(wallet.GetPrivateKey(password, true))
                     .Send(toDestination, amount)
                     .SendFees(fees)
                     .SetChange(changeDestination)
@@ -81,7 +81,7 @@ namespace Liviano.Extensions
             // Finally send the transaction.
             return finalBuilder
                 .AddCoins(coins)
-                .AddKeys(wallet.GetExtendedKey(password, true))
+                .AddKeys(wallet.GetPrivateKey(password, true))
                 .Send(toDestination, amount)
                 .SendFees(fees)
                 .SetChange(changeDestination)
