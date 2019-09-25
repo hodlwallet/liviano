@@ -28,20 +28,31 @@ namespace Liviano.Extensions
 			return results;
 		}
 
-		public static Transaction CreateTransaction(string destination, Money amount, long satsPerByte, IAccount account, Network network, string password = "")
+		public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerKB, Wallet wallet, IAccount account, Network network)
 		{
+            // Get coins from coin selector that satisfy our amount.
 			var coinSelector = new DefaultCoinSelector();
-			ICoin[] inputs = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
+			ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
 
-			if (coinSelector == null)
+			if (coins == null)
 			{
 				throw new WalletException("Balance too low to craete transaction.");
 			}
 
-			var changeDestinationAddress = account.GetChangeAddress();
-			var toDestination = BitcoinAddress.Create(destination, network);
+			var changeDestination = account.GetChangeAddress();
+			var toDestination = BitcoinAddress.Create(destinationAddress, network);
 
+            var noFeeBuilder = network.CreateTransactionBuilder();
+            // Create transaction buidler with change and signing keys
+            Transaction txWithNoFees = noFeeBuilder
+                .AddCoins(coins)
+                .AddKeys(wallet.GetExtendedKey())
+                .Send(toDestination, amount)
+                .SetChange(changeDestination)
+                .BuildTransaction(sign: true);
 
+            //Calculate fees
+            Money fees = txWithNoFees.GetVirtualSize() * (satsPerKB / 1000);
 		}
 	}
 }
