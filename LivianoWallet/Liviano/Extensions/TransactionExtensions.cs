@@ -28,7 +28,7 @@ namespace Liviano.Extensions
 			return results;
 		}
 
-		public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerKB, Wallet wallet, IAccount account, Network network)
+		public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, Wallet wallet, IAccount account, Network network)
 		{
             // Get coins from coin selector that satisfy our amount.
 			var coinSelector = new DefaultCoinSelector();
@@ -51,8 +51,39 @@ namespace Liviano.Extensions
                 .SetChange(changeDestination)
                 .BuildTransaction(sign: true);
 
-            //Calculate fees
-            Money fees = txWithNoFees.GetVirtualSize() * (satsPerKB / 1000);
+            // Calculate fees
+            Money fees = txWithNoFees.GetVirtualSize() * satsPerByte;
+
+            // If fees are enough with the coins we got, we should just create the tx.
+            if (coins.Sum(o => o.TxOut.Value) >= (fees + amount))
+            {
+                var goodEnoughBuilder = network.CreateTransactionBuilder();
+                return goodEnoughBuilder
+                    .AddCoins(coins)
+                    .AddKeys(wallet.GetExtendedKey())
+                    .Send(toDestination, amount)
+                    .SendFees(fees)
+                    .SetChange(changeDestination)
+                    .BuildTransaction(sign: true);
+            }
+
+            // If the coins do not satisfy the fees + amount grand total, then we repeat the process.
+            coins = coinSelector.Select(GetSpendableCoins(account, network), amount + fees).ToArray();
+
+            if (coins == null)
+            {
+                throw new WalletException("Balance too low to create transaction");
+            }
+
+            var finalBuilder = network.CreateTransactionBuilder();
+            // Finally send the transaction
+            return finalBuilder
+                .AddCoins(coins)
+                .AddKeys(wallet.GetExtendedKey())
+                .Send(toDestination, amount)
+                .SendFees(fees)
+                .SetChange(changeDestination)
+                .BuildTransaction(true);
 		}
 	}
 }
