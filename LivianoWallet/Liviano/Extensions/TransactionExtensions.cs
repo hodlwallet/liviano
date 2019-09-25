@@ -9,7 +9,7 @@ using Liviano.Exceptions;
 
 namespace Liviano.Extensions
 {
-    public class TransactionExtensions
+    public static class TransactionExtensions
     {
         public static Coin[] GetSpendableCoins(IAccount account, Network network)
         {
@@ -43,10 +43,10 @@ namespace Liviano.Extensions
             var toDestination = BitcoinAddress.Create(destinationAddress, network);
 
             var noFeeBuilder = network.CreateTransactionBuilder();
-            // Create transaction buidler with change and signing keys
+            // Create transaction buidler with change and signing keys.
             Transaction txWithNoFees = noFeeBuilder
                 .AddCoins(coins)
-                .AddKeys(wallet.GetExtendedKey())
+                .AddKeys(wallet.GetExtendedKey(password, true))
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
                 .BuildTransaction(sign: true);
@@ -60,7 +60,7 @@ namespace Liviano.Extensions
                 var goodEnoughBuilder = network.CreateTransactionBuilder();
                 return goodEnoughBuilder
                     .AddCoins(coins)
-                    .AddKeys(wallet.GetExtendedKey())
+                    .AddKeys(wallet.GetExtendedKey(password, true))
                     .Send(toDestination, amount)
                     .SendFees(fees)
                     .SetChange(changeDestination)
@@ -76,14 +76,14 @@ namespace Liviano.Extensions
             }
 
             var finalBuilder = network.CreateTransactionBuilder();
-            // Finally send the transaction
+            // Finally send the transaction.
             return finalBuilder
                 .AddCoins(coins)
-                .AddKeys(wallet.GetExtendedKey())
+                .AddKeys(wallet.GetExtendedKey(password, true))
                 .Send(toDestination, amount)
                 .SendFees(fees)
                 .SetChange(changeDestination)
-                .BuildTransaction(true);
+                .BuildTransaction(sign: true);
         }
     }
 }
