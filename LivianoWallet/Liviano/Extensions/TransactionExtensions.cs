@@ -11,36 +11,36 @@ namespace Liviano.Extensions
 {
     public class TransactionExtensions
     {
-		public static Coin[] GetSpendableCoins(IAccount account, Network network)
-		{
-			var results = account.Txs
-			.Where(
-				o => o.IsSpendable() == true
-			)
-			.Select(
-				o => Transaction.Parse(o.Hex, network)
-			)
-			.SelectMany(
-				o => o.Outputs.AsCoins()
-			)
-			.ToArray();
+        public static Coin[] GetSpendableCoins(IAccount account, Network network)
+        {
+            var results = account.Txs
+            .Where(
+                o => o.IsSpendable() == true
+            )
+            .Select(
+                o => Transaction.Parse(o.Hex, network)
+            )
+            .SelectMany(
+                o => o.Outputs.AsCoins()
+            )
+            .ToArray();
 
-			return results;
-		}
+            return results;
+        }
 
-		public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, Wallet wallet, IAccount account, Network network)
-		{
+        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, Wallet wallet, IAccount account, Network network)
+        {
             // Get coins from coin selector that satisfy our amount.
-			var coinSelector = new DefaultCoinSelector();
-			ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
+            var coinSelector = new DefaultCoinSelector();
+            ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
 
-			if (coins == null)
-			{
-				throw new WalletException("Balance too low to craete transaction.");
-			}
+            if (coins == null)
+            {
+                throw new WalletException("Balance too low to craete transaction.");
+            }
 
-			var changeDestination = account.GetChangeAddress();
-			var toDestination = BitcoinAddress.Create(destinationAddress, network);
+            var changeDestination = account.GetChangeAddress();
+            var toDestination = BitcoinAddress.Create(destinationAddress, network);
 
             var noFeeBuilder = network.CreateTransactionBuilder();
             // Create transaction buidler with change and signing keys
@@ -84,6 +84,6 @@ namespace Liviano.Extensions
                 .SendFees(fees)
                 .SetChange(changeDestination)
                 .BuildTransaction(true);
-		}
-	}
+        }
+    }
 }
