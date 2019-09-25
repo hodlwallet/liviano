@@ -1,6 +1,8 @@
 ﻿// TODO: Add License
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using NBitcoin;
 
@@ -84,6 +86,25 @@ namespace Liviano.Extensions
                 .SendFees(fees)
                 .SetChange(changeDestination)
                 .BuildTransaction(sign: true);
+        }
+
+        public static bool VerifyTransaction(Transaction tx, Network network, out WalletException[] transactionPolicyErrors)
+        {
+            var builder = network.CreateTransactionBuilder();
+            var flag = builder.Verify(tx, out var errors);
+            var exceptions = new List<WalletException>();
+
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                {
+                    exceptions.Add(new WalletException(error.ToString()));
+                }
+            }
+
+            transactionPolicyErrors = exceptions.ToArray();
+
+            return flag;
         }
     }
 }
