@@ -80,6 +80,8 @@ namespace Liviano.CLI
         {
             LoadWallet(config);
 
+            // var chain = GetChain();
+
             throw new NotImplementedException("TODO");
         }
 

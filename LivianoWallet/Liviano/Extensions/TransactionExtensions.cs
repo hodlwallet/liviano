@@ -8,6 +8,7 @@ using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Exceptions;
+using Liviano.Utilities;
 
 namespace Liviano.Extensions
 {
@@ -105,6 +106,11 @@ namespace Liviano.Extensions
             transactionPolicyErrors = exceptions.ToArray();
 
             return flag;
+        }
+
+        public static async Task BroadcastTransaction(Transaction transactionToBroadcast)
+        {
+            Guard.NotNull(transactionToBroadcast, nameof(transactionToBroadcast));
         }
     }
 }
