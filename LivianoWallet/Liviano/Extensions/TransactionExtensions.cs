@@ -31,7 +31,7 @@ namespace Liviano.Extensions
             return results;
         }
 
-        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, Wallet wallet, IAccount account, Network network)
+        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account, Network network)
         {
             // Get coins from coin selector that satisfy our amount.
             var coinSelector = new DefaultCoinSelector();

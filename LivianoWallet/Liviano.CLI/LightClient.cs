@@ -15,6 +15,7 @@ using Liviano.Models;
 using Liviano.Utilities;
 using System.Threading;
 using Liviano.Interfaces;
+using Liviano.Electrum;
 
 using NBitcoin.DataEncoders;
 using System.Reflection;
@@ -76,13 +77,63 @@ namespace Liviano.CLI
             _Wallet = storage.Load();
         }
 
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
         {
             LoadWallet(config);
 
-            // var chain = GetChain();
+            Transaction tx = null;
+            string error = "";
+            bool wasCreated = false;
+            bool wasSent = false;
+            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
 
-            throw new NotImplementedException("TODO");
+            try
+            {
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, _Wallet, account, _Network);
+                wasCreated = true;
+            }
+            catch (WalletException e)
+            {
+                _Logger.Error(e.ToString());
+
+                error = e.Message;
+                wasCreated = false;
+
+                return (wasCreated, wasSent, tx, error);
+            }
+
+            TransactionExtensions.VerifyTransaction(tx, _Network, out var errors);
+
+            if (errors.Any())
+            {
+                error = string.Join<string>(", ", errors.Select(o => o.Message));
+            }
+
+            if (wasCreated)
+            {
+                Thread.Sleep(30000);
+
+                try
+                {
+                    var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
+                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(tx.ToHex());
+                    // Check if conditional is accurate
+                    if (broadcast.Result != tx.GetHash().ToString()) throw new ElectrumException($"Transaction broadcast failed for tx: {tx.ToHex()}");
+                }
+                catch (Exception e)
+                {
+                    _Logger.Error(e.ToString());
+
+                    error = e.Message;
+                    wasSent = false;
+
+                    return (wasCreated, wasSent, tx, error);
+                }
+
+                wasSent = true;
+            }
+
+            return (wasCreated, wasSent, tx, error);
         }
 
         public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)
