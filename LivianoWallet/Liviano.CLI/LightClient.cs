@@ -77,6 +77,13 @@ namespace Liviano.CLI
             _Wallet = storage.Load();
         }
 
+        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        {
+            LoadWallet(config);
+
+            throw new NotImplementedException("TODO");
+        }
+
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
         {
             LoadWallet(config);
