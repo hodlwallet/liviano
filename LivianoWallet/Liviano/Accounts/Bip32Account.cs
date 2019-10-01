@@ -211,7 +211,7 @@ namespace Liviano.Accounts
             return account;
         }
 
-        public Money GetBalance()
+        public override Money GetBalance()
         {
             var received = Money.Zero;
             var sent = Money.Zero;

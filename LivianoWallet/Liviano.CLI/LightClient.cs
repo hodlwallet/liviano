@@ -125,7 +125,10 @@ namespace Liviano.CLI
                     var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
                     var broadcast = await electrumClient.BlockchainTransactionBroadcast(tx.ToHex());
                     // Check if conditional is accurate
-                    if (broadcast.Result != tx.GetHash().ToString()) throw new ElectrumException($"Transaction broadcast failed for tx: {tx.ToHex()}");
+                    if (broadcast.Result != tx.GetHash().ToString())
+                    {
+                        throw new ElectrumException($"Transaction broadcast failed for tx: {tx.ToHex()}");
+                    }
                 }
                 catch (Exception e)
                 {
