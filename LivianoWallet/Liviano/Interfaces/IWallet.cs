@@ -155,6 +155,18 @@ namespace Liviano.Interfaces
         ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
+        /// Adds an account to the wallet
+        /// </summary>
+        /// <param name="type">Check <see cref="Wallet.AccountTypes"/> for the list</param>
+        /// <param name="name">Name of the account default is <see cref="Wallet.DEFAULT_WALLET_NAME"/></param>
+        /// <param name="options">
+        ///     Options can be passed to this  function this way, e.g:
+        ///
+        ///     AddAccount("bip141", "My Bitcoins", new {Wallet = this, WalletId = this.Id, Network = Network.TestNet})
+        /// </param>
+        void AddAccount(string type = "", string name = null, object options = null);
+
+        /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
         event EventHandler SyncStarted;
