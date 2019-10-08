@@ -265,21 +265,10 @@ namespace Liviano.Storages
             Guard.NotNull(Wallet, nameof(Wallet));
             Guard.NotNull(RootDirectory, nameof(RootDirectory));
 
-            Id = Wallet.Id;
-            Network = Wallet.Network;
+            var path = GetWalletDirectory();
 
-            var txFilePath = GetTxsPath();
-            var accountFilePath = GetAccountsPath();
-            var walletFilePath = GetWalletFilePath();
-
-            if (File.Exists(txFilePath))
-                File.Delete(txFilePath);
-
-            if (File.Exists(accountFilePath))
-                File.Delete(accountFilePath);
-
-            if (File.Exists(walletFilePath))
-                File.Delete(walletFilePath);
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
         }
     }
 }
