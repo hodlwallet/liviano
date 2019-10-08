@@ -107,10 +107,5 @@ namespace Liviano.Extensions
 
             return flag;
         }
-
-        public static async Task BroadcastTransaction(Transaction transactionToBroadcast)
-        {
-            Guard.NotNull(transactionToBroadcast, nameof(transactionToBroadcast));
-        }
     }
 }
