@@ -101,6 +101,9 @@ namespace Liviano
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
 
+        public event EventHandler<Tx> OnNewTransaction;
+        public event EventHandler<Tx> OnUpdateTransaction;
+
         public IStorage Storage
         {
             get => _Storage;
@@ -255,6 +258,9 @@ namespace Liviano
 
                                     account.AddTx(tx);
 
+                                    if (tx.AccountId == CurrentAccountId)
+                                        OnNewTransaction?.Invoke(this, tx);
+
                                     return;
                                 }
 
@@ -267,6 +273,9 @@ namespace Liviano
                                     var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                     account.UpdateTx(tx);
+
+                                    if (tx.AccountId == CurrentAccountId)
+                                        OnUpdateTransaction?.Invoke(this, tx);
 
                                     // Here for safety, at any time somebody can add code to this
                                     return;
