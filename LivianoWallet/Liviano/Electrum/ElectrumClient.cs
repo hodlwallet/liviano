@@ -411,6 +411,7 @@ namespace Liviano.Electrum
             if (network is null) network = Network.Main;
 
             List<Server> connectedServers = new List<Server>();
+            string json;
 
             // Get network list of servers
             string serversFileName = GetLocalConfigFilePath(
@@ -418,11 +419,28 @@ namespace Liviano.Electrum
                 "servers",
                 $"{network.Name.ToLower()}.json"
             );
+
             if (!File.Exists(serversFileName))
-                throw new ArgumentException($"Invalid network: {network.Name}");
+            {
+                try
+                {
+                    Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Electrum.servers.main.json");
+                    using (var reader = new StreamReader(stream))
+                    {
+                        json = reader.ReadToEnd();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ArgumentException($"Invalid network: {network.Name}\n{ex.Message}");
+                }
+            }
+            else
+            {
+                json = File.ReadAllText(serversFileName);
+            }
 
             // Get the servers list from the file.
-            var json = File.ReadAllText(serversFileName);
             var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
             var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
@@ -528,7 +546,7 @@ namespace Liviano.Electrum
         {
             return Path.Combine(
                 Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
+                    Assembly.GetExecutingAssembly().Location
                 ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
             );
         }
