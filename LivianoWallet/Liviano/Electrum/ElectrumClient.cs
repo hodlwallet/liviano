@@ -424,8 +424,8 @@ namespace Liviano.Electrum
             {
                 try
                 {
-                    var names = assembly.GetManifestResourceNames();
-                    Stream stream = assembly.GetManifestResourceStream("Resources.Electrum.servers.main.json");
+                    var name = $"Resources.Electrum.servers.{network.Name.ToLower()}.json";
+                    Stream stream = assembly.GetManifestResourceStream(name);
                     using (var reader = new StreamReader(stream))
                     {
                         json = reader.ReadToEnd();
