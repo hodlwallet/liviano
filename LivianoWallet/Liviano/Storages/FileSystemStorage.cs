@@ -37,6 +37,7 @@ using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Extensions;
 using Liviano.Models;
+using Liviano.Accounts;
 
 namespace Liviano.Storages
 {
@@ -155,9 +156,35 @@ namespace Liviano.Storages
                 }
 
                 var content = File.ReadAllText(fileName);
-                var account = JsonConvert.DeserializeObject<IAccount>(content);
 
-                accounts.Add(account.CastToAccountType());
+                var accountType = JsonConvert.DeserializeAnonymousType(
+                    content, new { accountType = " " }
+                    ).accountType;
+
+                switch (accountType)
+                {
+                    case "bip32":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip32Account>(content));
+                        break;
+                    case "bip44":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip44Account>(content));
+                        break;
+                    case "bip49":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip49Account>(content));
+                        break;
+                    case "bip84":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip84Account>(content));
+                        break;
+                    case "bip141":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
+                        break;
+                    case "wasabi":
+                        accounts.Add(JsonConvert.DeserializeObject<WasabiAccount>(content));
+                        break;
+                    case "paper":
+                        accounts.Add(JsonConvert.DeserializeObject<PaperAccount>(content));
+                        break;
+                }
             }
 
             return accounts;
