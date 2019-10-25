@@ -72,13 +72,13 @@ namespace Liviano.Electrum
             try
             {
                 var maybeTimedOutIpAddress = await ResolveAsync(hostName).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                if (maybeTimedOutIpAddress == null) throw new TimeoutException(string.Format("Timed out connecting to {0}:{1}", hostName, _Port));
+                if (maybeTimedOutIpAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{_Port}");
                 return maybeTimedOutIpAddress;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                throw new ElectrumException(string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
+                throw new ElectrumException($"DNS host entry lookup resulted in no records for {hostName}\n{ex.Message}");
             }
         }
 
@@ -234,7 +234,7 @@ namespace Liviano.Electrum
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[Request] {ex.Message}");
-                    Debug.WriteLine(string.Format("[Request] Failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
+                    Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
                 }
 
                 count += 1;
