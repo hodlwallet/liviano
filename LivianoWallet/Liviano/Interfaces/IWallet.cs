@@ -115,6 +115,9 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         IStorage Storage { get; set; }
 
+        [JsonIgnore]
+        Assembly CurrentAssembly { get; set; }
+
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main

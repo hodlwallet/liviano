@@ -71,6 +71,8 @@ namespace Liviano
 
         public string CurrentAccountId { get; set; }
 
+        public Assembly CurrentAssembly { get; set; }
+
         IAccount _CurrentAccount;
         public IAccount CurrentAccount
         {
@@ -98,7 +100,6 @@ namespace Liviano
         public List<IAccount> Accounts { get; set; }
 
         IStorage _Storage;
-        Assembly _Assembly;
 
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
@@ -142,7 +143,7 @@ namespace Liviano
             CurrentAccountId = CurrentAccountId ?? null;
             _CurrentAccount = _CurrentAccount ?? null;
 
-            _Assembly = assembly;
+            CurrentAssembly = assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             var extKey = Hd.GetExtendedKey(mnemonicObj, password);
@@ -527,7 +528,7 @@ namespace Liviano
                 // Waits 2 seconds if we need to reconnect, only on retry
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
-                ElectrumClient.PopulateRecentlyConnectedServers(Network, _Assembly);
+                ElectrumClient.PopulateRecentlyConnectedServers(Network, CurrentAssembly);
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }
