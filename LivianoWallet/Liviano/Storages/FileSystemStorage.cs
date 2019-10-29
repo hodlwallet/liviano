@@ -215,7 +215,7 @@ namespace Liviano.Storages
 
             foreach (var account in Wallet.Accounts)
             {
-                if (account.Txs is null) continue;
+                if (account.Txs is null || account.Txs.Count == 0) continue;
 
                 foreach (var tx in account.Txs)
                 {
