@@ -125,7 +125,7 @@ namespace Liviano.Storages
 
             foreach (var txId in account.TxIds)
             {
-                var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}";
+                var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}.json";
 
                 var contents = File.ReadAllText(txFilePath);
                 var tx = JsonConvert.DeserializeObject<Tx>(contents);
@@ -215,7 +215,7 @@ namespace Liviano.Storages
 
             foreach (var account in Wallet.Accounts)
             {
-                if (account.Txs is null || account.Txs.Count == 0) continue;
+                if (account.Txs is null) continue;
 
                 foreach (var tx in account.Txs)
                 {
