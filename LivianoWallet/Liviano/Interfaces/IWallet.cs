@@ -143,6 +143,13 @@ namespace Liviano.Interfaces
         Task Resync();
 
         /// <summary>
+        /// Sends a transaction using the electrum client initialized in the wallet.
+        /// </summary>
+        /// <param name="tx">The transaction to be broadcasted.</param>
+        /// <returns></returns>
+        Task<(bool Sent, string Error)> SendTransaction(Transaction tx);
+
+        /// <summary>
         /// Gets a private key this method also caches it on memory
         /// </summary>
         /// <param name="password">Password to decript seed to, default ""</param>

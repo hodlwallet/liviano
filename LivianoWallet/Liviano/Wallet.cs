@@ -361,6 +361,30 @@ namespace Liviano
             }
         }
 
+        public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
+        {
+            Debug.WriteLine($"[Send] Attempting to send a transaction: {tx.ToHex()}");
+
+            try
+            {
+                var electrum = await GetElectrumClient();
+                var broadcast = await electrum.BlockchainTransactionBroadcast(tx.ToHex());
+
+                if (broadcast.Result != tx.GetHash().ToString())
+                {
+                    throw new Exception($"Transaction Broadcast failed for tx: {tx.ToHex()}\n{broadcast.Result}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Error] {e.Message}");
+
+                return (false, e.Message);
+            }
+
+            return (true, null);
+        }
+
         Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
         {
             var t = Task.Run(async () =>
