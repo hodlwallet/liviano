@@ -52,6 +52,9 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "gapLimit")]
         int GapLimit { get; set; }
 
+        [JsonProperty(PropertyName = "colorHex")]
+        string ColorHex { get; set; }
+
         /// <summary>
         /// Change addresses count
         /// </summary>

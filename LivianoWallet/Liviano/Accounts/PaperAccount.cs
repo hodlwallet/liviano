@@ -63,6 +63,8 @@ namespace Liviano.Accounts
             }
         }
 
+        public string ColorHex { get; set; }
+
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
         public string Id { get; set; }

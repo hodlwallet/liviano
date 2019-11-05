@@ -69,6 +69,11 @@ namespace Liviano.Accounts
         }
 
         /// <summary>
+        /// Color of the account as a hexadecimal
+        /// </summary>
+        public string ColorHex { get; set; }
+
+        /// <summary>
         /// Change addresses count
         /// </summary>
         /// <value></value>
