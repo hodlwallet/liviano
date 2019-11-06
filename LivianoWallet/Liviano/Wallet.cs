@@ -602,7 +602,7 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Creates the two Hexadecimal string to represent an account gradient.
+        /// Creates the two Hexadecimal strings representing an account gradient.
         /// </summary>
         (string, string) GradientHex()
         {
