@@ -69,9 +69,14 @@ namespace Liviano.Accounts
         }
 
         /// <summary>
-        /// Color of the account as a hexadecimal
+        /// Start color of the account gradient as a hexadecimal string
         /// </summary>
-        public string ColorHex { get; set; }
+        public string StartHex { get; set; }
+
+        /// <summary>
+        /// End color of the account gradient as a hexadecimal string
+        /// </summary>
+        public string EndHex { get; set; }
 
         /// <summary>
         /// Change addresses count

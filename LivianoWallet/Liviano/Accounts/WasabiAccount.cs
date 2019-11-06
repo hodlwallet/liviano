@@ -104,7 +104,7 @@ namespace Liviano.Accounts
             return _ExtKey;
         }
 
-        public new static WasabiAccount Create(string name, object options)
+        public new static WasabiAccount Create(string name, (string, string) colors, object options)
         {
             var kwargs = options.ToDict();
 
@@ -114,7 +114,9 @@ namespace Liviano.Accounts
 
             var account = new WasabiAccount(mnemonic, password, network)
             {
-                Name = name
+                Name = name,
+                StartHex = colors.Item1,
+                EndHex = colors.Item2
             };
 
             return account;
