@@ -361,6 +361,15 @@ namespace Liviano
             }
         }
 
+        public void UpdateCurrentTransaction(Tx tx)
+        {
+            if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
+            {
+                CurrentAccount.UpdateTx(tx);
+                OnUpdateTransaction?.Invoke(this, tx);
+            }
+        }
+
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
         {
             Debug.WriteLine($"[Send] Attempting to send a transaction: {tx.ToHex()}");
