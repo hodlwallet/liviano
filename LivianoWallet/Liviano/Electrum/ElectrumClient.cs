@@ -393,7 +393,8 @@ namespace Liviano.Electrum
 
             var content = File.ReadAllText(fileName);
 
-            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+            if (!string.IsNullOrEmpty(content))
+                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
 
             return recentServers;
         }
