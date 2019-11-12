@@ -399,6 +399,21 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
+        /// Overwrites recently connected servers, as intended for startup.
+        /// </summary>
+        public static void OverwriteRecentlyConnectedServers(Network network = null)
+        {
+            network = network ?? Network.Main;
+
+            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return;
+
+            File.WriteAllText(fileName, "");
+        }
+
+        /// <summary>
         /// Creates the file of the recently connected,
         /// this functions picks up to <see cref="NUMBER_OF_RECENT_SERVERS"/> servers at the time, and try to send
         /// a server.version() to the electrum server, if we get 1.4 then we're good,
@@ -425,7 +440,7 @@ namespace Liviano.Electrum
                 try
                 {
                     var name = $"Resources.Electrum.servers.{network.Name.ToLower()}.json";
-                    Stream stream = assembly.GetManifestResourceStream(name);
+                    using (Stream stream = assembly.GetManifestResourceStream(name))
                     using (var reader = new StreamReader(stream))
                     {
                         json = reader.ReadToEnd();
