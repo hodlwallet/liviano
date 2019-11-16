@@ -512,19 +512,27 @@ namespace Liviano.Electrum
                         if (cts.IsCancellationRequested) return;
 
                         var electrum = new ElectrumClient(new List<Server>() { s });
-                        var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
 
-                        Debug.WriteLine(
+                        try
+                        {
+                            var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
+
+                            Debug.WriteLine(
                             "Connected to: {0}:{1} => {2}",
                             s.Domain,
                             s.PrivatePort,
                             res
-                        );
+                            );
 
-                        lock (_lock) connectedServers.Add(s);
+                            lock (_lock) connectedServers.Add(s);
 
-                        // When we get NUMBER_OF_RECENT_SERVERS we get out
-                        if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                            // When we get NUMBER_OF_RECENT_SERVERS we get out
+                            if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"There was an issue with requesting an electrum server version: {ex.Message}");
+                        }
                     }, connectedServers);
 
                     tasks.Add(t);
