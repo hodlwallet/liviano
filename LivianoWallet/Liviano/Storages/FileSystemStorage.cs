@@ -94,7 +94,7 @@ namespace Liviano.Storages
                 Wallet.CurrentAccount = Wallet.Accounts[0];
             }
 
-            Wallet.GetPrivateKey();
+            _ = Wallet.GetPrivateKey();
 
             Wallet.Storage = this;
 
