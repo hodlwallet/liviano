@@ -20,7 +20,6 @@ using Liviano.Electrum;
 using NBitcoin.DataEncoders;
 using System.Reflection;
 using Newtonsoft.Json;
-using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
 using Serilog.Core;
