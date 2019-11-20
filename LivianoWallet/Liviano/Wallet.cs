@@ -363,16 +363,18 @@ namespace Liviano
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
         {
-            Debug.WriteLine($"[Send] Attempting to send a transaction: {tx.ToHex()}");
+            var txHex = tx.ToHex();
+
+            Debug.WriteLine($"[Send] Attempting to send a transaction: {txHex}");
 
             try
             {
                 var electrum = await GetElectrumClient();
-                var broadcast = await electrum.BlockchainTransactionBroadcast(tx.ToHex());
+                var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
 
                 if (broadcast.Result != tx.GetHash().ToString())
                 {
-                    throw new Exception($"Transaction Broadcast failed for tx: {tx.ToHex()}\n{broadcast.Result}");
+                    throw new Exception($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
                 }
             }
             catch (Exception e)
