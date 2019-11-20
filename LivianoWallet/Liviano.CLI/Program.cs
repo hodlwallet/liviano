@@ -10,13 +10,12 @@ using Serilog;
 using Easy.MessageHub;
 
 using Liviano;
-using Liviano.Behaviors;
-using Liviano.Managers;
 using Liviano.Models;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using NBitcoin;
 using System.Diagnostics.Contracts;
+using Liviano.Bips;
 
 namespace Liviano.CLI
 {
@@ -44,7 +43,7 @@ namespace Liviano.CLI
                     wordlist = o.Wordlist;
                 }
 
-                Console.WriteLine(WalletManager.NewMnemonic(wordlist, wordCount).ToString());
+                Console.WriteLine(Hd.NewMnemonic(wordlist, wordCount));
             })
             .WithParsed<ExtendedKeyOptions>(o =>
             {
@@ -75,10 +74,10 @@ namespace Liviano.CLI
                     network = "regtest";
                 }
 
-                var extKey = HdOperations.GetExtendedKey(mnemonic, passphrase);
-                var wif = HdOperations.GetWif(extKey, network);
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var wif = Hd.GetWif(extKey, network);
 
-                Console.WriteLine(wif.ToString());
+                Console.WriteLine(wif);
             })
             .WithParsed<ExtendedPubKeyOptions>(o =>
             {
@@ -109,10 +108,10 @@ namespace Liviano.CLI
                     hdPath = o.HdPath;
                 }
 
-                var extPubKey = HdOperations.GetExtendedPublicKey(wif, hdPath, network);
-                var extPubKeyWif = HdOperations.GetWif(extPubKey, network);
+                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network);
+                var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
-                Console.WriteLine(extPubKeyWif.ToString());
+                Console.WriteLine(extPubKeyWif);
             })
             .WithParsed<DeriveAddressOptions>(o =>
             {
@@ -155,7 +154,7 @@ namespace Liviano.CLI
                     type = o.Type;
                 }
 
-                Console.WriteLine(HdOperations.GetAddress(wif, index, isChange, network, type).ToString());
+                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type));
             })
             .WithParsed<AddressToScriptPubKeyOptions>(o =>
             {
@@ -180,7 +179,7 @@ namespace Liviano.CLI
                     address = Console.ReadLine();
                 }
 
-                Console.WriteLine(HdOperations.GetScriptPubKey(address, network).ToString());
+                Console.WriteLine(Hd.GetScriptPubKey(address, network));
             })
             .WithParsed<NewWalletOptions>(o =>
             {
@@ -209,11 +208,13 @@ namespace Liviano.CLI
                     network = "testnet";
                 }
 
-                if (String.IsNullOrEmpty(mnemonic))
+                if (string.IsNullOrEmpty(mnemonic))
                 {
                     _Logger.Error("Empty mnemonic");
 
-                    throw new WalletException("Empty mnemonic");
+                    _Logger.Information("Generating new mnemonic");
+
+                    mnemonic = new Mnemonic(Hd.WordlistFromString(), Hd.WordCountFromInt()).ToString();
                 }
 
                 // If the configuration exists, we just add a new wallet
@@ -376,7 +377,7 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
-                HdAddress address = null;
+                BitcoinAddress address = null;
 
                 try
                 {
@@ -402,7 +403,7 @@ namespace Liviano.CLI
                     return;
                 }
 
-                Console.WriteLine($"{address.Address}");
+                Console.WriteLine($"{address.ToString()}");
             })
             .WithParsed<SendOptions>(async o =>
             {
@@ -524,7 +525,7 @@ namespace Liviano.CLI
 
                 config.SaveChanges();
 
-                LightClient.Start(config, o.Password, o.DateTime, o.DropTransactions);
+                LightClient.Start(config, o.Resync);
             })
             .WithParsed<ElectrumTestOptions>(o =>
             {

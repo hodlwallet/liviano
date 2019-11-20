@@ -32,6 +32,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
 
 using Newtonsoft.Json;
+using System;
 
 namespace Liviano.Electrum
 {
@@ -72,12 +73,14 @@ namespace Liviano.Electrum
         public static SslStream GetSslStream(TcpClient client, string serverName)
         {
             // Create an SSL stream that will close the client's stream.
+#pragma warning disable IDE0068 // Use recommended dispose pattern
             SslStream sslStream = new SslStream(
-                client.GetStream(),
-                false,
-                new RemoteCertificateValidationCallback(ValidateServerCertificate),
-                null
+                 client.GetStream(),
+                 true,
+                 new RemoteCertificateValidationCallback(ValidateServerCertificate),
+                 null
             );
+#pragma warning restore IDE0068 // Use recommended dispose pattern
 
             Debug.WriteLine("[GetSslStream] Client connected via ssl.");
 
@@ -118,7 +121,7 @@ namespace Liviano.Electrum
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
 
-            Debug.WriteLine("[ReadMessage] Reading message from: ", sslStream.ToString());
+            Debug.WriteLine("[ReadMessage] Reading message from: {0}", sslStream);
 
             int bytes = -1;
             while (bytes != 0)
@@ -143,47 +146,12 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            Debug.WriteLine("[ReadMessage] Read message {0}", msg);
+            Debug.WriteLine($"[ReadMessage] Read message {msg}");
 
             return msg;
         }
 
-        /// <summary>
-        /// Example how to use the library
-        /// </summary>
-        /// <param name="serverName"></param>
-        /// <param name="port"></param>
-        public static void RunClientExample(string serverName, int port = 443)
-        {
-            // Create a TCP/IP client socket.
-            // machineName is the host running the server application.
-            TcpClient client = new TcpClient(serverName, port);
-
-            Debug.WriteLine($"[RunClientExample] Connected to: {serverName}:{port}");
-
-            using (var sslStream = GetSslStream(client, serverName))
-            {
-                // Encode a test message into a byte array.
-                // Signal the end of the message using the "<EOF>".
-                byte[] messsage = Encoding.UTF8.GetBytes(
-                    @"{""id"": ""1"", ""method"": ""server.version"", ""params"": [""HODL"", ""1.4""]}"
-                );
-
-                // Send version message to the server. 
-                sslStream.Write(messsage);
-                sslStream.Flush();
-
-                // Read message from the server.
-                string serverMessage = ReadMessage(sslStream);
-                Debug.WriteLine("[RunClientExample] Response: {0}", serverMessage);
-            }
-
-            // Close the client connection.
-            client.Close();
-            Debug.WriteLine("[RunClientExample] Client closed.");
-        }
-
-        static bool CanParseToJson(string message)
+        public static bool CanParseToJson(string message)
         {
             try
             {

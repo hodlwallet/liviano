@@ -11,7 +11,7 @@ using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
 using Liviano.Utilities;
-using Liviano.Enums;
+using System.Reflection;
 
 namespace Liviano.Extensions
 {
@@ -209,7 +209,7 @@ namespace Liviano.Extensions
             }
             foreach (TxOut output in me.Outputs)
             {
-                if (output.ScriptPubKey.IsWitness)
+                if (output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
                 {
                     return true;
                 }
@@ -281,39 +281,44 @@ namespace Liviano.Extensions
             await rpc.SendCommandAsync("stop");
         }
 
-        /// <summary>
-        /// This guess the script type from the hd path, P2WSH doesn't have an hdpath,
-        /// defaults to legacy, because bip32 addresses should be legacy, in the case of
-        /// bip 141 then we  have a problem since it generates both kinds of address but
-        /// not at the same time... We'll go back to this problem after.
-        /// </summary>
-        /// <param name="hdPath"></param>
-        /// <returns></returns>
-        public static ScriptTypes HdPathToScriptType(this string hdPath)
-        {
-            if (hdPath.StartsWith("m/44'"))
-                return ScriptTypes.P2PKH;
-
-            if (hdPath.StartsWith("m/45'"))
-                return ScriptTypes.P2SH;
-
-            if (hdPath.StartsWith("m/49'"))
-                return ScriptTypes.P2SH_P2WPKH;
-
-            if (hdPath.StartsWith("m/84'"))
-                return ScriptTypes.P2WPKH;
-
-            if (hdPath.StartsWith("m/0"))
-                return ScriptTypes.UNKNOWN;
-
-            return ScriptTypes.UNKNOWN;
-        }
-
         public static bool IsBitcoinAddress(this string address, Network network = null)
         {
             if (network == null) network = Network.Main;
 
             try { BitcoinAddress.Create(address, network); return true; } catch { return false; }
+        }
+
+        public static Dictionary<string, object> ToDict(this object options)
+        {
+            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+
+            if (options is null) return kwargs;
+
+            foreach (PropertyInfo prop in options.GetType().GetProperties())
+            {
+                string propName = prop.Name;
+                var val = options.GetType().GetProperty(propName).GetValue(options, null);
+                if (val != null)
+                {
+                    kwargs.Add(propName, val);
+                }
+                else
+                {
+                    kwargs.Add(propName, null);
+                }
+            }
+
+            return kwargs;
+        }
+
+        public static byte[] ToScriptHash(this BitcoinAddress address)
+        {
+            return Hashes.SHA256(address.ScriptPubKey.ToBytes()).Reverse().ToArray();
+        }
+
+        public static string ToHex(this byte[] bytes)
+        {
+            return Encoders.Hex.EncodeData(bytes);
         }
     }
 }

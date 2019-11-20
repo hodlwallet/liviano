@@ -1,5 +1,5 @@
 ﻿//
-// TaskExtensions.cs
+// IHasTxs.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -23,35 +23,29 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Liviano.Models;
 
-namespace Liviano.Extensions
+namespace Liviano.Interfaces
 {
-    public static class TaskExtensions
+    public interface IHasTxs
     {
         /// <summary>
-        /// Runs a task with a timeout
+        /// Adds transaction to this account
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
-        {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
+        /// <param name="tx">A <see cref="Tx"/> to be added</param>
+        void AddTx(Tx tx);
 
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
+        /// <summary>
+        /// Updates a tx that matches tx.Id
+        /// </summary>
+        /// <param name="tx">A <see cref="Tx"/> to update</param>
+        void UpdateTx(Tx tx);
 
-                throw new TimeoutException("The operation has timed out.");
-            }
-        }
+
+        /// <summary>
+        /// Removes a tx from the tx list
+        /// </summary>
+        /// <param name="tx">A <see cref="Tx"/> †o remove</param>
+        void RemoveTx(Tx tx);
     }
 }

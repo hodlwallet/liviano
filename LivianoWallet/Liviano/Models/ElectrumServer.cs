@@ -20,11 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
@@ -54,8 +50,10 @@ namespace Liviano.Models
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
         {
-            var servers = new ElectrumServers();
-            servers.Servers = new List<Server>();
+            var servers = new ElectrumServers
+            {
+                Servers = new List<Server>()
+            };
 
             foreach (var item in dict)
             {

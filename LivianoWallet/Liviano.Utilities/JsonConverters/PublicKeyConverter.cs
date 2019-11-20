@@ -1,25 +1,29 @@
-using Newtonsoft.Json;
 using System;
+
+using Newtonsoft.Json;
+
+using NBitcoin;
 
 namespace Liviano.Utilities.JsonConverters
 {
-    public class DateTimeOffsetConverter : JsonConverter
+    public class PublicKeyConverter : JsonConverter
     {
+        /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(DateTimeOffset);
+            return objectType == typeof(PubKey);
         }
 
         /// <inheritdoc />
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return DateTimeOffset.FromUnixTimeSeconds((long)reader.Value);
+            return new PubKey((string)reader.Value);
         }
 
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteValue(((DateTimeOffset)value).ToUnixTimeSeconds());
+            writer.WriteValue(((PubKey)value).ToHex());
         }
     }
 }

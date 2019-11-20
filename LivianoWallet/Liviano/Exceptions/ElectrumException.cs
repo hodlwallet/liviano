@@ -1,10 +1,10 @@
 ﻿//
-// TaskExtensions.cs
+// ElectrumException.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 HODL Wallet
+// Copyright (c) 2019 
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,34 +24,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Liviano.Extensions
+namespace Liviano.Exceptions
 {
-    public static class TaskExtensions
+    public class ElectrumException : Exception
     {
-        /// <summary>
-        /// Runs a task with a timeout
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
+        public ElectrumException(string message) : base(message)
         {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
-
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
-
-                throw new TimeoutException("The operation has timed out.");
-            }
         }
     }
 }

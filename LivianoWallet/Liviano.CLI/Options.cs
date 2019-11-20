@@ -171,20 +171,14 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
 
-        [Option('p', "password", HelpText = "Password start the wallet")]
-        public string Password { get; set; }
-
         [Option("wallet-id", HelpText = "Wallet name to use")]
         public string WalletId { get; set; }
 
         [Option('n', "nodes-to-connect", HelpText = "Number of nodes to connect")]
         public int NodesToConnect { get; set; }
 
-        [Option('d', "date", HelpText = "Date to start on")]
-        public string DateTime { get; set; }
-
-        [Option("drop-transactions", HelpText = "To delete all transaction")]
-        public bool DropTransactions { get; set; }
+        [Option("resync", HelpText = "Resync wallet")]
+        public bool Resync { get; set; }
     }
 
     [Verb("electrum-test", HelpText = "Starts a test of the electrum server for a hardcoded address")]

@@ -1,5 +1,5 @@
 ﻿//
-// TaskExtensions.cs
+// IStorage.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -24,34 +24,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using NBitcoin;
 
-namespace Liviano.Extensions
+namespace Liviano.Interfaces
 {
-    public static class TaskExtensions
+    public interface IStorage
     {
-        /// <summary>
-        /// Runs a task with a timeout
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
-        {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
+        string Id { get; set; }
+        string RootDirectory { get; set; }
+        IWallet Wallet { get; set; }
+        Network Network { get; set; }
 
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
-
-                throw new TimeoutException("The operation has timed out.");
-            }
-        }
+        IWallet Load();
+        void Save();
+        bool Exists();
     }
 }

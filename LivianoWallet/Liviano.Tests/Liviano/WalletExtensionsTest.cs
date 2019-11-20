@@ -111,6 +111,8 @@ namespace Liviano.Tests.Liviano
                 string checkpointBlockHeaderHex = new HexEncoder().EncodeData(checkpoint.Header.ToBytes());
 
                 Assert.Equal(block.GetBlockHeaderHex(), checkpointBlockHeaderHex);
+
+                Thread.Sleep(100);
             }
         }
 

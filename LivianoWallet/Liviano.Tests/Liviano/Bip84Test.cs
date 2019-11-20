@@ -1,12 +1,8 @@
-using System;
-
 using Xunit;
 
 using NBitcoin;
 
-using Liviano;
-using Liviano.Models;
-using Liviano.Exceptions;
+using Liviano.Bips;
 
 namespace Liviano.Tests.Liviano
 {
@@ -23,9 +19,9 @@ namespace Liviano.Tests.Liviano
 
             string mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
             string rootpriv = "zprvAWgYBBk7JR8Gjrh4UJQ2uJdG1r3WNRRfURiABBE3RvMXYSrRJL62XuezvGdPvG6GFBZduosCc1YP5wixPox7zhZLfiUm8aunE96BBa4Kei5";
-            string rootpub  = "zpub6jftahH18ngZxLmXaKw3GSZzZsszmt9WqedkyZdezFtWRFBZqsQH5hyUmb4pCEeZGmVfQuP5bedXTB8is6fTv19U1GQRyQUKQGUTzyHACMF";
+            string rootpub = "zpub6jftahH18ngZxLmXaKw3GSZzZsszmt9WqedkyZdezFtWRFBZqsQH5hyUmb4pCEeZGmVfQuP5bedXTB8is6fTv19U1GQRyQUKQGUTzyHACMF";
 
-            ExtKey extKey = HdOperations.GetExtendedKey(mnemonic);
+            ExtKey extKey = Hd.GetExtendedKey(mnemonic);
             ExtPubKey extPubKey = extKey.Neuter();
             string zprv = Bip84.GetZPrv(extKey, network);
             string zpub = Bip84.GetZPub(extPubKey, network);
@@ -42,7 +38,7 @@ namespace Liviano.Tests.Liviano
 
             // Account 0, root = m/84'/0'/0'
             string xpriv = "zprvAdG4iTXWBoARxkkzNpNh8r6Qag3irQB8PzEMkAFeTRXxHpbF9z4QgEvBRmfvqWvGp42t42nvgGpNgYSJA9iefm1yYNZKEm7z6qUWCroSQnE";
-            string xpub  = "zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs";
+            string xpub = "zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs";
 
             ExtKey accountRootExtKey = extKey.Derive(new KeyPath("m/84'/0'/0'"));
             ExtPubKey accountRootExtPubKey = accountRootExtKey.Neuter();
@@ -59,7 +55,7 @@ namespace Liviano.Tests.Liviano
 
             // Account 0, first receiving address = m/84'/0'/0'/0/0
             string privkey = "KyZpNDKnfs94vbrwhJneDi77V6jF64PWPF8x5cdJb8ifgg2DUc9d";
-            string pubkey  = "0330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c";
+            string pubkey = "0330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c";
             string address = "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu";
 
             ExtKey account0ExtKey = extKey.Derive(new KeyPath("m/84'/0'/0'/0/0"));
@@ -82,7 +78,7 @@ namespace Liviano.Tests.Liviano
 
             // Account 0, second receiving address = m/84'/0'/0'/0/1
             privkey = "Kxpf5b8p3qX56DKEe5NqWbNUP9MnqoRFzZwHRtsFqhzuvUJsYZCy";
-            pubkey  = "03e775fd51f0dfb8cd865d9ff1cca2a158cf651fe997fdc9fee9c1d3b5e995ea77";
+            pubkey = "03e775fd51f0dfb8cd865d9ff1cca2a158cf651fe997fdc9fee9c1d3b5e995ea77";
             address = "bc1qnjg0jd8228aq7egyzacy8cys3knf9xvrerkf9g";
 
             account0ExtKey = extKey.Derive(new KeyPath("m/84'/0'/0'/0/1"));
@@ -105,7 +101,7 @@ namespace Liviano.Tests.Liviano
 
             // Account 0, first change address = m/84'/0'/0'/1/0
             privkey = "KxuoxufJL5csa1Wieb2kp29VNdn92Us8CoaUG3aGtPtcF3AzeXvF";
-            pubkey  = "03025324888e429ab8e3dbaf1f7802648b9cd01e9b418485c5fa4c1b9b5700e1a6";
+            pubkey = "03025324888e429ab8e3dbaf1f7802648b9cd01e9b418485c5fa4c1b9b5700e1a6";
             address = "bc1q8c6fshw2dlwun7ekn9qwf37cu2rn755upcp6el";
 
             account0ExtKey = extKey.Derive(new KeyPath("m/84'/0'/0'/1/0"));

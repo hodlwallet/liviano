@@ -24,29 +24,25 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Reflection;
-using System.IO;
+using System.Net.Security;
 using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-using NBitcoin;
-
-using Newtonsoft.Json;
-
 using Liviano.Models;
 using Liviano.Extensions;
-using System.Diagnostics.Contracts;
+using Liviano.Exceptions;
+using NBitcoin.Protocol;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        Network _Network;
-
-        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(3.0);
+        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
 
@@ -60,128 +56,9 @@ namespace Liviano.Electrum
 
         public string Host { get; private set; }
 
-        public JsonRpcClient(List<Server> servers, Network network = null)
+        public JsonRpcClient(List<Server> servers)
         {
             _Servers = servers;
-            _Network = network ?? Network.Main;
-        }
-
-        /// <summary>
-        /// Gets a list of recently conneted servers, these would be ready to connect
-        /// </summary>
-        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
-        public static List<Server> GetRecentlyConnectedServers(Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return recentServers;
-
-            var content = File.ReadAllText(fileName);
-
-            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
-
-            return recentServers;
-        }
-
-        /// <summary>
-        /// Creates the file of the recently connected
-        /// </summary>
-        public static void PopulateRecentlyConnectedServers(Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> connectedServers = new List<Server>();
-
-            string serversFileName = GetFileFullPath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            if (!File.Exists(serversFileName))
-                throw new ArgumentException($"Invalid network: {network.Name}");
-
-            var json = File.ReadAllText(serversFileName);
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-            var popableServers = new List<Server>();
-            popableServers.AddRange(servers);
-
-            var tasks = new List<Task>();
-            var cts = new CancellationTokenSource();
-            var _lock = new object();
-            var clientName = nameof(Liviano);
-            var requestedVersion = new System.Version("1.4");
-
-            while (popableServers.Count > 0)
-            {
-                // pick 5 randos
-                int count = 0;
-                var randomServers = new List<Server>();
-                while (count < 4)
-                {
-                    if (popableServers.Count == 0) break;
-
-                    var rng = new Random();
-                    var i = rng.Next(popableServers.Count);
-                    var s = popableServers[i];
-
-                    if (!randomServers.Contains(s))
-                    {
-                        randomServers.Add(s);
-                        popableServers.Remove(s);
-                    }
-                    count += 1;
-                }
-
-                if (popableServers.Count == 0 && randomServers.Count == 0)
-                    break;
-
-                for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
-                {
-                    var s = randomServers[i];
-                    var t = Task.Factory.StartNew(async (_) =>
-                    {
-                        if (cts.IsCancellationRequested) return;
-
-                        var stratum = new ElectrumClient(new List<Server>() { s });
-
-                        // TODO set variable or global for electrum version
-                        var version = await stratum.ServerVersion(clientName, requestedVersion);
-
-                        Debug.WriteLine("Connected to: {0}:{1}({2})", s.Domain, s.PrivatePort, version);
-
-                        lock (_lock)
-                        {
-                            connectedServers.Add(s);
-                        }
-
-                        if (connectedServers.Count >= 4)
-                        {
-                            cts.Cancel();
-                        }
-                    }, CancellationToken.None);
-
-                    tasks.Add(t);
-                }
-
-                Task.WaitAll(tasks.ToArray());
-
-                File.WriteAllText(
-                    GetRecentlyConnectedServersFileName(network),
-                    JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
-                );
-
-                if (connectedServers.Count > 4)
-                    break;
-
-                Task.Delay(100);
-            }
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -201,7 +78,7 @@ namespace Liviano.Electrum
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                throw new HttpListenerException(1, string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
+                throw new ElectrumException(string.Format("DNS host entry lookup resulted in no records for {0}\n{1}", hostName, ex.Message));
             }
         }
 
@@ -225,7 +102,7 @@ namespace Liviano.Electrum
             {
                 if (DateTime.UtcNow > initTime + DEFAULT_NETWORK_TIMEOUT)
                 {
-                    throw new HttpListenerException(1, "No response received after request.");
+                    throw new ElectrumException("No response received after request.");
                 }
 
                 return false;
@@ -236,15 +113,17 @@ namespace Liviano.Electrum
 
         TcpClient Connect()
         {
-            var tcpClient = new TcpClient(_IpAddress.AddressFamily);
-            tcpClient.SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            tcpClient.ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            var tcpClient = new TcpClient(_IpAddress.AddressFamily)
+            {
+                SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
+                ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds)
+            };
 
             var isConnected = tcpClient.ConnectAsync(_IpAddress, _Port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
             if (!isConnected)
             {
-                throw new HttpListenerException(1, "Server is unresponsive.");
+                throw new ElectrumException("Server is unresponsive.");
             }
 
             return tcpClient;
@@ -282,20 +161,21 @@ namespace Liviano.Electrum
 
             using (var tcpClient = Connect())
             {
-                var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+                using (var stream = SslTcpClient.GetSslStream(tcpClient, Host))
+                {
+                    if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-                if (!stream.CanTimeout) return null; // Handle exception outside of Request()
+                    stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+                    stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
 
-                stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-                stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+                    var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-                var bytes = Encoding.UTF8.GetBytes(request + "\n");
+                    stream.Write(bytes, 0, bytes.Length);
 
-                stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush();
 
-                stream.Flush();
-
-                return SslTcpClient.ReadMessage(stream);
+                    return SslTcpClient.ReadMessage(stream);
+                }
             }
         }
 
@@ -322,13 +202,13 @@ namespace Liviano.Electrum
             }
         }
 
-        public async Task<string> Request(string request)
+        public async Task<string> Request(string request, bool useSsl = true)
         {
             var rng = new Random();
             List<Server> popableServers = new List<Server>();
             popableServers.AddRange(_Servers);
 
-            Debug.WriteLine($"Amount of severs {_Servers.Count}");
+            Debug.WriteLine($"[Request] Sending request: {request}");
 
             int count = 0;
             while (popableServers.Count > 0)
@@ -340,40 +220,130 @@ namespace Liviano.Electrum
                 {
                     Host = server.Domain;
                     _IpAddress = ResolveHost(server.Domain).Result;
-                    _Port = server.PrivatePort.Value; // Make this dynamic.
+                    _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
 
-                    var stringOption = await RequestInternal(request).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                    if (stringOption == null) throw new HttpListenerException(1, "Timeout when trying to communicate with UtxoCoin server");
+                    Debug.WriteLine(
+                        $"[Request] Server: {Host}:{_Port} ({server.Version})"
+                    );
 
-                    return stringOption;
+                    var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                    if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
+
+                    return result;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
-                    Debug.WriteLine(string.Format("Request failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
+                    Debug.WriteLine($"[Request] {ex.Message}");
+                    Debug.WriteLine(string.Format("[Request] Failed for {0} at port {1}: {2}\nAttempting to reconnect.", server.Domain, server.PrivatePort, ex.Message));
                 }
 
                 count += 1;
                 popableServers.RemoveAt(index);
             }
 
-            Debug.WriteLine($"Processed amount of {count}");
+            Debug.WriteLine($"[Request] Could not process request: {request}");
 
             return null;
         }
 
-        public static string GetFileFullPath(params string[] fileNames)
+        public SslStream GetSslStream()
         {
-            return Path.Combine(
-                Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
-                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            var rng = new Random();
+            var server = _Servers[rng.Next(_Servers.Count)];
+
+            Host = server.Domain;
+            _IpAddress = ResolveHost(server.Domain).Result;
+            _Port = server.PrivatePort.Value;
+
+            Debug.WriteLine(
+                $"[GetSslStream] From: {Host}:{_Port} ({server.Version})"
             );
+
+            var tcpClient = Connect();
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+
+            var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+
+            stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
+
+            return stream;
         }
 
-        static string GetRecentlyConnectedServersFileName(Network network)
+        public async Task Subscribe(string request, Action<string> callback)
         {
-            return GetFileFullPath($"recent_servers_{network.Name.ToLower()}.json");
+            var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
+            int count = 0;
+
+            await Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    using (var stream = GetSslStream())
+                    {
+                        stream.Write(requestBytes, 0, requestBytes.Length);
+                        stream.Flush();
+
+                        while (true)
+                        {
+                            byte[] buffer = new byte[2048];
+                            StringBuilder messageData = new StringBuilder();
+
+                            int bytes = -1;
+                            while (bytes != 0)
+                            {
+                                bytes = stream.Read(buffer, 0, buffer.Length);
+
+                                // Use Decoder class to convert from bytes to UTF8
+                                // in case a character spans two buffers.
+                                Decoder decoder = Encoding.UTF8.GetDecoder();
+                                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                                messageData.Append(chars);
+
+                                count++;
+
+                                // Check for EOF or if the message is complete json... Usually this works with electrum
+                                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
+                                    SslTcpClient.CanParseToJson(messageData.ToString()))
+                                {
+                                    var msg = messageData.ToString();
+                                    var res = JsonConvert.DeserializeObject<JObject>(msg);
+
+                                    if (string.IsNullOrEmpty(res.GetValue("result").ToString()))
+                                    {
+                                        Debug.WriteLine("[Subscribe] Subscription returned empty");
+
+                                        // 10 seconds wait after getting nothing
+                                        await Task.Delay(TimeSpan.FromSeconds(10.0));
+
+                                        // Run again, after it...
+                                        await Subscribe(request, callback);
+
+                                        return;
+                                    }
+
+                                    callback(msg);
+                                    break;
+                                }
+                            }
+
+                            messageData.Clear();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
+
+                    // Wait 10 seconds and reconnect, TODO make const
+                    await Task.Delay(TimeSpan.FromSeconds(10.0));
+
+                    // Run again, after the error
+                    await Subscribe(request, callback);
+                }
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
     }
 }

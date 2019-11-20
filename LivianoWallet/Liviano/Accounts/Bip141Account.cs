@@ -1,10 +1,10 @@
-﻿//
-// TaskExtensions.cs
+//
+// Bip141Account.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 HODL Wallet
+// Copyright (c) 2019 
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,34 +23,22 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using NBitcoin;
 
-namespace Liviano.Extensions
+namespace Liviano.Accounts
 {
-    public static class TaskExtensions
+    public class Bip141Account : Bip32Account
     {
-        /// <summary>
-        /// Runs a task with a timeout
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
+        public override string AccountType => "bip141";
+        public override string HdPathFormat => "m/{0}'";
+
+        ScriptPubKeyType _ScriptPubKeyType = ScriptPubKeyType.Segwit;
+        public override ScriptPubKeyType ScriptPubKeyType
         {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+            get => _ScriptPubKeyType;
+            set
             {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
-
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
-
-                throw new TimeoutException("The operation has timed out.");
+                _ScriptPubKeyType = value;
             }
         }
     }

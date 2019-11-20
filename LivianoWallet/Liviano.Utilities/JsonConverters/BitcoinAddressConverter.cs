@@ -1,5 +1,5 @@
 ﻿//
-// TaskExtensions.cs
+// BitcoinAddressConverter.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -24,34 +24,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Liviano.Extensions
+using NBitcoin;
+
+using Newtonsoft.Json;
+
+namespace Liviano.Utilities.JsonConverters
 {
-    public static class TaskExtensions
+    public class BitcoinAddressConverter : JsonConverter
     {
-        /// <summary>
-        /// Runs a task with a timeout
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="task"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
+        public override bool CanConvert(Type objectType)
         {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
+            return objectType == typeof(BitcoinAddress);
+        }
 
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
+        /// <inheritdoc />
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            return Network.Parse((string)reader.Value, null);
+        }
 
-                throw new TimeoutException("The operation has timed out.");
-            }
+        /// <inheritdoc />
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue(((BitcoinAddress)value).ToString());
         }
     }
 }
