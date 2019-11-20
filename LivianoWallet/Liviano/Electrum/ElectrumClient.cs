@@ -547,7 +547,7 @@ namespace Liviano.Electrum
         {
             return Path.Combine(
                 Path.GetDirectoryName(
-                    Assembly.GetExecutingAssembly().Location
+                    Assembly.GetCallingAssembly().Location
                 ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
             );
         }
