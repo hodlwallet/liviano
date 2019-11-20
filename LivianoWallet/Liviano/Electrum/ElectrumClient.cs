@@ -406,7 +406,7 @@ namespace Liviano.Electrum
         /// then we get out once we get <see cref="NUMBER_OF_RECENT_SERVERS"/> servers
         /// </summary>
         /// <param name="network">Bitcoin network to connect to, <see cref="Network.Main"/> is the default</param>
-        public static void PopulateRecentlyConnectedServers(Network network = null, Assembly assembly = null)
+        public static void PopulateRecentlyConnectedServers(Network network = null, Stream serverContent = null)
         {
             if (network is null) network = Network.Main;
 
@@ -424,9 +424,7 @@ namespace Liviano.Electrum
             {
                 try
                 {
-                    var name = $"Resources.Electrum.servers.{network.Name.ToLower()}.json";
-                    Stream stream = assembly.GetManifestResourceStream(name);
-                    using (var reader = new StreamReader(stream))
+                    using (var reader = new StreamReader(serverContent))
                     {
                         json = reader.ReadToEnd();
                     }

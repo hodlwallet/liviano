@@ -556,7 +556,11 @@ namespace Liviano
                 // Waits 2 seconds if we need to reconnect, only on retry
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
-                ElectrumClient.PopulateRecentlyConnectedServers(Network, CurrentAssembly);
+                var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
+                using (var stream = CurrentAssembly.GetManifestResourceStream(name))
+                {
+                    ElectrumClient.PopulateRecentlyConnectedServers(Network, stream);
+                }
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }
