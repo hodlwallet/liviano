@@ -610,7 +610,7 @@ namespace Liviano
         /// <summary>
         /// Creates the two Hexadecimal strings representing an account gradient.
         /// </summary>
-        (string, string) GradientHex()
+        public static (string, string) GradientHex()
         {
             var rng = new Random();
 

@@ -35,7 +35,6 @@ using Newtonsoft.Json;
 
 using Liviano.Interfaces;
 using Liviano.Utilities;
-using Liviano.Extensions;
 using Liviano.Models;
 using Liviano.Accounts;
 
@@ -184,6 +183,14 @@ namespace Liviano.Storages
                     case "paper":
                         accounts.Add(JsonConvert.DeserializeObject<PaperAccount>(content));
                         break;
+                }
+
+                var recentAccount = accounts.Last();
+                if (recentAccount.StartHex == null || recentAccount.EndHex == null)
+                {
+                    var colors = Liviano.Wallet.GradientHex();
+                    recentAccount.StartHex = colors.Item1;
+                    recentAccount.EndHex = colors.Item2;
                 }
             }
 
