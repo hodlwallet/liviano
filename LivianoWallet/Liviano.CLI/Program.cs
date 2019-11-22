@@ -291,24 +291,24 @@ namespace Liviano.CLI
                 {
                     if (o.Name != null)
                     {
-                        (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountName: o.Name);
+                        Money confirmedAmount = LightClient.AccountBalance(config, o.Password, o.Name);
 
-                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                        Console.WriteLine("==================================================");
+                        Console.WriteLine("Name, Amount");
+                        Console.WriteLine("============");
 
-                        Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+                        Console.WriteLine($"{o.Name}, {confirmedAmount}");
 
                         shownBalance = true;
                     }
 
                     if (o.Index != null)
                     {
-                        (string name, string hdPath, Money confirmedAmount, Money unconfirmedAmount) = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
+                        Money confirmedAmount = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
 
-                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                        Console.WriteLine("==================================================");
+                        Console.WriteLine("Name, Amount");
+                        Console.WriteLine("============");
 
-                        Console.WriteLine($"{name}, {hdPath}, {confirmedAmount}, {unconfirmedAmount}");
+                        Console.WriteLine($"{o.Name}, {confirmedAmount}");
 
                         shownBalance = true;
                     }
@@ -322,22 +322,23 @@ namespace Liviano.CLI
 
                 if (!shownBalance)
                 {
-                    var balances = LightClient.AllAccountsBalance(config, o.Password);
+                    //var balances = LightClient.AllAccountsBalance(config, o.Password);
 
-                    if (balances.Count() > 0)
-                    {
-                        Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                        Console.WriteLine("==================================================");
+                    //if (balances.Count() > 0)
+                    //{
+                    //    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
+                    //    Console.WriteLine("==================================================");
 
-                        foreach (var balance in balances)
-                        {
-                            Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("No accounts with balances found");
-                    }
+                    //    foreach (var balance in balances)
+                    //    {
+                    //        Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("No accounts with balances found");
+                    //}
+                    throw new NotImplementedException("Upps we haven't done this!");
                 }
             })
             .WithParsed<NewAddressOptions>(o =>

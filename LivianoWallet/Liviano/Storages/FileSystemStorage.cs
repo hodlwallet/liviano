@@ -295,7 +295,7 @@ namespace Liviano.Storages
             return File.Exists(GetWalletFilePath());
         }
 
-        public void Remove()
+        public void Delete()
         {
             Guard.NotNull(Wallet, nameof(Wallet));
             Guard.NotNull(RootDirectory, nameof(RootDirectory));
