@@ -386,16 +386,18 @@ namespace Liviano
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
         {
-            Debug.WriteLine($"[Send] Attempting to send a transaction: {tx.ToHex()}");
+            var txHex = tx.ToHex();
+
+            Debug.WriteLine($"[Send] Attempting to send a transaction: {txHex}");
 
             try
             {
                 var electrum = await GetElectrumClient();
-                var broadcast = await electrum.BlockchainTransactionBroadcast(tx.ToHex());
+                var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
 
                 if (broadcast.Result != tx.GetHash().ToString())
                 {
-                    throw new Exception($"Transaction Broadcast failed for tx: {tx.ToHex()}\n{broadcast.Result}");
+                    throw new Exception($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
                 }
             }
             catch (Exception e)
@@ -577,7 +579,11 @@ namespace Liviano
                 // Waits 2 seconds if we need to reconnect, only on retry
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
-                ElectrumClient.PopulateRecentlyConnectedServers(Network, CurrentAssembly);
+                var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
+                using (var stream = CurrentAssembly.GetManifestResourceStream(name))
+                {
+                    ElectrumClient.PopulateRecentlyConnectedServers(Network, stream);
+                }
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }
@@ -627,7 +633,7 @@ namespace Liviano
         /// <summary>
         /// Creates the two Hexadecimal strings representing an account gradient.
         /// </summary>
-        (string, string) GradientHex()
+        public static (string, string) GradientHex()
         {
             var rng = new Random();
 

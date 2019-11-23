@@ -20,7 +20,6 @@ using Liviano.Electrum;
 using NBitcoin.DataEncoders;
 using System.Reflection;
 using Newtonsoft.Json;
-using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
 using Serilog.Core;
@@ -32,6 +31,8 @@ namespace Liviano.CLI
 {
     public static class LightClient
     {
+        const int SEND_PAUSE = 30000;
+
         private static object _Lock = new object();
 
         private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
@@ -118,16 +119,18 @@ namespace Liviano.CLI
 
             if (wasCreated)
             {
-                Thread.Sleep(30000);
+                Thread.Sleep(SEND_PAUSE);
 
                 try
                 {
+                    var txHex = tx.ToHex();
+
                     var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
-                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(tx.ToHex());
-                    // Check if conditional is accurate
+                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
+
                     if (broadcast.Result != tx.GetHash().ToString())
                     {
-                        throw new ElectrumException($"Transaction broadcast failed for tx: {tx.ToHex()}");
+                        throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
                     }
                 }
                 catch (Exception e)
