@@ -589,20 +589,37 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
+            var colors = GradientHex();
+
             switch (type)
             {
                 case "bip44":
                 case "bip49":
                 case "bip84":
                 case "bip141":
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type });
+                    return Bip32Account.Create(name, colors, new { Wallet = this, Network, Type = type });
                 case "wasabi":
-                    return WasabiAccount.Create(name, options);
+                    return WasabiAccount.Create(name, colors, options);
                 case "paper":
-                    return PaperAccount.Create(name, options);
+                    return PaperAccount.Create(name, colors, options);
             }
 
-            return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141" });
+            return Bip32Account.Create(name, colors, new { Wallet = this, Network, Type = "bip141" });
+        }
+
+        /// <summary>
+        /// Creates the two Hexadecimal strings representing an account gradient.
+        /// </summary>
+        public static (string, string) GradientHex()
+        {
+            var rng = new Random();
+
+            var startRGB = (rng.Next(128, 200), rng.Next(128, 200), rng.Next(128, 200));
+
+            var endRGB = ((int)(startRGB.Item1 / 1.25), (int)(startRGB.Item2 / 1.25), (int)(startRGB.Item3 / 1.25));
+
+            return ($"{startRGB.Item1:X2}{startRGB.Item2:X2}{startRGB.Item3:X2}",
+                    $"{endRGB.Item1:X2}{endRGB.Item2:X2}{endRGB.Item3:X2}");
         }
     }
 }
