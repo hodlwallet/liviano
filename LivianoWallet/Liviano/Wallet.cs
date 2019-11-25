@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,6 +71,8 @@ namespace Liviano
 
         public string CurrentAccountId { get; set; }
 
+        public Assembly CurrentAssembly { get; set; }
+
         IAccount _CurrentAccount;
         public IAccount CurrentAccount
         {
@@ -101,6 +104,9 @@ namespace Liviano
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
 
+        public event EventHandler<Tx> OnNewTransaction;
+        public event EventHandler<Tx> OnUpdateTransaction;
+
         public IStorage Storage
         {
             get => _Storage;
@@ -114,7 +120,7 @@ namespace Liviano
             }
         }
 
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -136,6 +142,8 @@ namespace Liviano
 
             CurrentAccountId = CurrentAccountId ?? null;
             _CurrentAccount = _CurrentAccount ?? null;
+
+            CurrentAssembly = assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             var extKey = Hd.GetExtendedKey(mnemonicObj, password);
@@ -255,6 +263,9 @@ namespace Liviano
 
                                     account.AddTx(tx);
 
+                                    if (tx.AccountId == CurrentAccountId)
+                                        OnNewTransaction?.Invoke(this, tx);
+
                                     return;
                                 }
 
@@ -267,6 +278,9 @@ namespace Liviano
                                     var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                     account.UpdateTx(tx);
+
+                                    if (tx.AccountId == CurrentAccountId)
+                                        OnUpdateTransaction?.Invoke(this, tx);
 
                                     // Here for safety, at any time somebody can add code to this
                                     return;
@@ -347,6 +361,32 @@ namespace Liviano
             }
         }
 
+        public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
+        {
+            var txHex = tx.ToHex();
+
+            Debug.WriteLine($"[Send] Attempting to send a transaction: {txHex}");
+
+            try
+            {
+                var electrum = await GetElectrumClient();
+                var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
+
+                if (broadcast.Result != tx.GetHash().ToString())
+                {
+                    throw new Exception($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Error] {e.Message}");
+
+                return (false, e.Message);
+            }
+
+            return (true, null);
+        }
+
         Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
         {
             var t = Task.Run(async () =>
@@ -409,10 +449,12 @@ namespace Liviano
                 if (TxIds.Contains(tx.Id.ToString()))
                 {
                     account.UpdateTx(tx);
+                    OnUpdateTransaction?.Invoke(this, tx);
                 }
                 else
                 {
                     account.AddTx(tx);
+                    OnNewTransaction?.Invoke(this, tx);
                 }
 
                 foreach (var txAddr in txAddresses)
@@ -514,7 +556,11 @@ namespace Liviano
                 // Waits 2 seconds if we need to reconnect, only on retry
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
-                ElectrumClient.PopulateRecentlyConnectedServers(Network);
+                var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
+                using (var stream = CurrentAssembly.GetManifestResourceStream(name))
+                {
+                    ElectrumClient.PopulateRecentlyConnectedServers(Network, stream);
+                }
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }

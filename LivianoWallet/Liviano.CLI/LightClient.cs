@@ -15,11 +15,11 @@ using Liviano.Models;
 using Liviano.Utilities;
 using System.Threading;
 using Liviano.Interfaces;
+using Liviano.Electrum;
 
 using NBitcoin.DataEncoders;
 using System.Reflection;
 using Newtonsoft.Json;
-using Liviano.Electrum;
 using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
 using Serilog.Core;
@@ -31,6 +31,8 @@ namespace Liviano.CLI
 {
     public static class LightClient
     {
+        const int SEND_PAUSE = 30000;
+
         private static object _Lock = new object();
 
         private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
@@ -81,6 +83,70 @@ namespace Liviano.CLI
             LoadWallet(config);
 
             throw new NotImplementedException("TODO");
+        }
+
+        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
+        {
+            LoadWallet(config);
+
+            Transaction tx = null;
+            string error = "";
+            bool wasCreated = false;
+            bool wasSent = false;
+            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
+
+            try
+            {
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, _Wallet, account, _Network);
+                wasCreated = true;
+            }
+            catch (WalletException e)
+            {
+                _Logger.Error(e.ToString());
+
+                error = e.Message;
+                wasCreated = false;
+
+                return (wasCreated, wasSent, tx, error);
+            }
+
+            TransactionExtensions.VerifyTransaction(tx, _Network, out var errors);
+
+            if (errors.Any())
+            {
+                error = string.Join<string>(", ", errors.Select(o => o.Message));
+            }
+
+            if (wasCreated)
+            {
+                Thread.Sleep(SEND_PAUSE);
+
+                try
+                {
+                    var txHex = tx.ToHex();
+
+                    var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
+                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
+
+                    if (broadcast.Result != tx.GetHash().ToString())
+                    {
+                        throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    _Logger.Error(e.ToString());
+
+                    error = e.Message;
+                    wasSent = false;
+
+                    return (wasCreated, wasSent, tx, error);
+                }
+
+                wasSent = true;
+            }
+
+            return (wasCreated, wasSent, tx, error);
         }
 
         public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)

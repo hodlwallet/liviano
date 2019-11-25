@@ -25,6 +25,10 @@
 // THE SOFTWARE.
 using System;
 using System.Diagnostics;
+using System.Linq;
+
+using NBitcoin;
+
 using Liviano.Accounts;
 using Liviano.Interfaces;
 

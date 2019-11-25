@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using NBitcoin;
@@ -114,11 +115,14 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         IStorage Storage { get; set; }
 
+        [JsonIgnore]
+        Assembly CurrentAssembly { get; set; }
+
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
+        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null);
 
         /// <summary>
         /// Syncing, used to start syncing from 0 and also to continue after booting
@@ -139,6 +143,13 @@ namespace Liviano.Interfaces
         Task Resync();
 
         /// <summary>
+        /// Sends a transaction using the electrum client initialized in the wallet.
+        /// </summary>
+        /// <param name="tx">The transaction to be broadcasted.</param>
+        /// <returns></returns>
+        Task<(bool Sent, string Error)> SendTransaction(Transaction tx);
+
+        /// <summary>
         /// Gets a private key this method also caches it on memory
         /// </summary>
         /// <param name="password">Password to decript seed to, default ""</param>
@@ -155,9 +166,23 @@ namespace Liviano.Interfaces
         ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
+        /// Adds an account to the wallet
+        /// </summary>
+        /// <param name="type">Check <see cref="Wallet.AccountTypes"/> for the list</param>
+        /// <param name="name">Name of the account default is <see cref="Wallet.DEFAULT_WALLET_NAME"/></param>
+        /// <param name="options">
+        ///     Options can be passed to this  function this way, e.g:
+        ///
+        ///     AddAccount("bip141", "My Bitcoins", new {Wallet = this, WalletId = this.Id, Network = Network.TestNet})
+        /// </param>
+        void AddAccount(string type = "", string name = null, object options = null);
+
+        /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
         event EventHandler SyncStarted;
         event EventHandler SyncFinished;
+        event EventHandler<Tx> OnNewTransaction;
+        event EventHandler<Tx> OnUpdateTransaction;
     }
 }

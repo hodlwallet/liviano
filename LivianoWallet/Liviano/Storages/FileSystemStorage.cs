@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
@@ -36,6 +37,7 @@ using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Extensions;
 using Liviano.Models;
+using Liviano.Accounts;
 
 namespace Liviano.Storages
 {
@@ -51,7 +53,14 @@ namespace Liviano.Storages
             directory = Path.GetFullPath(directory);
             if (!Directory.Exists(directory))
             {
-                Directory.CreateDirectory(directory);
+                try
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
 
             Id = id;
@@ -116,7 +125,7 @@ namespace Liviano.Storages
 
             foreach (var txId in account.TxIds)
             {
-                var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}";
+                var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}.json";
 
                 var contents = File.ReadAllText(txFilePath);
                 var tx = JsonConvert.DeserializeObject<Tx>(contents);
@@ -147,9 +156,35 @@ namespace Liviano.Storages
                 }
 
                 var content = File.ReadAllText(fileName);
-                var account = JsonConvert.DeserializeObject<IAccount>(content);
 
-                accounts.Add(account.CastToAccountType());
+                var accountType = JsonConvert.DeserializeAnonymousType(
+                    content, new { accountType = " " }
+                    ).accountType;
+
+                switch (accountType)
+                {
+                    case "bip32":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip32Account>(content));
+                        break;
+                    case "bip44":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip44Account>(content));
+                        break;
+                    case "bip49":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip49Account>(content));
+                        break;
+                    case "bip84":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip84Account>(content));
+                        break;
+                    case "bip141":
+                        accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
+                        break;
+                    case "wasabi":
+                        accounts.Add(JsonConvert.DeserializeObject<WasabiAccount>(content));
+                        break;
+                    case "paper":
+                        accounts.Add(JsonConvert.DeserializeObject<PaperAccount>(content));
+                        break;
+                }
             }
 
             return accounts;
@@ -258,6 +293,17 @@ namespace Liviano.Storages
             Guard.NotNull(Id, nameof(Id));
 
             return File.Exists(GetWalletFilePath());
+        }
+
+        public void Delete()
+        {
+            Guard.NotNull(Wallet, nameof(Wallet));
+            Guard.NotNull(RootDirectory, nameof(RootDirectory));
+
+            var path = GetWalletDirectory();
+
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
         }
     }
 }

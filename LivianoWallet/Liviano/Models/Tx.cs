@@ -270,7 +270,11 @@ namespace Liviano.Models
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                     if (externalAddresses.Contains(outAddr))
+                    {
+                        // TODO Check for expected result.
+                        tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
+                    }
 
                     return Money.Zero;
                 });
@@ -284,7 +288,11 @@ namespace Liviano.Models
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                     if (!internalAddresses.Contains(outAddr))
+                    {
+                        // TODO This could be wrong, because we could implement send to many!
+                        tx.SentScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
+                    }
 
                     return Money.Zero;
                 });

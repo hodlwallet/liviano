@@ -38,5 +38,6 @@ namespace Liviano.Interfaces
         IWallet Load();
         void Save();
         bool Exists();
+        void Delete();
     }
 }

@@ -145,6 +145,11 @@ namespace Liviano.Accounts
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
 
+        public event EventHandler<Tx> OnNewSpendingTransaction;
+        public event EventHandler<Tx> OnUpdateSpendingTransaction;
+        public event EventHandler<Tx> OnNewTransaction;
+        public event EventHandler<Tx> OnUpdateTransaction;
+
         public abstract Money GetBalance();
         #endregion
     }
