@@ -93,6 +93,8 @@ namespace Liviano.Storages
                 Wallet.CurrentAccount = Wallet.Accounts[0];
             }
 
+            _ = Wallet.GetPrivateKey();
+
             Wallet.Storage = this;
 
             return Wallet;
@@ -162,9 +164,6 @@ namespace Liviano.Storages
 
                 switch (accountType)
                 {
-                    case "bip32":
-                        accounts.Add(JsonConvert.DeserializeObject<Bip32Account>(content));
-                        break;
                     case "bip44":
                         accounts.Add(JsonConvert.DeserializeObject<Bip44Account>(content));
                         break;
@@ -182,6 +181,9 @@ namespace Liviano.Storages
                         break;
                     case "paper":
                         accounts.Add(JsonConvert.DeserializeObject<PaperAccount>(content));
+                        break;
+                    default:
+                        accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
                         break;
                 }
 

@@ -213,6 +213,32 @@ namespace Liviano.Models
             return Money.Zero;
         }
 
+        public Tx(Tx copy)
+        {
+            Account = copy.Account;
+            AccountId = copy.AccountId;
+            AmountReceived = copy.AmountReceived;
+            AmountSent = copy.AmountSent;
+            BlockHash = copy.BlockHash;
+            BlockHeight = copy.BlockHeight;
+            CreatedAt = copy.CreatedAt;
+            Hex = copy.Hex;
+            Id = copy.Id;
+            Index = copy.Index;
+            IsPropagated = copy.IsPropagated;
+            IsReceive = copy.IsReceive;
+            IsSend = copy.IsSend;
+            Memo = copy.Memo;
+            MerkleProof = copy.MerkleProof;
+            Network = copy.Network;
+            ScriptPubKey = copy.ScriptPubKey;
+            SentScriptPubKey = copy.SentScriptPubKey;
+            TotalAmount = copy.TotalAmount;
+            TotalFees = copy.TotalFees;
+        }
+
+        public Tx() {}
+
         public static Tx CreateFromHex(string hex, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
@@ -220,7 +246,7 @@ namespace Liviano.Models
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
 
-            var tx = new Tx()
+            var tx = new Tx
             {
                 Id = transaction.GetHash(),
                 Account = account,
@@ -317,7 +343,7 @@ namespace Liviano.Models
 
         public static Tx CreateFromElectrumResult(BlockchainTransactionGetVerboseResult result, IAccount account, Network network)
         {
-            var tx = new Tx()
+            var tx = new Tx
             {
                 Id = uint256.Parse(result.Txid),
                 Account = account,

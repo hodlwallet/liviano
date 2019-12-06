@@ -244,47 +244,54 @@ namespace Liviano
                         {
                             Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
 
-                            var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
-
-                            foreach (var unspentResult in unspent.Result)
+                            try
                             {
-                                var txHash = unspentResult.TxHash;
-                                var height = unspentResult.Height;
+                                var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
 
-                                var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                                // Tx is new
-                                if (currentTx is null)
+                                foreach (var unspentResult in unspent.Result)
                                 {
-                                    var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                    var txHex = blkChainTxGet.Result;
+                                    var txHash = unspentResult.TxHash;
+                                    var height = unspentResult.Height;
 
-                                    var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                    var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                                    account.AddTx(tx);
+                                    // Tx is new
+                                    if (currentTx is null)
+                                    {
+                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                        var txHex = blkChainTxGet.Result;
 
-                                    if (tx.AccountId == CurrentAccountId)
-                                        OnNewTransaction?.Invoke(this, tx);
+                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
-                                    return;
+                                        account.AddTx(tx);
+
+                                        if (tx.AccountId == CurrentAccountId)
+                                            OnNewTransaction?.Invoke(this, tx);
+
+                                        return;
+                                    }
+
+                                    // A potential update if tx heights are different
+                                    if (currentTx.BlockHeight != height)
+                                    {
+                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                        var txHex = blkChainTxGet.Result;
+
+                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                                        account.UpdateTx(tx);
+
+                                        if (tx.AccountId == CurrentAccountId)
+                                            OnUpdateTransaction?.Invoke(this, tx);
+
+                                        // Here for safety, at any time somebody can add code to this
+                                        return;
+                                    }
                                 }
-
-                                // A potential update if tx heights are different
-                                if (currentTx.BlockHeight != height)
-                                {
-                                    var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                    var txHex = blkChainTxGet.Result;
-
-                                    var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                    account.UpdateTx(tx);
-
-                                    if (tx.AccountId == CurrentAccountId)
-                                        OnUpdateTransaction?.Invoke(this, tx);
-
-                                    // Here for safety, at any time somebody can add code to this
-                                    return;
-                                }
+                            }
+                            catch(Exception ex)
+                            {
+                                Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
                             }
                         }
                     });
@@ -304,7 +311,14 @@ namespace Liviano
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
             SyncStarted?.Invoke(this, null);
 
-            await _SyncTask();
+            try
+            {
+                await _SyncTask();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"There was an error during sync: {ex.Message}");
+            }
         }
 
         public async Task Resync()
@@ -358,6 +372,15 @@ namespace Liviano
                         SyncFinished?.Invoke(this, null);
                     });
                 }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
+        }
+
+        public void UpdateCurrentTransaction(Tx tx)
+        {
+            if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
+            {
+                CurrentAccount.UpdateTx(tx);
+                OnUpdateTransaction?.Invoke(this, tx);
             }
         }
 
@@ -449,12 +472,16 @@ namespace Liviano
                 if (TxIds.Contains(tx.Id.ToString()))
                 {
                     account.UpdateTx(tx);
-                    OnUpdateTransaction?.Invoke(this, tx);
+
+                    if (tx.AccountId == CurrentAccountId)
+                        OnUpdateTransaction?.Invoke(this, tx);
                 }
                 else
                 {
                     account.AddTx(tx);
-                    OnNewTransaction?.Invoke(this, tx);
+
+                    if (tx.AccountId == CurrentAccountId)
+                        OnNewTransaction?.Invoke(this, tx);
                 }
 
                 foreach (var txAddr in txAddresses)

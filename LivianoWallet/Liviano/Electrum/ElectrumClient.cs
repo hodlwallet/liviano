@@ -393,9 +393,25 @@ namespace Liviano.Electrum
 
             var content = File.ReadAllText(fileName);
 
-            recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+            if (!string.IsNullOrEmpty(content))
+                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
 
             return recentServers;
+        }
+
+        /// <summary>
+        /// Overwrites recently connected servers, as intended for startup.
+        /// </summary>
+        public static void OverwriteRecentlyConnectedServers(Network network = null)
+        {
+            network = network ?? Network.Main;
+
+            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return;
+
+            File.WriteAllText(fileName, "");
         }
 
         /// <summary>
@@ -494,19 +510,27 @@ namespace Liviano.Electrum
                         if (cts.IsCancellationRequested) return;
 
                         var electrum = new ElectrumClient(new List<Server>() { s });
-                        var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
 
-                        Debug.WriteLine(
+                        try
+                        {
+                            var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
+
+                            Debug.WriteLine(
                             "Connected to: {0}:{1} => {2}",
                             s.Domain,
                             s.PrivatePort,
                             res
-                        );
+                            );
 
-                        lock (_lock) connectedServers.Add(s);
+                            lock (_lock) connectedServers.Add(s);
 
-                        // When we get NUMBER_OF_RECENT_SERVERS we get out
-                        if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                            // When we get NUMBER_OF_RECENT_SERVERS we get out
+                            if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"There was an issue with requesting an electrum server version: {ex.Message}");
+                        }
                     }, connectedServers);
 
                     tasks.Add(t);
