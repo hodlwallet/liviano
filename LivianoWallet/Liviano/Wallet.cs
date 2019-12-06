@@ -472,12 +472,16 @@ namespace Liviano
                 if (TxIds.Contains(tx.Id.ToString()))
                 {
                     account.UpdateTx(tx);
-                    OnUpdateTransaction?.Invoke(this, tx);
+
+                    if (tx.AccountId == CurrentAccountId)
+                        OnUpdateTransaction?.Invoke(this, tx);
                 }
                 else
                 {
                     account.AddTx(tx);
-                    OnNewTransaction?.Invoke(this, tx);
+
+                    if (tx.AccountId == CurrentAccountId)
+                        OnNewTransaction?.Invoke(this, tx);
                 }
 
                 foreach (var txAddr in txAddresses)
