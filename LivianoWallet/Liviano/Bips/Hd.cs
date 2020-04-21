@@ -38,7 +38,7 @@ namespace Liviano.Bips
 
             int change = isChange ? 1 : 0;
             var keyPath = new KeyPath($"{change}/{index}");
-            ExtPubKey extPubKey = ExtPubKey.Parse(accountExtPubKey).Derive(keyPath);
+            ExtPubKey extPubKey = new ExtPubKey(accountExtPubKey).Derive(keyPath);
             return extPubKey.PubKey;
         }
 

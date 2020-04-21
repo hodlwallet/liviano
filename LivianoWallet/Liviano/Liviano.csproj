@@ -1,54 +1,52 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
-    <Version>0.1</Version>
-    <AssemblyVersion>0.1.0</AssemblyVersion>
-    <FileVersion>0.1.0</FileVersion>
-    <Company>HodlWallet</Company>
-    <Description>Liviano is a library to build Bitcoin light clients</Description>
-    <Copyright>HodlWallet</Copyright>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Easy.MessageHub" Version="5.0.0" />
-    <PackageReference Include="NBitcoin" Version="4.2.4" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="serilog" Version="2.9.0-dev-01119" />
-    <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.14.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Electrum\" />
-    <Folder Include="Electrum\servers\" />
-    <Folder Include="Extensions\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Models\" />
-    <Folder Include="Bips\" />
-    <Folder Include="Accounts\" />
-    <Folder Include="Storages\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Electrum\btc-servers.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Electrum\servers\servers.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Electrum\servers\servers_testnet.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Electrum\servers\regtest.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Electrum\servers\main.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Electrum\servers\testnet.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
+        <Version>0.1</Version>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
+        <FileVersion>0.1.0</FileVersion>
+        <Company>HodlWallet</Company>
+        <Description>Liviano is a library to build Bitcoin light clients</Description>
+        <Copyright>HodlWallet</Copyright>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Easy.MessageHub" Version="5.0.0" />
+        <PackageReference Include="NBitcoin" Version="5.0.30" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="serilog" Version="2.9.0-dev-01119" />
+        <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.14.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Electrum\" />
+        <Folder Include="Electrum\servers\" />
+        <Folder Include="Extensions\" />
+        <Folder Include="Interfaces\" />
+        <Folder Include="Models\" />
+        <Folder Include="Bips\" />
+        <Folder Include="Accounts\" />
+        <Folder Include="Storages\" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="Electrum\btc-servers.json" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="Electrum\servers\servers.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Electrum\servers\servers_testnet.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Electrum\servers\regtest.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Electrum\servers\main.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Electrum\servers\testnet.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
