@@ -5,14 +5,14 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.6.3">
+        <PackageReference Include="coverlet.msbuild" Version="2.8.1">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0-preview-20190606-02" />
-        <PackageReference Include="NBitcoin" Version="4.2.4" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.0" />
+        <PackageReference Include="NBitcoin" Version="5.0.30" />
         <PackageReference Include="Serilog.Sinks.Console" Version="3.1.2-dev-00819" />
-        <PackageReference Include="Serilog.Sinks.File" Version="4.1.0-dev-00847" />
+        <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
