@@ -8,6 +8,7 @@ using NBitcoin;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Liviano.Bips
 {
@@ -26,25 +27,26 @@ namespace Liviano.Bips
         /// <summary>
         /// Generates an HD public key derived from an extended public key.
         /// </summary>
+        /// <param name="network">Network of the key.</param>
         /// <param name="accountExtPubKey">The extended public key used to generate child keys.</param>
         /// <param name="index">The index of the child key to generate.</param>
         /// <param name="isChange">A value indicating whether the public key to generate corresponds to a change address.</param>
         /// <returns>
         /// An HD public key derived from an extended public key.
         /// </returns>
-        public static PubKey GeneratePublicKey(string accountExtPubKey, int index, bool isChange)
+        public static PubKey GeneratePublicKey(Network network, string accountExtPubKey, int index, bool isChange)
         {
             Guard.NotEmpty(accountExtPubKey, nameof(accountExtPubKey));
 
             int change = isChange ? 1 : 0;
             var keyPath = new KeyPath($"{change}/{index}");
-            ExtPubKey extPubKey = new ExtPubKey(accountExtPubKey).Derive(keyPath);
+            ExtPubKey extPubKey = ExtPubKey.Parse(accountExtPubKey, network).Derive(keyPath);
             return extPubKey.PubKey;
         }
 
         public static BitcoinAddress GetAddress(string extPubKeyWif, int index, bool isChange, string network, string addressType = null)
         {
-            PubKey pubKey = GeneratePublicKey(extPubKeyWif, index, isChange);
+            PubKey pubKey = GeneratePublicKey(GetNetwork(network), extPubKeyWif, index, isChange);
 
             switch (addressType)
             {
