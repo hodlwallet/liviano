@@ -43,12 +43,12 @@ namespace Liviano.CLI
 
         public void SaveChanges()
         {
-            Config.Save(this);
+            Save(this);
         }
 
         public void ReLoad()
         {
-            Config loadedConfig = Config.Load();
+            Config loadedConfig = Load();
 
             WalletId = loadedConfig.WalletId;
             Network = loadedConfig.Network;

@@ -1,20 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
+using NBitcoin;
 using CommandLine;
 using Serilog;
-using Easy.MessageHub;
 
-using Liviano;
-using Liviano.Models;
-using Liviano.Utilities;
 using Liviano.Exceptions;
-using NBitcoin;
-using System.Diagnostics.Contracts;
 using Liviano.Bips;
 
 namespace Liviano.CLI
@@ -27,7 +16,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions>(args)
+            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions>(args)
             .WithParsed<MnemonicOptions>(o =>
             {
                 string wordlist = "english";
@@ -404,7 +393,7 @@ namespace Liviano.CLI
                     return;
                 }
 
-                Console.WriteLine($"{address.ToString()}");
+                Console.WriteLine($"{address}");
             })
             .WithParsed<SendOptions>(async o =>
             {
