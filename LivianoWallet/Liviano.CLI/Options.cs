@@ -165,7 +165,7 @@ namespace Liviano.CLI
         public int SatsPerByte { get; set; }
     }
 
-    [Verb("start", HelpText = "Starts the SPV node and sync loaded wallet")]
+    [Verb("start", HelpText = "Starts the light client and sync loaded wallet")]
     class StartOptions
     {
         [Option('t', "testnet", HelpText = "Run on testnet")]

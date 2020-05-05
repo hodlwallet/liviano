@@ -143,7 +143,7 @@ namespace Liviano
             CurrentAccountId = CurrentAccountId ?? null;
             _CurrentAccount = _CurrentAccount ?? null;
 
-            CurrentAssembly = assembly;
+            CurrentAssembly = assembly ?? Assembly.GetExecutingAssembly();
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             var extKey = Hd.GetExtendedKey(mnemonicObj, password);
@@ -289,7 +289,7 @@ namespace Liviano
                                     }
                                 }
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
                             }

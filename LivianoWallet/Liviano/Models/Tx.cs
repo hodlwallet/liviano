@@ -137,9 +137,9 @@ namespace Liviano.Models
         /// <summary>
         /// Gets or sets the Merkle proof for this transaction.
         /// </summary>
-        [JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(BitcoinSerializableJsonConverter))]
-        public PartialMerkleTree MerkleProof { get; set; }
+        //[JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
+        //[JsonConverter(typeof(BitcoinSerializableJsonConverter))]
+        //public PartialMerkleTree MerkleProof { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
@@ -229,7 +229,7 @@ namespace Liviano.Models
             IsReceive = copy.IsReceive;
             IsSend = copy.IsSend;
             Memo = copy.Memo;
-            MerkleProof = copy.MerkleProof;
+            //MerkleProof = copy.MerkleProof;
             Network = copy.Network;
             ScriptPubKey = copy.ScriptPubKey;
             SentScriptPubKey = copy.SentScriptPubKey;
@@ -237,7 +237,7 @@ namespace Liviano.Models
             TotalFees = copy.TotalFees;
         }
 
-        public Tx() {}
+        public Tx() { }
 
         public static Tx CreateFromHex(string hex, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {

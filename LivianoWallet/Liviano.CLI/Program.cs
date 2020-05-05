@@ -393,7 +393,7 @@ namespace Liviano.CLI
                     return;
                 }
 
-                Console.WriteLine($"{address}");
+                Console.WriteLine($"{address.ToString()}");
             })
             .WithParsed<SendOptions>(async o =>
             {

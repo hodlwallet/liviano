@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection;
 
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -255,7 +256,6 @@ namespace Liviano.CLI
             var w = new Wallet();
 
             w.Init(mnemonic, "", network: Network.TestNet);
-
             //w.AddAccount("paper", options: new { Network = Network.TestNet });
             w.AddAccount("bip141");
             var account = w.Accounts[0].CastToAccountType();
@@ -279,7 +279,7 @@ namespace Liviano.CLI
 
                 foreach (var addr in account.GetReceiveAddress(n))
                 {
-                    Console.WriteLine($"{addr.ToString()} => scriptHash: {addr.ToScriptHash().ToHex()}");
+                    Console.WriteLine($"{addr} => scriptHash: {addr.ToScriptHash().ToHex()}");
                 }
 
                 account.ExternalAddressesCount = 0;
