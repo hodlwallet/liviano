@@ -442,6 +442,8 @@ namespace Liviano
                     tasks.Remove(firstFinishedTask);
 
                     await firstFinishedTask;
+
+                    Console.WriteLine($"Addresses count {tasks.Count}");
                 }
             });
 
