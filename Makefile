@@ -1,6 +1,9 @@
 build:
 	dotnet build LivianoWallet --framework netcoreapp2.1
 
+build.ubuntu:
+	dotnet build LivianoWallet --framework netcoreapp2.1 --configuration Debug --runtime ubuntu-x64
+
 # Usage (run on debug): args="--configuration Debug" make run
 run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
