@@ -348,30 +348,28 @@ namespace Liviano
 
         async Task _SyncTask()
         {
+            Debug.WriteLine("[Sync] Syncing...");
+
             var electrum = await GetElectrumClient();
             var @lock = new object();
-            using (var cts = new CancellationTokenSource())
+
+            var accountsWithAddresses = _AccountsWithAddresses(@lock);
+
+            var tasks = new List<Task>();
+            foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
             {
-                await Task.Factory.StartNew(async () =>
-                {
-                    Debug.WriteLine("[Sync] Syncing...");
+                var t = _GetAccountTask(entry, electrum);
 
-                    // This is a data structure that's really useful to create a transaction
-                    var accountsWithAddresses = _AccountsWithAddresses(@lock);
+                tasks.Add(t);
+            }
 
-                    var tasks = new List<Task>();
-                    foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
-                    {
-                        var t = _GetAccountTask(entry, electrum);
+            while (tasks.Count > 0)
+            {
+                var firstFinishedTask = await Task.WhenAny(tasks);
 
-                        tasks.Add(t);
-                    }
+                tasks.Remove(firstFinishedTask);
 
-                    await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-                    {
-                        SyncFinished?.Invoke(this, null);
-                    });
-                }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                await firstFinishedTask;
             }
         }
 
@@ -420,14 +418,30 @@ namespace Liviano
                 addresses.AddRange(entry.Value["external"]);
                 addresses.AddRange(entry.Value["internal"]);
 
+                var tasks = new List<Task>();
                 foreach (var addr in addresses)
                 {
                     Debug.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
 
                     var scriptHashHex = addr.ToScriptHash().ToHex();
-                    var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
 
-                    await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
+                    var electrumTask = Task.Run(async () =>
+                    {
+                        var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
+
+                        await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
+                    });
+
+                    tasks.Add(electrumTask);
+                }
+
+                while (tasks.Count > 0)
+                {
+                    var firstFinishedTask = await Task.WhenAny(tasks);
+
+                    tasks.Remove(firstFinishedTask);
+
+                    await firstFinishedTask;
                 }
             });
 
