@@ -305,6 +305,8 @@ namespace Liviano.CLI
                 Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
                 Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
 
+                Console.WriteLine($"Balance: {w.Accounts[0].GetBalance()}");
+
                 w.Storage.Save();
 
                 await w.Start();
