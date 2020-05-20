@@ -14,10 +14,9 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Easy.MessageHub" Version="5.0.0" />
-        <PackageReference Include="NBitcoin" Version="5.0.34" />
+        <PackageReference Include="NBitcoin" Version="5.0.37" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="serilog" Version="2.9.0" />
-        <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.14.0" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Electrum\" />
