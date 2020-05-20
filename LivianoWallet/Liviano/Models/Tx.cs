@@ -280,12 +280,10 @@ namespace Liviano.Models
                 }
             }
 
-
-
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
 
-            Debug.WriteLine($"[CreateFromHex] Total amount: {tx.TotalAmount}");
+            Console.WriteLine($"[CreateFromHex] Total amount: {tx.TotalAmount}");
 
             if (tx.IsReceive)
             {

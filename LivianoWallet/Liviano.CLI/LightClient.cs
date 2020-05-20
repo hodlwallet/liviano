@@ -255,9 +255,9 @@ namespace Liviano.CLI
 
             var w = new Wallet();
 
-            w.Init(mnemonic, "", network: Network.TestNet);
+            w.Init(mnemonic, "", network: network);
             //w.AddAccount("paper", options: new { Network = Network.TestNet });
-            w.AddAccount("bip141");
+            w.AddAccount("bip141", options: new { Network = network });
             var account = w.Accounts[0].CastToAccountType();
 
             Console.WriteLine($"Account Type: {account.GetType()}");

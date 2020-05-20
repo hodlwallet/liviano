@@ -363,14 +363,19 @@ namespace Liviano
                 tasks.Add(t);
             }
 
-            while (tasks.Count > 0)
+            await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
             {
-                var firstFinishedTask = await Task.WhenAny(tasks);
+                SyncFinished?.Invoke(this, null);
+            });
 
-                tasks.Remove(firstFinishedTask);
+            //while (tasks.Count > 0)
+            //{
+            //    var firstFinishedTask = await Task.WhenAny(tasks);
 
-                await firstFinishedTask;
-            }
+            //    tasks.Remove(firstFinishedTask);
+
+            //    await firstFinishedTask;
+            //}
         }
 
         public void UpdateCurrentTransaction(Tx tx)
@@ -410,7 +415,7 @@ namespace Liviano
 
         Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
         {
-            var t = Task.Run(async () =>
+            var t = Task.Factory.StartNew(async () =>
             {
                 var account = entry.Key;
                 var addresses = new List<BitcoinAddress> { };
@@ -421,16 +426,16 @@ namespace Liviano
                 var tasks = new List<Task>();
                 foreach (var addr in addresses)
                 {
-                    Debug.WriteLine($"[Sync] Trying to sync: {addr.ToString()}");
+                    Debug.WriteLine($"[Sync] Trying to sync: {addr}");
 
                     var scriptHashHex = addr.ToScriptHash().ToHex();
 
-                    var electrumTask = Task.Run(async () =>
+                    var electrumTask = Task.Factory.StartNew(async () =>
                     {
                         var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
 
                         await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
-                    });
+                    }, TaskCreationOptions.LongRunning);
 
                     tasks.Add(electrumTask);
                 }
@@ -445,7 +450,7 @@ namespace Liviano
 
                     Console.WriteLine($"Addresses count {tasks.Count}");
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             return t;
         }

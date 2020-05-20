@@ -34,7 +34,7 @@ using System.Threading;
 using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
-using NBitcoin.Protocol;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
