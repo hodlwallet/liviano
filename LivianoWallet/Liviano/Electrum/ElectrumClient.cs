@@ -421,8 +421,9 @@ namespace Liviano.Electrum
         /// the server get added, this all happens and we wait for it to finish,
         /// then we get out once we get <see cref="NUMBER_OF_RECENT_SERVERS"/> servers
         /// </summary>
+        /// <param name="serverContent">Content of the Electrum servers list</param>
         /// <param name="network">Bitcoin network to connect to, <see cref="Network.Main"/> is the default</param>
-        public static void PopulateRecentlyConnectedServers(Network network = null, Stream serverContent = null)
+        public static void PopulateRecentlyConnectedServers(Stream serverContent, Network network = null)
         {
             if (network is null) network = Network.Main;
 

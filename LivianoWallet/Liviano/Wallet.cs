@@ -607,7 +607,7 @@ namespace Liviano
                 var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
                 using (var stream = CurrentAssembly.GetManifestResourceStream(name))
                 {
-                    ElectrumClient.PopulateRecentlyConnectedServers(Network, stream);
+                    ElectrumClient.PopulateRecentlyConnectedServers(stream, Network);
                 }
 
                 return await GetRecentlyConnectedServers(retrying: true);
