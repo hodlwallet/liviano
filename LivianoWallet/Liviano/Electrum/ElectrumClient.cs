@@ -44,7 +44,7 @@ namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
-        public static string CLIENT_NAME = Version.ToString(); // Liviano (X.Y.Z)
+        public static string CLIENT_NAME = "electrum/3.3.8";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
 
         const int NUMBER_OF_RECENT_SERVERS = 4;
