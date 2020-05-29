@@ -116,8 +116,14 @@ namespace Liviano.Electrum
             var tcpClient = new TcpClient(_IpAddress.AddressFamily)
             {
                 SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
-                ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds)
+                ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
             };
+
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, true);
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.KeepAlive, true);
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.KeepAlive, true);
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Udp, SocketOptionName.KeepAlive, true);
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
             var isConnected = tcpClient.ConnectAsync(_IpAddress, _Port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
