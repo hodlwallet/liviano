@@ -16,7 +16,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions>(args)
+            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options>(args)
             .WithParsed<MnemonicOptions>(o =>
             {
                 string wordlist = "english";
@@ -552,6 +552,40 @@ namespace Liviano.CLI
                 else
                 {
                     LightClient.TestElectrumConnection("2NDkEKKqP5rqhMYBq4JSXn8LppFFdSg6gtn", "eae1eeba5a5fb87629e362e346688443d106bb4e835798ec0f311da75b9cc80f", Network.TestNet);
+                }
+            }).WithParsed<ElectrumTest2Options>(o =>
+            {
+                Config config;
+                string network;
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else
+                {
+                    network = "mainnet";
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+                }
+                else
+                {
+                    config = new Config("electrum-test2", network);
+                }
+
+                config.Network = network;
+                config.SaveChanges();
+
+                if (network == "mainnet")
+                {
+                    LightClient.TestElectrumConnection2(Network.Main);
+                }
+                else
+                {
+                    LightClient.TestElectrumConnection2(Network.TestNet);
                 }
             });
         }

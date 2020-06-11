@@ -27,6 +27,8 @@ using Serilog.Core;
 using Liviano.Bips;
 using System.Data.Common;
 using Liviano.Storages;
+using System.Runtime.CompilerServices;
+using System.Runtime;
 
 namespace Liviano.CLI
 {
@@ -230,6 +232,70 @@ namespace Liviano.CLI
             _Wallet.Start();
 
             _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
+        }
+
+        public static async void TestElectrumConnection2(Network network)
+        {
+            _Logger.Information("Try to connect to each electrum server manually");
+            _Logger.Information($"Running on {network}");
+
+            int connectedServers = 0;
+
+            string serversFileName = ElectrumClient.GetLocalConfigFilePath(
+                "Electrum",
+                "servers",
+                $"{network.Name.ToLower()}.json"
+            );
+
+            var json = File.ReadAllText(serversFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+
+            var tasks = new List<Task> { };
+            foreach (var s in servers)
+            {
+                Console.WriteLine($"Connecting to {s.Domain}:{s.PrivatePort}...");
+
+                var electrum = new ElectrumClient(new List<Server>() { s });
+
+                var t = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var res = await electrum.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+
+                        Console.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Error = {e.Message}");
+                    }
+                });
+
+                tasks.Add(t);
+            }
+
+            var tarray = tasks.ToArray();
+
+            Task.WaitAll(tasks.ToArray());
+
+            foreach (var t in tarray)
+            {
+                var ct = (Task<System.Version>)t;
+
+                Console.WriteLine($"Res = {ct}");
+            }
+            Console.WriteLine("WTYF?");
+
+            //await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
+            //{
+            //    foreach (Task<System.Version> ct in completedTasks)
+            //    {
+            //        //Console.WriteLine($"!!! {ct.ToString()}");
+            //    }
+            //});
 
             WaitUntilEscapeIsPressed();
         }
