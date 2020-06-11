@@ -194,4 +194,11 @@ namespace Liviano.CLI
         [Option('t', "testnet", HelpText = "Run on testnet")]
         public bool Testnet { get; set; }
     }
+
+    [Verb("electrum-test3", HelpText = "Tries to connect and other stuff")]
+    class ElectrumTest3Options
+    {
+        [Option('t', "testnet", HelpText = "Run on testnet")]
+        public bool Testnet { get; set; }
+    }
 }

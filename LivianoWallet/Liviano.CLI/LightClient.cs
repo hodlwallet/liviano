@@ -236,6 +236,28 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
+        public static void TestElectrumConnection3(Network network)
+        {
+            _Logger.Information("Try to connect to each electrum server manually");
+            _Logger.Information($"Running on {network}");
+
+            int connectedServers = 0;
+
+            string serversFileName = ElectrumClient.GetLocalConfigFilePath(
+                "Electrum",
+                "servers",
+                $"{network.Name.ToLower()}.json"
+            );
+
+            var json = File.ReadAllText(serversFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+
+            var pool = new ElectrumPool(servers.ToArray());
+
+            WaitUntilEscapeIsPressed();
+        }
+
         public static void TestElectrumConnection2(Network network)
         {
             _Logger.Information("Try to connect to each electrum server manually");

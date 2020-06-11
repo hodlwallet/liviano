@@ -16,7 +16,7 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options>(args)
+            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options, ElectrumTest3Options>(args)
             .WithParsed<MnemonicOptions>(o =>
             {
                 string wordlist = "english";
@@ -586,6 +586,40 @@ namespace Liviano.CLI
                 else
                 {
                     LightClient.TestElectrumConnection2(Network.TestNet);
+                }
+            }).WithParsed<ElectrumTest3Options>(o =>
+            {
+                Config config;
+                string network;
+
+                if (o.Testnet)
+                {
+                    network = "testnet";
+                }
+                else
+                {
+                    network = "mainnet";
+                }
+
+                if (Config.Exists())
+                {
+                    config = Config.Load();
+                }
+                else
+                {
+                    config = new Config("electrum-test3", network);
+                }
+
+                config.Network = network;
+                config.SaveChanges();
+
+                if (network == "mainnet")
+                {
+                    LightClient.TestElectrumConnection3(Network.Main);
+                }
+                else
+                {
+                    LightClient.TestElectrumConnection3(Network.TestNet);
                 }
             });
         }

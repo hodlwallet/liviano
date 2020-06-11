@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Liviano.Models;
 
 namespace Liviano.Electrum
@@ -32,6 +33,8 @@ namespace Liviano.Electrum
     public class ElectrumPool
     {
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
+
+        public bool Connected { get; private set; }
 
         Server currentServer;
         public Server CurrentServer
@@ -43,6 +46,20 @@ namespace Liviano.Electrum
 
             set
             {
+                if (currentServer is null && !Connected)
+                {
+                    Connected = true;
+
+                    OnConnectedEvent?.Invoke(this, currentServer);
+                }
+
+                if (value is null && !(currentServer is null))
+                {
+                    Connected = false;
+
+                    OnDisconnectedEvent?.Invoke(this, currentServer);
+                }
+
                 currentServer = value;
                 ElectrumClient = currentServer.ElectrumClient;
 
@@ -51,6 +68,10 @@ namespace Liviano.Electrum
         }
 
         public event EventHandler<Server> OnCurrentServerChangedEvent;
+
+        public event EventHandler<Server> OnConnectedEvent;
+
+        public event EventHandler<Server> OnDisconnectedEvent;
 
         public Server[] AllServers { get; set; }
 
@@ -64,6 +85,11 @@ namespace Liviano.Electrum
 
             // TODO This should be replaced by something way smarter
             CurrentServer = AllServers[0];
+        }
+
+        public async Task FindConnectedServers()
+        {
+
         }
 
         Server[] ShuffleServers(Server[] servers)
