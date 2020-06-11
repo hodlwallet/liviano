@@ -31,22 +31,41 @@ namespace Liviano.Electrum
 {
     public class ElectrumPool
     {
-        public Server CurrentServer { get; set; }
+        const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
+        Server currentServer;
+
+        public Server CurrentServer
+        {
+            get
+            {
+                return currentServer;
+            }
+
+            set
+            {
+                currentServer = value;
+                ElectrumClient = new ElectrumClient(currentServer.JsonRpcClient);
+            }
+        }
         public Server[] AllServers { get; set; }
         public Server[] ConnectedServers { get; set; }
 
+        public ElectrumClient ElectrumClient { get; private set; }
+
         public ElectrumPool(Server[] servers)
         {
-            AllServers = servers;
+            AllServers = ShuffleServers(servers);
 
-            ShuffleServers();
+            CurrentServer = AllServers[0];
+
+            ElectrumClient = new ElectrumClient(CurrentServer.JsonRpcClient);
         }
 
-        void ShuffleServers()
+        Server[] ShuffleServers(Server[] servers)
         {
             Random rnd = new Random();
 
-            AllServers = AllServers.OrderBy(n => rnd.Next()).ToArray();
+            return servers.OrderBy(n => rnd.Next()).ToArray();
         }
     }
 }
