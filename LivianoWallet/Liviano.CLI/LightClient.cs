@@ -375,7 +375,7 @@ namespace Liviano.CLI
 
                 w.Storage.Save();
 
-                await w.Start();
+                // await w.Start();
             };
 
             _ = w.Sync();

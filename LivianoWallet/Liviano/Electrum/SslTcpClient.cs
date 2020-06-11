@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,7 @@ namespace Liviano.Electrum
 
             // Do not allow this client to communicate with unauthenticated servers.
             // NOTE: Ummm this is debatable in this case, so we return true
+            // fuck it.
             return true;
         }
 
