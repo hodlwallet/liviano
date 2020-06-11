@@ -31,9 +31,9 @@ namespace Liviano.Electrum
 {
     public class ElectrumPool
     {
-        const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
-        Server currentServer;
+        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
 
+        Server currentServer;
         public Server CurrentServer
         {
             get
@@ -44,10 +44,16 @@ namespace Liviano.Electrum
             set
             {
                 currentServer = value;
-                ElectrumClient = new ElectrumClient(currentServer.JsonRpcClient);
+                ElectrumClient = currentServer.ElectrumClient;
+
+                OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
             }
         }
+
+        public event EventHandler<Server> OnCurrentServerChangedEvent;
+
         public Server[] AllServers { get; set; }
+
         public Server[] ConnectedServers { get; set; }
 
         public ElectrumClient ElectrumClient { get; private set; }
@@ -56,9 +62,8 @@ namespace Liviano.Electrum
         {
             AllServers = ShuffleServers(servers);
 
+            // TODO This should be replaced by something way smarter
             CurrentServer = AllServers[0];
-
-            ElectrumClient = new ElectrumClient(CurrentServer.JsonRpcClient);
         }
 
         Server[] ShuffleServers(Server[] servers)
@@ -68,4 +73,11 @@ namespace Liviano.Electrum
             return servers.OrderBy(n => rnd.Next()).ToArray();
         }
     }
+
+    public class CurrentServerChangedEventArgs
+    {
+        public CurrentServerChangedEventArgs(Server server) { Server = server; }
+        public Server Server { get; } // readonly
+    }
+
 }

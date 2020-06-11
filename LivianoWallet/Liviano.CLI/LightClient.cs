@@ -258,7 +258,7 @@ namespace Liviano.CLI
             {
                 Console.WriteLine($"Connecting to {s.Domain}:{s.PrivatePort}...");
 
-                var electrum = new ElectrumClient(s.JsonRpcClient);
+                var electrum = s.ElectrumClient;
 
                 var t = Task.Run(async () =>
                 {

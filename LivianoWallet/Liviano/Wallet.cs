@@ -582,13 +582,7 @@ namespace Liviano
         {
             var recentServers = await GetRecentlyConnectedServers();
 
-            Debug.WriteLine("[GetElectrumClient] Will connect to:");
-            foreach (var server in recentServers)
-            {
-                Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version})");
-            }
-
-            return new ElectrumClient(recentServers);
+            return recentServers[0].ElectrumClient;
         }
 
         async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)
@@ -605,10 +599,10 @@ namespace Liviano
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
                 var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
-                using (var stream = CurrentAssembly.GetManifestResourceStream(name))
-                {
-                    ElectrumClient.PopulateRecentlyConnectedServers(stream, Network);
-                }
+                //using (var stream = CurrentAssembly.GetManifestResourceStream(name))
+                //{
+                //    ElectrumClient.PopulateRecentlyConnectedServers(stream, Network);
+                //}
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }

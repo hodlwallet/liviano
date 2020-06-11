@@ -20,7 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Liviano.Electrum;
 using Newtonsoft.Json;
 
@@ -43,7 +47,20 @@ namespace Liviano.Models
         [JsonProperty("version")]
         public string Version { get; set; }
 
-        public JsonRpcClient JsonRpcClient { get; set; }
+        public bool Connected { get; set; }
+
+        public ElectrumClient ElectrumClient { get; set; }
+
+        public async Task ConnectAsync()
+        {
+            Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
+            var res = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+
+            if (res == ElectrumClient.REQUESTED_VERSION)
+            {
+                Debug.WriteLine($"Done! at {DateTime.UtcNow}");
+            }
+        }
     }
 
     public class ElectrumServers
@@ -79,7 +96,9 @@ namespace Liviano.Models
                 else
                     server.UnencryptedPort = null;
 
-                server.JsonRpcClient = new JsonRpcClient(server);
+                server.ElectrumClient = new ElectrumClient(
+                    new JsonRpcClient(server)
+                );
 
                 servers.Servers.Add(server);
             }
