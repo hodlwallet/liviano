@@ -264,13 +264,21 @@ namespace Liviano.CLI
                 {
                     try
                     {
+                        Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
+
                         var res = await electrum.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
 
-                        Console.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
+                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
+
+                        Debug.WriteLine("Done!");
+
+                        return (s, res.ToString(), false);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Error = {e.Message}");
+                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Error = {e.Message}");
+
+                        return (s, e.Message, true);
                     }
                 });
 
@@ -283,19 +291,20 @@ namespace Liviano.CLI
 
             foreach (var t in tarray)
             {
-                var ct = (Task<System.Version>)t;
+                var ct = (Task<ValueTuple<Liviano.Models.Server, string, bool>>) t;
 
-                Console.WriteLine($"Res = {ct}");
+                var domain = ct.Result.Item1.Domain;
+                var content = ct.Result.Item2;
+                var hasError = ct.Result.Item3;
+
+                if (hasError)
+                {
+                    Console.WriteLine($"ERROR!     {domain} => {content}");
+                    continue;
+                }
+
+                Console.WriteLine($"CONNECTED! {domain} => {content}");
             }
-            Console.WriteLine("WTYF?");
-
-            //await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-            //{
-            //    foreach (Task<System.Version> ct in completedTasks)
-            //    {
-            //        //Console.WriteLine($"!!! {ct.ToString()}");
-            //    }
-            //});
 
             WaitUntilEscapeIsPressed();
         }

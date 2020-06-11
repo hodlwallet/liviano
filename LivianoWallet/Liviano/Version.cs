@@ -54,6 +54,14 @@ namespace Liviano
             }
         }
 
+        public static string ElectrumUserAgent
+        {
+            get
+            {
+                return $"{Slug}/{Number}";
+            }
+        }
+
         public static System.Version ToSystemVersion()
         {
             return new System.Version(Number);
@@ -69,6 +77,14 @@ namespace Liviano
             get
             {
                 return CurrentAssembly.GetName().Name;
+            }
+        }
+
+        public static string Slug
+        {
+            get
+            {
+                return CurrentAssembly.GetName().Name.ToLower();
             }
         }
 
