@@ -236,7 +236,7 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        public static async void TestElectrumConnection2(Network network)
+        public static void TestElectrumConnection2(Network network)
         {
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");
@@ -265,12 +265,11 @@ namespace Liviano.CLI
                     try
                     {
                         Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
-
                         var res = await electrum.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
 
                         Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
 
-                        Debug.WriteLine("Done!");
+                        Debug.WriteLine($"Done! at {DateTime.UtcNow}");
 
                         return (s, res.ToString(), false);
                     }
