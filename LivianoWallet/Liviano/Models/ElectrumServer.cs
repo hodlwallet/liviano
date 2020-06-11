@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System.Collections.Generic;
-
+using Liviano.Electrum;
 using Newtonsoft.Json;
 
 namespace Liviano.Models
@@ -42,6 +42,8 @@ namespace Liviano.Models
 
         [JsonProperty("version")]
         public string Version { get; set; }
+
+        public JsonRpcClient JsonRpcClient { get; set; }
     }
 
     public class ElectrumServers

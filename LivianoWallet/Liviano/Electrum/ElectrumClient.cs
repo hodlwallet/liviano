@@ -44,12 +44,9 @@ namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
-        public static string CLIENT_NAME = $"{Liviano.Version.ElectrumUserAgent}";
+        public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
-
-        const int NUMBER_OF_RECENT_SERVERS = 2;
-
-        JsonRpcClient _JsonRpcClient;
+        readonly JsonRpcClient JsonRpcClient;
 
         public class Request
         {
@@ -80,6 +77,12 @@ namespace Liviano.Electrum
         {
             public int Id { get; set; }
             public string[] Result { get; set; }
+        }
+
+        public class ServerPeersSubscribeResult : BaseResult
+        {
+            public int Id { get; set; }
+            public List<ValueTuple<string, string, List<string>>> Result { get; set; }
         }
 
         public class BlockchainScriptHashGetBalanceInnerResult : BaseResult
@@ -194,13 +197,13 @@ namespace Liviano.Electrum
 
         public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
-            _JsonRpcClient = jsonRpcClient;
+            JsonRpcClient = jsonRpcClient;
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
         {
-            Regex pascalToUnderScoreRegex = new Regex(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
-            string pascalToUnderScoreReplacementExpression = "_$1$2";
+            readonly Regex pascalToUnderScoreRegex = new Regex(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
+            readonly string pascalToUnderScoreReplacementExpression = "_$1$2";
 
             protected override string ResolvePropertyName(string propertyName)
             {
@@ -220,11 +223,11 @@ namespace Liviano.Electrum
 
         async Task<T> RequestInternal<T>(string jsonRequest)
         {
-            var rawResponse = await _JsonRpcClient.Request(jsonRequest);
+            var rawResponse = await JsonRpcClient.Request(jsonRequest);
 
             if (string.IsNullOrEmpty(rawResponse))
             {
-                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", _JsonRpcClient.Host, jsonRequest));
+                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", JsonRpcClient.Host, jsonRequest));
             }
 
             try
@@ -280,6 +283,14 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashGetBalanceResult>(json);
         }
 
+        public async Task<ServerPeersSubscribeResult> ServerPeersSubscribe()
+        {
+            var obj = new Request { Id = 0, Method = "server.peers.subscribe", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<ServerPeersSubscribeResult>(json);
+        }
+
         public async Task<string> ServerBanner()
         {
             var obj = new Request { Id = 0, Method = "server.banner", Params = new List<string> { } };
@@ -331,7 +342,7 @@ namespace Liviano.Electrum
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            await _JsonRpcClient.Subscribe(json, (res) =>
+            await JsonRpcClient.Subscribe(json, (res) =>
             {
                 foundTxCallback(res);
             });
@@ -412,158 +423,6 @@ namespace Liviano.Electrum
                 return;
 
             File.WriteAllText(fileName, "");
-        }
-
-        /// <summary>
-        /// Creates the file of the recently connected,
-        /// this functions picks up to <see cref="NUMBER_OF_RECENT_SERVERS"/> servers at the time, and try to send
-        /// a server.version() to the electrum server, if we get 1.4 then we're good,
-        /// the server get added, this all happens and we wait for it to finish,
-        /// then we get out once we get <see cref="NUMBER_OF_RECENT_SERVERS"/> servers
-        /// </summary>
-        /// <param name="serverContent">Content of the Electrum servers list</param>
-        /// <param name="network">Bitcoin network to connect to, <see cref="Network.Main"/> is the default</param>
-        public static void PopulateRecentlyConnectedServers(Stream serverContent, Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> connectedServers = new List<Server>();
-            string json;
-
-            // Get network list of servers
-            string serversFileName = GetLocalConfigFilePath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            if (!File.Exists(serversFileName))
-            {
-                try
-                {
-                    using (var reader = new StreamReader(serverContent))
-                    {
-                        json = reader.ReadToEnd();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new ArgumentException($"Invalid network: {network.Name}\n{ex.Message}");
-                }
-            }
-            else
-            {
-                json = File.ReadAllText(serversFileName);
-            }
-
-            // Get the servers list from the file.
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-
-            // Able to pop servers so we can check their version
-            var popableServers = new List<Server>();
-            popableServers.AddRange(servers);
-
-            // We need to get a ranom server from the list, this will be the index
-            var rng = new Random();
-
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-            var cts = new CancellationTokenSource();
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-
-            // Lock for the servers collection
-            var _lock = new object();
-            while (popableServers.Count > 0)
-            {
-                var tasks = new List<Task>();
-
-                // pick 5 randos
-                int count = 0;
-                var randomServers = new List<Server>();
-                while (count < NUMBER_OF_RECENT_SERVERS) // Remove this amount from the the popable
-                {
-                    if (popableServers.Count == 0) break;
-
-                    var i = rng.Next(popableServers.Count);
-                    var s = popableServers[i];
-
-                    if (!randomServers.Contains(s))
-                    {
-                        randomServers.Add(s);
-                        popableServers.Remove(s);
-                    }
-                    count += 1;
-                }
-
-                // Get out if we don't have any serves to process anymore
-                if (popableServers.Count == 0 && randomServers.Count == 0)
-                    break;
-
-                for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
-                {
-                    var s = randomServers[i];
-
-                    // We create a task, for each server that checks for the version
-                    var t = Task.Factory.StartNew(async (state) =>
-                    {
-                        var connServers = (List<Server>)state;
-
-                        if (cts.IsCancellationRequested) return;
-
-                        var electrum = new ElectrumClient(new List<Server>() { s });
-
-                        try
-                        {
-                            var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
-
-                            Debug.WriteLine(
-                            "Connected to: {0}:{1} => {2}",
-                            s.Domain,
-                            s.PrivatePort,
-                            res
-                            );
-
-                            lock (_lock) connectedServers.Add(s);
-
-                            // When we get NUMBER_OF_RECENT_SERVERS we get out
-                            if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"There was an issue with requesting an electrum server version: {ex.Message}");
-                        }
-                    }, connectedServers);
-
-                    tasks.Add(t);
-                }
-
-                // Executute (usually) NUMBER_OF_RECENT_SERVERS tasks...
-                Task.WaitAll(tasks.ToArray());
-
-                // Get out once we got enough
-                if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
-                    break;
-            }
-
-            // Sadly, none connected...
-            if (connectedServers.Count == 0)
-            {
-                Debug.WriteLine("Cound not connect to any server...");
-
-                return;
-            }
-
-            // Show warning over connected to less than the prefered amount
-            if (connectedServers.Count < NUMBER_OF_RECENT_SERVERS)
-                Debug.WriteLine("Conneted to too few servers {0}", connectedServers.Count);
-
-
-            // Save our file now.
-            lock (_lock)
-                File.WriteAllText(
-                    GetRecentlyConnectedServersFileName(network),
-                    JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
-                );
         }
 
         public static string GetLocalConfigFilePath(params string[] fileNames)
