@@ -47,7 +47,7 @@ namespace Liviano.Electrum
         public static string CLIENT_NAME = $"{Liviano.Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
 
-        const int NUMBER_OF_RECENT_SERVERS = 1;
+        const int NUMBER_OF_RECENT_SERVERS = 2;
 
         JsonRpcClient _JsonRpcClient;
 
@@ -192,9 +192,9 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
-        public ElectrumClient(List<Server> servers)
+        public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
-            _JsonRpcClient = new JsonRpcClient(servers);
+            _JsonRpcClient = jsonRpcClient;
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver

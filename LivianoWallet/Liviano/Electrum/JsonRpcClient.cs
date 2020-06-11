@@ -48,7 +48,7 @@ namespace Liviano.Electrum
 
         TimeSpan DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS = TimeSpan.FromMilliseconds(1.0);
 
-        readonly List<Server> _Servers;
+        readonly Server _Server;
 
         IPAddress _IpAddress;
 
@@ -56,9 +56,9 @@ namespace Liviano.Electrum
 
         public string Host { get; private set; }
 
-        public JsonRpcClient(List<Server> servers)
+        public JsonRpcClient(Server server)
         {
-            _Servers = servers;
+            _Server = server;
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -119,12 +119,6 @@ namespace Liviano.Electrum
                 ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
                 ExclusiveAddressUse = true
             };
-
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, true);
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.KeepAlive, true);
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.KeepAlive, true);
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.Udp, SocketOptionName.KeepAlive, true);
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
             var isConnected = tcpClient.ConnectAsync(_IpAddress, _Port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
@@ -211,41 +205,25 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request, bool useSsl = true)
         {
-            var rng = new Random();
-            List<Server> popableServers = new List<Server>();
-            popableServers.AddRange(_Servers);
-
-            Debug.WriteLine($"[Request] Sending request: {request}");
-
-            int count = 0;
-            while (popableServers.Count > 0)
+            try
             {
-                var index = rng.Next(popableServers.Count);
-                var server = popableServers[index];
+                Host = _Server.Domain;
+                _IpAddress = ResolveHost(_Server.Domain).Result;
+                _Port = useSsl ? _Server.PrivatePort.Value : _Server.UnencryptedPort.Value;
 
-                try
-                {
-                    Host = server.Domain;
-                    _IpAddress = ResolveHost(server.Domain).Result;
-                    _Port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
+                Debug.WriteLine(
+                    $"[Request] Server: {Host}:{_Port} ({_Server.Version})"
+                );
 
-                    Debug.WriteLine(
-                        $"[Request] Server: {Host}:{_Port} ({server.Version})"
-                    );
+                var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
-                    var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                    if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
-
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[Request] {ex.Message}");
-                    Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
-                }
-
-                count += 1;
-                popableServers.RemoveAt(index);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Request] {ex.Message}");
+                Debug.WriteLine($"[Request] Failed for {_Server.Domain} at port {_Server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
             }
 
             Debug.WriteLine($"[Request] Could not process request: {request}");
@@ -256,17 +234,19 @@ namespace Liviano.Electrum
         public SslStream GetSslStream()
         {
             var rng = new Random();
-            var server = _Servers[rng.Next(_Servers.Count)];
 
-            Host = server.Domain;
-            _IpAddress = ResolveHost(server.Domain).Result;
-            _Port = server.PrivatePort.Value;
+            Host = _Server.Domain;
+            _IpAddress = ResolveHost(_Server.Domain).Result;
+            _Port = _Server.PrivatePort.Value;
 
             Debug.WriteLine(
-                $"[GetSslStream] From: {Host}:{_Port} ({server.Version})"
+                $"[GetSslStream] From: {Host}:{_Port} ({_Server.Version})"
             );
 
             var tcpClient = Connect();
+
+            // TODO Test this
+            //tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, true);
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
             var stream = SslTcpClient.GetSslStream(tcpClient, Host);
