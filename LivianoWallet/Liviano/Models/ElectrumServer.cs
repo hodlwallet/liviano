@@ -79,6 +79,8 @@ namespace Liviano.Models
                 else
                     server.UnencryptedPort = null;
 
+                server.JsonRpcClient = new JsonRpcClient(server);
+
                 servers.Servers.Add(server);
             }
 

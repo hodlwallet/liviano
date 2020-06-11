@@ -120,34 +120,34 @@ namespace Liviano.CLI
                 error = string.Join<string>(", ", errors.Select(o => o.Message));
             }
 
-            if (wasCreated)
-            {
-                Thread.Sleep(SEND_PAUSE);
+            //if (wasCreated)
+            //{
+            //    Thread.Sleep(SEND_PAUSE);
 
-                try
-                {
-                    var txHex = tx.ToHex();
+            //    try
+            //    {
+            //        var txHex = tx.ToHex();
 
-                    var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
-                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
+            //        var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
+            //        var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
 
-                    if (broadcast.Result != tx.GetHash().ToString())
-                    {
-                        throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    _Logger.Error(e.ToString());
+            //        if (broadcast.Result != tx.GetHash().ToString())
+            //        {
+            //            throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
+            //        }
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        _Logger.Error(e.ToString());
 
-                    error = e.Message;
-                    wasSent = false;
+            //        error = e.Message;
+            //        wasSent = false;
 
-                    return (wasCreated, wasSent, tx, error);
-                }
+            //        return (wasCreated, wasSent, tx, error);
+            //    }
 
-                wasSent = true;
-            }
+            //    wasSent = true;
+            //}
 
             return (wasCreated, wasSent, tx, error);
         }
@@ -258,7 +258,7 @@ namespace Liviano.CLI
             {
                 Console.WriteLine($"Connecting to {s.Domain}:{s.PrivatePort}...");
 
-                var electrum = new ElectrumClient(new List<Server>() { s });
+                var electrum = new ElectrumClient(s.JsonRpcClient);
 
                 var t = Task.Run(async () =>
                 {
@@ -290,7 +290,7 @@ namespace Liviano.CLI
 
             foreach (var t in tarray)
             {
-                var ct = (Task<ValueTuple<Liviano.Models.Server, string, bool>>) t;
+                var ct = (Task<ValueTuple<Liviano.Models.Server, string, bool>>)t;
 
                 var domain = ct.Result.Item1.Domain;
                 var content = ct.Result.Item2;
