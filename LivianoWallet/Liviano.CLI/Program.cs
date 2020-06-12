@@ -1,48 +1,50 @@
 using System;
 using System.Collections.Generic;
+
+using Mono.Options;
 using NBitcoin;
 using Serilog;
 
-using Mono.Options;
-
-using Liviano.Exceptions;
 using Liviano.Bips;
+using Liviano.Exceptions;
 using System.Text;
 
 namespace Liviano.CLI
 {
     class Program
     {
-        private static ILogger _Logger;
+        ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
         static void Main(string[] args)
         {
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
             // Defaults
             var network = Network.Main;
-            var showHelp = false;
             var testnet = false;
             var mainnet = true;
-            var electrumTest3 = false;
             var mnemonic = "";
-            var mnemonicLang = "English";
-            var createMnemonic = false;
+            var mnemonicLang = "english";
+            var mnemonicWordCount = 12;
+
+            // Menu show
+            var showHelp = false;
+            var newMnemonic = false;
+            var electrumTest3 = false;
 
             // Define options
             var options = new OptionSet
             {
                 // Global variables
-                {"m|mainnet", "Run on mainnet", m => mainnet = !(m is null)},
-                {"t|testnet", "Run on testnet", t => testnet = !(t is null)},
+                {"m|mainnet", "Run on mainnet", v => mainnet = !(v is null)},
+                {"t|testnet", "Run on testnet", v => testnet = !(v is null)},
+                {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
+                {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
+                {"mn|mnemonic=", "Send mnemonic", (string v) => mnemonic = v},
                 // Mnemonic
-                {"l|lang", "Mnemonic language", (string mn) => mnemonicLang = mn},
-                {"mnemonic|mnemonic", "Send mnemonic", (string mn) => mnemonic = mn},
-                {"new-mnemonic", "Create new mnemonic", mn => createMnemonic = !(mn is null)},
+                {"nmn|new-mnemonic", "Create new mnemonic", v => newMnemonic = !(v is null)},
                 // Default & help
-                {"h|help", "Liviano help", h => showHelp = !(h is null)},
+                {"h|help", "Liviano help", v => showHelp = !(v is null)},
                 // Debugging commands
-                {"test-et3|electrum-test-3", "Electrum test 3", et3 => electrumTest3 = !(et3 is null)}
+                {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)}
             };
 
             // Parse arguments
@@ -68,7 +70,7 @@ namespace Liviano.CLI
                 return;
             }
 
-            // Set variaables every command use
+            // Set variables every command use
             if (testnet)
             {
                 mainnet = false;
@@ -82,6 +84,22 @@ namespace Liviano.CLI
             }
 
             // LightClient commands, set everything before here
+            if (newMnemonic)
+            {
+                var res = Hd.NewMnemonic(mnemonicLang, mnemonicWordCount);
+
+                Console.WriteLine(res);
+
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(mnemonic))
+            {
+                Console.WriteLine($"Sent menmonic = {mnemonic}");
+
+                return;
+            }
+
             if (electrumTest3)
             {
                 LightClient.TestElectrumConnection3(network);
