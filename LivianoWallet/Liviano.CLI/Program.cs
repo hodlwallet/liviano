@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using NBitcoin;
 using Serilog;
+
+using Mono.Options;
 
 using Liviano.Exceptions;
 using Liviano.Bips;
@@ -16,7 +19,38 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            LightClient.TestElectrumConnection3(Network.TestNet);
+            bool showHelp = false;
+
+            var options = new OptionSet
+            {
+                {"h|help", "Liviano help", h => showHelp = !(h is null)}
+            };
+
+            List<string> extra;
+            try
+            {
+                extra = options.Parse(args);
+            }
+            catch (OptionException e)
+            {
+                Console.WriteLine(e.Message);
+                LightClient.ShowHelp();
+            }
+
+            if (showHelp)
+            {
+                LightClient.ShowHelp();
+
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Invalid options");
+
+                return;
+            }
+
+            //LightClient.TestElectrumConnection3(Network.TestNet);
 
             //_ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options, ElectrumTest3Options>(args)
             //.WithParsed<MnemonicOptions>(o =>
