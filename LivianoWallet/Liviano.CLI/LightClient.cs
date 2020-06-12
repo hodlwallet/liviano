@@ -253,9 +253,16 @@ namespace Liviano.CLI
 
             var pool = new ElectrumPool(servers.ToArray());
 
-            await pool.FindConnectedServers();
+            pool.OnConnectedEvent += Pool_OnConnectedEvent;
+
+            pool.FindConnectedServers();
 
             WaitUntilEscapeIsPressed();
+        }
+
+        private static void Pool_OnConnectedEvent(object sender, Server e)
+        {
+            Console.WriteLine($"Connected to {e.Domain}");
         }
 
         public static void TestElectrumConnection2(Network network)

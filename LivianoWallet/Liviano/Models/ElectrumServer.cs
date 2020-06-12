@@ -61,14 +61,12 @@ namespace Liviano.Models
 
             set
             {
-                if (!connected)
-                    OnConnectedEvent?.Invoke(this, null);
-
-                if (!value)
-                    OnDisconnectedEvent?.Invoke(this, null);
-
-
                 connected = value;
+
+                if (Connected)
+                    OnConnectedEvent?.Invoke(this, null);
+                else
+                    OnDisconnectedEvent?.Invoke(this, null);
             }
         }
 
@@ -83,9 +81,25 @@ namespace Liviano.Models
         {
             Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
 
-            var res = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+            System.Version version = null;
 
-            if (res == ElectrumClient.REQUESTED_VERSION)
+            try
+            {
+                version = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
+
+                if (retrying)
+                    return;
+
+                Connected = false;
+                //await Task.Delay(RETRY_DELAY);
+                await ConnectAsync(retrying: true);
+            }
+
+            if (!(version is null) && version == ElectrumClient.REQUESTED_VERSION)
             {
                 Debug.WriteLine($"Connected! at {DateTime.UtcNow}");
 
@@ -98,7 +112,7 @@ namespace Liviano.Models
                 Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
 
                 Connected = false;
-                await Task.Delay(RETRY_DELAY);
+                //await Task.Delay(RETRY_DELAY);
                 await ConnectAsync(retrying: true);
             }
         }

@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Liviano.Models;
@@ -50,7 +51,7 @@ namespace Liviano.Electrum
                 {
                     Connected = true;
 
-                    OnConnectedEvent?.Invoke(this, currentServer);
+                    OnConnectedEvent?.Invoke(this, value);
                 }
 
                 if (value is null && !(currentServer is null))
@@ -87,7 +88,7 @@ namespace Liviano.Electrum
             //CurrentServer = AllServers[0];
         }
 
-        public async Task FindConnectedServers()
+        public async void FindConnectedServers()
         {
             foreach (var s in AllServers)
             {
