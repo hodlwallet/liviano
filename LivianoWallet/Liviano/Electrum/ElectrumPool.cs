@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,31 +77,41 @@ namespace Liviano.Electrum
 
         public Server[] AllServers { get; set; }
 
-        public Server[] ConnectedServers { get; set; }
+        public List<Server> ConnectedServers { get; set; }
 
         public ElectrumClient ElectrumClient { get; private set; }
 
         public ElectrumPool(Server[] servers)
         {
             AllServers = ShuffleServers(servers);
-
-            // TODO This should be replaced by something way smarter
-            //CurrentServer = AllServers[0];
+            ConnectedServers = new List<Server> { };
         }
 
         public async void FindConnectedServers()
         {
-            foreach (var s in AllServers)
+            await Task.Factory.StartNew(async () =>
             {
-                s.OnConnectedEvent += HandleConnectedServers;
+                foreach (var s in AllServers)
+                {
+                    await Task.Factory.StartNew(async () =>
+                    {
+                        s.OnConnectedEvent += HandleConnectedServers;
 
-                await s.ConnectAsync();
-            }
+                        await s.ConnectAsync();
+
+                    }, TaskCreationOptions.AttachedToParent);
+                }
+            });
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
+
+            if (ConnectedServers.Contains(server))
+                ConnectedServers.Remove(server);
+
+            ConnectedServers.Insert(0, server);
 
             if (CurrentServer is null)
             {

@@ -270,8 +270,6 @@ namespace Liviano.CLI
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");
 
-            int connectedServers = 0;
-
             string serversFileName = ElectrumClient.GetLocalConfigFilePath(
                 "Electrum",
                 "servers",
@@ -373,7 +371,7 @@ namespace Liviano.CLI
             if (account.AccountType == "paper")
             {
                 var addr = account.GetReceiveAddress();
-                Console.WriteLine($"{addr.ToString()} => scriptHash: {addr.ToScriptHash().ToHex()}");
+                Console.WriteLine($"{addr} => scriptHash: {addr.ToScriptHash().ToHex()}");
             }
             else
             {
@@ -463,7 +461,7 @@ namespace Liviano.CLI
 
         private static void Exit()
         {
-            var process = System.Diagnostics.Process.GetCurrentProcess();
+            var process = Process.GetCurrentProcess();
 
             foreach (ProcessThread thread in process.Threads.OfType<ProcessThread>())
             {

@@ -79,10 +79,9 @@ namespace Liviano.Models
         /// <returns></returns>
         public async Task ConnectAsync(bool retrying = false)
         {
-            Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
+            Console.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
-            System.Version version = null;
-
+            System.Version version;
             try
             {
                 version = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
@@ -95,13 +94,16 @@ namespace Liviano.Models
                     return;
 
                 Connected = false;
+
                 //await Task.Delay(RETRY_DELAY);
                 await ConnectAsync(retrying: true);
+
+                return;
             }
 
-            if (!(version is null) && version == ElectrumClient.REQUESTED_VERSION)
+            if (version == ElectrumClient.REQUESTED_VERSION)
             {
-                Debug.WriteLine($"Connected! at {DateTime.UtcNow}");
+                Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
 
                 Connected = true;
                 return;
