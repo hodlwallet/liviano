@@ -1,6 +1,5 @@
 using System;
 using NBitcoin;
-using CommandLine;
 using Serilog;
 
 using Liviano.Exceptions;
