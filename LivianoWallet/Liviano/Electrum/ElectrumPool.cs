@@ -140,6 +140,17 @@ namespace Liviano.Electrum
             {
                 CurrentServer = server;
             }
+
+            Console.WriteLine("Hello");
+            // Find peers in a sub task as well
+            Task.Factory.StartNew(async () =>
+            {
+                Console.WriteLine("Hello2");
+                // This makes it wait
+                await server.FindPeers();
+
+                Console.WriteLine("Hello3");
+            }, TaskCreationOptions.AttachedToParent);
         }
 
         Server[] ShuffleServers(Server[] servers)

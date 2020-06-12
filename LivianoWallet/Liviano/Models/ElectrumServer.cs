@@ -124,6 +124,20 @@ namespace Liviano.Models
                 await ConnectAsync(retries + 1);
             }
         }
+
+        
+        public async Task<Server[]> FindPeers()
+        {
+            var servers = new Server[] { };
+
+            Console.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+
+            var peers = await ElectrumClient.ServerPeersSubscribe();
+
+            Console.WriteLine($"Peers: {peers}");
+
+            return servers;
+        }
     }
 
     public class ElectrumServers

@@ -225,6 +225,8 @@ namespace Liviano.Electrum
         {
             var rawResponse = await JsonRpcClient.Request(jsonRequest);
 
+            Console.WriteLine($"Raw response = {rawResponse}");
+
             if (string.IsNullOrEmpty(rawResponse))
             {
                 throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", JsonRpcClient.Host, jsonRequest));
@@ -236,6 +238,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"There's an error??? {ex.Message}");
                 throw new ElectrumException(ex.Message);
             }
         }
@@ -285,8 +288,11 @@ namespace Liviano.Electrum
 
         public async Task<ServerPeersSubscribeResult> ServerPeersSubscribe()
         {
+            Console.WriteLine("WTF?");
             var obj = new Request { Id = 0, Method = "server.peers.subscribe", Params = new List<string> { } };
             var json = Serialize(obj);
+
+            Console.WriteLine($"JSON: {json}");
 
             return await RequestInternal<ServerPeersSubscribeResult>(json);
         }
