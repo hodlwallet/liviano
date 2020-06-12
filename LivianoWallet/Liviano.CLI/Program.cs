@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 
 using Mono.Options;
@@ -23,7 +24,7 @@ namespace Liviano.CLI
             var mnemonicLang = "english";
             var passphrase = "";
             var mnemonicWordCount = 12;
-            var inputText = Console.ReadLine().Trim();
+            var inputText = Console.IsInputRedirected ? Console.ReadLine().Trim() : "";
             var hasInputText = !string.IsNullOrEmpty(inputText);
             var wif = "";
             var address = "";
