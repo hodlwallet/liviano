@@ -313,12 +313,7 @@ namespace Liviano.Electrum
 
         public async Task<System.Version> ServerVersion()
         {
-            var obj = new Request { Id = 0, Method = "server.version", Params = new List<string> { CLIENT_NAME, REQUESTED_VERSION.ToString() } };
-            var json = Serialize(obj);
-
-            ServerVersionResult resObj = await RequestInternal<ServerVersionResult>(json);
-
-            return CreateVersion(resObj.Result[1]);
+            return await ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
         }
 
         public async Task<System.Version> ServerVersion(string clientName, System.Version protocolVersion)
