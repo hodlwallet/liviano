@@ -247,7 +247,7 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        public static async void TestElectrumConnection3(Network network)
+        public static void TestElectrumConnection3(Network network)
         {
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");

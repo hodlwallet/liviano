@@ -25,7 +25,6 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Liviano.Models;
@@ -89,26 +88,32 @@ namespace Liviano.Electrum
 
         public async void FindConnectedServers()
         {
-            var parent = Task.Factory.StartNew(() =>
+            List<Task> tasks = new List<Task> { };
+            await Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
                 {
-                    Task.Factory.StartNew(() =>
+                    tasks.Add(Task.Factory.StartNew(async () =>
                     {
                         s.OnConnectedEvent += HandleConnectedServers;
 
                         // This makes it wait
-                        var t = s.ConnectAsync();
-
-                        t.Wait();
-                    }, TaskCreationOptions.AttachedToParent);
+                        await s.ConnectAsync();
+                    }, TaskCreationOptions.AttachedToParent));
                 }
             }, TaskCreationOptions.LongRunning);
 
-            // This makes it wait, remove once done
-            parent.Wait();
+            Task.WaitAll(tasks.ToArray());
 
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine($"Done! {DateTime.UtcNow}");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)
