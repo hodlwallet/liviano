@@ -25,12 +25,21 @@ namespace Liviano.CLI
             var testnet = false;
             var mainnet = true;
             var electrumTest3 = false;
+            var mnemonic = "";
+            var mnemonicLang = "English";
+            var createMnemonic = false;
 
             // Define options
             var options = new OptionSet
             {
+                // Global variables
                 {"m|mainnet", "Run on mainnet", m => mainnet = !(m is null)},
                 {"t|testnet", "Run on testnet", t => testnet = !(t is null)},
+                // Mnemonic
+                {"l|lang", "Mnemonic language", (string mn) => mnemonicLang = mn},
+                {"mnemonic|mnemonic", "Send mnemonic", (string mn) => mnemonic = mn},
+                {"new-mnemonic", "Create new mnemonic", mn => createMnemonic = !(mn is null)},
+                // Default & help
                 {"h|help", "Liviano help", h => showHelp = !(h is null)},
                 // Debugging commands
                 {"test-et3|electrum-test-3", "Electrum test 3", et3 => electrumTest3 = !(et3 is null)}
