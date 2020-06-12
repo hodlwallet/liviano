@@ -33,7 +33,7 @@ namespace Liviano.CLI
                 {"t|testnet", "Run on testnet", t => testnet = !(t is null)},
                 {"h|help", "Liviano help", h => showHelp = !(h is null)},
                 // Debugging commands
-                {"et3|electrum-test-3", "Electrum test 3", et3 => electrumTest3 = !(et3 is null)}
+                {"test-et3|electrum-test-3", "Electrum test 3", et3 => electrumTest3 = !(et3 is null)}
             };
 
             // Parse arguments
