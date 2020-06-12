@@ -19,12 +19,15 @@ namespace Liviano.CLI
         {
             // Defaults
             var network = Network.Main;
-            var testnet = false;
-            var mainnet = true;
             var mnemonic = "";
             var mnemonicLang = "english";
             var passphrase = "";
             var mnemonicWordCount = 12;
+            var inputText = Console.ReadLine().Trim();
+            var hasInputText = !string.IsNullOrEmpty(inputText);
+            var getXPrv = false;
+            var getXPub = false;
+            var wif = "";
 
             // Menu show
             var showHelp = false;
@@ -35,19 +38,33 @@ namespace Liviano.CLI
             var options = new OptionSet
             {
                 // Global variables
-                {"m|mainnet", "Run on mainnet", v => mainnet = !(v is null)},
-                {"t|testnet", "Run on testnet", v => testnet = !(v is null)},
+                {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : Network.TestNet},
+                {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : Network.Main},
+                {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
+                {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
                 {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
                 {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
-                {"mn|mnemonic=", "Send mnemonic", (string v) => mnemonic = v},
-                {"ps|passphrase=", "Passphrase", (string v) => passphrase = v},
                 // Mnemonic
                 {"nmn|new-mnemonic", "Create new mnemonic", v => newMnemonic = !(v is null)},
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
                 // Debugging commands
-                {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)}
+                {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)},
             };
+
+            // Processing if there's input text or not
+            if (hasInputText)
+            {
+                options.Add("mn|mnemonic", "Send mnemonic", (string v) => mnemonic = inputText);
+                options.Add("wif|with-wif", "Send wif", (string v) => wif = inputText);
+                options.Add("ps|passphrase", "Passphrase", (string v) => passphrase = inputText);
+            }
+            else
+            {
+                options.Add("mn|mnemonic=", "Send mnemonic", (string v) => mnemonic = v);
+                options.Add("wif|with-wif=", "Send wif", (string v) => wif = v);
+                options.Add("ps|passphrase=", "Passphrase", (string v) => passphrase = v);
+            }
 
             // Parse arguments
             List<string> extra;
@@ -72,39 +89,47 @@ namespace Liviano.CLI
                 return;
             }
 
-            // Set variables every command use
-            if (testnet)
-            {
-                mainnet = false;
-
-                network = Network.TestNet;
-            }
-
-            if (mainnet)
-            {
-                network = Network.Main;
-            }
-
             // LightClient commands, set everything before here
             if (newMnemonic)
             {
-                var res = Hd.NewMnemonic(mnemonicLang, mnemonicWordCount);
+                var mnemonicRes = Hd.NewMnemonic(mnemonicLang, mnemonicWordCount);
 
-                Console.WriteLine(res);
+                Console.WriteLine(mnemonicRes);
 
                 return;
             }
 
-            if (!string.IsNullOrEmpty(mnemonic))
+            if (getXPrv)
             {
-                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
-                var wif = Hd.GetWif(extKey, network);
+                if (string.IsNullOrEmpty(mnemonic))
+                {
+                    Console.WriteLine("Error: empty mnemonic");
 
-                Console.WriteLine(wif);
+                    LightClient.ShowHelp();
+
+                    return;
+                }
+
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var wifRes = Hd.GetWif(extKey, network);
+
+                Console.WriteLine(wifRes);
 
                 return;
             }
 
+            if (getXPub)
+            {
+                var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
+                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name.ToLower());
+                var extPubKeyWif = Hd.GetWif(extPubKey, network);
+
+                Console.WriteLine(extPubKeyWif);
+
+                return;
+            }
+
+            // Test / debugging LightClient commands
             if (electrumTest3)
             {
                 LightClient.TestElectrumConnection3(network);
@@ -114,62 +139,8 @@ namespace Liviano.CLI
 
             // End... invalid options
             Console.WriteLine("Invalid options");
-            Console.WriteLine("Show Help");
+            LightClient.ShowHelp();
 
-            //LightClient.TestElectrumConnection3(Network.TestNet);
-
-            //_ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options, ElectrumTest3Options>(args)
-            //.WithParsed<MnemonicOptions>(o =>
-            //{
-            //    string wordlist = "english";
-            //    int wordCount = 24;
-
-            //    if (o.WordCount != 0)
-            //    {
-            //        wordCount = o.WordCount;
-            //    }
-
-            //    if (o.Wordlist != null)
-            //    {
-            //        wordlist = o.Wordlist;
-            //    }
-
-            //    Console.WriteLine(Hd.NewMnemonic(wordlist, wordCount));
-            //})
-            //.WithParsed<ExtendedKeyOptions>(o =>
-            //{
-            //    string mnemonic = null;
-            //    string passphrase = null;
-            //    string network = "main";
-
-            //    if (o.Mnemonic != null)
-            //    {
-            //        mnemonic = o.Mnemonic;
-            //    }
-            //    else
-            //    {
-            //        mnemonic = Console.ReadLine();
-            //    }
-
-            //    if (o.Passphrase != null)
-            //    {
-            //        passphrase = o.Passphrase;
-            //    }
-
-            //    if (o.Testnet)
-            //    {
-            //        network = "testnet";
-            //    }
-            //    else if (o.Regtest)
-            //    {
-            //        network = "regtest";
-            //    }
-
-            //    var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
-            //    var wif = Hd.GetWif(extKey, network);
-
-            //    Console.WriteLine(wif);
-            //})
             //.WithParsed<ExtendedPubKeyOptions>(o =>
             //{
             //    string wif;
