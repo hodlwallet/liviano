@@ -84,12 +84,27 @@ namespace Liviano.Electrum
             AllServers = ShuffleServers(servers);
 
             // TODO This should be replaced by something way smarter
-            CurrentServer = AllServers[0];
+            //CurrentServer = AllServers[0];
         }
 
         public async Task FindConnectedServers()
         {
+            foreach (var s in AllServers)
+            {
+                s.OnConnectedEvent += HandleConnectedServers;
 
+                await s.ConnectAsync();
+            }
+        }
+
+        private void HandleConnectedServers(object sender, EventArgs e)
+        {
+            var server = (Server)sender;
+
+            if (CurrentServer is null)
+            {
+                CurrentServer = server;
+            }
         }
 
         Server[] ShuffleServers(Server[] servers)

@@ -32,6 +32,8 @@ namespace Liviano.Models
 {
     public class Server
     {
+        public const int RETRY_DELAY = 30000;
+
         [JsonProperty("domain")]
         public string Domain { get; set; }
 
@@ -47,18 +49,57 @@ namespace Liviano.Models
         [JsonProperty("version")]
         public string Version { get; set; }
 
-        public bool Connected { get; set; }
+        public EventHandler OnConnectedEvent;
+        public EventHandler OnDisconnectedEvent;
+        bool connected = false;
+        public bool Connected
+        {
+            get
+            {
+                return connected;
+            }
+
+            set
+            {
+                if (!connected)
+                    OnConnectedEvent?.Invoke(this, null);
+
+                if (!value)
+                    OnDisconnectedEvent?.Invoke(this, null);
+
+
+                connected = value;
+            }
+        }
 
         public ElectrumClient ElectrumClient { get; set; }
 
-        public async Task ConnectAsync()
+        /// <summary>
+        /// Connects by trying to get a version.
+        /// </summary>
+        /// <param name="retrying"><see langword="true"/> when retrying</param>
+        /// <returns></returns>
+        public async Task ConnectAsync(bool retrying = false)
         {
             Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
+
             var res = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
 
             if (res == ElectrumClient.REQUESTED_VERSION)
             {
-                Debug.WriteLine($"Done! at {DateTime.UtcNow}");
+                Debug.WriteLine($"Connected! at {DateTime.UtcNow}");
+
+                Connected = true;
+                return;
+            }
+
+            if (!retrying)
+            {
+                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
+
+                Connected = false;
+                await Task.Delay(RETRY_DELAY);
+                await ConnectAsync(retrying: true);
             }
         }
     }

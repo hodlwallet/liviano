@@ -236,12 +236,10 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        public static void TestElectrumConnection3(Network network)
+        public static async void TestElectrumConnection3(Network network)
         {
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");
-
-            int connectedServers = 0;
 
             string serversFileName = ElectrumClient.GetLocalConfigFilePath(
                 "Electrum",
@@ -254,6 +252,8 @@ namespace Liviano.CLI
             var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
             var pool = new ElectrumPool(servers.ToArray());
+
+            await pool.FindConnectedServers();
 
             WaitUntilEscapeIsPressed();
         }
