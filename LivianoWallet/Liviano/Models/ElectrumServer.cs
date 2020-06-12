@@ -35,6 +35,8 @@ namespace Liviano.Models
         public const int VERSION_REQUEST_RETRY_DELAY = 1500;
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
+        public string Ip { get; set; }
+
         [JsonProperty("domain")]
         public string Domain { get; set; }
 
@@ -125,7 +127,6 @@ namespace Liviano.Models
             }
         }
 
-        
         public async Task<Server[]> FindPeers()
         {
             var servers = new Server[] { };
@@ -134,15 +135,92 @@ namespace Liviano.Models
 
             var peers = await ElectrumClient.ServerPeersSubscribe();
 
-            Console.WriteLine($"Peers: {peers}");
-
             return servers;
+        }
+
+        public static Server FromPeersSubscribeItem(List<object> item)
+        {
+            // Example result:
+            // [
+            //   "107.150.45.210",
+            //   "e.anonyhost.org",
+            //   ["v1.0", "p10000", "t", "s995"]
+            // ]
+            // First IP and domain are the first 2
+            var ip = (string) item[0];
+            var domain = (string) item[1];
+
+            // Parsing features
+            var features = (string[]) item[2];
+
+            var version = "";
+            var pruning = "";
+            var tcpPort = "";
+            var sslPort = "";
+
+            foreach (string f in features)
+            {
+                switch(f[0])
+                {
+                    case 'v':
+                        version = f.Substring(1, f.Length);
+                        break;
+                    case 'p':
+                        pruning = f.Substring(1, f.Length);
+                        break;
+                    case 't':
+                        tcpPort = f.Substring(1, f.Length);
+                        break;
+                    case 's':
+                        sslPort = f.Substring(1, f.Length);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var server = new Server
+            {
+                Ip = ip,
+                Domain = domain,
+                Pruning = pruning,
+                Version = version
+            };
+
+            if (!string.IsNullOrEmpty(sslPort)) server.PrivatePort = int.Parse(sslPort);
+            else server.PrivatePort = null;
+
+            if (!string.IsNullOrEmpty(tcpPort)) server.UnencryptedPort = int.Parse(tcpPort);
+            else server.UnencryptedPort = null;
+
+            server.ElectrumClient = new ElectrumClient(
+                new JsonRpcClient(server)
+            );
+
+            return server;
         }
     }
 
     public class ElectrumServers
     {
         public List<Server> Servers { get; set; }
+
+        public static ElectrumServers FromPeersSubscribeResult(List<List<object>> result)
+        {
+            var servers = new ElectrumServers
+            {
+                Servers = new List<Server>()
+            };
+
+            foreach (var item in result)
+            {
+                var server = Server.FromPeersSubscribeItem(item);
+
+                servers.Servers.Add(server);
+            }
+
+            return servers;
+        }
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
         {

@@ -141,16 +141,32 @@ namespace Liviano.Electrum
                 CurrentServer = server;
             }
 
-            Console.WriteLine("Hello");
             // Find peers in a sub task as well
-            Task.Factory.StartNew(async () =>
-            {
-                Console.WriteLine("Hello2");
-                // This makes it wait
-                await server.FindPeers();
+            // This makes it wait
+            Task<Server[]> t = server.FindPeers();
 
-                Console.WriteLine("Hello3");
-            }, TaskCreationOptions.AttachedToParent);
+            t.Wait();
+
+            Console.WriteLine($"Now finished waiting for find peers: {t.Result}");
+
+            foreach (var s in t.Result)
+            {
+                Console.WriteLine($"Server = {s.Domain}");
+
+                if (AllServers.Any(s1 => s1.Domain == s.Domain))
+                {
+                    Console.WriteLine("Server already in list");
+
+                    continue;
+                }
+
+                s.OnConnectedEvent += HandleConnectedServers;
+
+                // This makes it wait
+                var t1 = s.ConnectAsync();
+
+                t1.Wait();
+            }
         }
 
         Server[] ShuffleServers(Server[] servers)
