@@ -11,10 +11,12 @@ namespace Liviano.CLI
 {
     class Program
     {
-        ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        static ILogger logger;
 
         static void Main(string[] args)
         {
+            logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
             // Defaults
             var network = Network.Main;
             var mnemonic = "";
@@ -84,6 +86,9 @@ namespace Liviano.CLI
             try
             {
                 extra = options.Parse(args);
+
+                if (extra.Count > 0)
+                    logger.Information($"Extra arguments: {string.Join(", ", extra)}");
             }
             catch (OptionException e)
             {
