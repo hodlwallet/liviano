@@ -23,6 +23,7 @@ namespace Liviano.CLI
             var mainnet = true;
             var mnemonic = "";
             var mnemonicLang = "english";
+            var passphrase = "";
             var mnemonicWordCount = 12;
 
             // Menu show
@@ -39,6 +40,7 @@ namespace Liviano.CLI
                 {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
                 {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
                 {"mn|mnemonic=", "Send mnemonic", (string v) => mnemonic = v},
+                {"ps|passphrase=", "Passphrase", (string v) => passphrase = v},
                 // Mnemonic
                 {"nmn|new-mnemonic", "Create new mnemonic", v => newMnemonic = !(v is null)},
                 // Default & help
@@ -95,7 +97,10 @@ namespace Liviano.CLI
 
             if (!string.IsNullOrEmpty(mnemonic))
             {
-                Console.WriteLine($"Sent menmonic = {mnemonic}");
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var wif = Hd.GetWif(extKey, network);
+
+                Console.WriteLine(wif);
 
                 return;
             }
