@@ -25,16 +25,18 @@ namespace Liviano.CLI
             var mnemonicWordCount = 12;
             var inputText = Console.ReadLine().Trim();
             var hasInputText = !string.IsNullOrEmpty(inputText);
-            var getXPrv = false;
-            var getXPub = false;
-            var getAddr = false;
             var wif = "";
+            var address = "";
             var addressType = "p2wpkh";
             var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
 
             // Menu show
             var showHelp = false;
+            var getXPrv = false;
+            var getXPub = false;
+            var getAddr = false;
             var newMnemonic = false;
+            var getScriptPubKey = false;
             var electrumTest3 = false;
 
             // Define options
@@ -49,6 +51,7 @@ namespace Liviano.CLI
                 {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
                 {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
                 {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
+                {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
@@ -68,11 +71,13 @@ namespace Liviano.CLI
             if (hasInputText)
             {
                 options.Add("mn|mnemonic", "Mnemonic", (string v) => mnemonic = inputText);
+                options.Add("addr|address", "Address", (string v) => address = inputText);
                 options.Add("wif|with-wif", "Wif", (string v) => wif = inputText);
             }
             else
             {
                 options.Add("mn|mnemonic=", "Mnemonic", (string v) => mnemonic = v);
+                options.Add("addr|address=", "Address", (string v) => address = v);
                 options.Add("wif|with-wif=", "Wif", (string v) => wif = v);
             }
 
@@ -139,6 +144,13 @@ namespace Liviano.CLI
                 return;
             }
 
+            if (getScriptPubKey)
+            {
+                Console.WriteLine(Hd.GetScriptPubKey(address, network.Name));
+
+                return;
+            }
+
             // Test / debugging LightClient commands
             if (electrumTest3)
             {
@@ -151,31 +163,6 @@ namespace Liviano.CLI
             Console.WriteLine("Invalid argument optoins.\n");
             LightClient.ShowHelp();
 
-            //.WithParsed<AddressToScriptPubKeyOptions>(o =>
-            //{
-            //    string network = "main";
-            //    string address = null;
-
-            //    if (o.Testnet)
-            //    {
-            //        network = "testnet";
-            //    }
-            //    else if (o.Regtest)
-            //    {
-            //        network = "regtest";
-            //    }
-
-            //    if (o.Address != null)
-            //    {
-            //        address = o.Address;
-            //    }
-            //    else
-            //    {
-            //        address = Console.ReadLine();
-            //    }
-
-            //    Console.WriteLine(Hd.GetScriptPubKey(address, network));
-            //})
             //.WithParsed<NewWalletOptions>(o =>
             //{
             //    string mnemonic = null;
