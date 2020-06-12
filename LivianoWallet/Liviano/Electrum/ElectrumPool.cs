@@ -89,19 +89,26 @@ namespace Liviano.Electrum
 
         public async void FindConnectedServers()
         {
-            await Task.Factory.StartNew(async () =>
+            var parent = Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
                 {
-                    await Task.Factory.StartNew(async () =>
+                    Task.Factory.StartNew(() =>
                     {
                         s.OnConnectedEvent += HandleConnectedServers;
 
-                        await s.ConnectAsync();
+                        // This makes it wait
+                        var t = s.ConnectAsync();
 
+                        t.Wait();
                     }, TaskCreationOptions.AttachedToParent);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
+
+            // This makes it wait, remove once done
+            parent.Wait();
+
+            Console.WriteLine($"Done! {DateTime.UtcNow}");
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)

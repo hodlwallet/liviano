@@ -23,16 +23,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Liviano.Electrum;
+
 using Newtonsoft.Json;
+
+using Liviano.Electrum;
 
 namespace Liviano.Models
 {
     public class Server
     {
-        public const int RETRY_DELAY = 30000;
+        public const int VERSION_REQUEST_RETRY_DELAY = 1500;
+        public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
         [JsonProperty("domain")]
         public string Domain { get; set; }
@@ -75,9 +77,9 @@ namespace Liviano.Models
         /// <summary>
         /// Connects by trying to get a version.
         /// </summary>
-        /// <param name="retrying"><see langword="true"/> when retrying</param>
+        /// <param name="retries">How many times we've retried</param>
         /// <returns></returns>
-        public async Task ConnectAsync(bool retrying = false)
+        public async Task ConnectAsync(int retries = 0)
         {
             Console.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
@@ -88,34 +90,39 @@ namespace Liviano.Models
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
+                Console.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
 
-                if (retrying)
+                if (retries >= VERSION_REQUEST_MAX_RETRIES)
                     return;
 
                 Connected = false;
 
-                //await Task.Delay(RETRY_DELAY);
-                await ConnectAsync(retrying: true);
+                Console.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+
+                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
+                await ConnectAsync(retries + 1);
 
                 return;
             }
 
             if (version == ElectrumClient.REQUESTED_VERSION)
             {
-                Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
+                Console.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
 
                 Connected = true;
                 return;
             }
 
-            if (!retrying)
+            if (retries >= VERSION_REQUEST_MAX_RETRIES)
             {
-                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
+                Console.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
 
                 Connected = false;
-                //await Task.Delay(RETRY_DELAY);
-                await ConnectAsync(retrying: true);
+
+                Console.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+
+                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
+                await ConnectAsync(retries + 1);
             }
         }
     }
