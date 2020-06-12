@@ -30,6 +30,7 @@ namespace Liviano.CLI
             var getAddr = false;
             var wif = "";
             var addressType = "p2wpkh";
+            var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
 
             // Menu show
             var showHelp = false;
@@ -42,32 +43,37 @@ namespace Liviano.CLI
                 // Global variables
                 {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : Network.TestNet},
                 {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : Network.Main},
+
+                // Actions
                 {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
                 {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
                 {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
+                {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
+
+                // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
                 {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
                 {"type|address-type=", "Set address type", (string v) => addressType = v},
-                // Mnemonic
-                {"nmn|new-mnemonic", "Create new mnemonic", v => newMnemonic = !(v is null)},
+                {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
+                {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
+
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
+
                 // Debugging commands
                 {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)},
             };
 
-            // Processing if there's input text or not
+            // Variables that support input text from the terminal
             if (hasInputText)
             {
-                options.Add("mn|mnemonic", "Send mnemonic", (string v) => mnemonic = inputText);
-                options.Add("wif|with-wif", "Send wif", (string v) => wif = inputText);
-                options.Add("ps|passphrase", "Passphrase", (string v) => passphrase = inputText);
+                options.Add("mn|mnemonic", "Mnemonic", (string v) => mnemonic = inputText);
+                options.Add("wif|with-wif", "Wif", (string v) => wif = inputText);
             }
             else
             {
-                options.Add("mn|mnemonic=", "Send mnemonic", (string v) => mnemonic = v);
-                options.Add("wif|with-wif=", "Send wif", (string v) => wif = v);
-                options.Add("ps|passphrase=", "Passphrase", (string v) => passphrase = v);
+                options.Add("mn|mnemonic=", "Mnemonic", (string v) => mnemonic = v);
+                options.Add("wif|with-wif=", "Wif", (string v) => wif = v);
             }
 
             // Parse arguments
@@ -105,15 +111,6 @@ namespace Liviano.CLI
 
             if (getXPrv)
             {
-                if (string.IsNullOrEmpty(mnemonic))
-                {
-                    Console.WriteLine("Error: empty mnemonic");
-
-                    LightClient.ShowHelp();
-
-                    return;
-                }
-
                 var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
                 var wifRes = Hd.GetWif(extKey, network);
 
@@ -124,7 +121,6 @@ namespace Liviano.CLI
 
             if (getXPub)
             {
-                var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
                 var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name);
                 var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
@@ -152,7 +148,7 @@ namespace Liviano.CLI
             }
 
             // End... invalid options
-            Console.WriteLine("Invalid options");
+            Console.WriteLine("Invalid argument optoins.\n");
             LightClient.ShowHelp();
 
             //.WithParsed<AddressToScriptPubKeyOptions>(o =>

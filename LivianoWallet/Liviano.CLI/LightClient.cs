@@ -83,7 +83,13 @@ namespace Liviano.CLI
 
         public static void ShowHelp()
         {
-            Console.WriteLine("Liviano is a wallet.");
+            // TODO Finish help
+            Console.WriteLine("Liviano a Bitcoin light client");
+            Console.WriteLine("==============================");
+            Console.WriteLine("...");
+            Console.WriteLine("HELP HERE");
+            Console.WriteLine("...");
+            Console.WriteLine("END.");
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
