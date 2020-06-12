@@ -71,9 +71,9 @@ namespace Liviano.CLI
             // Variables that support input text from the terminal
             if (hasInputText)
             {
-                options.Add("mn|mnemonic", "Mnemonic", (string v) => mnemonic = inputText);
-                options.Add("addr|address", "Address", (string v) => address = inputText);
-                options.Add("wif|with-wif", "Wif", (string v) => wif = inputText);
+                mnemonic = inputText;
+                address = inputText;
+                wif = inputText;
             }
             else
             {
