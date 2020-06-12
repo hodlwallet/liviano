@@ -106,7 +106,7 @@ namespace Liviano.Electrum
                         t1.Wait();
                     }, TaskCreationOptions.AttachedToParent);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
 
             await factory.ContinueWith((completedTasks) =>
             {
@@ -126,6 +126,10 @@ namespace Liviano.Electrum
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
+
+            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine($"Got report of server! {server.Domain}:{server.PrivatePort} at {DateTime.UtcNow}");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
             if (ConnectedServers.Contains(server))
                 ConnectedServers.Remove(server);
