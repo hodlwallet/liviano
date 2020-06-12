@@ -19,13 +19,24 @@ namespace Liviano.CLI
         {
             _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            bool showHelp = false;
+            // Defaults
+            var network = Network.Main;
+            var showHelp = false;
+            var testnet = false;
+            var mainnet = true;
+            var electrumTest3 = false;
 
+            // Define options
             var options = new OptionSet
             {
-                {"h|help", "Liviano help", h => showHelp = !(h is null)}
+                {"m|mainnet", "Run on mainnet", m => mainnet = !(m is null)},
+                {"t|testnet", "Run on testnet", t => testnet = !(t is null)},
+                {"h|help", "Liviano help", h => showHelp = !(h is null)},
+                // Debugging commands
+                {"et3|electrum-test-3", "Electrum test 3", et3 => electrumTest3 = !(et3 is null)}
             };
 
+            // Parse arguments
             List<string> extra;
             try
             {
@@ -33,22 +44,45 @@ namespace Liviano.CLI
             }
             catch (OptionException e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($"Error: {e.Message}");
+
                 LightClient.ShowHelp();
+
+                return;
             }
 
+            // Check if help was sent
             if (showHelp)
             {
                 LightClient.ShowHelp();
 
                 return;
             }
-            else
+
+            // Set variaables every command use
+            if (testnet)
             {
-                Console.WriteLine("Invalid options");
+                mainnet = false;
+
+                network = Network.TestNet;
+            }
+
+            if (mainnet)
+            {
+                network = Network.Main;
+            }
+
+            // LightClient commands, set everything before here
+            if (electrumTest3)
+            {
+                LightClient.TestElectrumConnection3(network);
 
                 return;
             }
+
+            // End... invalid options
+            Console.WriteLine("Invalid options");
+            Console.WriteLine("Show Help");
 
             //LightClient.TestElectrumConnection3(Network.TestNet);
 
