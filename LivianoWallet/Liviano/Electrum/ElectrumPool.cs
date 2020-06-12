@@ -88,32 +88,39 @@ namespace Liviano.Electrum
 
         public async void FindConnectedServers()
         {
-            List<Task> tasks = new List<Task> { };
-            await Task.Factory.StartNew(() =>
+            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine($"Start! {DateTime.UtcNow}");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+            var factory = Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
                 {
-                    tasks.Add(Task.Factory.StartNew(async () =>
+                    Task.Factory.StartNew(() =>
                     {
                         s.OnConnectedEvent += HandleConnectedServers;
 
                         // This makes it wait
-                        await s.ConnectAsync();
-                    }, TaskCreationOptions.AttachedToParent));
+                        var t1 = s.ConnectAsync();
+
+                        t1.Wait();
+                    }, TaskCreationOptions.AttachedToParent);
                 }
             }, TaskCreationOptions.LongRunning);
 
-            Task.WaitAll(tasks.ToArray());
+            await factory.ContinueWith((completedTasks) =>
+            {
+                Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                Console.WriteLine($"Done! {DateTime.UtcNow}");
+                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Done! {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                Console.WriteLine("Connected to:\n");
+                foreach (var s in ConnectedServers)
+                {
+                    Console.WriteLine($"{s.Domain}:{s.PrivatePort}");
+                }
+                Console.WriteLine();
+            });
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)

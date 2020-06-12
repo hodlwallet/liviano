@@ -273,7 +273,9 @@ namespace Liviano.CLI
 
         private static void Pool_OnConnectedEvent(object sender, Server e)
         {
-            Console.WriteLine($"Connected to {e.Domain}");
+            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine($"First Server to Connect! {e.Domain} at {DateTime.UtcNow}");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 
         public static void TestElectrumConnection2(Network network)
