@@ -27,7 +27,9 @@ namespace Liviano.CLI
             var hasInputText = !string.IsNullOrEmpty(inputText);
             var getXPrv = false;
             var getXPub = false;
+            var getAddr = false;
             var wif = "";
+            var addressType = "p2wpkh";
 
             // Menu show
             var showHelp = false;
@@ -42,8 +44,10 @@ namespace Liviano.CLI
                 {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : Network.Main},
                 {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
                 {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
+                {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
                 {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
                 {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
+                {"type|address-type=", "Set address type", (string v) => addressType = v},
                 // Mnemonic
                 {"nmn|new-mnemonic", "Create new mnemonic", v => newMnemonic = !(v is null)},
                 // Default & help
@@ -121,10 +125,20 @@ namespace Liviano.CLI
             if (getXPub)
             {
                 var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name.ToLower());
+                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name);
                 var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
                 Console.WriteLine(extPubKeyWif);
+
+                return;
+            }
+
+            if (getAddr)
+            {
+                int index = 1;
+                bool isChange = false;
+
+                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network.Name, addressType));
 
                 return;
             }
@@ -141,83 +155,6 @@ namespace Liviano.CLI
             Console.WriteLine("Invalid options");
             LightClient.ShowHelp();
 
-            //.WithParsed<ExtendedPubKeyOptions>(o =>
-            //{
-            //    string wif;
-            //    string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-            //    string network = "main";
-
-            //    if (o.Wif != null)
-            //    {
-            //        wif = o.Wif;
-            //    }
-            //    else
-            //    {
-            //        wif = Console.ReadLine();
-            //    }
-
-            //    if (o.Testnet)
-            //    {
-            //        network = "testnet";
-            //    }
-            //    else if (o.Regtest)
-            //    {
-            //        network = "regtest";
-            //    }
-
-            //    if (o.HdPath != null)
-            //    {
-            //        hdPath = o.HdPath;
-            //    }
-
-            //    var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network);
-            //    var extPubKeyWif = Hd.GetWif(extPubKey, network);
-
-            //    Console.WriteLine(extPubKeyWif);
-            //})
-            //.WithParsed<DeriveAddressOptions>(o =>
-            //{
-            //    string wif;
-            //    int index = 1;
-            //    bool isChange = false;
-            //    string network = "main";
-            //    string type = "p2wpkh";
-
-            //    if (o.Wif != null)
-            //    {
-            //        wif = o.Wif;
-            //    }
-            //    else
-            //    {
-            //        wif = Console.ReadLine();
-            //    }
-
-            //    if (o.Index != null)
-            //    {
-            //        index = (int)o.Index;
-            //    }
-
-            //    if (o.IsChange)
-            //    {
-            //        isChange = o.IsChange;
-            //    }
-
-            //    if (o.Testnet)
-            //    {
-            //        network = "testnet";
-            //    }
-            //    else if (o.Regtest)
-            //    {
-            //        network = "regtest";
-            //    }
-
-            //    if (o.Type != null)
-            //    {
-            //        type = o.Type;
-            //    }
-
-            //    Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type));
-            //})
             //.WithParsed<AddressToScriptPubKeyOptions>(o =>
             //{
             //    string network = "main";
