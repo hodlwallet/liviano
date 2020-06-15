@@ -163,11 +163,14 @@ namespace Liviano.Electrum
             {
                 Console.WriteLine($"Server = {s.Domain}");
 
-                if (AllServers.ContainsServer(s))
+                lock (lockConnected)
                 {
-                    Console.WriteLine("Server already in list");
+                    if (AllServers.ContainsServer(s) || ConnectedServers.ContainsServer(s))
+                    {
+                        Console.WriteLine("Server already in list");
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 s.OnConnectedEvent += HandleConnectedServers;

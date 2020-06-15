@@ -116,7 +116,7 @@ namespace Liviano.Models
                 return;
             }
 
-            if (retries >= VERSION_REQUEST_MAX_RETRIES)
+            if (retries > VERSION_REQUEST_MAX_RETRIES)
             {
                 Console.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
 
