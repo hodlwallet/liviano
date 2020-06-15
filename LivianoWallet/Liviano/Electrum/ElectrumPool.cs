@@ -188,5 +188,4 @@ namespace Liviano.Electrum
         public CurrentServerChangedEventArgs(Server server) { Server = server; }
         public Server Server { get; } // readonly
     }
-
 }
