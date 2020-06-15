@@ -48,7 +48,11 @@ namespace Liviano.Extensions
 
         public static bool ContainsServer(this List<Server> servers, Server server)
         {
-            return servers.Any(s => s.Domain != null && s.Domain == server.Domain);
+            return servers.Any(s =>
+                s.Domain != null &&
+                s.Domain == server.Domain &&
+                s.PrivatePort == server.PrivatePort
+            );
         }
 
         public static bool ContainsServer(this Server[] servers, Server server)

@@ -157,15 +157,13 @@ namespace Liviano.Electrum
 
             t.Wait();
 
-            Console.WriteLine($"Now finished waiting for find peers: {t.Result}");
-
             foreach (var s in t.Result)
             {
                 Console.WriteLine($"Server = {s.Domain}");
 
                 lock (lockConnected)
                 {
-                    if (AllServers.ContainsServer(s) || ConnectedServers.ContainsServer(s))
+                    if (ConnectedServers.ContainsServer(s))
                     {
                         Console.WriteLine("Server already in list");
 
