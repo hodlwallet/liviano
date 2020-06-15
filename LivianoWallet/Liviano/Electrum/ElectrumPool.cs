@@ -25,7 +25,6 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Liviano.Models;
@@ -37,6 +36,7 @@ namespace Liviano.Electrum
     {
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
         public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
+        object lockConnected = new object();
 
         public bool Connected { get; private set; }
 
@@ -85,7 +85,7 @@ namespace Liviano.Electrum
 
         public ElectrumPool(Server[] servers)
         {
-            AllServers = ShuffleServers(servers);
+            AllServers = servers.Shuffle();
             ConnectedServers = new List<Server> { };
         }
 
@@ -134,20 +134,24 @@ namespace Liviano.Electrum
             Console.WriteLine($"Got report of server! {server.Domain}:{server.PrivatePort} at {DateTime.UtcNow}");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-            if (ConnectedServers.ContainsServer(server))
+            lock (lockConnected){
+                if (ConnectedServers.ContainsServer(server)) {
+                    Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    Console.WriteLine("SERVER REJECTED");
+                    Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-                return;
+                    return;
+                }
 
-            ConnectedServers.Insert(0, server);
+                ConnectedServers.Insert(0, server);
 
-            if (CurrentServer is null)
-            {
-                CurrentServer = server;
+                if (CurrentServer is null)
+                {
+                    CurrentServer = server;
+                }
+                // If we have enough connected servers we stop looking for peers
+                if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
             }
-
-            // If we have enough connected servers we stop looking for peers
-            if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS)
-                return;
 
             Task<Server[]> t = server.FindPeersAsync();
 
@@ -173,13 +177,6 @@ namespace Liviano.Electrum
 
                 t1.Wait();
             }
-        }
-
-        Server[] ShuffleServers(Server[] servers)
-        {
-            Random rnd = new Random();
-
-            return servers.OrderBy(n => rnd.Next()).ToArray();
         }
     }
 

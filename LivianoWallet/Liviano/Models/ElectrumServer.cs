@@ -212,6 +212,7 @@ namespace Liviano.Models
 
         public static ElectrumServers FromPeersSubscribeResult(List<List<object>> result)
         {
+
             var servers = new ElectrumServers();
 
             foreach (var item in result)

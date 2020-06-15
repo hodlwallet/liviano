@@ -48,12 +48,19 @@ namespace Liviano.Extensions
 
         public static bool ContainsServer(this List<Server> servers, Server server)
         {
-            return servers.Any(s => s.Domain == server.Domain || (s.Ip != null &&  s.Ip == s.Ip));
+            return servers.Any(s => s.Domain != null && s.Domain == server.Domain);
         }
 
         public static bool ContainsServer(this Server[] servers, Server server)
         {
             return (new List<Server>(servers)).ContainsServer(server);
+        }
+
+        public static Server[] Shuffle(this Server[] servers)
+        {
+            Random rnd = new Random();
+
+            return servers.OrderBy(n => rnd.Next()).ToArray();
         }
     }
 }
