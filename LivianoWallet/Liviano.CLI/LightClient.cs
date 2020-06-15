@@ -265,10 +265,18 @@ namespace Liviano.CLI
             var pool = new ElectrumPool(servers.ToArray());
 
             pool.OnConnectedEvent += Pool_OnConnectedEvent;
+            pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;
 
             pool.FindConnectedServers();
 
             WaitUntilEscapeIsPressed();
+        }
+
+        private static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
+        {
+            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("Done finding peers!!!");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 
         private static void Pool_OnConnectedEvent(object sender, Server e)

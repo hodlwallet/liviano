@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 
 using Liviano.Models;
 using Liviano.Extensions;
+using System.Diagnostics;
 
 namespace Liviano.Electrum
 {
@@ -36,7 +37,7 @@ namespace Liviano.Electrum
     {
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
         public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
-        object lockConnected = new object();
+        readonly object lockConnected = new object();
 
         public bool Connected { get; private set; }
 
@@ -77,6 +78,8 @@ namespace Liviano.Electrum
 
         public event EventHandler<Server> OnDisconnectedEvent;
 
+        public event EventHandler OnDoneFindingPeersEvent;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -91,10 +94,6 @@ namespace Liviano.Electrum
 
         public async void FindConnectedServers()
         {
-            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Start! {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-
             var factory = Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
@@ -113,42 +112,36 @@ namespace Liviano.Electrum
 
             await factory.ContinueWith((completedTasks) =>
             {
-                Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                Console.WriteLine($"Done! {DateTime.UtcNow}");
-                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+                OnDoneFindingPeersEvent?.Invoke(this, null);
 
-                Console.WriteLine($"Connected to: {CurrentServer.Domain}:{CurrentServer.PrivatePort}, server list: \n");
+                Debug.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                Debug.WriteLine($"Done! {DateTime.UtcNow}");
+                Debug.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+                Debug.WriteLine($"Connected to: {CurrentServer.Domain}:{CurrentServer.PrivatePort}, server list: \n");
                 foreach (var s in ConnectedServers)
                 {
-                    Console.WriteLine($"{s.Domain}:{s.PrivatePort}");
+                    Debug.WriteLine($"{s.Domain}:{s.PrivatePort}");
                 }
-                Console.WriteLine();
             });
+        }
+
+        public void RemoveServer(Server server)
+        {
+            lock (lockConnected) ConnectedServers.RemoveServer(server);
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
 
-            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Got report of server! {server.Domain}:{server.PrivatePort} at {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-
-            lock (lockConnected){
-                if (ConnectedServers.ContainsServer(server)) {
-                    Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    Console.WriteLine("SERVER REJECTED");
-                    Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-
-                    return;
-                }
+            lock (lockConnected)
+            {
+                if (ConnectedServers.ContainsServer(server)) return;
 
                 ConnectedServers.Insert(0, server);
 
-                if (CurrentServer is null)
-                {
-                    CurrentServer = server;
-                }
+                if (CurrentServer is null) CurrentServer = server;
 
                 // If we have enough connected servers we stop looking for peers
                 lock (lockConnected)
@@ -164,14 +157,7 @@ namespace Liviano.Electrum
                 Console.WriteLine($"Server = {s.Domain}");
 
                 lock (lockConnected)
-                {
-                    if (ConnectedServers.ContainsServer(s))
-                    {
-                        Console.WriteLine("Server already in list");
-
-                        continue;
-                    }
-                }
+                    if (ConnectedServers.ContainsServer(s)) continue;
 
                 s.OnConnectedEvent += HandleConnectedServers;
 

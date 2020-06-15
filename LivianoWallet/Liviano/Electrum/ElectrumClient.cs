@@ -26,7 +26,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
@@ -37,7 +36,6 @@ using Newtonsoft.Json.Serialization;
 using NBitcoin;
 
 using Liviano.Models;
-using Liviano.Extensions;
 using Liviano.Exceptions;
 
 namespace Liviano.Electrum
@@ -46,7 +44,7 @@ namespace Liviano.Electrum
     {
         public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
-        readonly JsonRpcClient JsonRpcClient;
+        readonly JsonRpcClient jsonRpcClient;
 
         public class Request
         {
@@ -197,7 +195,7 @@ namespace Liviano.Electrum
 
         public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
-            JsonRpcClient = jsonRpcClient;
+            this.jsonRpcClient = jsonRpcClient;
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
@@ -223,11 +221,11 @@ namespace Liviano.Electrum
 
         async Task<T> RequestInternal<T>(string jsonRequest)
         {
-            var rawResponse = await JsonRpcClient.Request(jsonRequest);
+            var rawResponse = await jsonRpcClient.Request(jsonRequest);
 
             if (string.IsNullOrEmpty(rawResponse))
             {
-                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", JsonRpcClient.Host, jsonRequest));
+                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", jsonRpcClient.Host, jsonRequest));
             }
 
             try
@@ -236,7 +234,8 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"There's an error??? {ex.Message}");
+                Debug.WriteLine($"There's an error??? {ex.Message}");
+
                 throw new ElectrumException(ex.Message);
             }
         }
@@ -348,7 +347,7 @@ namespace Liviano.Electrum
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            await JsonRpcClient.Subscribe(json, (res) =>
+            await jsonRpcClient.Subscribe(json, (res) =>
             {
                 foundTxCallback(res);
             });
