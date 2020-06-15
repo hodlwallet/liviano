@@ -80,7 +80,7 @@ namespace Liviano.Models
         /// </summary>
         /// <param name="retries">How many times we've retried</param>
         /// <returns></returns>
-        public async Task ConnectAsync(int retries = 3)
+        public async Task ConnectAsync(int retries = 2)
         {
             Debug.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
@@ -106,7 +106,7 @@ namespace Liviano.Models
                 return;
             }
 
-            if (version == ElectrumClient.REQUESTED_VERSION)
+            if (!string.IsNullOrEmpty(version.ToString()))
             {
                 Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
 
@@ -124,6 +124,8 @@ namespace Liviano.Models
 
                 await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
                 await ConnectAsync(retries + 1);
+
+                return;
             }
         }
 
@@ -131,9 +133,18 @@ namespace Liviano.Models
         {
             Debug.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
-            var peers = await ElectrumClient.ServerPeersSubscribe();
+            try
+            {
+                var peers = await ElectrumClient.ServerPeersSubscribe();
 
-            return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.CompatibleServers().ToArray();
+                return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.CompatibleServers().ToArray();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error: {e.Message}");
+
+                return new Server[] { };
+            }
         }
 
         public static Server FromPeersSubscribeResultItem(List<object> item)

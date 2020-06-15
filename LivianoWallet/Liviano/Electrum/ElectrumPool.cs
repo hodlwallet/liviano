@@ -91,7 +91,7 @@ namespace Liviano.Electrum
 
         public async void FindConnectedServers()
         {
-            var factory = Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
                 {
@@ -105,9 +105,9 @@ namespace Liviano.Electrum
                         t1.Wait();
                     }, TaskCreationOptions.AttachedToParent);
                 }
-            }, TaskCreationOptions.LongRunning);
+            });
 
-            await factory.ContinueWith((completedTasks) => OnDoneFindingPeersEvent?.Invoke(this, null));
+            OnDoneFindingPeersEvent?.Invoke(this, null);
         }
 
         public void RemoveServer(Server server)
@@ -118,8 +118,6 @@ namespace Liviano.Electrum
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
-
-            Console.WriteLine($"Handling peer = {server.Domain}:{server.PrivatePort}");
 
             lock (@lock)
             {
@@ -133,17 +131,25 @@ namespace Liviano.Electrum
                 if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
             }
 
+            Console.WriteLine($"Connected to: {server.Domain}:{server.PrivatePort}");
+
             Task<Server[]> t = server.FindPeersAsync();
             t.Wait();
 
-            foreach (var s in t.Result)
+            Task.Factory.StartNew(() =>
             {
-                lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
+                foreach (var s in t.Result)
+                {
+                    lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
-                s.OnConnectedEvent += HandleConnectedServers;
+                    Task.Factory.StartNew(() =>
+                    {
+                        s.OnConnectedEvent += HandleConnectedServers;
 
-                s.ConnectAsync().Wait();
-            }
+                        s.ConnectAsync().Wait();
+                    }, TaskCreationOptions.AttachedToParent);
+                }
+            }).Wait();
         }
     }
 }

@@ -164,6 +164,12 @@ namespace Liviano.Electrum
 
                 return false;
             }
+            catch (JsonReaderException e)
+            {
+                Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message);
+
+                return false;
+            }
 
             return true;
         }
