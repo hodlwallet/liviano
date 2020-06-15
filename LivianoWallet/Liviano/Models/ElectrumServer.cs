@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
@@ -84,7 +85,7 @@ namespace Liviano.Models
         /// <returns></returns>
         public async Task ConnectAsync(int retries = 0)
         {
-            Console.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+            Debug.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
             System.Version version;
             try
@@ -93,14 +94,14 @@ namespace Liviano.Models
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
+                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
 
                 if (retries >= VERSION_REQUEST_MAX_RETRIES)
                     return;
 
                 Connected = false;
 
-                Console.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
 
                 await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
                 await ConnectAsync(retries + 1);
@@ -110,7 +111,7 @@ namespace Liviano.Models
 
             if (version == ElectrumClient.REQUESTED_VERSION)
             {
-                Console.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
+                Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
 
                 Connected = true;
                 return;
@@ -118,11 +119,11 @@ namespace Liviano.Models
 
             if (retries > VERSION_REQUEST_MAX_RETRIES)
             {
-                Console.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
+                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
 
                 Connected = false;
 
-                Console.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
 
                 await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
                 await ConnectAsync(retries + 1);
@@ -131,7 +132,7 @@ namespace Liviano.Models
 
         public async Task<Server[]> FindPeersAsync()
         {
-            Console.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+            Debug.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
             var peers = await ElectrumClient.ServerPeersSubscribe();
 
