@@ -138,7 +138,7 @@ namespace Liviano.Models
             return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.CompatibleServers().ToArray();
         }
 
-        public static Server FromPeersSubscribeItem(List<object> item)
+        public static Server FromPeersSubscribeResultItem(List<object> item)
         {
             // Example result:
             // [
@@ -147,10 +147,10 @@ namespace Liviano.Models
             //   ["v1.0", "p10000", "t", "s995"]
             // ]
             // First IP and domain are the first 2
-            var ip = (string) item[0];
-            var domain = (string) item[1];
+            var ip = (string)item[0];
+            var domain = (string)item[1];
 
-            var features = (JArray) item[2];
+            var features = (JArray)item[2];
 
             // Parsing features
             var version = "";
@@ -160,7 +160,9 @@ namespace Liviano.Models
 
             foreach (string f in features)
             {
-                switch((char) f[0])
+                if (string.IsNullOrEmpty(f)) continue;
+
+                switch ((char)f[0])
                 {
                     case 'v':
                         version = f.Substring(1);
@@ -207,7 +209,7 @@ namespace Liviano.Models
 
         public ElectrumServers()
         {
-            Servers = new List<Server> {};
+            Servers = new List<Server> { };
         }
 
         public static ElectrumServers FromPeersSubscribeResult(List<List<object>> result)
@@ -217,7 +219,7 @@ namespace Liviano.Models
 
             foreach (var item in result)
             {
-                var server = Server.FromPeersSubscribeItem(item);
+                var server = Server.FromPeersSubscribeResultItem(item);
 
                 servers.Servers.Add(server);
             }
