@@ -105,22 +105,9 @@ namespace Liviano.Electrum
                         t1.Wait();
                     }, TaskCreationOptions.AttachedToParent);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
-            await factory.ContinueWith((completedTasks) =>
-            {
-                OnDoneFindingPeersEvent?.Invoke(this, null);
-
-                Debug.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                Debug.WriteLine($"Done! {DateTime.UtcNow}");
-                Debug.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-
-                Debug.WriteLine($"Connected to: {CurrentServer.Domain}:{CurrentServer.PrivatePort}, server list: \n");
-                foreach (var s in ConnectedServers)
-                {
-                    Debug.WriteLine($"{s.Domain}:{s.PrivatePort}");
-                }
-            });
+            await factory.ContinueWith((completedTasks) => OnDoneFindingPeersEvent?.Invoke(this, null));
         }
 
         public void RemoveServer(Server server)
@@ -132,6 +119,8 @@ namespace Liviano.Electrum
         {
             var server = (Server)sender;
 
+            Console.WriteLine($"Handling peer = {server.Domain}:{server.PrivatePort}");
+
             lock (@lock)
             {
                 if (ConnectedServers.ContainsServer(server)) return;
@@ -141,27 +130,19 @@ namespace Liviano.Electrum
                 if (CurrentServer is null) CurrentServer = server;
 
                 // If we have enough connected servers we stop looking for peers
-                lock (@lock)
-                    if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+                if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
             }
 
             Task<Server[]> t = server.FindPeersAsync();
-
             t.Wait();
 
             foreach (var s in t.Result)
             {
-                Console.WriteLine($"Server = {s.Domain}");
-
-                lock (@lock)
-                    if (ConnectedServers.ContainsServer(s)) continue;
+                lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
                 s.OnConnectedEvent += HandleConnectedServers;
 
-                // This makes it wait
-                var t1 = s.ConnectAsync();
-
-                t1.Wait();
+                s.ConnectAsync().Wait();
             }
         }
     }
