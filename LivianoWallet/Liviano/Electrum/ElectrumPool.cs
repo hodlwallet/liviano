@@ -27,13 +27,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Liviano.Models;
+using Liviano.Extensions;
 
 namespace Liviano.Electrum
 {
     public class ElectrumPool
     {
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
+        public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
 
         public bool Connected { get; private set; }
 
@@ -114,7 +117,7 @@ namespace Liviano.Electrum
                 Console.WriteLine($"Done! {DateTime.UtcNow}");
                 Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-                Console.WriteLine("Connected to:\n");
+                Console.WriteLine($"Connected to: {CurrentServer.Domain}:{CurrentServer.PrivatePort}, server list: \n");
                 foreach (var s in ConnectedServers)
                 {
                     Console.WriteLine($"{s.Domain}:{s.PrivatePort}");
@@ -131,8 +134,9 @@ namespace Liviano.Electrum
             Console.WriteLine($"Got report of server! {server.Domain}:{server.PrivatePort} at {DateTime.UtcNow}");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-            if (ConnectedServers.Contains(server))
-                ConnectedServers.Remove(server);
+            if (ConnectedServers.ContainsServer(server))
+
+                return;
 
             ConnectedServers.Insert(0, server);
 
@@ -141,8 +145,10 @@ namespace Liviano.Electrum
                 CurrentServer = server;
             }
 
-            // Find peers in a sub task as well
-            // This makes it wait
+            // If we have enough connected servers we stop looking for peers
+            if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS)
+                return;
+
             Task<Server[]> t = server.FindPeersAsync();
 
             t.Wait();
@@ -153,7 +159,7 @@ namespace Liviano.Electrum
             {
                 Console.WriteLine($"Server = {s.Domain}");
 
-                if (AllServers.Any(s1 => s1.Domain == s.Domain))
+                if (AllServers.ContainsServer(s))
                 {
                     Console.WriteLine("Server already in list");
 

@@ -25,8 +25,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using Liviano.Electrum;
+using Liviano.Extensions;
 
 namespace Liviano.Models
 {
@@ -133,7 +135,7 @@ namespace Liviano.Models
 
             var peers = await ElectrumClient.ServerPeersSubscribe();
 
-            return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.ToArray();
+            return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.CompatibleServers().ToArray();
         }
 
         public static Server FromPeersSubscribeItem(List<object> item)
@@ -148,9 +150,9 @@ namespace Liviano.Models
             var ip = (string) item[0];
             var domain = (string) item[1];
 
-            // Parsing features
-            var features = (string[]) item[2];
+            var features = (JArray) item[2];
 
+            // Parsing features
             var version = "";
             var pruning = "";
             var tcpPort = "";
@@ -158,22 +160,22 @@ namespace Liviano.Models
 
             foreach (string f in features)
             {
-                switch(f[0])
+                switch((char) f[0])
                 {
                     case 'v':
-                        version = f.Substring(1, f.Length);
-                        break;
+                        version = f.Substring(1);
+                        continue;
                     case 'p':
-                        pruning = f.Substring(1, f.Length);
-                        break;
+                        pruning = f.Substring(1);
+                        continue;
                     case 't':
-                        tcpPort = f.Substring(1, f.Length);
-                        break;
+                        tcpPort = f.Substring(1);
+                        continue;
                     case 's':
-                        sslPort = f.Substring(1, f.Length);
-                        break;
+                        sslPort = f.Substring(1);
+                        continue;
                     default:
-                        break;
+                        continue;
                 }
             }
 

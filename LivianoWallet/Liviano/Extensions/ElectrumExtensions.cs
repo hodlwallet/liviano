@@ -45,5 +45,15 @@ namespace Liviano.Extensions
                 server.PrivatePort != null
             ).ToList();
         }
+
+        public static bool ContainsServer(this List<Server> servers, Server server)
+        {
+            return servers.Any(s => s.Domain == server.Domain || (s.Ip != null &&  s.Ip == s.Ip));
+        }
+
+        public static bool ContainsServer(this Server[] servers, Server server)
+        {
+            return (new List<Server>(servers)).ContainsServer(server);
+        }
     }
 }
