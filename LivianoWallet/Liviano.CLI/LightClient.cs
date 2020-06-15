@@ -292,7 +292,7 @@ namespace Liviano.CLI
         private static void Pool_OnConnectedEvent(object sender, Server e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"First Server to Connect! {e.Domain} at {DateTime.UtcNow}");
+            Console.WriteLine($"First Server to Connect!\n{e.Domain} at {DateTime.UtcNow}");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 

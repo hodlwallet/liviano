@@ -125,23 +125,23 @@ namespace Liviano
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
 
-            Id = Id ?? Guid.NewGuid().ToString();
-            Name = Name ?? name ?? DEFAULT_WALLET_NAME;
+            Id ??= Guid.NewGuid().ToString();
+            Name ??= name ?? DEFAULT_WALLET_NAME;
 
-            Network = Network ?? network ?? Network.Main;
+            Network ??= network ?? Network.Main;
 
-            CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
+            CreatedAt ??= createdAt ?? DateTimeOffset.UtcNow;
 
-            Storage = Storage ?? storage ?? new FileSystemStorage(Id, Network);
+            Storage ??= storage ?? new FileSystemStorage(Id, Network);
 
-            TxIds = TxIds ?? new List<string>();
-            Txs = Txs ?? new List<Tx>();
+            TxIds ??= new List<string>();
+            Txs ??= new List<Tx>();
 
-            AccountIds = AccountIds ?? new List<string>();
-            Accounts = Accounts ?? new List<IAccount>();
+            AccountIds ??= new List<string>();
+            Accounts ??= new List<IAccount>();
 
-            CurrentAccountId = CurrentAccountId ?? null;
-            currentAccount = currentAccount ?? null;
+            CurrentAccountId ??= null;
+            currentAccount ??= null;
 
             CurrentAssembly = assembly ?? Assembly.GetExecutingAssembly();
 

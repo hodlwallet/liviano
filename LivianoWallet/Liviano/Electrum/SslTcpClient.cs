@@ -32,7 +32,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
 
 using Newtonsoft.Json;
-using System;
 
 namespace Liviano.Electrum
 {
@@ -164,7 +163,7 @@ namespace Liviano.Electrum
 
                 return false;
             }
-            catch (JsonReaderException e)
+            catch (Newtonsoft.Json.JsonReaderException e)
             {
                 Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message);
 
