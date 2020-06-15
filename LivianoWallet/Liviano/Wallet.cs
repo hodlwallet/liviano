@@ -631,7 +631,7 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            var colors = GradientHex();
+            var colors = RandomGradientHexColor();
 
             switch (type)
             {
@@ -652,7 +652,7 @@ namespace Liviano
         /// <summary>
         /// Creates the two Hexadecimal strings representing an account gradient.
         /// </summary>
-        public static (string, string) GradientHex()
+        public static (string, string) RandomGradientHexColor()
         {
             var rng = new Random();
 
