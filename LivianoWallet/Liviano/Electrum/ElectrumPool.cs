@@ -149,8 +149,10 @@ namespace Liviano.Electrum
                 {
                     CurrentServer = server;
                 }
+
                 // If we have enough connected servers we stop looking for peers
-                if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+                lock (lockConnected)
+                    if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
             }
 
             Task<Server[]> t = server.FindPeersAsync();
