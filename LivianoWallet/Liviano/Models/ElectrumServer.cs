@@ -60,10 +60,7 @@ namespace Liviano.Models
         bool connected = false;
         public bool Connected
         {
-            get
-            {
-                return connected;
-            }
+            get => connected;
 
             set
             {

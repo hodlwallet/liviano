@@ -37,17 +37,14 @@ namespace Liviano.Electrum
     {
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
         public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
-        readonly object lockConnected = new object();
+        readonly object @lock = new object();
 
         public bool Connected { get; private set; }
 
         Server currentServer;
         public Server CurrentServer
         {
-            get
-            {
-                return currentServer;
-            }
+            get => currentServer;
 
             set
             {
@@ -128,14 +125,14 @@ namespace Liviano.Electrum
 
         public void RemoveServer(Server server)
         {
-            lock (lockConnected) ConnectedServers.RemoveServer(server);
+            lock (@lock) ConnectedServers.RemoveServer(server);
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
 
-            lock (lockConnected)
+            lock (@lock)
             {
                 if (ConnectedServers.ContainsServer(server)) return;
 
@@ -144,7 +141,7 @@ namespace Liviano.Electrum
                 if (CurrentServer is null) CurrentServer = server;
 
                 // If we have enough connected servers we stop looking for peers
-                lock (lockConnected)
+                lock (@lock)
                     if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
             }
 
@@ -156,7 +153,7 @@ namespace Liviano.Electrum
             {
                 Console.WriteLine($"Server = {s.Domain}");
 
-                lock (lockConnected)
+                lock (@lock)
                     if (ConnectedServers.ContainsServer(s)) continue;
 
                 s.OnConnectedEvent += HandleConnectedServers;
@@ -167,11 +164,5 @@ namespace Liviano.Electrum
                 t1.Wait();
             }
         }
-    }
-
-    public class CurrentServerChangedEventArgs
-    {
-        public CurrentServerChangedEventArgs(Server server) { Server = server; }
-        public Server Server { get; } // readonly
     }
 }

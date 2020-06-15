@@ -229,12 +229,12 @@ namespace Liviano
                 var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
                 account.ExternalAddressesCount = externalCount;
 
-                var accountWithAddresses = _AccountsWithAddresses(@lock);
+                var accountWithAddresses = AccountsWithAddresses(@lock);
 
                 foreach (var addr in account.GetReceiveAddress(account.GapLimit))
                 {
                     var scriptHashStr = addr.ToScriptHash().ToHex();
-                    var accountAddresses = _GetAccountAddresses(account);
+                    var accountAddresses = GetAccountAddresses(account);
 
                     var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                     {
@@ -313,7 +313,7 @@ namespace Liviano
 
             try
             {
-                await _SyncTask();
+                await SyncTask();
             }
             catch (Exception ex)
             {
@@ -346,19 +346,19 @@ namespace Liviano
             await Sync();
         }
 
-        async Task _SyncTask()
+        async Task SyncTask()
         {
             Debug.WriteLine("[Sync] Syncing...");
 
             var electrum = await GetElectrumClient();
             var @lock = new object();
 
-            var accountsWithAddresses = _AccountsWithAddresses(@lock);
+            var accountsWithAddresses = AccountsWithAddresses(@lock);
 
             var tasks = new List<Task>();
             foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
             {
-                var t = _GetAccountTask(entry, electrum);
+                var t = GetAccountTask(entry, electrum);
 
                 tasks.Add(t);
             }
@@ -413,7 +413,7 @@ namespace Liviano
             return (true, null);
         }
 
-        Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
+        Task GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
         {
             var t = Task.Factory.StartNew(async () =>
             {
@@ -527,14 +527,14 @@ namespace Liviano
             }
         }
 
-        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> _AccountsWithAddresses(object @lock = null)
+        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> AccountsWithAddresses(object @lock = null)
         {
             @lock = @lock ?? new object();
             var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
 
             foreach (var account in Accounts)
             {
-                var addresses = _GetAccountAddresses(account, @lock);
+                var addresses = GetAccountAddresses(account, @lock);
 
                 accountsWithAddresses.Add(account, addresses);
             }
@@ -542,7 +542,7 @@ namespace Liviano
             return accountsWithAddresses;
         }
 
-        Dictionary<string, BitcoinAddress[]> _GetAccountAddresses(IAccount account, object @lock = null)
+        Dictionary<string, BitcoinAddress[]> GetAccountAddresses(IAccount account, object @lock = null)
         {
             @lock = @lock ?? new object();
             var addresses = new Dictionary<string, BitcoinAddress[]>();
