@@ -83,7 +83,7 @@ namespace Liviano.Models
         /// </summary>
         /// <param name="retries">How many times we've retried</param>
         /// <returns></returns>
-        public async Task ConnectAsync(int retries = 0)
+        public async Task ConnectAsync(int retries = 3)
         {
             Debug.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 

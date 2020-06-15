@@ -48,7 +48,10 @@ namespace Liviano.Extensions
 
         public static void RemoveServer(this List<Server> servers, Server server)
         {
-            var i = servers.FindIndex(s => s.Domain == server.Domain && s.PrivatePort == server.PrivatePort);
+            var i = servers.FindIndex(s =>
+                s.Domain == server.Domain &&
+                s.PrivatePort == server.PrivatePort
+            );
 
             servers.RemoveAt(i);
         }
@@ -56,7 +59,6 @@ namespace Liviano.Extensions
         public static bool ContainsServer(this List<Server> servers, Server server)
         {
             return servers.Any(s =>
-                s.Domain != null &&
                 s.Domain == server.Domain &&
                 s.PrivatePort == server.PrivatePort
             );

@@ -51,9 +51,9 @@ namespace Liviano
         const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
 
-        Key _PrivateKey;
+        Key privateKey;
 
-        ExtKey _ExtKey;
+        ExtKey extKey;
 
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
@@ -73,23 +73,23 @@ namespace Liviano
 
         public Assembly CurrentAssembly { get; set; }
 
-        IAccount _CurrentAccount;
+        IAccount currentAccount;
         public IAccount CurrentAccount
         {
             get
             {
-                if (_CurrentAccount is null || _CurrentAccount.Id != CurrentAccountId)
+                if (currentAccount is null || currentAccount.Id != CurrentAccountId)
                 {
-                    _CurrentAccount = Accounts.FirstOrDefault((a) => a.Id == CurrentAccountId);
+                    currentAccount = Accounts.FirstOrDefault((a) => a.Id == CurrentAccountId);
                 }
 
-                return _CurrentAccount;
+                return currentAccount;
             }
 
             set
             {
                 CurrentAccountId = value.Id;
-                _CurrentAccount = value;
+                currentAccount = value;
             }
         }
 
@@ -99,7 +99,7 @@ namespace Liviano
         public List<string> AccountIds { get; set; }
         public List<IAccount> Accounts { get; set; }
 
-        IStorage _Storage;
+        IStorage storage;
 
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
@@ -109,14 +109,14 @@ namespace Liviano
 
         public IStorage Storage
         {
-            get => _Storage;
+            get => storage;
             set
             {
-                _Storage = value;
+                storage = value;
 
-                _Storage.Id = Id;
-                _Storage.Network = Network;
-                _Storage.Wallet = this;
+                storage.Id = Id;
+                storage.Network = Network;
+                storage.Wallet = this;
             }
         }
 
@@ -141,7 +141,7 @@ namespace Liviano
             Accounts = Accounts ?? new List<IAccount>();
 
             CurrentAccountId = CurrentAccountId ?? null;
-            _CurrentAccount = _CurrentAccount ?? null;
+            currentAccount = currentAccount ?? null;
 
             CurrentAssembly = assembly ?? Assembly.GetExecutingAssembly();
 
@@ -157,37 +157,37 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Gets the private key, and puts it into <see cref="_PrivateKey"/>
+        /// Gets the private key, and puts it into <see cref="privateKey"/>
         /// </summary>
         /// <param name="password"></param>
         /// <param name="forcePasswordVerification"></param>
         /// <returns></returns>
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
         {
-            if (_PrivateKey == null || forcePasswordVerification)
-                _PrivateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
+            if (privateKey == null || forcePasswordVerification)
+                privateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
 
-            return _PrivateKey;
+            return privateKey;
         }
 
         /// <summary>
-        /// Gets the ext key and puts it into <see cref="_ExtKey"/>
+        /// Gets the ext key and puts it into <see cref="extKey"/>
         /// </summary>
         /// <param name="password"></param>
         /// <param name="forcePasswordVerification"></param>
         /// <returns></returns>
         public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
         {
-            Guard.NotNull(_PrivateKey, nameof(_PrivateKey));
+            Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
             if (forcePasswordVerification)
-                _PrivateKey = GetPrivateKey(password, forcePasswordVerification);
+                privateKey = GetPrivateKey(password, forcePasswordVerification);
 
-            if (_ExtKey is null || forcePasswordVerification)
-                _ExtKey = new ExtKey(_PrivateKey, ChainCode);
+            if (extKey is null || forcePasswordVerification)
+                extKey = new ExtKey(privateKey, ChainCode);
 
-            return _ExtKey;
+            return extKey;
         }
 
         /// <summary>

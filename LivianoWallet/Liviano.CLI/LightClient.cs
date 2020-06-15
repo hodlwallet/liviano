@@ -277,6 +277,16 @@ namespace Liviano.CLI
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine("Done finding peers!!!");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+            var pool = (ElectrumPool)sender;
+
+            Console.WriteLine($"Current server: {pool.CurrentServer.Domain}:{pool.CurrentServer.PrivatePort}");
+            Console.WriteLine("Other servers connected: \n");
+
+            foreach (var s in pool.ConnectedServers)
+            {
+                Console.WriteLine($"{s.Domain}:{s.PrivatePort}");
+            }
         }
 
         private static void Pool_OnConnectedEvent(object sender, Server e)
