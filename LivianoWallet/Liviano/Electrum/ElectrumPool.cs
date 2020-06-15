@@ -30,6 +30,7 @@ using System.Threading.Tasks;
 using Liviano.Models;
 using Liviano.Extensions;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Liviano.Electrum
 {
@@ -136,10 +137,14 @@ namespace Liviano.Electrum
             Task<Server[]> t = server.FindPeersAsync();
             t.Wait();
 
+            if (AllServers.ToList().ContainsAllServers(t.Result)) return;
+            lock (@lock) if (ConnectedServers.ContainsAllServers(t.Result)) return;
+
             Task.Factory.StartNew(() =>
             {
                 foreach (var s in t.Result)
                 {
+                    if (AllServers.ToList().ContainsServer(s)) continue;
                     lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
                     Task.Factory.StartNew(() =>

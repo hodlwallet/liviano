@@ -131,7 +131,7 @@ namespace Liviano.Models
 
         public async Task<Server[]> FindPeersAsync()
         {
-            Debug.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+            Debug.WriteLine($"[FindPeersAsync] for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
             try
             {
@@ -141,7 +141,7 @@ namespace Liviano.Models
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Error: {e.Message}");
+                Debug.WriteLine($"[FindPeersAsync] Error: {e.Message}");
 
                 return new Server[] { };
             }

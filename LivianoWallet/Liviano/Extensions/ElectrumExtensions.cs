@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Linq;
 
 using Liviano.Models;
@@ -54,6 +55,18 @@ namespace Liviano.Extensions
             );
 
             servers.RemoveAt(i);
+        }
+
+        public static bool ContainsAllServers(this List<Server> servers, Server[] serversToCompare)
+        {
+            List<bool> res = new List<bool> { };
+
+            foreach (var s in serversToCompare)
+            {
+                res.Add(servers.ContainsServer(s));
+            }
+
+            return res.All(i => i);
         }
 
         public static bool ContainsServer(this List<Server> servers, Server server)
