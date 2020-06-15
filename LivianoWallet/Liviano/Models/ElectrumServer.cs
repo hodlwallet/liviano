@@ -127,15 +127,13 @@ namespace Liviano.Models
             }
         }
 
-        public async Task<Server[]> FindPeers()
+        public async Task<Server[]> FindPeersAsync()
         {
-            var servers = new Server[] { };
-
             Console.WriteLine($"Finding peers for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
             var peers = await ElectrumClient.ServerPeersSubscribe();
 
-            return servers;
+            return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.ToArray();
         }
 
         public static Server FromPeersSubscribeItem(List<object> item)
@@ -205,12 +203,14 @@ namespace Liviano.Models
     {
         public List<Server> Servers { get; set; }
 
+        public ElectrumServers()
+        {
+            Servers = new List<Server> {};
+        }
+
         public static ElectrumServers FromPeersSubscribeResult(List<List<object>> result)
         {
-            var servers = new ElectrumServers
-            {
-                Servers = new List<Server>()
-            };
+            var servers = new ElectrumServers();
 
             foreach (var item in result)
             {

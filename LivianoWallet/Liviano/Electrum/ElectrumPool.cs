@@ -143,7 +143,7 @@ namespace Liviano.Electrum
 
             // Find peers in a sub task as well
             // This makes it wait
-            Task<Server[]> t = server.FindPeers();
+            Task<Server[]> t = server.FindPeersAsync();
 
             t.Wait();
 
