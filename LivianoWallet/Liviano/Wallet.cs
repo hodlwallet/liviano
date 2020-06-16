@@ -603,7 +603,7 @@ namespace Liviano
         {
             Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers");
 
-            var recentServers = ElectrumClient.GetRecentlyConnectedServers(Network);
+            var recentServers = ElectrumPool.GetRecentServers(Network);
 
             if (recentServers.Count == 0)
             {

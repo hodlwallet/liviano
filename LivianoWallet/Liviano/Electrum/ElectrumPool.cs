@@ -46,6 +46,8 @@ namespace Liviano.Electrum
 
         public bool Connected { get; private set; }
 
+        public Network Network { get; set; }
+
         Server currentServer;
         public Server CurrentServer
         {
@@ -88,10 +90,11 @@ namespace Liviano.Electrum
 
         public ElectrumClient ElectrumClient { get; private set; }
 
-        public ElectrumPool(Server[] servers)
+        public ElectrumPool(Server[] servers, Network network = null)
         {
-            AllServers = servers.Shuffle();
-            ConnectedServers = new List<Server> { };
+            Network ??= network ?? Network.Main;
+            AllServers ??= servers.Shuffle();
+            ConnectedServers ??= new List<Server> { };
         }
 
         public async Task FindConnectedServersUntilMinNumber()
@@ -128,26 +131,77 @@ namespace Liviano.Electrum
             lock (@lock) ConnectedServers.RemoveServer(server);
         }
 
-        static string GetConnectedServersFileName(Network network)
+        /// <summary>
+        /// Saves the recently connected servers to disk or resource?
+        /// </summary>
+        public void Save(Assembly assembly = null)
+        {
+            if (assembly != null)
+            {
+                var resourceName = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
+                using var stream = assembly.GetManifestResourceStream(resourceName);
+
+                // TODO Write to the stream
+
+                return;
+            }
+
+            var recentServersFileName = GetRecentServersFileName(Network);
+            var json = File.ReadAllText(recentServersFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var recentServers = ElectrumServers.FromDictionary(data).Servers;
+        }
+
+        /// <summary>
+        /// Loads the pool from the filesystem
+        /// </summary>
+        /// <param name="network">a <see cref="Network"/> to load files from</param>
+        /// <returns>A new <see cref="ElectrumPool"/></returns>
+        public static ElectrumPool Load(Network network = null)
+        {
+            network ??= Network.Main;
+
+            var allServersFileName = GetAllServersFileName(network);
+            var json = File.ReadAllText(allServersFileName);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var allServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+
+            var pool = new ElectrumPool(allServers.ToArray().Shuffle());
+
+            var recentServersFileName = GetRecentServersFileName(network);
+            json = File.ReadAllText(recentServersFileName);
+            data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var recentServers = ElectrumServers.FromDictionary(data).Servers.Shuffle();
+
+            if (recentServers.Length > 0)
+            {
+                pool.ConnectedServers = recentServers.ToList();
+                pool.CurrentServer = recentServers[0];
+            }
+
+            return pool;
+        }
+
+        static string GetRecentServersFileName(Network network)
         {
             return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
         }
 
         static string GetAllServersFileName(Network network)
         {
-            return GetLocalConfigFilePath($"{network.Name.ToLower()}.json");
+            return GetLocalConfigFilePath("Electrum", "servers", $"{network.Name.ToLower()}.json");
         }
 
         /// <summary>
         /// Gets a list of recently conneted servers, these would be ready to connect
         /// </summary>
         /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
-        public static List<Server> GetRecentlyConnectedServers(Network network = null)
+        public static List<Server> GetRecentServers(Network network = null)
         {
-            network = network ?? Network.Main;
+            network ??= Network.Main;
 
             List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(GetConnectedServersFileName(network));
+            var fileName = Path.GetFullPath(GetRecentServersFileName(network));
 
             if (!File.Exists(fileName))
                 return recentServers;
@@ -163,11 +217,11 @@ namespace Liviano.Electrum
         /// <summary>
         /// Overwrites recently connected servers, as intended for startup.
         /// </summary>
-        public static void OverwriteRecentlyConnectedServers(Network network = null)
+        public static void CleanRecentlyConnectedServersFile(Network network = null)
         {
-            network = network ?? Network.Main;
+            network ??= Network.Main;
 
-            var fileName = Path.GetFullPath(GetConnectedServersFileName(network));
+            var fileName = Path.GetFullPath(GetRecentServersFileName(network));
 
             if (!File.Exists(fileName))
                 return;

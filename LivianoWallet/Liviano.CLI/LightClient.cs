@@ -247,12 +247,12 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        public static void TestElectrumConnection3(Network network)
+        public static async Task TestElectrumConnection3(Network network)
         {
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");
 
-            string serversFileName = ElectrumClient.GetLocalConfigFilePath(
+            string serversFileName = ElectrumPool.GetLocalConfigFilePath(
                 "Electrum",
                 "servers",
                 $"{network.Name.ToLower()}.json"
@@ -267,7 +267,7 @@ namespace Liviano.CLI
             pool.OnConnectedEvent += Pool_OnConnectedEvent;
             pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;
 
-            pool.FindConnectedServers();
+            await pool.FindConnectedServers();
 
             WaitUntilEscapeIsPressed();
         }
@@ -301,7 +301,7 @@ namespace Liviano.CLI
             _Logger.Information("Try to connect to each electrum server manually");
             _Logger.Information($"Running on {network}");
 
-            string serversFileName = ElectrumClient.GetLocalConfigFilePath(
+            string serversFileName = ElectrumPool.GetLocalConfigFilePath(
                 "Electrum",
                 "servers",
                 $"{network.Name.ToLower()}.json"

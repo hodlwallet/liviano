@@ -82,6 +82,11 @@ namespace Liviano.Extensions
             return (new List<Server>(servers)).ContainsServer(server);
         }
 
+        public static Server[] Shuffle(this List<Server> servers)
+        {
+            return servers.ToArray().Shuffle();
+        }
+
         public static Server[] Shuffle(this Server[] servers)
         {
             Random rnd = new Random();
