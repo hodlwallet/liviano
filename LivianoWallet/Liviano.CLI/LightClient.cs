@@ -4,55 +4,44 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Reflection;
 
+using Newtonsoft.Json;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using Serilog;
 
 using Liviano.Exceptions;
 using Liviano.Models;
-using Liviano.Utilities;
-using System.Threading;
 using Liviano.Interfaces;
 using Liviano.Electrum;
-
-using NBitcoin.DataEncoders;
-using System.Reflection;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
-using Serilog.Core;
 using Liviano.Bips;
-using System.Data.Common;
 using Liviano.Storages;
-using System.Runtime.CompilerServices;
-using System.Runtime;
 
 namespace Liviano.CLI
 {
     public static class LightClient
     {
-        private static readonly object @lock = new object();
+        const int PERIODIC_SAVE_DELAY = 30_000;
 
-        private static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        static readonly object @lock = new object();
 
-        private static Network network;
+        static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-        private static IWallet wallet;
+        static Network network;
 
-        private static async Task PeriodicSave()
+        static IWallet wallet;
+
+        static async Task PeriodicSave()
         {
             while (true)
             {
                 await Save();
 
-                await Task.Delay(30_000);
+                await Task.Delay(PERIODIC_SAVE_DELAY);
             }
         }
 
-        private static async Task Save()
+        static async Task Save()
         {
             await Task.Factory.StartNew(() =>
             {
@@ -63,7 +52,17 @@ namespace Liviano.CLI
             });
         }
 
-        private static void LoadWallet(Config config)
+        static IWallet NewWallet(Network network, string wordlist, int wordCount)
+        {
+            var wallet = new Wallet();
+            var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
+
+            wallet.Init(mnemonic: mnemonic, network: network);
+
+            return wallet;
+        }
+
+        static void LoadWallet(Config config)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -270,14 +269,12 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        public static void WalletTest1(Network network)
+        public static void WalletTest1(Network network, string wordlist, int wordCount)
         {
-            var x = 10;
-
-            Console.WriteLine(x);
+            var wallet = NewWallet(network, wordlist, wordCount);
         }
 
-        private static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
+        static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine("Done finding peers!!!");
@@ -294,7 +291,7 @@ namespace Liviano.CLI
             }
         }
 
-        private static void Pool_OnConnectedEvent(object sender, Server e)
+        static void Pool_OnConnectedEvent(object sender, Server e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine($"First Server to Connect!\n{e.Domain} at {DateTime.UtcNow}");
@@ -457,7 +454,7 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
-        private static void WaitUntilEscapeIsPressed()
+        static void WaitUntilEscapeIsPressed()
         {
             bool quit = false;
             bool quitHandledByIDE = false;
@@ -495,7 +492,7 @@ namespace Liviano.CLI
             }
         }
 
-        private static void Exit()
+        static void Exit()
         {
             var process = Process.GetCurrentProcess();
 
@@ -516,7 +513,7 @@ namespace Liviano.CLI
             process.Kill();
         }
 
-        private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
+        static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
         {
             return network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
         }

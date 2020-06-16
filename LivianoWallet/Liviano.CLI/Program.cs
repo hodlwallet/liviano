@@ -21,10 +21,10 @@ namespace Liviano.CLI
 
             // Defaults
             var network = Network.Main;
-            var mnemonic = "";
-            var mnemonicLang = "english";
             var passphrase = "";
-            var mnemonicWordCount = 12;
+            var mnemonic = "";
+            var wordlist = "english";
+            var wordCount = 12;
             var hasInputText = Console.IsInputRedirected;
             var inputText = hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
             var wif = "";
@@ -57,8 +57,8 @@ namespace Liviano.CLI
                 {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
 
                 // Variables or modifiers
-                {"l|lang=", "Mnemonic language", (string v) => mnemonicLang = v},
-                {"wc|word-count=", "Mnemonic word count", (int v) => mnemonicWordCount = v},
+                {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
+                {"wc|word-count=", "Mnemonic word count", (int v) => wordCount = v},
                 {"type|address-type=", "Set address type", (string v) => addressType = v},
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
@@ -114,7 +114,7 @@ namespace Liviano.CLI
             // LightClient commands, set everything before here
             if (newMnemonic)
             {
-                var mnemonicRes = Hd.NewMnemonic(mnemonicLang, mnemonicWordCount);
+                var mnemonicRes = Hd.NewMnemonic(wordlist, wordCount);
 
                 Console.WriteLine(mnemonicRes);
 
@@ -168,7 +168,7 @@ namespace Liviano.CLI
 
             if (walletTest1)
             {
-                LightClient.WalletTest1(network);
+                LightClient.WalletTest1(network, wordlist, wordCount);
 
                 return;
             }

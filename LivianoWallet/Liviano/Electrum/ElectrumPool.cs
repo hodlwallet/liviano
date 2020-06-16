@@ -188,10 +188,17 @@ namespace Liviano.Electrum
                 data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
                 allServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
-                using var recentServersReader = new StreamReader(recentServersStream);
-                json = allServersReader.ReadToEnd();
-                data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                recentServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+                if (recentServersStream.Length > 0)
+                {
+                    using var recentServersReader = new StreamReader(recentServersStream);
+                    json = allServersReader.ReadToEnd();
+                    data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                    recentServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+                }
+                else
+                {
+                    recentServers = new List<Server> { };
+                }
             }
             else
             {
@@ -201,9 +208,17 @@ namespace Liviano.Electrum
                 allServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
                 recentServersFileName = GetRecentServersFileName(network);
-                json = File.ReadAllText(recentServersFileName);
-                data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                recentServers = ElectrumServers.FromDictionary(data).Servers.Shuffle().ToList();
+
+                if (File.Exists(recentServersFileName))
+                {
+                    json = File.ReadAllText(recentServersFileName);
+                    data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                    recentServers = ElectrumServers.FromDictionary(data).Servers.Shuffle().ToList();
+                }
+                else
+                {
+                    recentServers = new List<Server> { };
+                }
             }
 
             pool = new ElectrumPool(allServers.ToArray().Shuffle());
