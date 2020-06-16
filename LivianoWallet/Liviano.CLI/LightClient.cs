@@ -34,15 +34,13 @@ namespace Liviano.CLI
 {
     public static class LightClient
     {
-        const int SEND_PAUSE = 30000;
+        private static readonly object @lock = new object();
 
-        private static object _Lock = new object();
+        private static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-        private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        private static Network network;
 
-        private static Network _Network;
-
-        private static IWallet _Wallet;
+        private static IWallet wallet;
 
         private static async Task PeriodicSave()
         {
@@ -58,18 +56,18 @@ namespace Liviano.CLI
         {
             await Task.Factory.StartNew(() =>
             {
-                lock (_Lock)
+                lock (@lock)
                 {
-                    _Wallet.Storage.Save();
+                    wallet.Storage.Save();
                 }
             });
         }
 
         private static void LoadWallet(Config config)
         {
-            _Network = Hd.GetNetwork(config.Network);
+            network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, _Network);
+            var storage = new FileSystemStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
@@ -78,7 +76,7 @@ namespace Liviano.CLI
                 throw new WalletException("Invalid wallet id");
             }
 
-            _Wallet = storage.Load();
+            wallet = storage.Load();
         }
 
         public static void ShowHelp()
@@ -111,12 +109,12 @@ namespace Liviano.CLI
 
             try
             {
-                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, _Wallet, account, _Network);
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, wallet, account, network);
                 wasCreated = true;
             }
             catch (WalletException e)
             {
-                _Logger.Error(e.ToString());
+                logger.Error(e.ToString());
 
                 error = e.Message;
                 wasCreated = false;
@@ -124,7 +122,7 @@ namespace Liviano.CLI
                 return (wasCreated, wasSent, tx, error);
             }
 
-            TransactionExtensions.VerifyTransaction(tx, _Network, out var errors);
+            TransactionExtensions.VerifyTransaction(tx, network, out var errors);
 
             if (errors.Any())
             {
@@ -179,9 +177,9 @@ namespace Liviano.CLI
 
         public static BitcoinAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
         {
-            _Network = Hd.GetNetwork(config.Network);
+            network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, _Network);
+            var storage = new FileSystemStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
@@ -190,16 +188,16 @@ namespace Liviano.CLI
                 return null;
             }
 
-            _Wallet = storage.Load();
+            wallet = storage.Load();
 
             IAccount account;
             if (accountName is null)
             {
-                account = _Wallet.Accounts[int.Parse(accountIndex)];
+                account = wallet.Accounts[int.Parse(accountIndex)];
             }
             else
             {
-                account = _Wallet.Accounts.FirstOrDefault((i) => i.Name == accountName);
+                account = wallet.Accounts.FirstOrDefault((i) => i.Name == accountName);
             }
 
             if (account is null) return null;
@@ -209,38 +207,38 @@ namespace Liviano.CLI
 
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
-            _Network = Hd.GetNetwork(config.Network);
+            network = Hd.GetNetwork(config.Network);
 
             if (password == null)
                 password = "";
 
-            _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+            logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, network.Name);
 
-            _Wallet = new Wallet { Id = config.WalletId };
+            wallet = new Wallet { Id = config.WalletId };
 
-            _Wallet.Init(mnemonic, password, network: _Network);
+            wallet.Init(mnemonic, password, network: network);
 
-            _Wallet.Storage.Save();
+            wallet.Storage.Save();
         }
 
         public static void Start(Config config, bool resync = false)
         {
             LoadWallet(config);
 
-            _Wallet.SyncStarted += (s, e) =>
+            wallet.SyncStarted += (s, e) =>
             {
-                _Logger.Information("Sync started!");
+                logger.Information("Sync started!");
             };
 
-            _Wallet.SyncFinished += (s, e) =>
+            wallet.SyncFinished += (s, e) =>
             {
-                _Logger.Information("Sync finished!");
+                logger.Information("Sync finished!");
             };
 
-            if (resync) _Wallet.Resync();
-            else _Wallet.Sync();
+            if (resync) wallet.Resync();
+            else wallet.Sync();
 
-            _Wallet.Start();
+            wallet.Start();
 
             _ = PeriodicSave();
 
@@ -249,8 +247,8 @@ namespace Liviano.CLI
 
         public static void TestElectrumConnection3(Network network)
         {
-            _Logger.Information("Try to connect to each electrum server manually");
-            _Logger.Information($"Running on {network}");
+            logger.Information("Try to connect to each electrum server manually");
+            logger.Information($"Running on {network}");
 
             string serversFileName = ElectrumPool.GetLocalConfigFilePath(
                 "Electrum",
@@ -305,8 +303,8 @@ namespace Liviano.CLI
 
         public static void TestElectrumConnection2(Network network)
         {
-            _Logger.Information("Try to connect to each electrum server manually");
-            _Logger.Information($"Running on {network}");
+            logger.Information("Try to connect to each electrum server manually");
+            logger.Information($"Running on {network}");
 
             string serversFileName = ElectrumPool.GetLocalConfigFilePath(
                 "Electrum",
@@ -377,8 +375,8 @@ namespace Liviano.CLI
         {
             if (network is null) network = Network.Main;
 
-            _Logger.Information("Running on {network}", network.Name);
-            _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
+            logger.Information("Running on {network}", network.Name);
+            logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
 
             Console.WriteLine("Welcome to a demo");
 
@@ -464,7 +462,7 @@ namespace Liviano.CLI
             bool quit = false;
             bool quitHandledByIDE = false;
 
-            _Logger.Information("Press {key} to stop Liviano...", "ESC");
+            logger.Information("Press {key} to stop Liviano...", "ESC");
 
             while (!quit)
             {
@@ -479,8 +477,8 @@ namespace Liviano.CLI
                 }
                 catch (InvalidOperationException e)
                 {
-                    _Logger.Error("{error}", e.Message);
-                    _Logger.Information("Stop handled by IDE");
+                    logger.Error("{error}", e.Message);
+                    logger.Information("Stop handled by IDE");
 
                     quitHandledByIDE = true;
                     quit = true;
@@ -509,18 +507,18 @@ namespace Liviano.CLI
                 thread.Dispose();
 
                 if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated)
-                    _Logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
+                    logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
             }
 
-            _Logger.Information("Closing thread with pid: {pid}", process.Id);
-            _Logger.Information("bye!");
+            logger.Information("Closing thread with pid: {pid}", process.Id);
+            logger.Information("bye!");
 
             process.Kill();
         }
 
         private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
         {
-            return _Network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
+            return network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
         }
     }
 }
