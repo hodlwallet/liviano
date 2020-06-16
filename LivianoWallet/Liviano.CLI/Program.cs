@@ -168,7 +168,7 @@ namespace Liviano.CLI
 
             if (walletTest1)
             {
-                Console.WriteLine("Bill gates is corona");
+                LightClient.WalletTest1(network);
 
                 return;
             }
