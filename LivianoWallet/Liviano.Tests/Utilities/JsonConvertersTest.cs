@@ -91,7 +91,7 @@ namespace Liviano.Tests.Utilities
         public void ByteArrayConverterTest()
         {
             ByteArrayConverter byteArrayConverter = new ByteArrayConverter();
-            byte[] bytes = {1, 3, 3, 7};
+            byte[] bytes = { 1, 3, 3, 7 };
 
             string serializedResult;
             byte[] deserializedResult;
