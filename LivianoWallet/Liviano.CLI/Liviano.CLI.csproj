@@ -1,30 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <FileVersion>0.0.0.1</FileVersion>
-    <AssemblyVersion>0.0.0.1</AssemblyVersion>
-    <Version>0.0.1</Version>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Mono.Options" Version="6.6.0.161" />
-    <PackageReference Include="NBitcoin" Version="5.0.41" />
-    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0-dev-00839" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Liviano\Liviano.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Program.cs">
-      <Generator>e</Generator>
-    </Compile>
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <FileVersion>0.0.0.1</FileVersion>
+        <AssemblyVersion>0.0.0.1</AssemblyVersion>
+        <LangVersion>8.0</LangVersion>
+        <Version>0.0.1</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugType>full</DebugType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Mono.Options" Version="6.6.0.161" />
+        <PackageReference Include="NBitcoin" Version="5.0.41" />
+        <PackageReference Include="NETStandard.Library" Version="2.0.3" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0-dev-00839" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Liviano\Liviano.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Program.cs">
+            <Generator>e</Generator>
+        </Compile>
+    </ItemGroup>
 </Project>

@@ -31,6 +31,9 @@ using Liviano.Models;
 using Liviano.Extensions;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.Linq;
+using System.Reflection;
+using Liviano.Interfaces;
 
 namespace Liviano.Electrum
 {
@@ -90,7 +93,24 @@ namespace Liviano.Electrum
             ConnectedServers = new List<Server> { };
         }
 
-        public async void FindConnectedServers()
+        public void SaveConnectedServers(Assembly assembly = null, IStorage storage = null)
+        {
+            if (storage != null)
+                storage.Save();
+
+            if (assembly != null)
+                Console.WriteLine("Do something");
+        }
+
+        public async Task FindConnectedServersUntilMinNumber()
+        {
+            await FindConnectedServers();
+
+            if (ConnectedServers.Count < MIN_NUMBER_OF_CONNECTED_SERVERS)
+                await FindConnectedServersUntilMinNumber();
+        }
+
+        public async Task FindConnectedServers()
         {
             await Task.Factory.StartNew(() =>
             {

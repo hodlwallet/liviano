@@ -106,7 +106,7 @@ namespace Liviano.Models
                 return;
             }
 
-            if (!string.IsNullOrEmpty(version.ToString()))
+            if (version >= ElectrumClient.REQUESTED_VERSION)
             {
                 Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
 

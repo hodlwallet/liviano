@@ -99,14 +99,13 @@ namespace Liviano
         public List<string> AccountIds { get; set; }
         public List<IAccount> Accounts { get; set; }
 
-        IStorage storage;
-
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
 
         public event EventHandler<Tx> OnNewTransaction;
         public event EventHandler<Tx> OnUpdateTransaction;
 
+        IStorage storage;
         public IStorage Storage
         {
             get => storage;
@@ -119,6 +118,8 @@ namespace Liviano
                 storage.Wallet = this;
             }
         }
+
+        public ElectrumPool ElectrumPool { get; private set; }
 
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
@@ -151,9 +152,22 @@ namespace Liviano
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            // To cache them
+            GetElectrumPool();
             GetPrivateKey(password);
             GetExtendedKey(password);
+        }
+
+        /// <summary>
+        /// Gets and sets the electrum pool.
+        /// </summary>
+        /// <returns>a <see cref="ElectrumPool"/></returns>
+        public ElectrumPool GetElectrumPool()
+        {
+            var pool = new ElectrumPool(new Server[] { });
+
+            ElectrumPool = pool;
+
+            return pool;
         }
 
         /// <summary>
@@ -161,7 +175,7 @@ namespace Liviano
         /// </summary>
         /// <param name="password"></param>
         /// <param name="forcePasswordVerification"></param>
-        /// <returns></returns>
+        /// <returns>a private <see cref="Key"/></returns>
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
         {
             if (privateKey == null || forcePasswordVerification)
