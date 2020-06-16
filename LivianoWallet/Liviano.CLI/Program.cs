@@ -7,6 +7,7 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
+using System.Diagnostics;
 
 namespace Liviano.CLI
 {
@@ -25,7 +26,7 @@ namespace Liviano.CLI
             var passphrase = "";
             var mnemonicWordCount = 12;
             var hasInputText = Console.IsInputRedirected;
-            var inputText = hasInputText ? Console.ReadLine().Trim() : "";
+            var inputText = hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
             var wif = "";
             var address = "";
             var addressType = "p2wpkh";
