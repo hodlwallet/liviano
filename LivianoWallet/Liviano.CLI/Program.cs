@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 
 using Mono.Options;
@@ -38,6 +39,7 @@ namespace Liviano.CLI
             var newMnemonic = false;
             var getScriptPubKey = false;
             var electrumTest3 = false;
+            var walletTest1 = false;
 
             // Define options
             var options = new OptionSet
@@ -65,6 +67,7 @@ namespace Liviano.CLI
 
                 // Debugging commands
                 {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)},
+                {"test-w1|wallet-test-1", "Test wallet 1", v => walletTest1 = !(v is null)}
             };
 
             // Variables that support input text from the terminal
@@ -88,7 +91,7 @@ namespace Liviano.CLI
                 extra = options.Parse(args);
 
                 if (extra.Count > 0)
-                    logger.Information($"Extra arguments: {string.Join(", ", extra)}");
+                    logger.Information($"Extra arguments: {extra}");
             }
             catch (OptionException e)
             {
@@ -158,6 +161,13 @@ namespace Liviano.CLI
             if (electrumTest3)
             {
                 LightClient.TestElectrumConnection3(network);
+
+                return;
+            }
+
+            if (walletTest1)
+            {
+                Console.WriteLine("Bill gates is corona");
 
                 return;
             }

@@ -144,7 +144,7 @@ namespace Liviano
             CurrentAccountId ??= null;
             currentAccount ??= null;
 
-            CurrentAssembly = assembly ?? Assembly.GetExecutingAssembly();
+            CurrentAssembly ??= assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             var extKey = Hd.GetExtendedKey(mnemonicObj, password);
@@ -163,9 +163,7 @@ namespace Liviano
         /// <returns>a <see cref="ElectrumPool"/></returns>
         public ElectrumPool GetElectrumPool()
         {
-            var pool = new ElectrumPool(new Server[] { });
-
-            ElectrumPool = pool;
+            var pool = ElectrumPool.Load(Network, CurrentAssembly);
 
             return pool;
         }

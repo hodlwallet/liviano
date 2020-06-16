@@ -272,6 +272,13 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
+        public static void WalletTest1(Network network)
+        {
+            var x = 10;
+
+            Console.WriteLine(x);
+        }
+
         private static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
