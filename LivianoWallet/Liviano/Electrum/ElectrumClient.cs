@@ -393,52 +393,6 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainTransactionBroadcastResult>(json);
         }
 
-        /// <summary>
-        /// Gets a list of recently conneted servers, these would be ready to connect
-        /// </summary>
-        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
-        public static List<Server> GetRecentlyConnectedServers(Network network = null)
-        {
-            network = network ?? Network.Main;
-
-            List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return recentServers;
-
-            var content = File.ReadAllText(fileName);
-
-            if (!string.IsNullOrEmpty(content))
-                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
-
-            return recentServers;
-        }
-
-        /// <summary>
-        /// Overwrites recently connected servers, as intended for startup.
-        /// </summary>
-        public static void OverwriteRecentlyConnectedServers(Network network = null)
-        {
-            network = network ?? Network.Main;
-
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return;
-
-            File.WriteAllText(fileName, "");
-        }
-
-        public static string GetLocalConfigFilePath(params string[] fileNames)
-        {
-            return Path.Combine(
-                Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
-                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
-            );
-        }
-
         System.Version CreateVersion(string versionStr)
         {
             string correctedVersion = versionStr;
@@ -456,11 +410,6 @@ namespace Liviano.Electrum
             {
                 throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
             }
-        }
-
-        static string GetRecentlyConnectedServersFileName(Network network)
-        {
-            return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
         }
     }
 }

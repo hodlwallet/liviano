@@ -29,11 +29,12 @@ using System.Threading.Tasks;
 
 using Liviano.Models;
 using Liviano.Extensions;
-using System.Diagnostics;
 using System.Linq;
-using System.Xml.Linq;
 using System.Reflection;
 using Liviano.Interfaces;
+using System.IO;
+using NBitcoin;
+using Newtonsoft.Json;
 
 namespace Liviano.Electrum
 {
@@ -93,15 +94,6 @@ namespace Liviano.Electrum
             ConnectedServers = new List<Server> { };
         }
 
-        public void SaveConnectedServers(Assembly assembly = null, IStorage storage = null)
-        {
-            if (storage != null)
-                storage.Save();
-
-            if (assembly != null)
-                Console.WriteLine("Do something");
-        }
-
         public async Task FindConnectedServersUntilMinNumber()
         {
             await FindConnectedServers();
@@ -134,6 +126,62 @@ namespace Liviano.Electrum
         public void RemoveServer(Server server)
         {
             lock (@lock) ConnectedServers.RemoveServer(server);
+        }
+
+        static string GetConnectedServersFileName(Network network)
+        {
+            return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
+        }
+
+        static string GetAllServersFileName(Network network)
+        {
+            return GetLocalConfigFilePath($"{network.Name.ToLower()}.json");
+        }
+
+        /// <summary>
+        /// Gets a list of recently conneted servers, these would be ready to connect
+        /// </summary>
+        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
+        public static List<Server> GetRecentlyConnectedServers(Network network = null)
+        {
+            network = network ?? Network.Main;
+
+            List<Server> recentServers = new List<Server>();
+            var fileName = Path.GetFullPath(GetConnectedServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return recentServers;
+
+            var content = File.ReadAllText(fileName);
+
+            if (!string.IsNullOrEmpty(content))
+                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+
+            return recentServers;
+        }
+
+        /// <summary>
+        /// Overwrites recently connected servers, as intended for startup.
+        /// </summary>
+        public static void OverwriteRecentlyConnectedServers(Network network = null)
+        {
+            network = network ?? Network.Main;
+
+            var fileName = Path.GetFullPath(GetConnectedServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return;
+
+            File.WriteAllText(fileName, "");
+        }
+
+        public static string GetLocalConfigFilePath(params string[] fileNames)
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(
+                    Assembly.GetCallingAssembly().Location
+                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            );
         }
 
         private void HandleConnectedServers(object sender, EventArgs e)
