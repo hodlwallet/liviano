@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 using Newtonsoft.Json;
 using NBitcoin;
@@ -264,7 +265,12 @@ namespace Liviano.CLI
             pool.OnConnectedEvent += Pool_OnConnectedEvent;
             pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;
 
-            _ = pool.FindConnectedServers();
+            var cts = new CancellationTokenSource();
+            _ = pool.FindConnectedServers(cts);
+
+
+            Thread.Sleep(1000);
+            cts.Cancel();
 
             WaitUntilEscapeIsPressed();
         }
@@ -325,7 +331,7 @@ namespace Liviano.CLI
                     try
                     {
                         Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
-                        var res = await electrum.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+                        var res = await electrum.ServerVersion();
 
                         Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
 

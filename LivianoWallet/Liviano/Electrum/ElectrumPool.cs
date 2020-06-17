@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Liviano.Models;
@@ -105,23 +106,23 @@ namespace Liviano.Electrum
                 await FindConnectedServersUntilMinNumber();
         }
 
-        public async Task FindConnectedServers()
+        public async Task FindConnectedServers(CancellationTokenSource cts = null)
         {
+            cts ??= new CancellationTokenSource();
+            var cancellationToken = cts.Token;
+
             await Task.Factory.StartNew(() =>
             {
                 foreach (var s in AllServers)
                 {
-                    Task.Factory.StartNew(() =>
+                    Task.Factory.StartNew((ct) =>
                     {
                         s.OnConnectedEvent += HandleConnectedServers;
 
-                        // This makes it wait
-                        var t1 = s.ConnectAsync();
-
-                        t1.Wait();
-                    }, TaskCreationOptions.AttachedToParent);
+                        s.ConnectAsync().Wait();
+                    }, cancellationToken, TaskCreationOptions.AttachedToParent);
                 }
-            });
+            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             OnDoneFindingPeersEvent?.Invoke(this, null);
         }
@@ -327,7 +328,7 @@ namespace Liviano.Electrum
                         HandleConnectedServers(s, null);
                     }, TaskCreationOptions.AttachedToParent);
                 }
-            }).Wait();
+            }, TaskCreationOptions.AttachedToParent).Wait();
         }
     }
 }

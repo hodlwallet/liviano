@@ -21,21 +21,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.IO;
 using System.Diagnostics;
-using System.Reflection;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-using NBitcoin;
-
-using Liviano.Models;
 using Liviano.Exceptions;
 
 namespace Liviano.Electrum

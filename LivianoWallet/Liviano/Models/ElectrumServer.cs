@@ -87,7 +87,7 @@ namespace Liviano.Models
             System.Version version;
             try
             {
-                version = await ElectrumClient.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
+                version = await ElectrumClient.ServerVersion();
             }
             catch (Exception e)
             {
