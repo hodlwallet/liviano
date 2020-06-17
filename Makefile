@@ -8,6 +8,10 @@ build.ubuntu:
 run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
+run.ubuntu.debug:
+	make ubuntu_debug_build
+	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+
 # Usage (all tests):        make test
 # Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
 # Usage (method name):      test="Bip84CompatibilityTest" make test

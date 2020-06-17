@@ -31,7 +31,6 @@ using Liviano.Models;
 using Liviano.Extensions;
 using System.Linq;
 using System.Reflection;
-using Liviano.Interfaces;
 using System.IO;
 using NBitcoin;
 using Newtonsoft.Json;
@@ -309,21 +308,23 @@ namespace Liviano.Electrum
             Task<Server[]> t = server.FindPeersAsync();
             t.Wait();
 
-            if (AllServers.ToList().ContainsAllServers(t.Result)) return;
+            if (AllServers.ContainsAllServers(t.Result)) return;
             lock (@lock) if (ConnectedServers.ContainsAllServers(t.Result)) return;
+            if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
 
             Task.Factory.StartNew(() =>
             {
                 foreach (var s in t.Result)
                 {
-                    if (AllServers.ToList().ContainsServer(s)) continue;
+                    if (AllServers.ContainsServer(s)) continue;
                     lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
-                    Task.Factory.StartNew(() =>
-                    {
-                        s.OnConnectedEvent += HandleConnectedServers;
-
+                    Task.Factory.StartNew(() => {
                         s.ConnectAsync().Wait();
+
+                        lock (@lock) if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+
+                        HandleConnectedServers(s, null);
                     }, TaskCreationOptions.AttachedToParent);
                 }
             }).Wait();

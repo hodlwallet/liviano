@@ -277,7 +277,7 @@ namespace Liviano.CLI
         static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine("Done finding peers!!!");
+            Console.WriteLine($"Done finding peers at {DateTime.UtcNow}");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
             var pool = (ElectrumPool)sender;
