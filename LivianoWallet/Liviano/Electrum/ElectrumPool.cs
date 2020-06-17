@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,6 +86,8 @@ namespace Liviano.Electrum
 
         public event EventHandler OnDoneFindingPeersEvent;
 
+        public event EventHandler OnCancelFindingPeersEvent;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -115,8 +118,9 @@ namespace Liviano.Electrum
             {
                 foreach (var s in AllServers)
                 {
-                    Task.Factory.StartNew((ct) =>
+                    Task.Factory.StartNew((o) =>
                     {
+                        s.CancellationToken = cancellationToken;
                         s.OnConnectedEvent += HandleConnectedServers;
 
                         s.ConnectAsync().Wait();
@@ -124,7 +128,14 @@ namespace Liviano.Electrum
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-            OnDoneFindingPeersEvent?.Invoke(this, null);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                OnCancelFindingPeersEvent?.Invoke(this, null);
+            }
+            else
+            {
+                OnDoneFindingPeersEvent?.Invoke(this, null);
+            }
         }
 
         public void RemoveServer(Server server)
@@ -291,6 +302,13 @@ namespace Liviano.Electrum
         private void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
+
+            if (server.CancellationToken.IsCancellationRequested)
+            {
+                Debug.WriteLine("Cancellation requested, NOT HANDLING!");
+
+                return;
+            }
 
             lock (@lock)
             {

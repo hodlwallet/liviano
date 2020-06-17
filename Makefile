@@ -8,6 +8,10 @@ build.ubuntu:
 run:
 	dotnet run --project=LivianoWallet/Liviano.CLI --framework netcoreapp2.1 ${args}
 
+run.ubuntu:
+	make ubuntu_debug_build
+	./liviano-cli ${args}
+
 run.ubuntu.debug:
 	make ubuntu_debug_build
 	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}

@@ -264,13 +264,14 @@ namespace Liviano.CLI
 
             pool.OnConnectedEvent += Pool_OnConnectedEvent;
             pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;
+            pool.OnCancelFindingPeersEvent += Pool_OnCancelFindingPeersEvent;
 
             var cts = new CancellationTokenSource();
             _ = pool.FindConnectedServers(cts);
 
-
-            Thread.Sleep(1000);
-            cts.Cancel();
+            // Use this code to cancel
+            //Thread.Sleep(1000);
+            //cts.Cancel();
 
             WaitUntilEscapeIsPressed();
         }
@@ -278,6 +279,13 @@ namespace Liviano.CLI
         public static void WalletTest1(Network network, string wordlist, int wordCount)
         {
             var wallet = NewWallet(network, wordlist, wordCount);
+        }
+
+        static void Pool_OnCancelFindingPeersEvent(object sender, EventArgs e)
+        {
+            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine($"Cancelled finding peers at {DateTime.UtcNow}");
+            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 
         static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)

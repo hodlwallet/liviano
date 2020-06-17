@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
@@ -39,6 +40,8 @@ namespace Liviano.Models
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
         public string Ip { get; set; }
+
+        public CancellationToken CancellationToken { get; set; }
 
         [JsonProperty("domain")]
         public string Domain { get; set; }
@@ -83,6 +86,13 @@ namespace Liviano.Models
         public async Task ConnectAsync(int retries = 2)
         {
             Debug.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+
+            if (CancellationToken.IsCancellationRequested)
+            {
+                Debug.WriteLine("Cancellation requested, NOT CONNECTING!");
+
+                return;
+            }
 
             System.Version version;
             try
