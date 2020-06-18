@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
 
@@ -7,7 +8,6 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
-using System.Diagnostics;
 
 namespace Liviano.CLI
 {
@@ -38,6 +38,7 @@ namespace Liviano.CLI
             var getXPub = false;
             var getAddr = false;
             var newMnemonic = false;
+            var newWallet = false;
             var getScriptPubKey = false;
             var electrumTest3 = false;
             var walletTest1 = false;
@@ -55,6 +56,7 @@ namespace Liviano.CLI
                 {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
                 {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
                 {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
+                {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -96,9 +98,7 @@ namespace Liviano.CLI
             }
             catch (OptionException e)
             {
-                Console.WriteLine($"Error: {e.Message}");
-
-                LightClient.ShowHelp();
+                InvalidArguments($"Error: {e.Message}");
 
                 return;
             }
@@ -123,6 +123,13 @@ namespace Liviano.CLI
 
             if (getXPrv)
             {
+                if (string.IsNullOrEmpty(mnemonic))
+                {
+                    InvalidArguments();
+
+                    return;
+                }
+
                 var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
                 var wifRes = Hd.GetWif(extKey, network);
 
@@ -133,6 +140,13 @@ namespace Liviano.CLI
 
             if (getXPub)
             {
+                if (string.IsNullOrEmpty(wif))
+                {
+                    InvalidArguments();
+
+                    return;
+                }
+
                 var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name);
                 var extPubKeyWif = Hd.GetWif(extPubKey, network);
 
@@ -146,6 +160,13 @@ namespace Liviano.CLI
                 int index = 1;
                 bool isChange = false;
 
+                if (string.IsNullOrEmpty(wif))
+                {
+                    InvalidArguments();
+
+                    return;
+                }
+
                 Console.WriteLine(Hd.GetAddress(wif, index, isChange, network.Name, addressType));
 
                 return;
@@ -153,7 +174,25 @@ namespace Liviano.CLI
 
             if (getScriptPubKey)
             {
+                if (string.IsNullOrEmpty(address))
+                {
+                    InvalidArguments();
+
+                    return;
+                }
+
                 Console.WriteLine(Hd.GetScriptPubKey(address, network.Name));
+
+                return;
+            }
+
+            if (newWallet)
+            {
+                var wallet = LightClient.NewWallet(wordlist, wordCount, network);
+
+                wallet.Storage.Save();
+
+                //wallet.Storage.Save
 
                 return;
             }
@@ -174,8 +213,7 @@ namespace Liviano.CLI
             }
 
             // End... invalid options
-            Console.WriteLine("Invalid argument optoins.\n");
-            LightClient.ShowHelp();
+            InvalidArguments();
 
             // TODO Missing functionality
             // - Create new wallet
@@ -183,6 +221,12 @@ namespace Liviano.CLI
             // - Start wallet and listen
             // - Get wallet balance
             // - Create account on wallet
+        }
+
+        static void InvalidArguments(string msg = "Invalid argument options.\n")
+        {
+            Console.WriteLine(msg);
+            LightClient.ShowHelp();
         }
     }
 }

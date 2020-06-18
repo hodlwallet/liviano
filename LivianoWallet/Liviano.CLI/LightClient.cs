@@ -53,7 +53,7 @@ namespace Liviano.CLI
             });
         }
 
-        static IWallet NewWallet(Network network, string wordlist, int wordCount)
+        public static Wallet NewWallet(string wordlist, int wordCount, Network network)
         {
             var wallet = new Wallet();
             var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
@@ -62,6 +62,8 @@ namespace Liviano.CLI
 
             return wallet;
         }
+
+        //static IWallet NewWalletWithMnemonic()
 
         static void LoadWallet(Config config)
         {
@@ -278,7 +280,7 @@ namespace Liviano.CLI
 
         public static void WalletTest1(Network network, string wordlist, int wordCount)
         {
-            var wallet = NewWallet(network, wordlist, wordCount);
+            var wallet = NewWallet(wordlist, wordCount, network);
         }
 
         static void Pool_OnCancelFindingPeersEvent(object sender, EventArgs e)
