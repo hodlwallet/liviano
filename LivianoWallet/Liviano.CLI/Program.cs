@@ -30,6 +30,7 @@ namespace Liviano.CLI
             var address = "";
             var addressType = "p2wpkh";
             var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
+            var server = "locahost:s50001";
 
             // Menu show
             var showHelp = false;
@@ -63,6 +64,7 @@ namespace Liviano.CLI
                 {"type|address-type=", "Set address type", (string v) => addressType = v},
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
+                {"s|server=", "Server", (string v) => server = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
