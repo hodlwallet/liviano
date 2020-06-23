@@ -223,13 +223,13 @@ namespace Liviano.Models
 
         public override string ToString()
         {
-            if (string.IsNullOrEmpty(Domain) && PrivatePort is null)
+            if (string.IsNullOrEmpty(Domain) || PrivatePort is null)
                 return base.ToString();
 
             return $"{Domain}:s{PrivatePort}";
         }
 
-        public Server FromString(string serverString)
+        public static Server FromString(string serverString)
         {
             var res = serverString.Split(':');
 
