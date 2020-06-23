@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Collections.Generic;
 
 using Mono.Options;
@@ -188,11 +187,17 @@ namespace Liviano.CLI
 
             if (newWallet)
             {
-                var wallet = LightClient.NewWallet(wordlist, wordCount, network);
+                Wallet wallet;
+                if (string.IsNullOrEmpty(mnemonic))
+                {
+                    wallet = LightClient.NewWallet(wordlist, wordCount, network);
+                }
+                else
+                {
+                    wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
+                }
 
                 wallet.Storage.Save();
-
-                //wallet.Storage.Save
 
                 return;
             }

@@ -32,6 +32,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
+using Newtonsoft.Json;
 
 using Liviano.Interfaces;
 using Liviano.Accounts;
@@ -93,7 +94,10 @@ namespace Liviano
             }
         }
 
+        [JsonProperty(PropertyName = "txIds")]
         public List<string> TxIds { get; set; }
+
+        [JsonIgnore]
         public List<Tx> Txs { get; set; }
 
         public List<string> AccountIds { get; set; }
@@ -119,7 +123,13 @@ namespace Liviano
             }
         }
 
+        [JsonIgnore]
         public ElectrumPool ElectrumPool { get; private set; }
+
+        // TODO
+        // Maybe a last server? And being able to serialize it
+        [JsonProperty(PropertyName = "lastServer")]
+        public string LastServer { get; private set; }
 
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {

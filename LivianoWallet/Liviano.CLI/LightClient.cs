@@ -53,17 +53,21 @@ namespace Liviano.CLI
             });
         }
 
-        public static Wallet NewWallet(string wordlist, int wordCount, Network network)
+        public static Wallet NewWalletFromMnemonic(string mnemonic, Network network)
         {
             var wallet = new Wallet();
-            var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
 
             wallet.Init(mnemonic: mnemonic, network: network);
 
             return wallet;
         }
 
-        //static IWallet NewWalletWithMnemonic()
+        public static Wallet NewWallet(string wordlist, int wordCount, Network network)
+        {
+            var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
+
+            return NewWalletFromMnemonic(mnemonic, network);
+        }
 
         static void LoadWallet(Config config)
         {
