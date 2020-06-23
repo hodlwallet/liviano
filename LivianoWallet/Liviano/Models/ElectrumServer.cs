@@ -220,6 +220,32 @@ namespace Liviano.Models
 
             return server;
         }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(Domain) && PrivatePort is null)
+                return base.ToString();
+
+            return $"{Domain}:s{PrivatePort}";
+        }
+
+        public Server FromString(string serverString)
+        {
+            var res = serverString.Split(':');
+
+            if (res.Length != 2)
+            {
+                throw new ArgumentException($"Invalid server string: {serverString}");
+            }
+
+            var s = new Server
+            {
+                Domain = res[0],
+                PrivatePort = int.Parse(res[1].Substring(1))
+            };
+
+            return s;
+        }
     }
 
     public class ElectrumServers
