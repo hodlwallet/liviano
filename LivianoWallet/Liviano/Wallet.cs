@@ -129,7 +129,7 @@ namespace Liviano
         [JsonProperty(PropertyName = "server")]
         public string Server { get; private set; }
 
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, string server = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));

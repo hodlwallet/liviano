@@ -175,7 +175,7 @@ namespace Liviano.CLI
                 int index = 1;
                 bool isChange = false;
 
-                if (string.IsNullOrEmpty(wif))
+                if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId))
                 {
                     InvalidArguments();
 
@@ -218,6 +218,21 @@ namespace Liviano.CLI
                 return;
             }
 
+            if (send)
+            {
+                throw new NotImplementedException("Send is not implemented");
+            }
+
+            if (balance)
+            {
+                throw new NotImplementedException("Balance is not implemented");
+            }
+
+            if (newAcc)
+            {
+                throw new NotImplementedException("New Account is not implemented");
+            }
+
             // Test / debugging LightClient commands
             if (electrumTest3)
             {
@@ -235,13 +250,6 @@ namespace Liviano.CLI
 
             // End... invalid options
             InvalidArguments();
-
-            // TODO Missing functionality
-            // - Send from a wallet
-            // - Start wallet and listen
-            // - Get wallet address from account
-            // - Get wallet balance for all accounts or one
-            // - Create account on a wallet
         }
 
         static void InvalidArguments(string msg = "Invalid argument options.")
