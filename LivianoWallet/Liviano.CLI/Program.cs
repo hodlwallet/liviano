@@ -7,12 +7,14 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
+using Liviano.Extensions;
 
 namespace Liviano.CLI
 {
     class Program
     {
         static ILogger logger;
+        static Config config;
 
         static void Main(string[] args)
         {
@@ -34,6 +36,7 @@ namespace Liviano.CLI
             var amount = new Decimal(0.00);
             var accountIndex = 0;
             var walletId = "";
+            var walletName = "";
 
             // Menu show
             var showHelp = false;
@@ -79,6 +82,7 @@ namespace Liviano.CLI
                 {"amt|amount=", "Amount to send", (string v) => amount = Decimal.Parse(v)},
                 {"acc|account=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
+                {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
@@ -125,6 +129,25 @@ namespace Liviano.CLI
 
                 return;
             }
+
+            // Load configs
+            if (Config.Exists())
+                config = Config.Load();
+            else
+                config = new Config(walletId, network.ToString());
+
+            if (config.HasWallet(walletId) && walletId is null)
+                walletId = config.WalletId;
+
+            if (!string.IsNullOrEmpty(config.Network) && network is null)
+                network = Hd.GetNetwork(config.Network);
+
+            config.WalletId = walletId;
+            config.Network = network.ToString();
+
+            config.Add(walletId);
+
+            config.SaveChanges();
 
             // LightClient commands, set everything before here
             if (newMnemonic)
@@ -230,6 +253,11 @@ namespace Liviano.CLI
 
             if (newAcc)
             {
+                if (string.IsNullOrEmpty(walletId))
+                {
+                    throw new ArgumentException("New account needs a wallet id");
+                }
+
                 throw new NotImplementedException("New Account is not implemented");
             }
 
