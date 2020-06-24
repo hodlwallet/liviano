@@ -31,6 +31,9 @@ namespace Liviano.CLI
             var addressType = "p2wpkh";
             var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
             var server = "locahost:s50001";
+            var amount = new Decimal(0.00);
+            var accountIndex = 0;
+            var walletId = "";
 
             // Menu show
             var showHelp = false;
@@ -40,6 +43,11 @@ namespace Liviano.CLI
             var newMnemonic = false;
             var newWallet = false;
             var getScriptPubKey = false;
+            var send = false;
+            var balance = false;
+            var newAcc = false;
+
+            // Debug menu item
             var electrumTest3 = false;
             var walletTest1 = false;
 
@@ -57,6 +65,9 @@ namespace Liviano.CLI
                 {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
                 {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
                 {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
+                {"send|send-to-address", "Send to address", v => send = !(v is null)},
+                {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
+                {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -65,6 +76,9 @@ namespace Liviano.CLI
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
                 {"s|server=", "Server", (string v) => server = v},
+                {"amt|amount=", "Amount to send", (string v) => amount = Decimal.Parse(v)},
+                {"acc|account=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
+                {"w|wallet=", "Wallet id", (string v) => walletId = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
@@ -223,16 +237,16 @@ namespace Liviano.CLI
             InvalidArguments();
 
             // TODO Missing functionality
-            // - Create new wallet
             // - Send from a wallet
             // - Start wallet and listen
-            // - Get wallet balance
-            // - Create account on wallet
+            // - Get wallet address from account
+            // - Get wallet balance for all accounts or one
+            // - Create account on a wallet
         }
 
-        static void InvalidArguments(string msg = "Invalid argument options.\n")
+        static void InvalidArguments(string msg = "Invalid argument options.")
         {
-            Console.WriteLine(msg);
+            Console.WriteLine($"{msg}\n");
             LightClient.ShowHelp();
         }
     }
