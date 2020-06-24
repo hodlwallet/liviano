@@ -126,12 +126,10 @@ namespace Liviano
         [JsonIgnore]
         public ElectrumPool ElectrumPool { get; private set; }
 
-        // TODO
-        // Maybe a last server? And being able to serialize it
-        [JsonProperty(PropertyName = "lastServer")]
-        public string LastServer { get; private set; }
+        [JsonProperty(PropertyName = "server")]
+        public string Server { get; private set; }
 
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, string server = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -171,7 +169,7 @@ namespace Liviano
         /// Gets and sets the electrum pool.
         /// </summary>
         /// <returns>a <see cref="ElectrumPool"/></returns>
-        public ElectrumPool GetElectrumPool()
+        ElectrumPool GetElectrumPool()
         {
             var pool = ElectrumPool.Load(Network, CurrentAssembly);
 
@@ -347,6 +345,16 @@ namespace Liviano
         {
             Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
 
+            Cleanup();
+
+            //  And we do the regular sync
+            await Sync();
+        }
+
+        public void Cleanup()
+        {
+            Debug.WriteLine($"[Cleanup] Attempting to clean wallet with id: {Id}");
+
             // First we do a cleanup so we can rediscover txs
             TxIds = new List<string> { };
             Txs = new List<Tx> { };
@@ -363,9 +371,6 @@ namespace Liviano
                     account.Txs = new List<Tx> { };
                 }
             }
-
-            //  And we do the regular sync
-            await Sync();
         }
 
         async Task SyncTask()
