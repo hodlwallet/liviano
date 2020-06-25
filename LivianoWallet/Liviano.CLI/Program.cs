@@ -17,45 +17,49 @@ namespace Liviano.CLI
         static Config config;
         static OptionSet options;
 
+        // Defaults
+        static Network network = Network.Main;
+        static string passphrase = "";
+        static string mnemonic = "";
+        static string wordlist = "english";
+        static int wordCount = 12;
+        static bool hasInputText = false; // Console.IsInputRedirected;
+        static string inputText = ""; // hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
+        static string wif = "";
+        static string address = "";
+        static string addressType = "p2wpkh";
+        static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
+        static string server = "locahost:s50001";
+        static decimal amount = new decimal(0.00);
+        static int accountIndex = 0;
+        static string walletId = "";
+        static string walletName = "";
+        static string accName = "";
+        static string accType = "bip84";
+
+        // Menu show
+        static bool showHelp = false;
+        static bool getXPrv = false;
+        static bool getXPub = false;
+        static bool getAddr = false;
+        static bool newMnemonic = false;
+        static bool newWallet = false;
+        static bool getScriptPubKey = false;
+        static bool send = false;
+        static bool balance = false;
+        static bool newAcc = false;
+
+        // Debug menu item
+        static bool electrumTest3 = false;
+        static bool walletTest1 = false;
+
         static void Main(string[] args)
         {
             logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            // Defaults
-            var network = Network.Main;
-            var passphrase = "";
-            var mnemonic = "";
-            var wordlist = "english";
-            var wordCount = 12;
-            var hasInputText = Console.IsInputRedirected;
-            var inputText = hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
-            var wif = "";
-            var address = "";
-            var addressType = "p2wpkh";
-            var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-            var server = "locahost:s50001";
-            var amount = new decimal(0.00);
-            var accountIndex = 0;
-            var walletId = "";
-            var walletName = "";
-            var accName = "";
-            var accType = "bip84";
-
-            // Menu show
-            var showHelp = false;
-            var getXPrv = false;
-            var getXPub = false;
-            var getAddr = false;
-            var newMnemonic = false;
-            var newWallet = false;
-            var getScriptPubKey = false;
-            var send = false;
-            var balance = false;
-            var newAcc = false;
-
-            // Debug menu item
-            var electrumTest3 = false;
-            var walletTest1 = false;
+            // Set standard input
+            hasInputText = Console.IsInputRedirected;
+            inputText = hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
 
             // Define options
             options = new OptionSet
