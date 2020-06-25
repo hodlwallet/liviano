@@ -280,6 +280,8 @@ namespace Liviano.CLI
 
                 // Returns wif of account
                 Console.WriteLine($"{res}");
+
+                return;
             }
 
             if (send)
