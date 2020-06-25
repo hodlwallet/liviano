@@ -23,8 +23,8 @@ namespace Liviano.CLI
         static string mnemonic = "";
         static string wordlist = "english";
         static int wordCount = 12;
-        static bool hasInputText = false; // Console.IsInputRedirected;
-        static string inputText = ""; // hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
+        static bool hasInputText = false;
+        static string inputText = "";
         static string wif = "";
         static string address = "";
         static string addressType = "p2wpkh";
@@ -59,7 +59,7 @@ namespace Liviano.CLI
 
             // Set standard input
             hasInputText = Console.IsInputRedirected;
-            inputText = hasInputText && !Debugger.IsAttached ? Console.ReadLine().Trim() : "";
+            if (hasInputText && !Debugger.IsAttached) inputText = Console.ReadLine().Trim();
 
             // Define options
             options = new OptionSet
@@ -86,7 +86,7 @@ namespace Liviano.CLI
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
                 {"s|server=", "Server", (string v) => server = v},
-                {"amt|amount=", "Amount to send", (string v) => amount = Decimal.Parse(v)},
+                {"amt|amount=", "Amount to send", (string v) => amount = decimal.Parse(v)},
                 {"acc|account=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
                 {"accname|account-name=", "Account name", (string v) => accName = v},
                 {"acctype|account-type=", "Account type", (string v) => accType = v},
@@ -237,17 +237,32 @@ namespace Liviano.CLI
             {
                 Wallet wallet;
                 if (string.IsNullOrEmpty(mnemonic))
-                {
                     wallet = LightClient.NewWallet(wordlist, wordCount, network);
-                }
                 else
-                {
                     wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
-                }
+
+                if (!string.IsNullOrEmpty(accName) && string.IsNullOrEmpty(accType))
+                    wallet.AddAccount(accName, accType, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
 
                 wallet.Storage.Save();
 
                 return;
+            }
+
+            if (newAcc)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                if (string.IsNullOrEmpty(accName) || string.IsNullOrEmpty(accType))
+                    throw new ArgumentException("New account needs a account type and account name");
+
+                var res = LightClient.AddAccount(config, accName, accType);
+
+                // Returns wif of account
+                Console.WriteLine($"{res}");
             }
 
             if (send)
@@ -260,23 +275,6 @@ namespace Liviano.CLI
                 throw new NotImplementedException("Balance is not implemented");
             }
 
-            if (newAcc)
-            {
-                if (string.IsNullOrEmpty(config.WalletId))
-                {
-                    throw new ArgumentException("New account needs a wallet id");
-                }
-
-                if (string.IsNullOrEmpty(accName) || string.IsNullOrEmpty(accType))
-                {
-                    throw new ArgumentException("New account needs a account type and account name");
-                }
-
-                var res = LightClient.AddAccount(config, accName, accType);
-
-                // Returns wif of account
-                Console.WriteLine($"{res}");
-            }
 
             // Test / debugging LightClient commands
             if (electrumTest3)
