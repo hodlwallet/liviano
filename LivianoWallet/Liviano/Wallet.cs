@@ -658,20 +658,34 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
+            int index = GetAccountIndex();
+
             switch (type)
             {
                 case "bip44":
                 case "bip49":
                 case "bip84":
                 case "bip141":
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type });
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
                 case "wasabi":
                     return WasabiAccount.Create(name, options);
                 case "paper":
                     return PaperAccount.Create(name, options);
+                default:
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }
+        }
 
-            return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141" });
+        int GetAccountIndex()
+        {
+            if (Accounts.Count == 0) return 0;
+
+            var count = 0;
+            var types = new string[] { "bip44", "bip49", "bip84", "bip141" };
+
+            foreach (var acc in Accounts) if (types.Contains(acc.AccountType)) count++;
+
+            return count;
         }
     }
 }

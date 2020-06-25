@@ -257,8 +257,7 @@ namespace Liviano.CLI
                 wallet.Storage.Save();
 
                 // Save wallet on config
-                config.WalletId = wallet.Id;
-                config.Wallets.Add(wallet.Id);
+                config.AddWallet(wallet.Id);
                 config.SaveChanges();
 
                 Console.WriteLine($"{wallet.Id}");

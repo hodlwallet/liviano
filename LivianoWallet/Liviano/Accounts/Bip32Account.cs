@@ -169,30 +169,17 @@ namespace Liviano.Accounts
             var type = (string)kwargs.TryGet("Type");
             var network = (Network)kwargs.TryGet("Network");
             var wallet = (IWallet)kwargs.TryGet("Wallet");
+            var index = (int)kwargs.TryGet("Index");
 
-            Bip32Account account;
-            switch (type)
+            Bip32Account account = type switch
             {
-                case "bip44":
-                    account = new Bip44Account();
-                    break;
-                case "bip49":
-                    account = new Bip49Account();
-                    break;
-                case "bip84":
-                    account = new Bip84Account();
-                    break;
-                case "bip141":
-                    account = new Bip141Account();
-                    break;
-                case "wasabi":
-                    // This makes very little sence, but it's here just in case
-                    account = new WasabiAccount();
-                    break;
-                default:
-                    account = null;
-                    break;
-            }
+                "bip44" => new Bip44Account(),
+                "bip49" => new Bip49Account(),
+                "bip84" => new Bip84Account(index),
+                "bip141" => new Bip141Account(),
+                "wasabi" => new WasabiAccount(),// This makes very little sence, but it's here just in case
+                _ => null,
+            };
 
             if (account is null)
                 throw new ArgumentException($"Incorrect account type: {type}");
@@ -201,6 +188,7 @@ namespace Liviano.Accounts
             account.Wallet = wallet;
             account.WalletId = wallet.Id;
             account.Network = network;
+            account.Index = index;
 
             var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));
             var extPubKey = extPrivKey.Neuter();
