@@ -23,14 +23,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using Liviano.Bips;
-using Liviano.Extensions;
-using Liviano.Interfaces;
-using Liviano.Utilities;
-using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using Newtonsoft.Json;
+
+using Liviano.Bips;
+using Liviano.Extensions;
+using Liviano.Utilities;
+using Liviano.Utilities.JsonConverters;
 
 namespace Liviano.Accounts
 {
@@ -104,7 +103,7 @@ namespace Liviano.Accounts
             return _ExtKey;
         }
 
-        public new static WasabiAccount Create(string name, (string, string) colors, object options)
+        public new static WasabiAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();
 
@@ -114,9 +113,7 @@ namespace Liviano.Accounts
 
             var account = new WasabiAccount(mnemonic, password, network)
             {
-                Name = name,
-                StartHex = colors.Item1,
-                EndHex = colors.Item2
+                Name = name
             };
 
             return account;

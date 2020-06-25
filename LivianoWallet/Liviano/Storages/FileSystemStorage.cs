@@ -188,12 +188,6 @@ namespace Liviano.Storages
                 }
 
                 var recentAccount = accounts.Last();
-                if (recentAccount.StartHex == null || recentAccount.EndHex == null)
-                {
-                    var colors = Liviano.Wallet.RandomGradientHexColor();
-                    recentAccount.StartHex = colors.Item1;
-                    recentAccount.EndHex = colors.Item2;
-                }
             }
 
             return accounts;

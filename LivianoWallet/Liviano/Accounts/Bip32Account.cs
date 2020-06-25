@@ -160,7 +160,7 @@ namespace Liviano.Accounts
         /// </summary>
         /// <param name="name">Name of the account</param>
         /// <returns></returns>
-        public static Bip32Account Create(string name, (string, string) colors, object options)
+        public static Bip32Account Create(string name, object options)
         {
             Guard.NotEmpty(name, nameof(name));
 
@@ -201,8 +201,6 @@ namespace Liviano.Accounts
             account.Wallet = wallet;
             account.WalletId = wallet.Id;
             account.Network = network;
-            account.StartHex = colors.Item1;
-            account.EndHex = colors.Item2;
 
             var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));
             var extPubKey = extPrivKey.Neuter();

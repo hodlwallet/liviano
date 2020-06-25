@@ -63,10 +63,6 @@ namespace Liviano.Accounts
             }
         }
 
-        public string StartHex { get; set; }
-
-        public string EndHex { get; set; }
-
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
         public string Id { get; set; }
@@ -166,7 +162,7 @@ namespace Liviano.Accounts
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
-        public static PaperAccount Create(string name, (string, string) colors, object options)
+        public static PaperAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();
 
@@ -184,7 +180,7 @@ namespace Liviano.Accounts
                 scriptPubKeyType,
                 wif,
                 network
-            ) { StartHex = colors.Item1, EndHex = colors.Item2 };
+            );
 
             return account;
         }
