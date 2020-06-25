@@ -31,10 +31,18 @@ namespace Liviano.CLI
         public Config(string walletId, string network)
         {
             // Initializing with wallet id and network
-            WalletId = walletId;
             Network = network;
 
-            Wallets = new List<string> { walletId };
+            if (string.IsNullOrWhiteSpace(walletId))
+            {
+                WalletId = "";
+                Wallets = new List<string> { };
+            }
+            else
+            {
+                WalletId = walletId;
+                Wallets = new List<string> { walletId };
+            }
         }
 
         public void SaveChanges()
@@ -56,8 +64,10 @@ namespace Liviano.CLI
             return Wallets.Contains(walletId);
         }
 
-        public void Add(string walletId)
+        public void AddWallet(string walletId)
         {
+            if (string.IsNullOrWhiteSpace(walletId)) return;
+
             WalletId = walletId;
 
             if (!HasWallet(walletId)) Wallets.Add(walletId);

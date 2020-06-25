@@ -7,7 +7,6 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
-using Liviano.Extensions;
 
 namespace Liviano.CLI
 {
@@ -17,7 +16,10 @@ namespace Liviano.CLI
         static Config config;
         static OptionSet options;
 
-        // Defaults
+        public const string DEFAULT_ACCOUNT_NAME = "Main Account";
+        public const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
+
+        // Defaults options values
         static Network network = Network.Main;
         static string passphrase = "";
         static string mnemonic = "";
@@ -33,11 +35,11 @@ namespace Liviano.CLI
         static decimal amount = new decimal(0.00);
         static int accountIndex = 0;
         static string walletId = "";
-        static string walletName = "";
-        static string accName = "";
+        static string walletName = DEFAULT_WALLET_NAME;
+        static string accName = DEFAULT_ACCOUNT_NAME;
         static string accType = "bip84";
 
-        // Menu show
+        // Menu of the cli program
         static bool showHelp = false;
         static bool getXPrv = false;
         static bool getXPub = false;
@@ -49,20 +51,20 @@ namespace Liviano.CLI
         static bool balance = false;
         static bool newAcc = false;
 
-        // Debug menu item
+        // Parse extra options arguments
+        static List<string> extra;
+
+        // Debug menu items for cli program
         static bool electrumTest3 = false;
         static bool walletTest1 = false;
 
-        static void Main(string[] args)
+        /// <summary>
+        /// Defines all the options that we need for the CLI
+        /// </summary>
+        /// <returns></returns>
+        static OptionSet GetOptions()
         {
-            logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
-            // Set standard input
-            hasInputText = Console.IsInputRedirected;
-            if (hasInputText && !Debugger.IsAttached) inputText = Console.ReadLine().Trim();
-
-            // Define options
-            options = new OptionSet
+            return new OptionSet
             {
                 // Global variables
                 {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : Network.TestNet},
@@ -100,6 +102,18 @@ namespace Liviano.CLI
                 {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)},
                 {"test-w1|wallet-test-1", "Test wallet 1", v => walletTest1 = !(v is null)}
             };
+        }
+
+        static void Main(string[] args)
+        {
+            logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
+            // Set standard input
+            hasInputText = Console.IsInputRedirected;
+            if (hasInputText && !Debugger.IsAttached) inputText = Console.ReadLine().Trim();
+
+            // Get the options
+            options = GetOptions();
 
             // Variables that support input text from the terminal
             if (hasInputText)
@@ -115,8 +129,6 @@ namespace Liviano.CLI
                 options.Add("wif|with-wif=", "Wif", (string v) => wif = v);
             }
 
-            // Parse arguments
-            List<string> extra;
             try
             {
                 extra = options.Parse(args);
@@ -151,10 +163,8 @@ namespace Liviano.CLI
             if (!string.IsNullOrEmpty(config.Network) && network is null)
                 network = Hd.GetNetwork(config.Network);
 
-            config.WalletId = walletId;
             config.Network = network.ToString();
-
-            config.Add(walletId);
+            config.AddWallet(walletId);
 
             config.SaveChanges();
 
@@ -241,10 +251,17 @@ namespace Liviano.CLI
                 else
                     wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
 
-                if (!string.IsNullOrEmpty(accName) && string.IsNullOrEmpty(accType))
-                    wallet.AddAccount(accName, accType, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
+                if (!string.IsNullOrEmpty(accName) && !string.IsNullOrEmpty(accType))
+                    wallet.AddAccount(accType, accName, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
 
                 wallet.Storage.Save();
+
+                // Save wallet on config
+                config.WalletId = wallet.Id;
+                config.Wallets.Add(wallet.Id);
+                config.SaveChanges();
+
+                Console.WriteLine($"{wallet.Id}");
 
                 return;
             }
@@ -259,7 +276,7 @@ namespace Liviano.CLI
                 if (string.IsNullOrEmpty(accName) || string.IsNullOrEmpty(accType))
                     throw new ArgumentException("New account needs a account type and account name");
 
-                var res = LightClient.AddAccount(config, accName, accType);
+                var res = LightClient.AddAccount(config, accType, accName);
 
                 // Returns wif of account
                 Console.WriteLine($"{res}");
@@ -298,6 +315,7 @@ namespace Liviano.CLI
         static void InvalidArguments(string msg = "Invalid argument options.")
         {
             Console.WriteLine($"{msg}\n");
+
             LightClient.ShowHelp(options);
         }
     }

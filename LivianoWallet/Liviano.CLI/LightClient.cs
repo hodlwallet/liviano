@@ -259,14 +259,21 @@ namespace Liviano.CLI
         /// Adds an account to the wallet and returns its xpub
         /// </summary>
         /// <param name="config"><see cref="Config"/> to load the wallet from</param>
-        /// <param name="name">Name of the account</param>
         /// <param name="type">Type of the account</param>
+        /// <param name="name">Name of the account</param>
         /// <returns>An xpub of the account</returns>
-        public static string AddAccount(Config config, string name, string type)
+        public static string AddAccount(Config config, string type, string name)
         {
             LoadWallet(config);
 
             wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = wallet.Id, Network = wallet.Network });
+
+            wallet.Storage.Save();
+
+            config.Network = wallet.Network.ToString();
+            config.AddWallet(wallet.Id);
+
+            config.SaveChanges();
 
             return wallet.CurrentAccount.ExtendedPubKey;
         }
@@ -472,7 +479,7 @@ namespace Liviano.CLI
                 Console.WriteLine($"Syncing started at {start.LocalDateTime.ToLongTimeString()}");
             };
 
-            w.SyncFinished += async (obj, _) =>
+            w.SyncFinished += (obj, _) =>
             {
                 end = DateTimeOffset.UtcNow;
 
