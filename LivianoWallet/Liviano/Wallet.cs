@@ -658,7 +658,7 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            int index = GetAccountIndex();
+            int index = GetAccountsIndex();
 
             switch (type)
             {
@@ -676,7 +676,7 @@ namespace Liviano
             }
         }
 
-        int GetAccountIndex()
+        int GetAccountsIndex()
         {
             if (Accounts.Count == 0) return 0;
 
