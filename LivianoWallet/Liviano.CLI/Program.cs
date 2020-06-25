@@ -50,6 +50,7 @@ namespace Liviano.CLI
         static bool send = false;
         static bool balance = false;
         static bool newAcc = false;
+        static bool start = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -80,6 +81,7 @@ namespace Liviano.CLI
                 {"send|send-to-address", "Send to address", v => send = !(v is null)},
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
+                {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -281,6 +283,11 @@ namespace Liviano.CLI
                 Console.WriteLine($"{res}");
 
                 return;
+            }
+
+            if (start)
+            {
+                throw new NotImplementedException("Start is not implemented");
             }
 
             if (send)
