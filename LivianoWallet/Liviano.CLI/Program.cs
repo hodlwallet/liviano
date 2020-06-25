@@ -15,6 +15,7 @@ namespace Liviano.CLI
     {
         static ILogger logger;
         static Config config;
+        static OptionSet options;
 
         static void Main(string[] args)
         {
@@ -33,10 +34,12 @@ namespace Liviano.CLI
             var addressType = "p2wpkh";
             var hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
             var server = "locahost:s50001";
-            var amount = new Decimal(0.00);
+            var amount = new decimal(0.00);
             var accountIndex = 0;
             var walletId = "";
             var walletName = "";
+            var accName = "";
+            var accType = "bip84";
 
             // Menu show
             var showHelp = false;
@@ -55,7 +58,7 @@ namespace Liviano.CLI
             var walletTest1 = false;
 
             // Define options
-            var options = new OptionSet
+            options = new OptionSet
             {
                 // Global variables
                 {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : Network.TestNet},
@@ -81,6 +84,8 @@ namespace Liviano.CLI
                 {"s|server=", "Server", (string v) => server = v},
                 {"amt|amount=", "Amount to send", (string v) => amount = Decimal.Parse(v)},
                 {"acc|account=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
+                {"accname|account-name=", "Account name", (string v) => accName = v},
+                {"acctype|account-type=", "Account type", (string v) => accType = v},
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
 
@@ -125,7 +130,7 @@ namespace Liviano.CLI
             // Check if help was sent
             if (showHelp)
             {
-                LightClient.ShowHelp();
+                LightClient.ShowHelp(options);
 
                 return;
             }
@@ -253,12 +258,20 @@ namespace Liviano.CLI
 
             if (newAcc)
             {
-                if (string.IsNullOrEmpty(walletId))
+                if (string.IsNullOrEmpty(config.WalletId))
                 {
                     throw new ArgumentException("New account needs a wallet id");
                 }
 
-                throw new NotImplementedException("New Account is not implemented");
+                if (string.IsNullOrEmpty(accName) || string.IsNullOrEmpty(accType))
+                {
+                    throw new ArgumentException("New account needs a account type and account name");
+                }
+
+                var res = LightClient.AddAccount(config, accName, accType);
+
+                // Returns wif of account
+                Console.WriteLine($"{res}");
             }
 
             // Test / debugging LightClient commands
@@ -283,7 +296,7 @@ namespace Liviano.CLI
         static void InvalidArguments(string msg = "Invalid argument options.")
         {
             Console.WriteLine($"{msg}\n");
-            LightClient.ShowHelp();
+            LightClient.ShowHelp(options);
         }
     }
 }

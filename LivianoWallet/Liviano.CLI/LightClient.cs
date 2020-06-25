@@ -17,6 +17,8 @@ using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Bips;
 using Liviano.Storages;
+using System.Runtime.CompilerServices;
+using Mono.Options;
 
 namespace Liviano.CLI
 {
@@ -85,15 +87,17 @@ namespace Liviano.CLI
             wallet = storage.Load();
         }
 
-        public static void ShowHelp()
+        public static void ShowHelp(OptionSet options)
         {
-            // TODO Finish help
-            Console.WriteLine("Liviano a Bitcoin light client");
-            Console.WriteLine("==============================");
-            Console.WriteLine("...");
-            Console.WriteLine("HELP HERE");
-            Console.WriteLine("...");
-            Console.WriteLine("END.");
+            // show some app description message
+            Console.WriteLine("Usage: ./liviano-cli [OPTIONS]");
+            Console.WriteLine("CLI version of Liviano.");
+            Console.WriteLine("Can be used as an example for a Wallet or as an utility for Bitcoin");
+            Console.WriteLine();
+
+            // output the options
+            Console.WriteLine("Options:");
+            options.WriteOptionDescriptions(Console.Out);
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
@@ -249,6 +253,22 @@ namespace Liviano.CLI
             _ = PeriodicSave();
 
             WaitUntilEscapeIsPressed();
+        }
+
+        /// <summary>
+        /// Adds an account to the wallet and returns its xpub
+        /// </summary>
+        /// <param name="config"><see cref="Config"/> to load the wallet from</param>
+        /// <param name="name">Name of the account</param>
+        /// <param name="type">Type of the account</param>
+        /// <returns>An xpub of the account</returns>
+        public static string AddAccount(Config config, string name, string type)
+        {
+            LoadWallet(config);
+
+            wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = wallet.Id, Network = wallet.Network });
+
+            return wallet.CurrentAccount.ExtendedPubKey;
         }
 
         public static void TestElectrumConnection3(Network network)
