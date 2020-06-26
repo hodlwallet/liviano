@@ -188,131 +188,82 @@ namespace Liviano.Electrum
                     var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
-                    var addresses = new List<BitcoinAddress> { };
-
-                    addresses.AddRange(receiveAddresses);
-                    addresses.AddRange(changeAddresses);
-
                     foreach (var addr in receiveAddresses)
-                    {
-                        var t = Task.Factory.StartNew(o => {
-                            var scriptHashStr = addr.ToScriptHash().ToHex();
-
-                            // This is like this on purpose, we should communicate with this via the event
-                            // OnNewTransaction
-                            _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
-                            {
-                                var status = Deserialize<ResultAsString>(str);
-
-                                if (string.IsNullOrEmpty(status.Result)) return;
-
-                                try
-                                {
-                                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
-
-                                    foreach (var unspentResult in unspent.Result)
-                                    {
-                                        var txHash = unspentResult.TxHash;
-                                        var height = unspentResult.Height;
-
-                                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                                        // Tx is new
-                                        if (currentTx is null)
-                                        {
-                                            var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-                                            var txHex = blkChainTxGet.Result;
-
-                                            var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-                                            acc.OnNewTransaction += (o, tx) => {
-                                                OnNewTransaction?.Invoke(this, tx);
-                                            };
-
-                                            acc.AddTx(tx);
-
-                                            return;
-                                        }
-
-                                        // A potential update if tx heights are different
-                                        if (currentTx.BlockHeight != height)
-                                        {
-                                            var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-                                            var txHex = blkChainTxGet.Result;
-
-                                            var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-
-                                            acc.UpdateTx(tx);
-
-                                            if (tx.AccountId == wallet.CurrentAccountId)
-                                                OnUpdateTransaction?.Invoke(this, tx);
-
-                                            // Here for safety, at any time somebody can add code to this
-                                            return;
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
-                                }
-                            });
-                        }, TaskCreationOptions.AttachedToParent, ct);
-                    }
+                        _ = GetAddressTask(acc, addr, receiveAddresses, changeAddresses, ct);
 
                     foreach (var addr in acc.GetChangeAddress(acc.GapLimit))
-                    {
-                        var t = Task.Factory.StartNew(o => {
-                            var scriptHashStr = addr.ToScriptHash().ToHex();
-                            var t = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
-                            {
-                                var status = Deserialize<ResultAsString>(str);
-                            });
-
-                            t.Wait();
-                        }, TaskCreationOptions.AttachedToParent, ct);
-                    }
+                        _ = GetAddressTask(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
 
             await t;
         }
 
-        Dictionary<string, BitcoinAddress[]> GetAccountAddresses(IAccount account, object @lock = null)
+        Task GetAddressTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
         {
-            @lock = @lock ?? new object();
-            var addresses = new Dictionary<string, BitcoinAddress[]>();
+            return Task.Factory.StartNew(o => {
+                var scriptHashStr = addr.ToScriptHash().ToHex();
 
-            if (account.AccountType == "paper")
-            {
-                // Paper accounts only have one address, that's the point
-                addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
-                addresses.Add("internal", new BitcoinAddress[] { });
-            }
-            else
-            {
-                // Everything else, very likely, is an HD Account.
+                // This is like this on purpose, we should communicate with this via the event
+                // OnNewTransaction
+                _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+                    {
+                    var status = Deserialize<ResultAsString>(str);
 
-                // We generate accounts until the gap limit is reached,
-                // based on their respective external and internal addresses count
-                // External addresses (receive)
-                lock (@lock)
-                {
-                    var externalCount = account.ExternalAddressesCount;
-                    account.ExternalAddressesCount = 0;
-                    addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
-                    account.ExternalAddressesCount = externalCount;
+                    if (string.IsNullOrEmpty(status.Result)) return;
 
-                    // Internal addresses (send)
-                    var internalCount = account.InternalAddressesCount;
-                    account.InternalAddressesCount = 0;
-                    addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
-                    account.InternalAddressesCount = internalCount;
-                }
-            }
+                    try
+                    {
+                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
 
-            return addresses;
+                    foreach (var unspentResult in unspent.Result)
+                    {
+                        var txHash = unspentResult.TxHash;
+                        var height = unspentResult.Height;
+
+                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                        // Tx is new
+                        if (currentTx is null)
+                        {
+                        var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                        var txHex = blkChainTxGet.Result;
+
+                        var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+                        acc.OnNewTransaction += (o, tx) => {
+                            OnNewTransaction?.Invoke(this, tx);
+                        };
+
+                        acc.AddTx(tx);
+
+                        return;
+                        }
+
+                        // A potential update if tx heights are different
+                        if (currentTx.BlockHeight != height)
+                        {
+                            var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                            var txHex = blkChainTxGet.Result;
+
+                            var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+
+                            acc.UpdateTx(tx);
+
+                            if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                                OnUpdateTransaction?.Invoke(this, tx);
+
+                            // Here for safety, at any time somebody can add code to this
+                            return;
+                        }
+                    }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
+                    }
+                });
+            }, TaskCreationOptions.AttachedToParent, ct);
         }
-
 
         /// <summary>
         /// Loads the pool from the filesystem
