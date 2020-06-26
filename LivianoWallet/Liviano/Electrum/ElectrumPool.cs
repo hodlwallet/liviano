@@ -206,11 +206,13 @@ namespace Liviano.Electrum
 
                 // Get history
                 _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result => {
-                    _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result);
+                    _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result, ct);
                 });
 
                 // Get the unspent
                 _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) => {
+                    if (ct.IsCancellationRequested) return;
+
                     var status = Deserialize<ResultAsString>(str);
 
                     if (string.IsNullOrEmpty(status.Result)) return;
@@ -221,6 +223,8 @@ namespace Liviano.Electrum
 
                         foreach (var unspentResult in unspent.Result)
                         {
+                            if (ct.IsCancellationRequested) return;
+
                             var txHash = unspentResult.TxHash;
                             var height = unspentResult.Height;
 
@@ -275,10 +279,12 @@ namespace Liviano.Electrum
         /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
         /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
         /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
-        async Task InsertTransactionsFromHistory(IAccount acc, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, BlockchainScriptHashGetHistoryResult result)
+        async Task InsertTransactionsFromHistory(IAccount acc, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, BlockchainScriptHashGetHistoryResult result, CancellationToken ct)
         {
             foreach (var r in result.Result)
             {
+                if (ct.IsCancellationRequested) return;
+
 #if DEBUG
                 // Upps... This is what happens when you test some bitcoin wallets,
                 // this happened because I sent to a change address so the software thinks is a receive...
