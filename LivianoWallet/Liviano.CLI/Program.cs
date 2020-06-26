@@ -287,16 +287,37 @@ namespace Liviano.CLI
 
             if (start)
             {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                // TODO Start the wallet to sync all the accounts
+
                 throw new NotImplementedException("Start is not implemented");
             }
 
             if (send)
             {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                // TODO Send from an account
+
                 throw new NotImplementedException("Send is not implemented");
             }
 
             if (balance)
             {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                // TODO Get balance from an account or from all of them in the wallet
+
                 throw new NotImplementedException("Balance is not implemented");
             }
 
