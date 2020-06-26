@@ -178,18 +178,21 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested)
                 return;
 
-            var t = Task.Factory.StartNew(async o => {
+            var t = Task.Factory.StartNew(o => {
                 foreach (var acc in wallet.Accounts)
                 {
                     foreach (var addr in acc.GetReceiveAddress(acc.GapLimit))
                     {
-                        var scriptHashStr = addr.ToScriptHash().ToHex();
-                        var accAddrs = GetAccountAddresses(acc);
-                        var t = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
-                        {
-                            var status = Deserialize<ResultAsString>(str);
-                        });
-                        await t;
+                        var t = Task.Factory.StartNew(o => {
+                            var scriptHashStr = addr.ToScriptHash().ToHex();
+                            var accAddrs = GetAccountAddresses(acc);
+                            var t = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
+                            {
+                                var status = Deserialize<ResultAsString>(str);
+                            });
+
+                            t.Wait();
+                        }, TaskCreationOptions.AttachedToParent, ct);
                     }
 
                     // Task.Factory.StartNew(o => {
