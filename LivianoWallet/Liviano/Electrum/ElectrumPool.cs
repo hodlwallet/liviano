@@ -93,6 +93,8 @@ namespace Liviano.Electrum
 
         public event EventHandler<Tx> OnNewTransaction;
 
+        public event EventHandler<Tx> OnUpdateTransaction;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -195,7 +197,6 @@ namespace Liviano.Electrum
                     {
                         var t = Task.Factory.StartNew(o => {
                             var scriptHashStr = addr.ToScriptHash().ToHex();
-                            var accAddrs = GetAccountAddresses(acc);
 
                             // This is like this on purpose, we should communicate with this via the event
                             // OnNewTransaction
@@ -231,6 +232,23 @@ namespace Liviano.Electrum
 
                                             return;
                                         }
+
+                                        // A potential update if tx heights are different
+                                        if (currentTx.BlockHeight != height)
+                                        {
+                                            var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                                            var txHex = blkChainTxGet.Result;
+
+                                            var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+
+                                            acc.UpdateTx(tx);
+
+                                            if (tx.AccountId == wallet.CurrentAccountId)
+                                                OnUpdateTransaction?.Invoke(this, tx);
+
+                                            // Here for safety, at any time somebody can add code to this
+                                            return;
+                                        }
                                     }
                                 }
                                 catch (Exception ex)
@@ -245,7 +263,6 @@ namespace Liviano.Electrum
                     {
                         var t = Task.Factory.StartNew(o => {
                             var scriptHashStr = addr.ToScriptHash().ToHex();
-                            var accAddrs = GetAccountAddresses(acc);
                             var t = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
                             {
                                 var status = Deserialize<ResultAsString>(str);
