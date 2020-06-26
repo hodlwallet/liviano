@@ -231,24 +231,6 @@ namespace Liviano.Electrum
 
                                             return;
                                         }
-
-                                        // TODO Figure out why this is needed
-                                        //// A potential update if tx heights are different
-                                        //if (currentTx.BlockHeight != height)
-                                        //{
-                                            //var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                            //var txHex = blkChainTxGet.Result;
-
-                                            //var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                            //account.UpdateTx(tx);
-
-                                            //if (tx.AccountId == CurrentAccountId)
-                                                //OnUpdateTransaction?.Invoke(this, tx);
-
-                                            //// Here for safety, at any time somebody can add code to this
-                                            //return;
-                                        //}
                                     }
                                 }
                                 catch (Exception ex)

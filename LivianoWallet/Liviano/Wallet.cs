@@ -382,32 +382,9 @@ namespace Liviano
 
             await ElectrumPool.SyncWallet(this, ct);
 
-            // var electrum = await GetElectrumClient();
-            // var @lock = new object();
-
-            // var accountsWithAddresses = AccountsWithAddresses(@lock);
-
-            // var tasks = new List<Task>();
-            // foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
-            // {
-                // var t = GetAccountTask(entry, electrum);
-
-                // tasks.Add(t);
-            // }
-
-            // await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-            // {
-                // SyncFinished?.Invoke(this, null);
-            // });
-
-            //while (tasks.Count > 0)
-            //{
-            //    var firstFinishedTask = await Task.WhenAny(tasks);
-
-            //    tasks.Remove(firstFinishedTask);
-
-            //    await firstFinishedTask;
-            //}
+            ElectrumPool.OnNewTransaction += (o, tx) => {
+                Console.WriteLine($"Found a tx! hex: {tx.Hex}");
+            };
         }
 
         public void UpdateCurrentTransaction(Tx tx)
