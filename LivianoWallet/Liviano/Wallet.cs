@@ -377,7 +377,10 @@ namespace Liviano
         {
             Debug.WriteLine("[Sync] Syncing...");
 
-            await ElectrumPool.SyncWallet(this);
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+
+            await ElectrumPool.SyncWallet(this, ct);
 
             // var electrum = await GetElectrumClient();
             // var @lock = new object();

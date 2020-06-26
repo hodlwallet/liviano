@@ -37,8 +37,6 @@ using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using NBitcoin.OpenAsset;
 
 namespace Liviano.Accounts
 {

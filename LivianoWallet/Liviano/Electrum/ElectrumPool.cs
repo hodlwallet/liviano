@@ -91,6 +91,8 @@ namespace Liviano.Electrum
 
         public event EventHandler OnCancelFindingPeersEvent;
 
+        public event EventHandler<Tx> OnNewTransaction;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -181,7 +183,83 @@ namespace Liviano.Electrum
             var t = Task.Factory.StartNew(o => {
                 foreach (var acc in wallet.Accounts)
                 {
-                    foreach (var addr in acc.GetReceiveAddress(acc.GapLimit))
+                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
+
+                    var addresses = new List<BitcoinAddress> { };
+
+                    addresses.AddRange(receiveAddresses);
+                    addresses.AddRange(changeAddresses);
+
+                    foreach (var addr in receiveAddresses)
+                    {
+                        var t = Task.Factory.StartNew(o => {
+                            var scriptHashStr = addr.ToScriptHash().ToHex();
+                            var accAddrs = GetAccountAddresses(acc);
+
+                            // This is like this on purpose, we should communicate with this via the event
+                            // OnNewTransaction
+                            _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+                            {
+                                var status = Deserialize<ResultAsString>(str);
+
+                                if (string.IsNullOrEmpty(status.Result)) return;
+
+                                try
+                                {
+                                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                                    foreach (var unspentResult in unspent.Result)
+                                    {
+                                        var txHash = unspentResult.TxHash;
+                                        var height = unspentResult.Height;
+
+                                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                                        // Tx is new
+                                        if (currentTx is null)
+                                        {
+                                            var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                                            var txHex = blkChainTxGet.Result;
+
+                                            var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+                                            acc.OnNewTransaction += (o, tx) => {
+                                                OnNewTransaction?.Invoke(this, tx);
+                                            };
+
+                                            acc.AddTx(tx);
+
+                                            return;
+                                        }
+
+                                        // TODO Figure out why this is needed
+                                        //// A potential update if tx heights are different
+                                        //if (currentTx.BlockHeight != height)
+                                        //{
+                                            //var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
+                                            //var txHex = blkChainTxGet.Result;
+
+                                            //var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                                            //account.UpdateTx(tx);
+
+                                            //if (tx.AccountId == CurrentAccountId)
+                                                //OnUpdateTransaction?.Invoke(this, tx);
+
+                                            //// Here for safety, at any time somebody can add code to this
+                                            //return;
+                                        //}
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
+                                }
+                            });
+                        }, TaskCreationOptions.AttachedToParent, ct);
+                    }
+
+                    foreach (var addr in acc.GetChangeAddress(acc.GapLimit))
                     {
                         var t = Task.Factory.StartNew(o => {
                             var scriptHashStr = addr.ToScriptHash().ToHex();
@@ -194,11 +272,6 @@ namespace Liviano.Electrum
                             t.Wait();
                         }, TaskCreationOptions.AttachedToParent, ct);
                     }
-
-                    // Task.Factory.StartNew(o => {
-                        // var addresses = GetAccountAddresses(acc, @lock);
-                        // // var internal = addresses["internal"];
-                    // }, TaskCreationOptions.AttachedToParent, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
 
