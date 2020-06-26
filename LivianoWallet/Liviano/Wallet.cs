@@ -377,23 +377,25 @@ namespace Liviano
         {
             Debug.WriteLine("[Sync] Syncing...");
 
-            var electrum = await GetElectrumClient();
-            var @lock = new object();
+            await ElectrumPool.SyncWallet(this);
 
-            var accountsWithAddresses = AccountsWithAddresses(@lock);
+            // var electrum = await GetElectrumClient();
+            // var @lock = new object();
 
-            var tasks = new List<Task>();
-            foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
-            {
-                var t = GetAccountTask(entry, electrum);
+            // var accountsWithAddresses = AccountsWithAddresses(@lock);
 
-                tasks.Add(t);
-            }
+            // var tasks = new List<Task>();
+            // foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
+            // {
+                // var t = GetAccountTask(entry, electrum);
 
-            await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-            {
-                SyncFinished?.Invoke(this, null);
-            });
+                // tasks.Add(t);
+            // }
+
+            // await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
+            // {
+                // SyncFinished?.Invoke(this, null);
+            // });
 
             //while (tasks.Count > 0)
             //{
@@ -461,7 +463,7 @@ namespace Liviano
                     {
                         var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
 
-                        await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
+                        await InsertTransactionsFromHistory(historyRes, account, electrum, entry);
                     }, TaskCreationOptions.LongRunning);
 
                     tasks.Add(electrumTask);
@@ -482,7 +484,7 @@ namespace Liviano
             return t;
         }
 
-        async Task _InsertTransactionsFromHistory(BlockchainScriptHashGetHistoryResult result, IAccount account, ElectrumClient electrum, KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry)
+        async Task InsertTransactionsFromHistory(BlockchainScriptHashGetHistoryResult result, IAccount account, ElectrumClient electrum, KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry)
         {
             foreach (var r in result.Result)
             {

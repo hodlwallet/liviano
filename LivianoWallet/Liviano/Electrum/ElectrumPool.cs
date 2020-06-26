@@ -30,6 +30,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Liviano.Models;
+using Liviano.Interfaces;
 using Liviano.Extensions;
 using System.Linq;
 using System.Reflection;
@@ -37,6 +38,8 @@ using System.IO;
 using NBitcoin;
 using Newtonsoft.Json;
 using System.Text;
+
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
 {
@@ -165,6 +168,76 @@ namespace Liviano.Electrum
 
             File.WriteAllText(GetRecentServersFileName(Network), data);
         }
+
+        /// <summary>
+        /// Sync wallet
+        /// </summary>
+        /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
+        public async Task SyncWallet(IWallet wallet, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested)
+                return;
+
+            var t = Task.Factory.StartNew(async o => {
+                foreach (var acc in wallet.Accounts)
+                {
+                    foreach (var addr in acc.GetReceiveAddress(acc.GapLimit))
+                    {
+                        var scriptHashStr = addr.ToScriptHash().ToHex();
+                        var accAddrs = GetAccountAddresses(acc);
+                        var t = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, (str) =>
+                        {
+                            var status = Deserialize<ResultAsString>(str);
+                        });
+                        await t;
+                    }
+
+                    // Task.Factory.StartNew(o => {
+                        // var addresses = GetAccountAddresses(acc, @lock);
+                        // // var internal = addresses["internal"];
+                    // }, TaskCreationOptions.AttachedToParent, ct);
+                }
+            }, TaskCreationOptions.LongRunning, ct);
+
+            await t;
+        }
+
+        Dictionary<string, BitcoinAddress[]> GetAccountAddresses(IAccount account, object @lock = null)
+        {
+            @lock = @lock ?? new object();
+            var addresses = new Dictionary<string, BitcoinAddress[]>();
+
+            if (account.AccountType == "paper")
+            {
+                // Paper accounts only have one address, that's the point
+                addresses.Add("external", new BitcoinAddress[] { account.GetReceiveAddress() });
+                addresses.Add("internal", new BitcoinAddress[] { });
+            }
+            else
+            {
+                // Everything else, very likely, is an HD Account.
+
+                // We generate accounts until the gap limit is reached,
+                // based on their respective external and internal addresses count
+                // External addresses (receive)
+                lock (@lock)
+                {
+                    var externalCount = account.ExternalAddressesCount;
+                    account.ExternalAddressesCount = 0;
+                    addresses.Add("external", account.GetReceiveAddress(externalCount + account.GapLimit));
+                    account.ExternalAddressesCount = externalCount;
+
+                    // Internal addresses (send)
+                    var internalCount = account.InternalAddressesCount;
+                    account.InternalAddressesCount = 0;
+                    addresses.Add("internal", account.GetChangeAddress(internalCount + account.GapLimit));
+                    account.InternalAddressesCount = internalCount;
+                }
+            }
+
+            return addresses;
+        }
+
 
         /// <summary>
         /// Loads the pool from the filesystem
