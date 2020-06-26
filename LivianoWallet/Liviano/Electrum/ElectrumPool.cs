@@ -204,58 +204,61 @@ namespace Liviano.Electrum
             return Task.Factory.StartNew(o => {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
-                // This is like this on purpose, we should communicate with this via the event
-                // OnNewTransaction
-                _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
-                    {
+                // Get history
+                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result => {
+                    _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result);
+                });
+
+                // Get the unspent
+                _ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) => {
                     var status = Deserialize<ResultAsString>(str);
 
                     if (string.IsNullOrEmpty(status.Result)) return;
 
                     try
                     {
-                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+                        var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
 
-                    foreach (var unspentResult in unspent.Result)
-                    {
-                        var txHash = unspentResult.TxHash;
-                        var height = unspentResult.Height;
-
-                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                        // Tx is new
-                        if (currentTx is null)
+                        foreach (var unspentResult in unspent.Result)
                         {
-                        var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-                        var txHex = blkChainTxGet.Result;
+                            var txHash = unspentResult.TxHash;
+                            var height = unspentResult.Height;
 
-                        var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-                        acc.OnNewTransaction += (o, tx) => {
-                            OnNewTransaction?.Invoke(this, tx);
-                        };
+                            var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                        acc.AddTx(tx);
-
-                        return;
-                        }
-
-                        // A potential update if tx heights are different
-                        if (currentTx.BlockHeight != height)
-                        {
+                            // Tx is new
+                            if (currentTx is null)
+                            {
                             var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
                             var txHex = blkChainTxGet.Result;
 
                             var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+                            acc.OnNewTransaction += (o, tx) => {
+                                OnNewTransaction?.Invoke(this, tx);
+                            };
 
-                            acc.UpdateTx(tx);
+                            acc.AddTx(tx);
 
-                            if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                                OnUpdateTransaction?.Invoke(this, tx);
-
-                            // Here for safety, at any time somebody can add code to this
                             return;
+                            }
+
+                            // A potential update if tx heights are different
+                            if (currentTx.BlockHeight != height)
+                            {
+                                var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                                var txHex = blkChainTxGet.Result;
+
+                                var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+
+                                acc.UpdateTx(tx);
+
+                                if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                                    OnUpdateTransaction?.Invoke(this, tx);
+
+                                // Here for safety, at any time somebody can add code to this
+                                return;
+                            }
                         }
-                    }
                     }
                     catch (Exception ex)
                     {
@@ -263,6 +266,80 @@ namespace Liviano.Electrum
                     }
                 });
             }, TaskCreationOptions.AttachedToParent, ct);
+        }
+
+        /// <summary>
+        /// Insert transactions from a result of the electrum network
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
+        /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
+        /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
+        /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
+        async Task InsertTransactionsFromHistory(IAccount acc, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, BlockchainScriptHashGetHistoryResult result)
+        {
+            foreach (var r in result.Result)
+            {
+#if DEBUG
+                // Upps... This is what happens when you test some bitcoin wallets,
+                // this happened because I sent to a change address so the software thinks is a receive...
+                // now I don't have a way to tell if the tx is receive or send...
+                if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
+                    continue;
+#endif
+                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+
+                var txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+
+                var tx = Tx.CreateFromHex(
+                    txRes.Result,
+                    acc,
+                    Network,
+                    r.Height,
+                    receiveAddresses,
+                    changeAddresses
+                );
+
+                var txAddresses = Transaction.Parse(
+                    tx.Hex,
+                    Network
+                ).Outputs.Select(
+                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+                );
+
+                if (((Wallet)acc.Wallet).TxIds.Contains(tx.Id.ToString()))
+                {
+                    acc.UpdateTx(tx);
+
+                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                        OnUpdateTransaction?.Invoke(this, tx);
+                }
+                else
+                {
+                    acc.AddTx(tx);
+
+                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                        OnNewTransaction?.Invoke(this, tx);
+                }
+
+                foreach (var txAddr in txAddresses)
+                {
+                    if (receiveAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedExternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedExternalAddresses.Add(txAddr);
+                    }
+
+                    if (changeAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedInternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedInternalAddresses.Add(txAddr);
+                    }
+                }
+            }
         }
 
         /// <summary>
