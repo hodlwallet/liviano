@@ -526,7 +526,7 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            int index = GetAccountsIndex();
+            int index = GetAccountsIndex(type) + 1;
 
             switch (type)
             {
@@ -544,16 +544,13 @@ namespace Liviano
             }
         }
 
-        int GetAccountsIndex()
+        int GetAccountsIndex(string type)
         {
-            if (Accounts.Count == 0) return 0;
+            string[] types = new string[] { "bip44",  "bip49",  "bip84",  "bip141" };
 
-            var count = 0;
-            var types = new string[] { "bip44", "bip49", "bip84", "bip141" };
+            if (!types.Contains(type)) return 0;
 
-            foreach (var acc in Accounts) if (types.Contains(acc.AccountType)) count++;
-
-            return count;
+            return Accounts.Count(acc => string.Equals(type, acc.AccountType));
         }
     }
 }
