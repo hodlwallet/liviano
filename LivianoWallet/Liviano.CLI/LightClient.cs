@@ -17,8 +17,6 @@ using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Bips;
 using Liviano.Storages;
-using System.Runtime.CompilerServices;
-using Mono.Options;
 
 namespace Liviano.CLI
 {
@@ -85,19 +83,6 @@ namespace Liviano.CLI
             }
 
             wallet = storage.Load();
-        }
-
-        public static void ShowHelp(OptionSet options)
-        {
-            // show some app description message
-            Console.WriteLine("Usage: ./liviano-cli [OPTIONS]");
-            Console.WriteLine("CLI version of Liviano.");
-            Console.WriteLine("Can be used as an example for a Wallet or as an utility for Bitcoin");
-            Console.WriteLine();
-
-            // output the options
-            Console.WriteLine("Options:");
-            options.WriteOptionDescriptions(Console.Out);
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)

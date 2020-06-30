@@ -148,7 +148,7 @@ namespace Liviano.CLI
             // Check if help was sent
             if (showHelp)
             {
-                LightClient.ShowHelp(options);
+                ShowHelp(options);
 
                 return;
             }
@@ -341,11 +341,25 @@ namespace Liviano.CLI
             InvalidArguments();
         }
 
+        static void ShowHelp(OptionSet options)
+        {
+            // show some app description message
+            Console.WriteLine("Usage: ./liviano-cli [OPTIONS]");
+            Console.WriteLine("CLI version of Liviano.");
+            Console.WriteLine("Can be used as an example for a Wallet or as an utility for Bitcoin");
+            Console.WriteLine();
+
+            // output the options
+            Console.WriteLine("Options:");
+            options.WriteOptionDescriptions(Console.Out);
+        }
+
+
         static void InvalidArguments(string msg = "Invalid argument options.")
         {
             Console.WriteLine($"{msg}\n");
 
-            LightClient.ShowHelp(options);
+            ShowHelp(options);
         }
     }
 }
