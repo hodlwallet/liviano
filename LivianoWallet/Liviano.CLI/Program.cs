@@ -292,9 +292,10 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                // TODO Start the wallet to sync all the accounts
 
-                throw new NotImplementedException("Start is not implemented");
+                LightClient.Start(config, resync: false);
+
+                return;
             }
 
             if (send)
