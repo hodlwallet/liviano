@@ -59,6 +59,7 @@ namespace Liviano.Accounts
 
         public WasabiAccount(int index = 0) : base(index)
         {
+            Index = index;
         }
 
         public WasabiAccount(string mnemonic, string password = "", Network network = null, int index = 0) : base(index)

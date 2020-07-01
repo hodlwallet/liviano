@@ -95,15 +95,11 @@ namespace Liviano.Accounts
 
         public int ExternalAddressesCount
         {
-            get => 0;
+            get => 1;
             set { }
         }
 
-        public int Index
-        {
-            get => 0;
-            set { }
-        }
+        public int Index { get; set; }
 
         public IWallet Wallet { get; set; }
 
@@ -118,7 +114,7 @@ namespace Liviano.Accounts
         public event EventHandler<Tx> OnNewTransaction;
         public event EventHandler<Tx> OnUpdateTransaction;
 
-        public PaperAccount(string name, string wif = null, Network network = null)
+        public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
             Guard.NotNull(name, nameof(name));
 
@@ -130,11 +126,15 @@ namespace Liviano.Accounts
             UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
             UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
 
+            Index = index;
+
             Initialize(name, scriptPubKeyType, wif, network);
         }
 
-        public PaperAccount(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null)
+        public PaperAccount(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null, int index = 0)
         {
+            Index = index;
+
             Initialize(name, scriptPubKeyType, wif, network);
         }
 

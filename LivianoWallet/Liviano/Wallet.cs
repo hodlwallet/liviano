@@ -169,7 +169,7 @@ namespace Liviano
 
             foreach (var t in types)
             {
-                AccountsIndex.Add(t, 0);
+                AccountsIndex.Add(t, -1);
             }
         }
 
@@ -233,10 +233,10 @@ namespace Liviano
         {
             var account = NewAccount(type, name, options);
 
+            account.Index = ++AccountsIndex[type];
+
             AccountIds.Add(account.Id);
             Accounts.Add(account);
-
-            AccountsIndex[type]++;
 
             if (!string.IsNullOrEmpty(CurrentAccountId)) return;
 
@@ -538,8 +538,7 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            int index = GetAccountsIndex(type);
-
+            var index = GetAccountsIndex(type) + 1;
             switch (type)
             {
                 case "bip44":
@@ -548,9 +547,9 @@ namespace Liviano
                 case "bip141":
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
                 case "wasabi":
-                    return WasabiAccount.Create(name, options);
+                    return WasabiAccount.Create(name, options); // TODO Express acocunt index
                 case "paper":
-                    return PaperAccount.Create(name, options);
+                    return PaperAccount.Create(name, options); // TODO Express acocunt index
                 default:
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }

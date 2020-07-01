@@ -41,5 +41,10 @@ namespace Liviano.Accounts
                 _ScriptPubKeyType = value;
             }
         }
+
+        public Bip141Account(int index = 0) : base(index)
+        {
+            Index = index;
+        }
     }
 }

@@ -44,7 +44,7 @@ namespace Liviano.Accounts
 
         public Bip84Account(int index = 0) : base(index)
         {
-
+            Index = index;
         }
     }
 }
