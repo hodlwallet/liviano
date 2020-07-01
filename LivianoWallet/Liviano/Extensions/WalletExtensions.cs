@@ -290,23 +290,12 @@ namespace Liviano.Extensions
 
         public static Dictionary<string, object> ToDict(this object options)
         {
-            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+            var kwargs = new Dictionary<string, object>();
 
             if (options is null) return kwargs;
 
-            foreach (PropertyInfo prop in options.GetType().GetProperties())
-            {
-                string propName = prop.Name;
-                var val = options.GetType().GetProperty(propName).GetValue(options, null);
-                if (val != null)
-                {
-                    kwargs.Add(propName, val);
-                }
-                else
-                {
-                    kwargs.Add(propName, null);
-                }
-            }
+            foreach (var prop in options.GetType().GetProperties())
+                kwargs.Add(prop.Name, prop.GetValue(options, null));
 
             return kwargs;
         }
