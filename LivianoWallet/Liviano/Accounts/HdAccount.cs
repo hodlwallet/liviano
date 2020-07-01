@@ -125,9 +125,6 @@ namespace Liviano.Accounts
         [JsonConverter(typeof(StringEnumConverter))]
         public abstract ScriptPubKeyType ScriptPubKeyType { get; set; }
 
-
-
-        #region IAccountFields
         public Network Network { get; set; }
         public string Name { get; set; }
         public List<string> TxIds { get; set; }
@@ -151,6 +148,5 @@ namespace Liviano.Accounts
         public event EventHandler<Tx> OnUpdateTransaction;
 
         public abstract Money GetBalance();
-        #endregion
     }
 }

@@ -170,7 +170,7 @@ namespace Liviano.CLI
             throw new NotImplementedException("TODO");
         }
 
-        public static BitcoinAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
+        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -185,15 +185,7 @@ namespace Liviano.CLI
 
             wallet = storage.Load();
 
-            IAccount account;
-            if (accountName is null)
-            {
-                account = wallet.Accounts[int.Parse(accountIndex)];
-            }
-            else
-            {
-                account = wallet.Accounts.FirstOrDefault((i) => i.Name == accountName);
-            }
+            IAccount account = wallet.Accounts[accountIndex];
 
             if (account is null) return null;
 

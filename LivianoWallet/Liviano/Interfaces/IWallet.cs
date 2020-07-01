@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
+using Liviano.Electrum;
 
 namespace Liviano.Interfaces
 {
@@ -112,17 +113,47 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         List<IAccount> Accounts { get; set; }
 
+        /// <summary>
+        /// Get account indexes
+        /// </summary>
+        [JsonProperty(PropertyName = "accountsIndex", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        Dictionary<string, int> AccountsIndex { get; set; }
+
         [JsonIgnore]
         IStorage Storage { get; set; }
 
         [JsonIgnore]
         Assembly CurrentAssembly { get; set; }
 
+        [JsonProperty(PropertyName = "server", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        string Server { get; set; }
+
+        [JsonIgnore]
+        ElectrumPool ElectrumPool { get; set; }
+
+        [JsonProperty(PropertyName = "txIds")]
+        List<string> TxIds { get; set; }
+
+        [JsonIgnore]
+        List<Tx> Txs { get; set; }
+
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
         void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null);
+
+        /// <summary>
+        /// Inits the priv key
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="decrypt"></param>
+        void InitPrivateKey(string password = "", bool decrypt = false);
+
+        /// <summary>
+        /// Starts all the indexes of all types of accounts tracked
+        /// </summary>
+        void InitAccountsIndex();
 
         /// <summary>
         /// Syncing, used to start syncing from 0 and also to continue after booting

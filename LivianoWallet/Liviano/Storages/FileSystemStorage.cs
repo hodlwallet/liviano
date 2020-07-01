@@ -93,7 +93,8 @@ namespace Liviano.Storages
                 Wallet.CurrentAccount = Wallet.Accounts[0];
             }
 
-            _ = Wallet.GetPrivateKey();
+            Wallet.InitPrivateKey();
+            Wallet.InitAccountsIndex();
 
             Wallet.Storage = this;
 

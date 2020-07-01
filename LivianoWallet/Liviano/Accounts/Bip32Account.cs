@@ -45,14 +45,14 @@ namespace Liviano.Accounts
         {
             Id = Guid.NewGuid().ToString();
 
-            TxIds = TxIds ?? new List<string>();
-            Txs = Txs ?? new List<Tx>();
+            TxIds ??= new List<string>();
+            Txs ??= new List<Tx>();
 
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;
 
-            UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
-            UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
+            UsedExternalAddresses ??= new List<BitcoinAddress>();
+            UsedInternalAddresses ??= new List<BitcoinAddress>();
 
             Index = index;
             HdPath = string.Format(HdPathFormat, Index);

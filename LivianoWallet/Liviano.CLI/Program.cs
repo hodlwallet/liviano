@@ -216,9 +216,6 @@ namespace Liviano.CLI
 
             if (getAddr)
             {
-                int index = 1;
-                bool isChange = false;
-
                 if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId))
                 {
                     InvalidArguments();
@@ -226,7 +223,12 @@ namespace Liviano.CLI
                     return;
                 }
 
-                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network.Name, addressType));
+                if (!string.IsNullOrEmpty(wif))
+                    Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
+                else if (config.HasWallet(walletId))
+                {
+                    var wallet = config.WalletId;
+                }
 
                 return;
             }

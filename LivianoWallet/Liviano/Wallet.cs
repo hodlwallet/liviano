@@ -32,7 +32,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
-using Newtonsoft.Json;
 
 using Liviano.Interfaces;
 using Liviano.Accounts;
@@ -94,14 +93,13 @@ namespace Liviano
             }
         }
 
-        [JsonProperty(PropertyName = "txIds")]
         public List<string> TxIds { get; set; }
-
-        [JsonIgnore]
         public List<Tx> Txs { get; set; }
 
         public List<string> AccountIds { get; set; }
         public List<IAccount> Accounts { get; set; }
+
+        public Dictionary<string, int> AccountsIndex { get; set; }
 
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
@@ -123,11 +121,9 @@ namespace Liviano
             }
         }
 
-        [JsonIgnore]
-        public ElectrumPool ElectrumPool { get; private set; }
+        public ElectrumPool ElectrumPool { get; set; }
 
-        [JsonProperty(PropertyName = "server")]
-        public string Server { get; private set; }
+        public string Server { get; set; }
 
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
@@ -160,54 +156,67 @@ namespace Liviano
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            GetElectrumPool();
-            GetPrivateKey(password);
-            GetExtendedKey(password);
+            ElectrumPool ??= GetElectrumPool();
+            privateKey ??= GetPrivateKey(password, decrypt: true);
+
+            InitAccountsIndex();
+        }
+
+        public void InitAccountsIndex()
+        {
+            AccountsIndex = new Dictionary<string, int>();
+            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
+
+            foreach (var t in types)
+            {
+                AccountsIndex.Add(t, 0);
+            }
         }
 
         /// <summary>
-        /// Gets and sets the electrum pool.
+        /// Get an electrum pool loaded from the assembly or files.
         /// </summary>
         /// <returns>a <see cref="ElectrumPool"/></returns>
         ElectrumPool GetElectrumPool()
         {
-            var pool = ElectrumPool.Load(Network, CurrentAssembly);
+            if (!(ElectrumPool is null)) return ElectrumPool;
 
-            return pool;
+            return ElectrumPool.Load(Network, CurrentAssembly);
+        }
+
+        public void InitPrivateKey(string password = "", bool decrypt = false)
+        {
+            privateKey = GetPrivateKey(password, decrypt);
         }
 
         /// <summary>
         /// Gets the private key, and puts it into <see cref="privateKey"/>
         /// </summary>
         /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
+        /// <param name="decrypt"></param>
         /// <returns>a private <see cref="Key"/></returns>
-        public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
+        public Key GetPrivateKey(string password = "", bool decrypt = false)
         {
-            if (privateKey == null || forcePasswordVerification)
-                privateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
+            if (!(privateKey is null) && !decrypt) return privateKey;
 
-            return privateKey;
+            return Hd.DecryptSeed(EncryptedSeed, Network, password);
         }
 
         /// <summary>
         /// Gets the ext key and puts it into <see cref="extKey"/>
         /// </summary>
         /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
+        /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
+        public ExtKey GetExtendedKey(string password = "", bool decrypt = false)
         {
             Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
-            if (forcePasswordVerification)
-                privateKey = GetPrivateKey(password, forcePasswordVerification);
+            if (decrypt)
+                privateKey = GetPrivateKey(password, decrypt);
 
-            if (extKey is null || forcePasswordVerification)
-                extKey = new ExtKey(privateKey, ChainCode);
-
-            return extKey;
+            return new ExtKey(privateKey, ChainCode);
         }
 
         /// <summary>
@@ -226,6 +235,8 @@ namespace Liviano
 
             AccountIds.Add(account.Id);
             Accounts.Add(account);
+
+            AccountsIndex[type]++;
 
             if (!string.IsNullOrEmpty(CurrentAccountId)) return;
 
@@ -382,7 +393,8 @@ namespace Liviano
 
             await ElectrumPool.SyncWallet(this, ct);
 
-            ElectrumPool.OnNewTransaction += (o, tx) => {
+            ElectrumPool.OnNewTransaction += (o, tx) =>
+            {
                 Console.WriteLine($"Found a tx! hex: {tx.Hex}");
             };
         }
@@ -546,11 +558,10 @@ namespace Liviano
 
         int GetAccountsIndex(string type)
         {
-            string[] types = new string[] { "bip44",  "bip49",  "bip84",  "bip141" };
+            if (!AccountsIndex.Keys.Contains(type))
+                throw new ArgumentException($"Invalid account type: {type}");
 
-            if (!types.Contains(type)) return 0;
-
-            return Accounts.Count(acc => string.Equals(type, acc.AccountType));
+            return AccountsIndex[type];
         }
     }
 }
