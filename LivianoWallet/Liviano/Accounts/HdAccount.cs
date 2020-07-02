@@ -148,5 +148,22 @@ namespace Liviano.Accounts
         public event EventHandler<Tx> OnUpdateTransaction;
 
         public abstract Money GetBalance();
+
+        public int GetIndex(BitcoinAddress address)
+        {
+            var accCopy = (HdAccount)this.MemberwiseClone();
+            var curIndex = 0;
+
+            accCopy.GapLimit = 0;
+            while(true)
+            {
+                curIndex = accCopy.GapLimit;
+
+                if (accCopy.GetReceiveAddress().ToString() == address.ToString()) break;
+            }
+
+
+            return curIndex;
+        }
     }
 }

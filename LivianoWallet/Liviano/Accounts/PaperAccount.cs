@@ -269,5 +269,10 @@ namespace Liviano.Accounts
 
             return received - sent;
         }
+
+        public int GetIndex(BitcoinAddress address)
+        {
+            return Index;
+        }
     }
 }

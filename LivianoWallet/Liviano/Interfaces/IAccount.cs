@@ -159,5 +159,7 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <returns>A <see cref="Money"/> of the balance of the account</returns>
         Money GetBalance();
+
+        int GetIndex(BitcoinAddress address);
     }
 }

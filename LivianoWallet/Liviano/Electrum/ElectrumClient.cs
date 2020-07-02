@@ -330,6 +330,8 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashGetHistoryResult> BlockchainScriptHashGetHistory(string scriptHash)
         {
+            Debug.WriteLine($"Trying to call history for {scriptHash}");
+
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 

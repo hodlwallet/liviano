@@ -182,11 +182,14 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested)
                 return;
 
-            var t = Task.Factory.StartNew(o => {
+            await Task.Factory.StartNew(o => {
                 foreach (var acc in wallet.Accounts)
                 {
                     var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+                    acc.GapLimit = 0;
+
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
+                    acc.GapLimit = 0;
 
                     foreach (var addr in receiveAddresses)
                         _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
@@ -195,14 +198,20 @@ namespace Liviano.Electrum
                         _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
-
-            await t;
         }
 
         Task GetAddressHistoryTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
         {
+            Console.WriteLine();
+            Console.WriteLine(new string('*', 20));
+            Console.WriteLine($"Address: {addr.ToString()} index: {acc.GetIndex(addr)}");
+            Console.WriteLine(new string('*', 20));
+            Console.WriteLine();
+
             return Task.Factory.StartNew(o => {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
+
+                Console.WriteLine($"Address: {addr.ToString()} scriptHash: {scriptHashStr}");
 
                 // Get history
                 _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result => {
