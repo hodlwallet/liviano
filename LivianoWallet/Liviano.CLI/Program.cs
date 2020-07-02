@@ -51,6 +51,7 @@ namespace Liviano.CLI
         static bool balance = false;
         static bool newAcc = false;
         static bool start = false;
+        static bool resync = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -82,6 +83,7 @@ namespace Liviano.CLI
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
+                {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -296,6 +298,19 @@ namespace Liviano.CLI
 
 
                 LightClient.Start(config, resync: false);
+
+                return;
+            }
+
+            if (resync)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+
+                LightClient.ReSync(config);
 
                 return;
             }

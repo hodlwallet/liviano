@@ -208,7 +208,7 @@ namespace Liviano.CLI
             wallet.Storage.Save();
         }
 
-        public static void Start(Config config, bool resync = false)
+        public static void ReSync(Config config)
         {
             LoadWallet(config);
 
@@ -220,12 +220,33 @@ namespace Liviano.CLI
             wallet.SyncFinished += (s, e) =>
             {
                 logger.Information("Sync finished!");
+                logger.Information("TODO log txs found");
+            };
+
+            wallet.Resync();
+            _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
+        }
+
+        public static void Start(Config config, bool resync = false)
+        {
+            LoadWallet(config);
+
+            wallet.SyncStarted += (s, e) =>
+            {
+                logger.Information("Sync started!");
+            };
+
+            wallet.SyncFinished += (s, e) =>
+            {
+                logger.Information("Sync finished, now waiting for txs!");
+
+                wallet.Start();
             };
 
             if (resync) wallet.Resync();
             else wallet.Sync();
-
-            wallet.Start();
 
             _ = PeriodicSave();
 
