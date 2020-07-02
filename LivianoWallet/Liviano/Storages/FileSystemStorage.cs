@@ -94,7 +94,6 @@ namespace Liviano.Storages
             }
 
             Wallet.InitPrivateKey();
-            Wallet.InitAccountsIndex();
 
             Wallet.Storage = this;
 

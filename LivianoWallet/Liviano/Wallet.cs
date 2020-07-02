@@ -164,6 +164,8 @@ namespace Liviano
 
         public void InitAccountsIndex()
         {
+            if (!(AccountsIndex is null)) return;
+
             AccountsIndex = new Dictionary<string, int>();
             var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
 
@@ -232,8 +234,6 @@ namespace Liviano
         public void AddAccount(string type = "", string name = null, object options = null)
         {
             var account = NewAccount(type, name, options);
-
-            account.Index = ++AccountsIndex[type];
 
             AccountIds.Add(account.Id);
             Accounts.Add(account);
@@ -538,7 +538,8 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            var index = GetAccountsIndex(type) + 1;
+            var index = ++AccountsIndex[type];
+
             switch (type)
             {
                 case "bip44":
@@ -553,14 +554,6 @@ namespace Liviano
                 default:
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }
-        }
-
-        int GetAccountsIndex(string type)
-        {
-            if (!AccountsIndex.Keys.Contains(type))
-                throw new ArgumentException($"Invalid account type: {type}");
-
-            return AccountsIndex[type];
         }
     }
 }

@@ -252,7 +252,7 @@ namespace Liviano.CLI
 
             config.SaveChanges();
 
-            return wallet.CurrentAccount.ExtendedPubKey;
+            return wallet.Accounts.Last().ExtendedPubKey;
         }
 
         public static void TestElectrumConnection3(Network network)
