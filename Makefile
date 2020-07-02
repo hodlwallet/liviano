@@ -85,3 +85,9 @@ clean:
 	rm -rf LivianoWallet/Liviano.CLI/bin/*
 	rm -rf LivianoWallet/Liviano.Tests/bin/*
 	rm -rf LivianoWallet/Liviano.Utilities/bin/*
+
+clean.local:
+	make clean
+	rm -rf wallets
+	rm -rf liviano-cli
+	rm -rf liviano.json
