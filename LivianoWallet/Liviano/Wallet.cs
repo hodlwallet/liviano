@@ -547,9 +547,9 @@ namespace Liviano
                 case "bip141":
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
                 case "wasabi":
-                    return WasabiAccount.Create(name, options); // TODO Express acocunt index
+                    return WasabiAccount.Create(name, options);
                 case "paper":
-                    return PaperAccount.Create(name, options); // TODO Express acocunt index
+                    return PaperAccount.Create(name, options);
                 default:
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }
