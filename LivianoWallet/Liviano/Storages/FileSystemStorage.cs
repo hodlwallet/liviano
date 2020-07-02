@@ -94,6 +94,7 @@ namespace Liviano.Storages
             }
 
             Wallet.InitPrivateKey();
+            Wallet.ElectrumPool ??= Wallet.GetElectrumPool();
 
             Wallet.Storage = this;
 

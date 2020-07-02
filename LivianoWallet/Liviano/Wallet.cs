@@ -179,7 +179,7 @@ namespace Liviano
         /// Get an electrum pool loaded from the assembly or files.
         /// </summary>
         /// <returns>a <see cref="ElectrumPool"/></returns>
-        ElectrumPool GetElectrumPool()
+        public ElectrumPool GetElectrumPool()
         {
             if (!(ElectrumPool is null)) return ElectrumPool;
 
@@ -391,12 +391,16 @@ namespace Liviano
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
-            await ElectrumPool.SyncWallet(this, ct);
-
             ElectrumPool.OnNewTransaction += (o, tx) =>
             {
                 Console.WriteLine($"Found a tx! hex: {tx.Hex}");
             };
+
+            ElectrumPool.OnConnectedEvent += async (o, server) => {
+                await ElectrumPool.SyncWallet(this, ct);
+            };
+
+            await ElectrumPool.FindConnectedServers(cts);
         }
 
         public void UpdateCurrentTransaction(Tx tx)

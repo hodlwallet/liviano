@@ -196,6 +196,11 @@ namespace Liviano.Interfaces
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
+        /// Gets the electrum pool from the network and maybe the current assembly
+        /// </summary>
+        ElectrumPool GetElectrumPool();
+
+        /// <summary>
         /// Gets a extended private key this method also caches it on memory
         /// </summary>
         /// <param name="password"></param>
