@@ -45,7 +45,11 @@ namespace Liviano.Electrum
 {
     public class ElectrumPool
     {
-        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 2;
+#if DEBUG
+        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 1;
+#else
+        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 4;
+#endif
         public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
         readonly object @lock = new object();
 
