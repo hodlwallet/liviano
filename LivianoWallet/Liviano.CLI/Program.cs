@@ -297,7 +297,7 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
 
-                LightClient.Start(config, resync: false);
+                LightClient.Start(config);
 
                 return;
             }

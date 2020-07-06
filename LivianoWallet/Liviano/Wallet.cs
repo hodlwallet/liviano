@@ -349,6 +349,7 @@ namespace Liviano
             catch (Exception ex)
             {
                 Debug.WriteLine($"There was an error during sync: {ex.Message}");
+                throw ex;
             }
         }
 
@@ -396,6 +397,8 @@ namespace Liviano
                 Console.WriteLine($"Found a tx! hex: {tx.Hex}");
 
                 // TODO Update gap limit of the account
+
+                Storage.Save();
             };
 
             ElectrumPool.OnConnectedEvent += async (o, server) => {
@@ -407,11 +410,9 @@ namespace Liviano
                 Console.WriteLine();
 
                 await ElectrumPool.SyncWallet(this, ct);
-
-                this.Storage.Save();
             };
 
-            await ElectrumPool.FindConnectedServers(cts);
+            await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
         public void UpdateCurrentTransaction(Tx tx)
