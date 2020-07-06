@@ -39,8 +39,10 @@ namespace Liviano.Models
         public const int VERSION_REQUEST_RETRY_DELAY = 1500;
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
+        [JsonProperty("ip")]
         public string Ip { get; set; }
 
+        [JsonIgnore]
         public CancellationToken CancellationToken { get; set; }
 
         [JsonProperty("domain")]
@@ -58,9 +60,15 @@ namespace Liviano.Models
         [JsonProperty("version")]
         public string Version { get; set; }
 
+        [JsonIgnore]
         public EventHandler OnConnectedEvent;
+
+        [JsonIgnore]
         public EventHandler OnDisconnectedEvent;
+
         bool connected = false;
+
+        [JsonIgnore]
         public bool Connected
         {
             get => connected;
@@ -76,6 +84,7 @@ namespace Liviano.Models
             }
         }
 
+        [JsonIgnore]
         public ElectrumClient ElectrumClient { get; set; }
 
         /// <summary>

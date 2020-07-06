@@ -160,6 +160,6 @@ namespace Liviano.Interfaces
         /// <returns>A <see cref="Money"/> of the balance of the account</returns>
         Money GetBalance();
 
-        int GetIndex(BitcoinAddress address);
+        int GetIndex(BitcoinAddress address, bool isReceive = true);
     }
 }

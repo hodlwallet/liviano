@@ -394,14 +394,27 @@ namespace Liviano
 
             ElectrumPool.OnNewTransaction += (o, tx) =>
             {
+                // TODO send acc as the account the tx belong to
+
                 Console.WriteLine($"Found a tx! hex: {tx.Hex}");
 
-                // TODO Update gap limit of the account
+                // TODO Update externaladdress or internal address acount
+                if (tx.IsSend)
+                {
+                    Debug.WriteLine("Add to external address count");
+                    // acc.ExternalAddressCount++;
+                }
+                else
+                {
+                    Debug.WriteLine("Add to internal address count");
+                    // acc.InternalAddressCount++;
+                }
 
                 Storage.Save();
             };
 
-            ElectrumPool.OnConnectedEvent += async (o, server) => {
+            ElectrumPool.OnConnectedEvent += async (o, server) =>
+            {
                 Console.WriteLine();
                 Console.WriteLine(new string('*', 20));
                 Console.WriteLine($"Connected to {server.Domain}!!!");
@@ -467,7 +480,7 @@ namespace Liviano
 
         Dictionary<string, BitcoinAddress[]> GetAccountAddresses(IAccount account, object @lock = null)
         {
-            @lock = @lock ?? new object();
+            @lock ??= new object();
             var addresses = new Dictionary<string, BitcoinAddress[]>();
 
             if (account.AccountType == "paper")

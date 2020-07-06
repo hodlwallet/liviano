@@ -157,7 +157,7 @@ namespace Liviano.Electrum
         /// </summary>
         public void Save(Assembly assembly = null)
         {
-            var data = JsonConvert.SerializeObject(ConnectedServers);
+            var data = JsonConvert.SerializeObject(ConnectedServers, type: ConnectedServers.GetType(), new JsonSerializerSettings());
 
             if (string.IsNullOrEmpty(data)) return;
 
@@ -184,19 +184,22 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested)
                 return;
 
-            await Task.Factory.StartNew(o => {
+            await Task.Factory.StartNew(o =>
+            {
                 foreach (var acc in wallet.Accounts)
                 {
-                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
-                    acc.GapLimit = 0;
+                    var extCount = acc.ExternalAddressesCount;
+                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit + 1);
+                    acc.ExternalAddressesCount = extCount;
 
-                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
-                    acc.GapLimit = 0;
+                    var intCount = acc.InternalAddressesCount;
+                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit + 1);
+                    acc.InternalAddressesCount = intCount;
 
                     foreach (var addr in receiveAddresses)
                         _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
 
-                    foreach (var addr in acc.GetChangeAddress(acc.GapLimit))
+                    foreach (var addr in changeAddresses)
                         _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
@@ -204,84 +207,88 @@ namespace Liviano.Electrum
 
         Task GetAddressHistoryTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
         {
-            Console.WriteLine();
+            var isReceive = receiveAddresses.Contains(addr);
+
+            Console.WriteLine("");
             Console.WriteLine(new string('*', 20));
-            Console.WriteLine($"Address: {addr.ToString()} index: {acc.GetIndex(addr)}");
+            Console.WriteLine($"Address: {addr} index: {acc.GetIndex(addr, isReceive)}");
             Console.WriteLine(new string('*', 20));
             Console.WriteLine();
 
-            return Task.Factory.StartNew(o => {
+            return Task.Factory.StartNew(o =>
+            {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
-                Console.WriteLine($"Address: {addr.ToString()} scriptHash: {scriptHashStr}");
+                Console.WriteLine($"Address: {addr} scriptHash: {scriptHashStr}");
 
                 // Get history
-                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result => {
+                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
+                {
                     _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result, ct);
                 });
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 
-                //// Get the unspent
-                //_ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) => {
-                    //if (ct.IsCancellationRequested) return;
+        //// Get the unspent
+        //_ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) => {
+        //if (ct.IsCancellationRequested) return;
 
-                    //var status = Deserialize<ResultAsString>(str);
+        //var status = Deserialize<ResultAsString>(str);
 
-                    //if (string.IsNullOrEmpty(status.Result)) return;
+        //if (string.IsNullOrEmpty(status.Result)) return;
 
-                    //try
-                    //{
-                        //var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+        //try
+        //{
+        //var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
 
-                        //foreach (var unspentResult in unspent.Result)
-                        //{
-                            //if (ct.IsCancellationRequested) return;
+        //foreach (var unspentResult in unspent.Result)
+        //{
+        //if (ct.IsCancellationRequested) return;
 
-                            //var txHash = unspentResult.TxHash;
-                            //var height = unspentResult.Height;
+        //var txHash = unspentResult.TxHash;
+        //var height = unspentResult.Height;
 
-                            //var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+        //var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                            //// Tx is new
-                            //if (currentTx is null)
-                            //{
-                            //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-                            //var txHex = blkChainTxGet.Result;
+        //// Tx is new
+        //if (currentTx is null)
+        //{
+        //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+        //var txHex = blkChainTxGet.Result;
 
-                            //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-                            //acc.OnNewTransaction += (o, tx) => {
-                                //OnNewTransaction?.Invoke(this, tx);
-                            //};
+        //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+        //acc.OnNewTransaction += (o, tx) => {
+        //OnNewTransaction?.Invoke(this, tx);
+        //};
 
-                            //acc.AddTx(tx);
+        //acc.AddTx(tx);
 
-                            //return;
-                            //}
+        //return;
+        //}
 
-                            //// A potential update if tx heights are different
-                            //if (currentTx.BlockHeight != height)
-                            //{
-                                //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-                                //var txHex = blkChainTxGet.Result;
+        //// A potential update if tx heights are different
+        //if (currentTx.BlockHeight != height)
+        //{
+        //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+        //var txHex = blkChainTxGet.Result;
 
-                                //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
+        //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
 
-                                //acc.UpdateTx(tx);
+        //acc.UpdateTx(tx);
 
-                                //if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                                    //OnUpdateTransaction?.Invoke(this, tx);
+        //if (tx.AccountId == acc.Wallet.CurrentAccountId)
+        //OnUpdateTransaction?.Invoke(this, tx);
 
-                                //// Here for safety, at any time somebody can add code to this
-                                //return;
-                            //}
-                        //}
-                    //}
-                    //catch (Exception ex)
-                    //{
-                        //Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
-                    //}
-                //});
+        //// Here for safety, at any time somebody can add code to this
+        //return;
+        //}
+        //}
+        //}
+        //catch (Exception ex)
+        //{
+        //Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
+        //}
+        //});
 
         /// <summary>
         /// Insert transactions from a result of the electrum network
@@ -509,6 +516,8 @@ namespace Liviano.Electrum
 
                 ConnectedServers.Insert(0, server);
 
+                Save();
+
                 if (CurrentServer is null) CurrentServer = server;
 
                 // If we have enough connected servers we stop looking for peers
@@ -531,7 +540,8 @@ namespace Liviano.Electrum
                     if (AllServers.ContainsServer(s)) continue;
                     lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
-                    Task.Factory.StartNew(() => {
+                    Task.Factory.StartNew(() =>
+                    {
                         s.ConnectAsync().Wait();
 
                         lock (@lock) if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;

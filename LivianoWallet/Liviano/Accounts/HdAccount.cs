@@ -149,21 +149,30 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
-        public int GetIndex(BitcoinAddress address)
+        public int GetIndex(BitcoinAddress address, bool isReceive = true)
         {
-            var accCopy = (HdAccount)this.MemberwiseClone();
-            var curIndex = 0;
+            int index = 0;
+            int addrCount;
 
-            accCopy.GapLimit = 0;
-            while(true)
+            if (isReceive)
             {
-                curIndex = accCopy.GapLimit;
+                addrCount = ExternalAddressesCount;
 
-                if (accCopy.GetReceiveAddress().ToString() == address.ToString()) break;
+                Console.WriteLine($"Comparing {address} to, gen");
+                while (GetReceiveAddress() != address) index++;
+
+                ExternalAddressesCount = addrCount;
+            }
+            else
+            {
+                addrCount = InternalAddressesCount;
+
+                while (GetReceiveAddress() != address) index++;
+
+                InternalAddressesCount = addrCount;
             }
 
-
-            return curIndex;
+            return index;
         }
     }
 }
