@@ -157,7 +157,7 @@ namespace Liviano.Electrum
         /// </summary>
         public void Save(Assembly assembly = null)
         {
-            var data = JsonConvert.SerializeObject(ConnectedServers, type: ConnectedServers.GetType(), new JsonSerializerSettings());
+            var data = JsonConvert.SerializeObject(ConnectedServers);
 
             if (string.IsNullOrEmpty(data)) return;
 
