@@ -40,6 +40,7 @@ using Newtonsoft.Json;
 using System.Text;
 
 using static Liviano.Electrum.ElectrumClient;
+using System.Collections;
 
 namespace Liviano.Electrum
 {
@@ -381,7 +382,7 @@ namespace Liviano.Electrum
 
             ElectrumPool pool;
 
-            Dictionary<string, Dictionary<string, string>> data;
+            Dictionary<string, Dictionary<string, string>> allServersData;
 
             List<Server> allServers;
             List<Server> recentServers;
@@ -400,15 +401,14 @@ namespace Liviano.Electrum
 
                 using var allServersReader = new StreamReader(allServersStream);
                 json = allServersReader.ReadToEnd();
-                data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                allServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
 
                 if (recentServersStream.Length > 0)
                 {
                     using var recentServersReader = new StreamReader(recentServersStream);
                     json = allServersReader.ReadToEnd();
-                    data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                    recentServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
                 }
                 else
                 {
@@ -419,16 +419,15 @@ namespace Liviano.Electrum
             {
                 allServersFileName = GetAllServersFileName(network);
                 json = File.ReadAllText(allServersFileName);
-                data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                allServers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
 
                 recentServersFileName = GetRecentServersFileName(network);
 
                 if (File.Exists(recentServersFileName))
                 {
                     json = File.ReadAllText(recentServersFileName);
-                    data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                    recentServers = ElectrumServers.FromDictionary(data).Servers.Shuffle().ToList();
+                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
                 }
                 else
                 {

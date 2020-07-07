@@ -31,6 +31,7 @@ using Newtonsoft.Json.Linq;
 
 using Liviano.Electrum;
 using Liviano.Extensions;
+using NBitcoin.Protocol;
 
 namespace Liviano.Models
 {
@@ -279,6 +280,14 @@ namespace Liviano.Models
             }
 
             return servers;
+        }
+
+        public static ElectrumServers FromList(List<Server> servers)
+        {
+            return new ElectrumServers()
+            {
+                Servers = servers
+            };
         }
 
         public static ElectrumServers FromDictionary(Dictionary<string, Dictionary<string, string>> dict)
