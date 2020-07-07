@@ -283,7 +283,7 @@ namespace Liviano.Models
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
 
-            Console.WriteLine($"[CreateFromHex] Total amount: {tx.TotalAmount}");
+            Debug.WriteLine($"[CreateFromHex] Total amount in tx: {tx.TotalAmount}");
 
             if (tx.IsReceive)
             {
@@ -328,9 +328,10 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
-            Debug.WriteLine($"[CreateFromHex] Amount Received: {tx.AmountReceived}");
-            Debug.WriteLine($"[CreateFromHex] Amount Sent: {tx.AmountSent}");
-
+            Console.WriteLine($"Txid: {tx.Id}");
+            Console.WriteLine($"Amount Received: {tx.AmountReceived}");
+            Console.WriteLine($"Amount Sent: {tx.AmountSent}");
+            Console.WriteLine();
 
             tx.BlockHash = 0; // TODO
             tx.IsPropagated = true; // TODO
