@@ -69,7 +69,7 @@ namespace Liviano.CLI
             return NewWalletFromMnemonic(mnemonic, network);
         }
 
-        static void LoadWallet(Config config)
+        static void Load(Config config)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -87,14 +87,14 @@ namespace Liviano.CLI
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
         {
-            LoadWallet(config);
+            Load(config);
 
             throw new NotImplementedException("TODO");
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
         {
-            LoadWallet(config);
+            Load(config);
 
             Transaction tx = null;
             string error = "";
@@ -158,14 +158,14 @@ namespace Liviano.CLI
 
         public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)
         {
-            LoadWallet(config);
+            Load(config);
 
             throw new NotImplementedException("TODO");
         }
 
         public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
         {
-            LoadWallet(config);
+            Load(config);
 
             throw new NotImplementedException("TODO");
         }
@@ -210,7 +210,7 @@ namespace Liviano.CLI
 
         public static void ReSync(Config config)
         {
-            LoadWallet(config);
+            Load(config);
 
             wallet.SyncStarted += (s, e) =>
             {
@@ -231,7 +231,7 @@ namespace Liviano.CLI
 
         public static void Start(Config config, bool resync = false)
         {
-            LoadWallet(config);
+            Load(config);
 
             wallet.SyncStarted += (s, e) =>
             {
@@ -262,7 +262,7 @@ namespace Liviano.CLI
         /// <returns>An xpub of the account</returns>
         public static string AddAccount(Config config, string type, string name)
         {
-            LoadWallet(config);
+            Load(config);
 
             wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = wallet.Id, Network = wallet.Network });
 
@@ -291,7 +291,7 @@ namespace Liviano.CLI
             var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
             var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
 
-            var pool = new ElectrumPool(servers.ToArray());
+            var pool = new ElectrumPool(servers.ToArray(), network);
 
             pool.OnConnectedEvent += Pool_OnConnectedEvent;
             pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;

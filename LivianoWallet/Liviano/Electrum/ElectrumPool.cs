@@ -436,7 +436,7 @@ namespace Liviano.Electrum
                 }
             }
 
-            pool = new ElectrumPool(allServers.ToArray().Shuffle());
+            pool = new ElectrumPool(allServers.ToArray().Shuffle(), network);
 
             if (recentServers.Count > 0)
             {

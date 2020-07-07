@@ -181,7 +181,10 @@ namespace Liviano
         /// <returns>a <see cref="ElectrumPool"/></returns>
         public ElectrumPool GetElectrumPool()
         {
-            if (!(ElectrumPool is null)) return ElectrumPool;
+            if (!(ElectrumPool is null))
+            {
+                return ElectrumPool;
+            }
 
             return ElectrumPool.Load(Network, CurrentAssembly);
         }
@@ -425,7 +428,8 @@ namespace Liviano
                 await ElectrumPool.SyncWallet(this, ct);
             };
 
-            await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+            if (!ElectrumPool.Connected)
+                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
         public void UpdateCurrentTransaction(Tx tx)
