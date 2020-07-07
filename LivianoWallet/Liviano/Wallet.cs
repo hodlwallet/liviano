@@ -156,10 +156,20 @@ namespace Liviano
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            ElectrumPool ??= GetElectrumPool();
             privateKey ??= GetPrivateKey(password, decrypt: true);
 
+            InitElectrumPool();
             InitAccountsIndex();
+        }
+
+        public void InitElectrumPool()
+        {
+            ElectrumPool ??= GetElectrumPool();
+
+            // The event wont be invoked if it's null at first load because it wont have
+            // an method to be attached to, this is why HandleConnectedServers ended up being public
+            if (ElectrumPool.Connected)
+                ElectrumPool.HandleConnectedServers(ElectrumPool.CurrentServer, null);
         }
 
         public void InitAccountsIndex()
@@ -416,17 +426,31 @@ namespace Liviano
                 Storage.Save();
             };
 
-            ElectrumPool.OnConnectedEvent += async (o, server) =>
+            if (ElectrumPool.Connected)
             {
                 Console.WriteLine();
                 Console.WriteLine(new string('*', 20));
-                Console.WriteLine($"Connected to {server.Domain}!!!");
+                Console.WriteLine($"Connected to {ElectrumPool.CurrentServer.Domain}!!!");
                 Console.WriteLine($"Now starts to sync wallet");
                 Console.WriteLine(new string('*', 20));
                 Console.WriteLine();
 
                 await ElectrumPool.SyncWallet(this, ct);
-            };
+            }
+            else
+            {
+                ElectrumPool.OnConnectedEvent += async (o, server) =>
+                {
+                    Console.WriteLine();
+                    Console.WriteLine(new string('*', 20));
+                    Console.WriteLine($"Connected to {server.Domain}!!!");
+                    Console.WriteLine($"Now starts to sync wallet");
+                    Console.WriteLine(new string('*', 20));
+                    Console.WriteLine();
+
+                    await ElectrumPool.SyncWallet(this, ct);
+                };
+            }
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);

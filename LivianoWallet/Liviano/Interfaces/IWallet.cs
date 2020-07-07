@@ -143,6 +143,8 @@ namespace Liviano.Interfaces
         /// </summary>
         void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null);
 
+        void InitElectrumPool();
+
         /// <summary>
         /// Inits the priv key
         /// </summary>

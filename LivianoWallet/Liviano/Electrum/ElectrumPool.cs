@@ -28,19 +28,18 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
+using System.Linq;
+using System.Reflection;
+using System.IO;
+
+using NBitcoin;
+using Newtonsoft.Json;
 
 using Liviano.Models;
 using Liviano.Interfaces;
 using Liviano.Extensions;
-using System.Linq;
-using System.Reflection;
-using System.IO;
-using NBitcoin;
-using Newtonsoft.Json;
-using System.Text;
-
 using static Liviano.Electrum.ElectrumClient;
-using System.Collections;
 
 namespace Liviano.Electrum
 {
@@ -233,67 +232,6 @@ namespace Liviano.Electrum
                 });
             }, TaskCreationOptions.AttachedToParent, ct);
         }
-
-        //// Get the unspent
-        //_ = ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) => {
-        //if (ct.IsCancellationRequested) return;
-
-        //var status = Deserialize<ResultAsString>(str);
-
-        //if (string.IsNullOrEmpty(status.Result)) return;
-
-        //try
-        //{
-        //var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
-
-        //foreach (var unspentResult in unspent.Result)
-        //{
-        //if (ct.IsCancellationRequested) return;
-
-        //var txHash = unspentResult.TxHash;
-        //var height = unspentResult.Height;
-
-        //var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-        //// Tx is new
-        //if (currentTx is null)
-        //{
-        //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-        //var txHex = blkChainTxGet.Result;
-
-        //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-        //acc.OnNewTransaction += (o, tx) => {
-        //OnNewTransaction?.Invoke(this, tx);
-        //};
-
-        //acc.AddTx(tx);
-
-        //return;
-        //}
-
-        //// A potential update if tx heights are different
-        //if (currentTx.BlockHeight != height)
-        //{
-        //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
-        //var txHex = blkChainTxGet.Result;
-
-        //var tx = Tx.CreateFromHex(txHex, acc, Network, height, receiveAddresses, changeAddresses);
-
-        //acc.UpdateTx(tx);
-
-        //if (tx.AccountId == acc.Wallet.CurrentAccountId)
-        //OnUpdateTransaction?.Invoke(this, tx);
-
-        //// Here for safety, at any time somebody can add code to this
-        //return;
-        //}
-        //}
-        //}
-        //catch (Exception ex)
-        //{
-        //Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
-        //}
-        //});
 
         /// <summary>
         /// Insert transactions from a result of the electrum network
@@ -502,7 +440,7 @@ namespace Liviano.Electrum
             );
         }
 
-        private void HandleConnectedServers(object sender, EventArgs e)
+        public void HandleConnectedServers(object sender, EventArgs e)
         {
             var server = (Server)sender;
 
@@ -515,7 +453,12 @@ namespace Liviano.Electrum
 
             lock (@lock)
             {
-                if (ConnectedServers.ContainsServer(server)) return;
+                if (ConnectedServers.ContainsServer(server))
+                {
+                    Debug.WriteLine($"Already connected to {server.Domain}:{server.PrivatePort}");
+
+                    return;
+                }
 
                 ConnectedServers.Insert(0, server);
 
