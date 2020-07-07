@@ -37,6 +37,8 @@ using Liviano.Exceptions;
 using System.Diagnostics;
 
 using static Liviano.Electrum.ElectrumClient;
+using Serilog.Formatting.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Liviano.Models
 {
@@ -329,6 +331,7 @@ namespace Liviano.Models
             }
 
             Console.WriteLine($"Txid: {tx.Id}");
+            Console.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
             Console.WriteLine($"Amount Received: {tx.AmountReceived}");
             Console.WriteLine($"Amount Sent: {tx.AmountSent}");
             Console.WriteLine();
