@@ -270,9 +270,10 @@ namespace Liviano.Accounts
             return received - sent;
         }
 
-        public int GetIndex(BitcoinAddress address, bool isReceive = true)
+        public void SetAddressCount(BitcoinAddress address, bool isReceive = true)
         {
-            return Index;
+            InternalAddressesCount = 0;
+            ExternalAddressesCount = 1;
         }
     }
 }

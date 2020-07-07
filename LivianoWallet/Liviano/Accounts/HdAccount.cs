@@ -149,30 +149,18 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
-        public int GetIndex(BitcoinAddress address, bool isReceive = true)
+        public void SetAddressCount(BitcoinAddress address, bool isReceive = true)
         {
-            int index = 0;
-            int addrCount;
-
             if (isReceive)
             {
-                addrCount = ExternalAddressesCount;
-
-                Console.WriteLine($"Comparing {address} to, gen");
-                while (GetReceiveAddress() != address) index++;
-
-                ExternalAddressesCount = addrCount;
+                ExternalAddressesCount = 0;
+                while (GetReceiveAddress() != address) ;
             }
             else
             {
-                addrCount = InternalAddressesCount;
-
-                while (GetReceiveAddress() != address) index++;
-
-                InternalAddressesCount = addrCount;
+                InternalAddressesCount = 0;
+                while (GetChangeAddress() != address) ;
             }
-
-            return index;
         }
     }
 }

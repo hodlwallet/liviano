@@ -296,6 +296,7 @@ namespace Liviano.Electrum
                             continue;
 
                         acc.UsedExternalAddresses.Add(txAddr);
+                        acc.SetAddressCount(txAddr, isReceive: true);
                     }
 
                     if (changeAddresses.Contains(txAddr))
@@ -304,6 +305,7 @@ namespace Liviano.Electrum
                             continue;
 
                         acc.UsedInternalAddresses.Add(txAddr);
+                        acc.SetAddressCount(txAddr, isReceive: false);
                     }
                 }
             }
