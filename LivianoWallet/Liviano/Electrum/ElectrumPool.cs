@@ -213,23 +213,23 @@ namespace Liviano.Electrum
         {
             var isReceive = receiveAddresses.Contains(addr);
 
-            Console.WriteLine("");
-            Console.WriteLine(new string('*', 20));
-            Console.WriteLine($"Address: {addr} index: {acc.GetIndex(addr, isReceive)}");
-            Console.WriteLine(new string('*', 20));
-            Console.WriteLine();
-
-            return Task.Factory.StartNew(o =>
+            return Task.Factory.StartNew(async o =>
             {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
-                Console.WriteLine($"Address: {addr} scriptHash: {scriptHashStr}");
+                Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} scriptHash: {scriptHashStr}");
 
                 // Get history
-                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
+                var result = await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr);
+
+                if (result.Result.Length > 0)
                 {
-                    _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result, ct);
-                });
+                    Console.WriteLine($"Found tx on address {addr}");
+
+                    await InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result, ct);
+                }
+                else
+                    Console.WriteLine($"Did not find any transactions for {addr}");
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 
@@ -377,8 +377,15 @@ namespace Liviano.Electrum
 
             if (recentServers.Count > 0)
             {
-                pool.ConnectedServers = recentServers;
-                pool.CurrentServer = recentServers[0];
+                var recentServersWithClients = recentServers.Select(s =>
+                {
+                    s.ElectrumClient = new ElectrumClient(new JsonRpcClient(s));
+
+                    return s;
+                }).ToList();
+
+                pool.ConnectedServers = recentServersWithClients;
+                pool.CurrentServer = recentServersWithClients[0];
             }
 
             return pool;

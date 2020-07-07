@@ -428,11 +428,8 @@ namespace Liviano
 
             if (ElectrumPool.Connected)
             {
-                Console.WriteLine();
-                Console.WriteLine(new string('*', 20));
-                Console.WriteLine($"Connected to {ElectrumPool.CurrentServer.Domain}!!!");
+                Console.WriteLine($"Connected to {ElectrumPool.CurrentServer.Domain}, recently connected server.");
                 Console.WriteLine($"Now starts to sync wallet");
-                Console.WriteLine(new string('*', 20));
                 Console.WriteLine();
 
                 await ElectrumPool.SyncWallet(this, ct);
@@ -441,11 +438,8 @@ namespace Liviano
             {
                 ElectrumPool.OnConnectedEvent += async (o, server) =>
                 {
-                    Console.WriteLine();
-                    Console.WriteLine(new string('*', 20));
-                    Console.WriteLine($"Connected to {server.Domain}!!!");
+                    Console.WriteLine($"Connected to {server.Domain}, new server!");
                     Console.WriteLine($"Now starts to sync wallet");
-                    Console.WriteLine(new string('*', 20));
                     Console.WriteLine();
 
                     await ElectrumPool.SyncWallet(this, ct);

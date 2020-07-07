@@ -188,8 +188,6 @@ namespace Liviano.Storages
                         accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
                         break;
                 }
-
-                var recentAccount = accounts.Last();
             }
 
             return accounts;
