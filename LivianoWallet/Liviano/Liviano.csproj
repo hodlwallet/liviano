@@ -31,6 +31,9 @@
     </ItemGroup>
     <ItemGroup>
         <None Remove="Electrum\btc-servers.json" />
+        <None Remove="Electrum\servers\main.json" />
+        <None Remove="Electrum\servers\regtest.json" />
+        <None Remove="Electrum\servers\testnet.json" />
     </ItemGroup>
     <ItemGroup>
         <None Update="Electrum\servers\servers.json">
@@ -39,14 +42,16 @@
         <None Update="Electrum\servers\servers_testnet.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="Electrum\servers\regtest.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Electrum\servers\main.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Electrum\servers\testnet.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Electrum\servers\main.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Electrum\servers\regtest.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Electrum\servers\testnet.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 </Project>

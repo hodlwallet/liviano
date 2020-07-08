@@ -213,23 +213,26 @@ namespace Liviano.Electrum
         {
             var isReceive = receiveAddresses.Contains(addr);
 
-            return Task.Factory.StartNew(async o =>
+            return Task.Factory.StartNew(o =>
             {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
                 Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} scriptHash: {scriptHashStr}");
 
                 // Get history
-                var result = await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr);
-
-                if (result.Result.Length > 0)
+                try
                 {
-                    Console.WriteLine($"Found tx on address {addr}");
-
-                    await InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result, ct);
+                    _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
+                    {
+                        _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result, ct);
+                    });
                 }
-                else
-                    Console.WriteLine($"Did not find any transactions for {addr}");
+                catch (Exception e)
+                {
+                    Console.WriteLine($"{e}");
+                    throw e;
+                }
+
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 

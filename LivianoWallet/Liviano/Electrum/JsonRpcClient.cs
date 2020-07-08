@@ -48,17 +48,17 @@ namespace Liviano.Electrum
 
         TimeSpan DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS = TimeSpan.FromMilliseconds(1.0);
 
-        readonly Server _Server;
+        readonly Server server;
 
-        IPAddress _IpAddress;
+        IPAddress ipAddress;
 
-        int _Port;
+        int port;
 
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
         {
-            _Server = server;
+            this.server = server;
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -72,7 +72,7 @@ namespace Liviano.Electrum
             try
             {
                 var maybeTimedOutIpAddress = await ResolveAsync(hostName).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                if (maybeTimedOutIpAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{_Port}");
+                if (maybeTimedOutIpAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{port}");
                 return maybeTimedOutIpAddress;
             }
             catch (Exception ex)
@@ -113,14 +113,14 @@ namespace Liviano.Electrum
 
         TcpClient Connect()
         {
-            var tcpClient = new TcpClient(_IpAddress.AddressFamily)
+            var tcpClient = new TcpClient(ipAddress.AddressFamily)
             {
                 SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
                 ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
                 ExclusiveAddressUse = true
             };
 
-            var isConnected = tcpClient.ConnectAsync(_IpAddress, _Port).Wait(DEFAULT_NETWORK_TIMEOUT);
+            var isConnected = tcpClient.ConnectAsync(ipAddress, port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
             if (!isConnected)
             {
@@ -160,59 +160,54 @@ namespace Liviano.Electrum
         {
             await Task.Delay(1);
 
-            using (var tcpClient = Connect())
-            {
-                using (var stream = SslTcpClient.GetSslStream(tcpClient, Host))
-                {
-                    if (!stream.CanTimeout) return null; // Handle exception outside of Request()
+            using var tcpClient = Connect();
+            using var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
-                    stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-                    stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-                    var bytes = Encoding.UTF8.GetBytes(request + "\n");
+            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
 
-                    stream.Write(bytes, 0, bytes.Length);
+            var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-                    stream.Flush();
+            stream.Write(bytes, 0, bytes.Length);
 
-                    return SslTcpClient.ReadMessage(stream);
-                }
-            }
+            stream.Flush();
+
+            return SslTcpClient.ReadMessage(stream);
         }
 
         async Task<string> RequestInternalNonSsl(string request)
         {
             await Task.Delay(1);
 
-            using (var tcpClient = Connect())
-            {
-                var stream = tcpClient.GetStream();
+            using var tcpClient = Connect();
+            using var stream = tcpClient.GetStream();
 
-                if (!stream.CanTimeout) return null; // Handle exception outside of Request()
+            if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-                stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-                stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
 
-                var bytes = Encoding.UTF8.GetBytes(request + "\n");
+            var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-                stream.Write(bytes, 0, bytes.Length);
+            stream.Write(bytes, 0, bytes.Length);
 
-                stream.Flush();
+            stream.Flush();
 
-                return Read(stream, new List<byte>(), DateTime.UtcNow);
-            }
+            return Read(stream, new List<byte>(), DateTime.UtcNow);
         }
 
         public async Task<string> Request(string request, bool useSsl = true)
         {
             try
             {
-                Host = _Server.Domain;
-                _IpAddress = ResolveHost(_Server.Domain).Result;
-                _Port = useSsl ? _Server.PrivatePort.Value : _Server.UnencryptedPort.Value;
+                Host = server.Domain;
+                ipAddress = ResolveHost(server.Domain).Result;
+                port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
 
                 Debug.WriteLine(
-                    $"[Request] Server: {Host}:{_Port} ({_Server.Version})"
+                    $"[Request] Server: {Host}:{port} ({server.Version})"
                 );
 
                 var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
@@ -223,7 +218,11 @@ namespace Liviano.Electrum
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Request] {ex.Message}");
-                Debug.WriteLine($"[Request] Failed for {_Server.Domain} at port {_Server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
+                Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
+
+                // FIXME idealy we want to invoke an event, so the server picks it up, then the server will invoke an event on pool which it will picked up,
+                // Then we will retry this operation on a different server this server will be pushed out of the recent server list.
+                throw ex;
             }
 
             Debug.WriteLine($"[Request] Could not process request: {request}");
@@ -235,12 +234,12 @@ namespace Liviano.Electrum
         {
             var rng = new Random();
 
-            Host = _Server.Domain;
-            _IpAddress = ResolveHost(_Server.Domain).Result;
-            _Port = _Server.PrivatePort.Value;
+            Host = server.Domain;
+            ipAddress = ResolveHost(server.Domain).Result;
+            port = server.PrivatePort.Value;
 
             Debug.WriteLine(
-                $"[GetSslStream] From: {Host}:{_Port} ({_Server.Version})"
+                $"[GetSslStream] From: {Host}:{port} ({server.Version})"
             );
 
             var tcpClient = Connect();
