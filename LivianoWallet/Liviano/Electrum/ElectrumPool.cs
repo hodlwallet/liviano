@@ -39,6 +39,7 @@ using Newtonsoft.Json;
 using Liviano.Models;
 using Liviano.Interfaces;
 using Liviano.Extensions;
+using Liviano.Exceptions;
 using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
@@ -228,11 +229,11 @@ namespace Liviano.Electrum
             }, TaskCreationOptions.LongRunning, ct);
         }
 
-        Task GetAddressHistoryTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
+        async Task GetAddressHistoryTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
         {
             var isReceive = receiveAddresses.Contains(addr);
 
-            return Task.Factory.StartNew(o =>
+            await Task.Factory.StartNew(o =>
             {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
@@ -249,9 +250,13 @@ namespace Liviano.Electrum
                 catch (Exception e)
                 {
                     Console.WriteLine($"{e}");
-                    throw e;
-                }
 
+                    SetNewConnectedServer();
+
+                    _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+
+                    return;
+                }
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 
@@ -277,7 +282,20 @@ namespace Liviano.Electrum
 #endif
                 Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
-                var txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                BlockchainTransactionGetResult txRes;
+                try
+                {
+                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                }
+                catch (ElectrumException e)
+                {
+                    Console.WriteLine(e.Message);
+
+                    SetNewConnectedServer();
+
+                    await InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result, ct);
+                    return;
+                }
 
                 var tx = Tx.CreateFromHex(
                     txRes.Result,

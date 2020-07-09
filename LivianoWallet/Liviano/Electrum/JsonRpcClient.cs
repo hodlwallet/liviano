@@ -214,17 +214,11 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[Request] {ex.Message}");
-                Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}\nAttempting to reconnect.");
+                Debug.WriteLine($"[Request] Could not process request: {request}");
+                Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
 
-                // FIXME idealy we want to invoke an event, so the server picks it up, then the server will invoke an event on pool which it will picked up,
-                // Then we will retry this operation on a different server this server will be pushed out of the recent server list.
-                //throw ex;
+                throw new ElectrumException($"{ex.Message}");
             }
-
-            Debug.WriteLine($"[Request] Could not process request: {request}");
-
-            return null;
         }
 
         public SslStream GetSslStream()

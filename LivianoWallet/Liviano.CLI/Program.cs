@@ -31,7 +31,7 @@ namespace Liviano.CLI
         static string address = "";
         static string addressType = "p2wpkh";
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-        static string server = "locahost:s50001";
+        static string server = "";
         static decimal amount = new decimal(0.00);
         static int accountIndex = 0;
         static string walletId = "";
