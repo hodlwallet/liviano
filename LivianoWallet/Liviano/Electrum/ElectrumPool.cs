@@ -237,7 +237,8 @@ namespace Liviano.Electrum
             {
                 var scriptHashStr = addr.ToScriptHash().ToHex();
 
-                Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} scriptHash: {scriptHashStr}");
+                var addrLabel = isReceive ? "External" : "Internal";
+                Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}");
 
                 // Get history
                 try

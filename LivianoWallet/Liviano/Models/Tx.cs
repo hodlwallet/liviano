@@ -242,7 +242,7 @@ namespace Liviano.Models
 
         public static Tx CreateFromHex(string hex, int time, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
-            Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
+            Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
