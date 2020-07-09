@@ -282,10 +282,10 @@ namespace Liviano.Electrum
 #endif
                 Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
-                BlockchainTransactionGetResult txRes;
+                BlockchainTransactionGetVerboseResult txRes;
                 try
                 {
-                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                    txRes = await ElectrumClient.BlockchainTransactionGetVerbose(r.TxHash);
                 }
                 catch (ElectrumException e)
                 {
@@ -298,7 +298,8 @@ namespace Liviano.Electrum
                 }
 
                 var tx = Tx.CreateFromHex(
-                    txRes.Result,
+                    txRes.Hex,
+                    txRes.Time,
                     acc,
                     Network,
                     r.Height,

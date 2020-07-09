@@ -37,7 +37,6 @@ using Liviano.Exceptions;
 using System.Diagnostics;
 
 using static Liviano.Electrum.ElectrumClient;
-using Serilog.Formatting.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Liviano.Models
@@ -241,7 +240,7 @@ namespace Liviano.Models
 
         public Tx() { }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, int time, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
 
@@ -253,7 +252,7 @@ namespace Liviano.Models
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
-                CreatedAt = DateTimeOffset.UtcNow, // TODO this is incorrect...
+                CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
                 Hex = hex,
                 BlockHeight = blockHeight

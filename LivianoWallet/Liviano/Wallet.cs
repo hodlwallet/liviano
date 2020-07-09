@@ -302,10 +302,11 @@ namespace Liviano
                                     // Tx is new
                                     if (currentTx is null)
                                     {
-                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                        var txHex = blkChainTxGet.Result;
+                                        var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
+                                        var txHex = blkChainTxGetVerbose.Hex;
+                                        var time = blkChainTxGetVerbose.Time;
 
-                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                         account.AddTx(tx);
 
@@ -318,10 +319,11 @@ namespace Liviano
                                     // A potential update if tx heights are different
                                     if (currentTx.BlockHeight != height)
                                     {
-                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                        var txHex = blkChainTxGet.Result;
+                                        var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
+                                        var txHex = blkChainTxGetVerbose.Hex;
+                                        var time = blkChainTxGetVerbose.Time;
 
-                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                         account.UpdateTx(tx);
 
