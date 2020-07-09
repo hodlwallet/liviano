@@ -156,6 +156,25 @@ namespace Liviano.Electrum
             lock (@lock) ConnectedServers.RemoveServer(server);
         }
 
+        public void SetNewConnectedServer()
+        {
+            var oldCurrentServer = CurrentServer;
+
+            CurrentServer = GetNewConnectedServers().Shuffle().First();
+
+            RemoveServer(oldCurrentServer);
+        }
+
+        public List<Server> GetNewConnectedServers()
+        {
+            return GetConnectedWithout(CurrentServer);
+        }
+
+        public List<Server> GetConnectedWithout(Server server)
+        {
+            return ConnectedServers.Where(s => s.Domain == server.Domain).ToList();
+        }
+
         /// <summary>
         /// Saves the recently connected servers to disk or resource?
         /// </summary>

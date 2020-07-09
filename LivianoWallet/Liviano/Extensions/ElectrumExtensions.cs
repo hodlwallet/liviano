@@ -93,9 +93,7 @@ namespace Liviano.Extensions
 
         public static Server[] Shuffle(this Server[] servers)
         {
-            Random rnd = new Random();
-
-            return servers.OrderBy(n => rnd.Next()).ToArray();
+            return servers.OrderBy(_ => Guid.NewGuid()).ToArray();
         }
     }
 }
