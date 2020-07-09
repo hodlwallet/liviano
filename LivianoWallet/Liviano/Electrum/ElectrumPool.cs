@@ -417,7 +417,7 @@ namespace Liviano.Electrum
 
         static string GetRecentServersFileName(Network network)
         {
-            return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
+            return GetLocalConfigFilePath("Electrum", "servers", $"recent_servers_{network.Name.ToLower()}.json");
         }
 
         static string GetAllServersFileName(Network network)
