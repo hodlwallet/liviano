@@ -148,18 +148,16 @@ namespace Liviano.Electrum
             return Read(stream, acc, DateTime.UtcNow);
         }
 
-        async Task<string> RequestInternal(string request, bool useSsl = true)
+        string RequestInternal(string request, bool useSsl = true)
         {
             if (!useSsl)
-                return await RequestInternalNonSsl(request);
+                return RequestInternalNonSsl(request);
 
-            return await RequestInternalSsl(request);
+            return RequestInternalSsl(request);
         }
 
-        async Task<string> RequestInternalSsl(string request)
+        string RequestInternalSsl(string request)
         {
-            await Task.Delay(1);
-
             using var tcpClient = Connect();
             using var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
@@ -177,10 +175,8 @@ namespace Liviano.Electrum
             return SslTcpClient.ReadMessage(stream);
         }
 
-        async Task<string> RequestInternalNonSsl(string request)
+        string RequestInternalNonSsl(string request)
         {
-            await Task.Delay(1);
-
             using var tcpClient = Connect();
             using var stream = tcpClient.GetStream();
 
@@ -210,7 +206,8 @@ namespace Liviano.Electrum
                     $"[Request] Server: {Host}:{port} ({server.Version})"
                 );
 
-                var result = await RequestInternal(request, useSsl).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                var result = await Task.Run(() => RequestInternal(request, useSsl)).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+
                 if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
                 return result;
@@ -222,7 +219,7 @@ namespace Liviano.Electrum
 
                 // FIXME idealy we want to invoke an event, so the server picks it up, then the server will invoke an event on pool which it will picked up,
                 // Then we will retry this operation on a different server this server will be pushed out of the recent server list.
-                throw ex;
+                //throw ex;
             }
 
             Debug.WriteLine($"[Request] Could not process request: {request}");
