@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -38,6 +39,7 @@ namespace Liviano.Electrum
     public static class SslTcpClient
     {
         public static readonly Hashtable _CertificateErrors = new Hashtable();
+        public static EventHandler<string> OnSubscriptionMessageEvent;
 
         /// <summary>
         /// The following method is invoked by the RemoteCertificateValidationDelegate.
@@ -108,6 +110,55 @@ namespace Liviano.Electrum
             return sslStream;
         }
 
+        // TODO We need a ReadMessage as below but that doesn't close the connection
+        // instead it should keep it open and looping over it waiting on read.
+        // this way we can call an event on send respond to it and forget about it
+        // this is very useful for the case of a subscription to a block height
+        // given a server on the right chain we can then pick up a new one this is untested
+        // pseudo code to make it happen I guess...
+
+        /// <summary>
+        /// Reads a message from the SSL Stream on subscription mode.
+        /// </summary>
+        /// <param name="sslStream"></param>
+        public static void ReadSubscriptionMessages(SslStream sslStream)
+        {
+            // Read the  message sent by the server.
+            // The end of the message is signaled using the
+            // "<EOF>" marker.
+            byte[] buffer = new byte[2048];
+            StringBuilder messageData = new StringBuilder();
+
+            Debug.WriteLine("[ReadSubscriptionMessage] Reading message from: {0}", sslStream);
+
+            int bytes = -1;
+            string msg;
+            while (bytes != 0)
+            {
+                bytes = sslStream.Read(buffer, 0, buffer.Length);
+
+                // Use Decoder class to convert from bytes to UTF8
+                // in case a character spans two buffers.
+                Decoder decoder = Encoding.UTF8.GetDecoder();
+                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                messageData.Append(chars);
+
+                msg = messageData.ToString();
+                Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg.Trim()}");
+
+                if (CanParseToJson(messageData.ToString()))
+                    OnSubscriptionMessageEvent?.Invoke(typeof(SslTcpClient), msg);
+            }
+
+            msg = messageData.ToString();
+            Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg.Trim()}");
+
+            if (CanParseToJson(msg))
+                OnSubscriptionMessageEvent?.Invoke(typeof(SslTcpClient), msg);
+        }
+
         /// <summary>
         /// Reads a message from the SSL Stream.
         /// </summary>
@@ -137,7 +188,7 @@ namespace Liviano.Electrum
                 messageData.Append(chars);
 
                 // Check for EOF && if the message is complete json... Usually this works with electrum
-                if (messageData.ToString().IndexOf("<EOF>", System.StringComparison.CurrentCulture) != -1 ||
+                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
                     CanParseToJson(messageData.ToString()))
                 {
                     break;
@@ -163,7 +214,7 @@ namespace Liviano.Electrum
 
                 return false;
             }
-            catch (Newtonsoft.Json.JsonReaderException e)
+            catch (JsonReaderException e)
             {
                 Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message);
 
