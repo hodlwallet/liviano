@@ -83,6 +83,31 @@ namespace Liviano.Electrum
             public ResultAsString Result { get; set; }
         }
 
+        public class BlockchainBlockHeadersInnerResult : BaseResult
+        {
+            public int Count { get; set; }
+            public string Hex { get; set; }
+            public int Max { get; set; }
+        }
+
+        public class BlockchainBlockHeadersResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeadersInnerResult Result { get; set; }
+        }
+
+        public class BlockchainBlockHeadersWithCheckpointHeightInnerResult : BlockchainBlockHeadersInnerResult
+        {
+            public string[] Branch { get; set; }
+            public string Root { get; set; }
+        }
+
+        public class BlockchainBlockHeadersWithCheckpointHeightResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeadersWithCheckpointHeightInnerResult Result { get; set; }
+        }
+
         public class BlockchainBlockHeaderWithCheckpointHeightInnerResult : BaseResult
         {
             public string Header { get; set; }
@@ -308,6 +333,22 @@ namespace Liviano.Electrum
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeaderWithCheckpointHeightResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeadersResult> BlockchainBlockHeaders(int height, int count = 0)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, 0 } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeadersResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeadersWithCheckpointHeightResult> BlockchainBlockHeaders(int height, int count, int cpHeight)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, cpHeight } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeadersWithCheckpointHeightResult>(json);
         }
 
         public async Task<BlockchainScriptHashGetBalanceResult> BlockchainScriptHashGetBalance(string scriptHash)
