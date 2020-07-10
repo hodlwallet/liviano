@@ -299,8 +299,8 @@ namespace Liviano.Electrum
                 }
 
                 var tx = Tx.CreateFromHex(
-                    txRes.Hex,
-                    txRes.Time,
+                    txRes.Result.Hex,
+                    txRes.Result.Time,
                     acc,
                     Network,
                     r.Height,

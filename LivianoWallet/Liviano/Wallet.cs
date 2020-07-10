@@ -286,7 +286,7 @@ namespace Liviano
 
                         if (!string.IsNullOrEmpty(status.Result))
                         {
-                            Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
+                            Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr}");
 
                             try
                             {
@@ -303,8 +303,8 @@ namespace Liviano
                                     if (currentTx is null)
                                     {
                                         var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
-                                        var txHex = blkChainTxGetVerbose.Hex;
-                                        var time = blkChainTxGetVerbose.Time;
+                                        var txHex = blkChainTxGetVerbose.Result.Hex;
+                                        var time = blkChainTxGetVerbose.Result.Time;
 
                                         var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
@@ -320,8 +320,8 @@ namespace Liviano
                                     if (currentTx.BlockHeight != height)
                                     {
                                         var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
-                                        var txHex = blkChainTxGetVerbose.Hex;
-                                        var time = blkChainTxGetVerbose.Time;
+                                        var txHex = blkChainTxGetVerbose.Result.Hex;
+                                        var time = blkChainTxGetVerbose.Result.Time;
 
                                         var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 

@@ -346,11 +346,11 @@ namespace Liviano.Models
         {
             var tx = new Tx
             {
-                Id = uint256.Parse(result.Txid),
+                Id = uint256.Parse(result.Result.Txid),
                 Account = account,
                 AccountId = account.Id,
                 Network = network,
-                Hex = result.Hex
+                Hex = result.Result.Hex
             };
 
             return tx;
