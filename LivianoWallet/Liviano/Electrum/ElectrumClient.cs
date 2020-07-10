@@ -128,12 +128,12 @@ namespace Liviano.Electrum
         {
             public string Asm { get; set; }
             public string Hex { get; set; }
-            public int Reqsigs { get; set; }
+            public int ReqSigs { get; set; }
             public string Type { get; set; }
             public string[] Addresses { get; set; }
         }
 
-        public class BlockchainVinResult : BaseResult
+        public class BlockchainVinResult
         {
             public string Txid { get; set; }
             public int Vout { get; set; }
@@ -142,7 +142,7 @@ namespace Liviano.Electrum
             public long Sequence { get; set; }
         }
 
-        public class BlockchainVoutResult : BaseResult
+        public class BlockchainVoutResult
         {
             public double Value { get; set; }
             public int N { get; set; }
@@ -216,6 +216,11 @@ namespace Liviano.Electrum
         async Task<T> RequestInternal<T>(string jsonRequest)
         {
             var rawResponse = await jsonRpcClient.Request(jsonRequest);
+
+            if (typeof(T).Name == "BlockchainTransactionGetVerboseResult" && jsonRequest.Contains("6376fe1399045554707b34da0679d40bc6903e0fcd4ad56ebde6e3b68e90b21c"))
+            {
+                Console.WriteLine("WTF?");
+            }
 
             if (string.IsNullOrEmpty(rawResponse))
             {
