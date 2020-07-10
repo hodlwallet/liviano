@@ -121,6 +121,18 @@ namespace Liviano.Electrum
             public BlockchainBlockHeaderWithCheckpointHeightInnerResult Result { get; set; }
         }
 
+        public class BlockchainHeadersSubscribeInnerResult : BaseResult
+        {
+            public string Hex { get; set; }
+            public int Height { get; set; }
+        }
+
+        public class BlockchainHeadersSubscribeResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainHeadersSubscribeInnerResult Result { get; set; }
+        }
+
         public class BlockchainScriptHashGetBalanceInnerResult : BaseResult
         {
             public long Confirmed { get; set; }
