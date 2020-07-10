@@ -301,6 +301,8 @@ namespace Liviano.Electrum
                 var tx = Tx.CreateFromHex(
                     txRes.Result.Hex,
                     txRes.Result.Time,
+                    txRes.Result.Confirmations,
+                    txRes.Result.Blockhash,
                     acc,
                     Network,
                     r.Height,

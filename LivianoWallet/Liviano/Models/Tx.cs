@@ -132,7 +132,7 @@ namespace Liviano.Models
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(Liviano.Utilities.JsonConverters.DateTimeOffsetConverter))]
+        [JsonConverter(typeof(DateTimeOffsetConverter))]
         public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
@@ -148,6 +148,12 @@ namespace Liviano.Models
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
         public Script ScriptPubKey { get; set; }
+
+        /// <summary>
+        /// Check if the tx is rbf
+        /// </summary>
+        [JsonProperty(PropertyName = "isRBF", NullValueHandling = NullValueHandling.Ignore)]
+        public bool IsRBF { get; set; }
 
         /// <summary>
         /// The script pub key for the address we sent to
@@ -174,6 +180,18 @@ namespace Liviano.Models
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
         [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
         public bool IsPropagated { get; set; }
+
+        /// <summary>
+        /// Number of confirmations
+        /// </summary>
+        [JsonProperty(PropertyName = "confirmations", NullValueHandling = NullValueHandling.Ignore)]
+        public int Confirmations { get; set; }
+
+        /// <summary>
+        /// Blockhash this tx was included on
+        /// </summary>
+        [JsonProperty(PropertyName = "blockhash", NullValueHandling = NullValueHandling.Ignore)]
+        public string Blockhash { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -240,7 +258,7 @@ namespace Liviano.Models
 
         public Tx() { }
 
-        public static Tx CreateFromHex(string hex, int time, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, int time, int confirmations, string blockhash, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
@@ -254,7 +272,10 @@ namespace Liviano.Models
                 AccountId = account.Id,
                 CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
+                Blockhash = blockhash,
                 Hex = hex,
+                Confirmations = confirmations,
+                IsRBF = transaction.RBF,
                 BlockHeight = blockHeight
             };
 

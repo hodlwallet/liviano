@@ -299,14 +299,16 @@ namespace Liviano
 
                                     var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
+                                    var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
+                                    var txHex = blkChainTxGetVerbose.Result.Hex;
+                                    var time = blkChainTxGetVerbose.Result.Time;
+                                    var confirmations = blkChainTxGetVerbose.Result.Confirmations;
+                                    var blockhash = blkChainTxGetVerbose.Result.Blockhash;
+
                                     // Tx is new
                                     if (currentTx is null)
                                     {
-                                        var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
-                                        var txHex = blkChainTxGetVerbose.Result.Hex;
-                                        var time = blkChainTxGetVerbose.Result.Time;
-
-                                        var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                         account.AddTx(tx);
 
@@ -319,11 +321,7 @@ namespace Liviano
                                     // A potential update if tx heights are different
                                     if (currentTx.BlockHeight != height)
                                     {
-                                        var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
-                                        var txHex = blkChainTxGetVerbose.Result.Hex;
-                                        var time = blkChainTxGetVerbose.Result.Time;
-
-                                        var tx = Tx.CreateFromHex(txHex, time, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                         account.UpdateTx(tx);
 
