@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using NBitcoin;
+using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
@@ -47,6 +48,13 @@ namespace Liviano.Models
         [JsonIgnore]
         public ChainedBlock[] Checkpoints { get; set; }
 
+        [JsonIgnore]
+        public Dictionary<int, ChainedBlock> Headers { get; set; }
+
+        /// <summary>
+        /// Initializer
+        /// </summary>
+        /// <param name="network">Network to get everything from</param>
         public Blockchain(Network network)
         {
             Network ??= network;

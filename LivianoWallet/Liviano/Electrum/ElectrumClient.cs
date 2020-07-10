@@ -77,6 +77,25 @@ namespace Liviano.Electrum
             public List<List<object>> Result { get; set; }
         }
 
+        public class BlockchainBlockHeaderResult : BaseResult
+        {
+            public int Id { get; set; }
+            public ResultAsString Result { get; set; }
+        }
+
+        public class BlockchainBlockHeaderWithCheckpointHeightInnerResult : BaseResult
+        {
+            public string Header { get; set; }
+            public string[] Branch { get; set; }
+            public string Root { get; set; }
+        }
+
+        public class BlockchainBlockHeaderWithCheckpointHeightResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeaderWithCheckpointHeightInnerResult Result { get; set; }
+        }
+
         public class BlockchainScriptHashGetBalanceInnerResult : BaseResult
         {
             public long Confirmed { get; set; }
@@ -273,6 +292,22 @@ namespace Liviano.Electrum
             }
 
             return deserializedValue;
+        }
+
+        public async Task<BlockchainBlockHeaderResult> BlockchainBlockHeader(int height)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, 0 } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeaderResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeaderWithCheckpointHeightResult> BlockchainBlockHeaderWithCheckpointHeight(int height, int cpHeight)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, cpHeight } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeaderWithCheckpointHeightResult>(json);
         }
 
         public async Task<BlockchainScriptHashGetBalanceResult> BlockchainScriptHashGetBalance(string scriptHash)
