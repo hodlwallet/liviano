@@ -223,8 +223,6 @@ namespace Liviano.Electrum
 
         public SslStream GetSslStream()
         {
-            var rng = new Random();
-
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
@@ -247,80 +245,30 @@ namespace Liviano.Electrum
             return stream;
         }
 
-        public async Task Subscribe(string request, Action<string> callback)
+        public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource ctr = null)
         {
+            if (ctr is null) ctr = new CancellationTokenSource();
+
             var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
-            int count = 0;
+            var ct = ctr.Token;
 
-            await Task.Factory.StartNew(async () =>
+            using var stream = GetSslStream();
+
+            stream.Write(requestBytes, 0, requestBytes.Length);
+            stream.Flush();
+
+            SslTcpClient.OnSubscriptionMessageEvent += (o, msg) =>
             {
-                try
-                {
-                    using (var stream = GetSslStream())
-                    {
-                        stream.Write(requestBytes, 0, requestBytes.Length);
-                        stream.Flush();
+                // Is this shit important?
+                if (stream.GetHashCode() == o.GetHashCode())
+                    callback(msg);
+            };
 
-                        while (true)
-                        {
-                            byte[] buffer = new byte[2048];
-                            StringBuilder messageData = new StringBuilder();
-
-                            int bytes = -1;
-                            while (bytes != 0)
-                            {
-                                bytes = stream.Read(buffer, 0, buffer.Length);
-
-                                // Use Decoder class to convert from bytes to UTF8
-                                // in case a character spans two buffers.
-                                Decoder decoder = Encoding.UTF8.GetDecoder();
-                                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
-
-                                decoder.GetChars(buffer, 0, bytes, chars, 0);
-                                messageData.Append(chars);
-
-                                count++;
-
-                                // Check for EOF or if the message is complete json... Usually this works with electrum
-                                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
-                                    SslTcpClient.CanParseToJson(messageData.ToString()))
-                                {
-                                    var msg = messageData.ToString();
-                                    var res = JsonConvert.DeserializeObject<JObject>(msg);
-
-                                    if (string.IsNullOrEmpty(res.GetValue("result").ToString()))
-                                    {
-                                        Debug.WriteLine("[Subscribe] Subscription returned empty");
-
-                                        // 10 seconds wait after getting nothing
-                                        await Task.Delay(TimeSpan.FromSeconds(10.0));
-
-                                        // Run again, after it...
-                                        await Subscribe(request, callback);
-
-                                        return;
-                                    }
-
-                                    callback(msg);
-                                    break;
-                                }
-                            }
-
-                            messageData.Clear();
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[Subscribe] Error: {e.Message} (Got these messages: {count})");
-
-                    // Wait 10 seconds and reconnect, TODO make const
-                    await Task.Delay(TimeSpan.FromSeconds(10.0));
-
-                    // Run again, after the error
-                    await Subscribe(request, callback);
-                }
-            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            await Task.Factory.StartNew(
+                (o) => SslTcpClient.ReadSubscriptionMessages(stream),
+                TaskCreationOptions.LongRunning,
+                ct
+            );
         }
     }
 }
