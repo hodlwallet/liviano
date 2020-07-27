@@ -31,7 +31,6 @@ using Newtonsoft.Json.Linq;
 
 using Liviano.Electrum;
 using Liviano.Extensions;
-using NBitcoin.Protocol;
 
 namespace Liviano.Models
 {
