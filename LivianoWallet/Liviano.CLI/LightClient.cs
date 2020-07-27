@@ -77,7 +77,7 @@ namespace Liviano.CLI
 
             if (!storage.Exists())
             {
-                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
 
                 throw new WalletException("Invalid wallet id");
             }
@@ -178,7 +178,7 @@ namespace Liviano.CLI
 
             if (!storage.Exists())
             {
-                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
 
                 return null;
             }
