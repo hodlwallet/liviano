@@ -216,9 +216,8 @@ namespace Liviano.CLI
                 return;
             }
 
-            if (getAddr)
             {
-                if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId))
+                if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId) && config.WalletId != null)
                 {
                     InvalidArguments();
 
@@ -227,9 +226,15 @@ namespace Liviano.CLI
 
                 if (!string.IsNullOrEmpty(wif))
                     Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
-                else if (config.HasWallet(walletId))
+                else if (config.WalletId != null)
                 {
-                    var wallet = config.WalletId;
+                    var address = LightClient.GetAddress(config, accountIndex);
+
+                    Console.WriteLine(address.ToString());
+                }
+                else {
+                    InvalidArguments("Could not find wallet or wif was not provided");
+                    return;
                 }
 
                 return;
