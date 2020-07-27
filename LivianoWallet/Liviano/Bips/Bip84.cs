@@ -38,8 +38,8 @@ namespace Liviano.Bips
     {
         public static ExtKey ParseZPrv(string zprv)
         {
-            Network network = GetNetwork(zprv);
-            Base58CheckEncoder encoder = network.GetBase58CheckEncoder();
+            var network = GetNetwork(zprv);
+            var encoder = network.GetBase58CheckEncoder();
 
             byte[] zPrvData = encoder.DecodeData(zprv);
             byte[] newPrefix = Utils.ToBytes(network == Network.Main ? 0x0488ade4U : 0x04358394U, false);
@@ -52,8 +52,8 @@ namespace Liviano.Bips
 
         public static ExtPubKey ParseZPub(string zpub)
         {
-            Network network = GetNetwork(zpub);
-            Base58CheckEncoder encoder = network.GetBase58CheckEncoder();
+            var network = GetNetwork(zpub);
+            var encoder = network.GetBase58CheckEncoder();
 
             byte[] zPubData = encoder.DecodeData(zpub);
             byte[] newPrefix = Utils.ToBytes(network == Network.Main ? 0x0488b21eU : 0x043587cfU, false);
