@@ -226,7 +226,7 @@ namespace Liviano.CLI
 
                 if (!string.IsNullOrEmpty(wif))
                     Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
-                else if (config.WalletId != null)
+                else if (config.HasWallet(walletId))
                 {
                     var address = LightClient.GetAddress(config, accountIndex);
 

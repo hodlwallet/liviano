@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,9 +8,6 @@ using NBitcoin.Protocol;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
-
-using Liviano.Utilities;
-using System.Reflection;
 
 namespace Liviano.Extensions
 {
