@@ -276,7 +276,7 @@ namespace Liviano.CLI
 
                     var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
 
-                    var data = string.Join('\n', addresses.ToList().Select(addr => addr.ToString()));
+                    var data = string.Join('\n', addresses.ToList());
 
                     Console.WriteLine(data);
 
