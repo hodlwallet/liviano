@@ -255,6 +255,14 @@ namespace Liviano.CLI
                 {
                     var address = LightClient.GetAddress(config, accountIndex);
 
+                    if (address is null)
+                    {
+                        InvalidArguments("Could not get address because wallet was not found");
+
+                        return;
+                    }
+
+
                     Console.WriteLine(address.ToString());
                 }
                 else {
