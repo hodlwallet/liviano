@@ -60,7 +60,8 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetReceiveAddress()
         {
-            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, ExternalAddressesCount, false);
+            var addrIndex = UsedExternalAddresses.Count + ExternalAddressesCount;
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, addrIndex, false);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             ExternalAddressesCount++;
@@ -86,7 +87,8 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetChangeAddress()
         {
-            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, InternalAddressesCount, true);
+            var addrIndex = UsedInternalAddresses.Count + InternalAddressesCount;
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, addrIndex, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             InternalAddressesCount++;
