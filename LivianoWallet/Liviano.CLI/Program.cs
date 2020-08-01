@@ -26,6 +26,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 
 using Mono.Options;
 using NBitcoin;
@@ -50,6 +51,7 @@ namespace Liviano.CLI
         static string mnemonic = "";
         static string wordlist = "english";
         static int wordCount = 12;
+        static int addressAmount = 1;
         static bool hasInputText = false;
         static string inputText = "";
         static string wif = "";
@@ -123,6 +125,7 @@ namespace Liviano.CLI
                 {"acctype|account-type=", "Account type", (string v) => accType = v},
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
+                {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)},
@@ -241,6 +244,7 @@ namespace Liviano.CLI
                 return;
             }
 
+            if (getAddr)
             {
                 if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId) && config.WalletId == null)
                 {
@@ -253,17 +257,30 @@ namespace Liviano.CLI
                     Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
                 else if (config.WalletId != null)
                 {
-                    var address = LightClient.GetAddress(config, accountIndex);
-
-                    if (address is null)
+                    if (addressAmount == 1)
                     {
-                        InvalidArguments("Could not get address because wallet was not found");
+                        var address = LightClient.GetAddress(config, accountIndex);
+
+                        if (address is null)
+                        {
+                            InvalidArguments("Could not get address because wallet was not found");
+
+                            return;
+                        }
+
+
+                        Console.WriteLine(address.ToString());
 
                         return;
                     }
 
+                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
 
-                    Console.WriteLine(address.ToString());
+                    var data = string.Join('\n', addresses.ToList().Select(addr => addr.ToString()));
+
+                    Console.WriteLine(data);
+
+                    return;
                 }
                 else {
                     InvalidArguments("Could not find wallet or wif was not provided");

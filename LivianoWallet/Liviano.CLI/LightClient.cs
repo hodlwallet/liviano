@@ -221,6 +221,32 @@ namespace Liviano.CLI
             return addr;
         }
 
+        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
+        {
+            network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
+
+                return null;
+            }
+
+            wallet = storage.Load();
+
+            IAccount account = wallet.Accounts[accountIndex];
+
+            if (account is null) return null;
+
+            var addrs = account.GetReceiveAddress(addressAmount);
+
+            wallet.Storage.Save();
+
+            return addrs;
+        }
+
         public static void CreateWallet(Config config, string password, string mnemonic)
         {
             network = Hd.GetNetwork(config.Network);
