@@ -82,7 +82,7 @@ namespace Liviano.Accounts
             }
             set
             {
-                if (value > GapLimit)
+                if (value >= GapLimit)
                     internalAddressesCount = 0;
                 else
                     internalAddressesCount = value;
@@ -103,7 +103,7 @@ namespace Liviano.Accounts
             }
             set
             {
-                if (value > GapLimit)
+                if (value >= GapLimit)
                     externalAddressesCount = 0;
                 else
                     externalAddressesCount = value;
