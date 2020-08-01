@@ -214,7 +214,11 @@ namespace Liviano.CLI
 
             if (account is null) return null;
 
-            return account.GetReceiveAddress();
+            var addr = account.GetReceiveAddress();
+
+            wallet.Storage.Save();
+
+            return addr;
         }
 
         public static void CreateWallet(Config config, string password, string mnemonic)

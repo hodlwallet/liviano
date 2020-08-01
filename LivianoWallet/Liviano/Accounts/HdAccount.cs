@@ -72,15 +72,43 @@ namespace Liviano.Accounts
         /// Change addresses count
         /// </summary>
         /// <value></value>
+        int internalAddressesCount = 0;
         [JsonProperty(PropertyName = "internalAddressesCount")]
-        public int InternalAddressesCount { get; set; }
+        public int InternalAddressesCount
+        {
+            get
+            {
+                return internalAddressesCount;
+            }
+            set
+            {
+                if (value > GapLimit)
+                    internalAddressesCount = 0;
+                else
+                    internalAddressesCount = value;
+            }
+        }
 
         /// <summary>
         /// Receive addresess count
         /// </summary>
         /// <value></value>
+        int externalAddressesCount = 0;
         [JsonProperty(PropertyName = "externalAddressesCount")]
-        public int ExternalAddressesCount { get; set; }
+        public int ExternalAddressesCount
+        {
+            get
+            {
+                return externalAddressesCount;
+            }
+            set
+            {
+                if (value > GapLimit)
+                    externalAddressesCount = 0;
+                else
+                    externalAddressesCount = value;
+            }
+        }
 
         /// <summary>
         /// Wallet the account belongs to
