@@ -179,7 +179,7 @@ namespace Liviano.Accounts
                 "bip49" => new Bip49Account(),
                 "bip84" => new Bip84Account(index),
                 "bip141" => new Bip141Account(),
-                "wasabi" => new WasabiAccount(),// This makes very little sence, but it's here just in case
+                "wasabi" => new WasabiAccount(), // This makes very little sense, but it's here just in case
                 _ => null,
             };
 
