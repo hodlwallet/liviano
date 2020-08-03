@@ -212,13 +212,8 @@ namespace Liviano.Electrum
             {
                 foreach (var acc in wallet.Accounts)
                 {
-                    var extCount = acc.ExternalAddressesCount;
-                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit + 1);
-                    acc.ExternalAddressesCount = extCount;
-
-                    var intCount = acc.InternalAddressesCount;
-                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit + 1);
-                    acc.InternalAddressesCount = intCount;
+                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
                     foreach (var addr in receiveAddresses)
                         _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
@@ -340,7 +335,6 @@ namespace Liviano.Electrum
                             continue;
 
                         acc.UsedExternalAddresses.Add(txAddr);
-                        acc.SetAddressCount(txAddr, isReceive: true);
                     }
 
                     if (changeAddresses.Contains(txAddr))
@@ -349,7 +343,6 @@ namespace Liviano.Electrum
                             continue;
 
                         acc.UsedInternalAddresses.Add(txAddr);
-                        acc.SetAddressCount(txAddr, isReceive: false);
                     }
                 }
             }

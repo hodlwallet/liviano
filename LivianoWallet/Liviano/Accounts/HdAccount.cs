@@ -177,20 +177,6 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
-        public void SetAddressCount(BitcoinAddress address, bool isReceive = true)
-        {
-            if (isReceive)
-            {
-                ExternalAddressesCount = 0;
-                while (GetReceiveAddress() != address) ;
-            }
-            else
-            {
-                InternalAddressesCount = 0;
-                while (GetChangeAddress() != address) ;
-            }
-        }
-
         public object Clone()
         {
             return this.MemberwiseClone();
