@@ -152,8 +152,8 @@ namespace Liviano.Accounts
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
 
-        public event EventHandler<Tx> OnNewSpendingTransaction;
-        public event EventHandler<Tx> OnUpdateSpendingTransaction;
+        public event EventHandler<TxEventArgs> OnNewSpendingTransaction;
+        public event EventHandler<TxEventArgs> OnUpdateSpendingTransaction;
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
 

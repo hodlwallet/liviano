@@ -405,8 +405,9 @@ namespace Liviano
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
-            ElectrumPool.OnNewTransaction += (o, tx) =>
+            ElectrumPool.OnNewTransaction += (o, txArgs) =>
             {
+                var tx = txArgs.Tx;
                 // TODO send acc as the account the tx belong to
 
                 Console.WriteLine($"Found a tx! hex: {tx.Hex}");
