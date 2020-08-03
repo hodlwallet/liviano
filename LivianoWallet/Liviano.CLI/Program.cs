@@ -60,11 +60,12 @@ namespace Liviano.CLI
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
         static string server = "";
         static decimal amount = new decimal(0.00);
-        static int accountIndex = 0;
+        static int accountIndex = -1;
+        static string accountName = null;
         static string walletId = "";
         static string walletName = DEFAULT_WALLET_NAME;
-        static string accName = DEFAULT_ACCOUNT_NAME;
-        static string accType = "bip84";
+        static string newAccName = DEFAULT_ACCOUNT_NAME;
+        static string newAccType = "bip84";
 
         // Menu of the cli program
         static bool showHelp = false;
@@ -120,9 +121,10 @@ namespace Liviano.CLI
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
                 {"s|server=", "Server", (string v) => server = v},
                 {"amt|amount=", "Amount to send", (string v) => amount = decimal.Parse(v)},
-                {"acc|account=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
-                {"accname|account-name=", "Account name", (string v) => accName = v},
-                {"acctype|account-type=", "Account type", (string v) => accType = v},
+                {"acci|account-index=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
+                {"accn|account-name=", "Account to send from", (string v) => accountName = v},
+                {"naccname|new-account-name=", "New account name", (string v) => newAccName = v},
+                {"nacctype|new-account-type=", "New account type", (string v) => newAccType = v},
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
@@ -253,6 +255,8 @@ namespace Liviano.CLI
                     return;
                 }
 
+                if (accountIndex == -1) accountIndex = 0;
+
                 if (!string.IsNullOrEmpty(wif))
                     Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
                 else if (config.WalletId != null)
@@ -313,8 +317,8 @@ namespace Liviano.CLI
                 else
                     wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
 
-                if (!string.IsNullOrEmpty(accName) && !string.IsNullOrEmpty(accType))
-                    wallet.AddAccount(accType, accName, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
+                if (!string.IsNullOrEmpty(newAccName) && !string.IsNullOrEmpty(newAccType))
+                    wallet.AddAccount(newAccType, newAccName, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
 
                 wallet.Storage.Save();
 
@@ -334,10 +338,10 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                if (string.IsNullOrEmpty(accName) || string.IsNullOrEmpty(accType))
+                if (string.IsNullOrEmpty(newAccName) || string.IsNullOrEmpty(newAccType))
                     throw new ArgumentException("New account needs a account type and account name");
 
-                var res = LightClient.AddAccount(config, accType, accName);
+                var res = LightClient.AddAccount(config, newAccType, newAccName);
 
                 // Returns wif of account
                 Console.WriteLine($"{res}");
@@ -389,6 +393,13 @@ namespace Liviano.CLI
                     throw new ArgumentException("New account needs a wallet id");
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                if (accountIndex != -1)
+                {
+                    LightClient.AccountBalance(config, null, accountIndex);
+
+                    return;
+                }
 
                 // TODO Get balance from an account or from all of them in the wallet
 

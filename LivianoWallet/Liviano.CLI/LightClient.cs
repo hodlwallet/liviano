@@ -149,50 +149,37 @@ namespace Liviano.CLI
                 error = string.Join<string>(", ", errors.Select(o => o.Message));
             }
 
-            //if (wasCreated)
-            //{
-            //    Thread.Sleep(SEND_PAUSE);
-
-            //    try
-            //    {
-            //        var txHex = tx.ToHex();
-
-            //        var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
-            //        var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
-
-            //        if (broadcast.Result != tx.GetHash().ToString())
-            //        {
-            //            throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
-            //        }
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        _Logger.Error(e.ToString());
-
-            //        error = e.Message;
-            //        wasSent = false;
-
-            //        return (wasCreated, wasSent, tx, error);
-            //    }
-
-            //    wasSent = true;
-            //}
-
             return (wasCreated, wasSent, tx, error);
         }
 
-        public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)
+        public static Money AccountBalance(Config config, string accountName = null, int accountIndex = -1)
         {
             Load(config);
 
-            throw new NotImplementedException("TODO");
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
+
+            return account.GetBalance();
         }
 
         public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
         {
             Load(config);
 
-            throw new NotImplementedException("TODO");
+            var res = new Dictionary<IAccount, Money> ();
+
+            foreach (var account in wallet.Accounts)
+            {
+                res[account] = account.GetBalance();
+            }
+
+            return res;
         }
 
         public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
