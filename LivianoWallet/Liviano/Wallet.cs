@@ -104,8 +104,8 @@ namespace Liviano
         public event EventHandler SyncStarted;
         public event EventHandler SyncFinished;
 
-        public event EventHandler<Tx> OnNewTransaction;
-        public event EventHandler<Tx> OnUpdateTransaction;
+        public event EventHandler<TxEventArgs> OnNewTransaction;
+        public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
         IStorage storage;
         public IStorage Storage
@@ -313,7 +313,7 @@ namespace Liviano
                                         account.AddTx(tx);
 
                                         if (tx.AccountId == CurrentAccountId)
-                                            OnNewTransaction?.Invoke(this, tx);
+                                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, account));
 
                                         return;
                                     }
@@ -326,7 +326,7 @@ namespace Liviano
                                         account.UpdateTx(tx);
 
                                         if (tx.AccountId == CurrentAccountId)
-                                            OnUpdateTransaction?.Invoke(this, tx);
+                                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, account));
 
                                         // Here for safety, at any time somebody can add code to this
                                         return;
@@ -455,7 +455,7 @@ namespace Liviano
             if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
             {
                 CurrentAccount.UpdateTx(tx);
-                OnUpdateTransaction?.Invoke(this, tx);
+                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, CurrentAccount));
             }
         }
 

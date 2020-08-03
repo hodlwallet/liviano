@@ -227,7 +227,19 @@ namespace Liviano.Interfaces
         /// </summary>
         event EventHandler SyncStarted;
         event EventHandler SyncFinished;
-        event EventHandler<Tx> OnNewTransaction;
-        event EventHandler<Tx> OnUpdateTransaction;
+        event EventHandler<TxEventArgs> OnNewTransaction;
+        event EventHandler<TxEventArgs> OnUpdateTransaction;
+    }
+
+    public class TxEventArgs : EventArgs
+    {
+        public Tx Tx { get; set; }
+        public IAccount Account { get; set; }
+
+        public TxEventArgs(Tx tx, IAccount account)
+        {
+            Tx = tx;
+            Account = account;
+        }
     }
 }
