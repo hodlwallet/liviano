@@ -114,12 +114,16 @@ namespace Liviano.CLI
         {
             Load(config);
 
+            await Task.Delay(1);
+
             throw new NotImplementedException("TODO");
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
         {
             Load(config);
+
+            await Task.Delay(1);
 
             Transaction tx = null;
             string error = "";
