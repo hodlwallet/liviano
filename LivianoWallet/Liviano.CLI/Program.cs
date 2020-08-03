@@ -415,7 +415,6 @@ namespace Liviano.CLI
             options.WriteOptionDescriptions(Console.Out);
         }
 
-
         static void InvalidArguments(string msg = "Invalid argument options.")
         {
             Console.WriteLine($"{msg}\n");
