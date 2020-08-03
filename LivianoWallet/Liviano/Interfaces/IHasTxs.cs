@@ -23,8 +23,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-
 using Liviano.Models;
 
 namespace Liviano.Interfaces
@@ -49,25 +47,5 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="tx">A <see cref="Tx"/> †o remove</param>
         void RemoveTx(Tx tx);
-
-        /// <summary>
-        /// Event for a new spending transaction.
-        /// </summary>
-        event EventHandler<TxEventArgs> OnNewSpendingTransaction;
-
-        /// <summary>
-        /// Event for updating a spending transaction.
-        /// </summary>
-        event EventHandler<TxEventArgs> OnUpdateSpendingTransaction;
-
-        /// <summary>
-        /// Event for a new transaction.
-        /// </summary>
-        event EventHandler<TxEventArgs> OnNewTransaction;
-
-        /// <summary>
-        /// Event for updating a transaction.
-        /// </summary>
-        event EventHandler<TxEventArgs> OnUpdateTransaction;
     }
 }

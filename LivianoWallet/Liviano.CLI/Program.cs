@@ -84,10 +84,6 @@ namespace Liviano.CLI
         // Parse extra options arguments
         static List<string> extra;
 
-        // Debug menu items for cli program
-        static bool electrumTest3 = false;
-        static bool walletTest1 = false;
-
         /// <summary>
         /// Defines all the options that we need for the CLI
         /// </summary>
@@ -130,11 +126,7 @@ namespace Liviano.CLI
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
 
                 // Default & help
-                {"h|help", "Liviano help", v => showHelp = !(v is null)},
-
-                // Debugging commands
-                {"test-et3|electrum-test-3", "Electrum test 3", v => electrumTest3 = !(v is null)},
-                {"test-w1|wallet-test-1", "Test wallet 1", v => walletTest1 = !(v is null)}
+                {"h|help", "Liviano help", v => showHelp = !(v is null)}
             };
         }
 
@@ -404,22 +396,6 @@ namespace Liviano.CLI
                 // TODO Get balance from an account or from all of them in the wallet
 
                 throw new NotImplementedException("Balance is not implemented");
-            }
-
-
-            // Test / debugging LightClient commands
-            if (electrumTest3)
-            {
-                LightClient.TestElectrumConnection3(network);
-
-                return;
-            }
-
-            if (walletTest1)
-            {
-                LightClient.WalletTest1(network, wordlist, wordCount);
-
-                return;
             }
 
             // End... invalid options

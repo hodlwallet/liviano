@@ -109,11 +109,6 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
-        public event EventHandler<TxEventArgs> OnNewSpendingTransaction;
-        public event EventHandler<TxEventArgs> OnUpdateSpendingTransaction;
-        public event EventHandler<TxEventArgs> OnNewTransaction;
-        public event EventHandler<TxEventArgs> OnUpdateTransaction;
-
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
             Guard.NotNull(name, nameof(name));

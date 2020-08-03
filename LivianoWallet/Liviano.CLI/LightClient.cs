@@ -238,22 +238,6 @@ namespace Liviano.CLI
             return addrs;
         }
 
-        public static void CreateWallet(Config config, string password, string mnemonic)
-        {
-            network = Hd.GetNetwork(config.Network);
-
-            if (password == null)
-                password = "";
-
-            logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, network.Name);
-
-            wallet = new Wallet { Id = config.WalletId };
-
-            wallet.Init(mnemonic, password, network: network);
-
-            wallet.Storage.Save();
-        }
-
         public static void ReSync(Config config)
         {
             Load(config);
@@ -322,42 +306,6 @@ namespace Liviano.CLI
             return wallet.Accounts.Last().ExtendedPubKey;
         }
 
-        public static void TestElectrumConnection3(Network network)
-        {
-            logger.Information("Try to connect to each electrum server manually");
-            logger.Information($"Running on {network}");
-
-            string serversFileName = ElectrumPool.GetLocalConfigFilePath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            var json = File.ReadAllText(serversFileName);
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-
-            var pool = new ElectrumPool(servers.ToArray(), network);
-
-            pool.OnConnectedEvent += Pool_OnConnectedEvent;
-            pool.OnDoneFindingPeersEvent += Pool_OnDoneFindingPeersEvent;
-            pool.OnCancelFindingPeersEvent += Pool_OnCancelFindingPeersEvent;
-
-            var cts = new CancellationTokenSource();
-            _ = pool.FindConnectedServers(cts);
-
-            // Use this code to cancel
-            //Thread.Sleep(1000);
-            //cts.Cancel();
-
-            WaitUntilEscapeIsPressed();
-        }
-
-        public static void WalletTest1(Network network, string wordlist, int wordCount)
-        {
-            var wallet = NewWallet(wordlist, wordCount, network);
-        }
-
         static void Pool_OnCancelFindingPeersEvent(object sender, EventArgs e)
         {
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -387,162 +335,6 @@ namespace Liviano.CLI
             Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
             Console.WriteLine($"First Server to Connect!\n{e.Domain} at {DateTime.UtcNow}");
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        }
-
-        public static void TestElectrumConnection2(Network network)
-        {
-            logger.Information("Try to connect to each electrum server manually");
-            logger.Information($"Running on {network}");
-
-            string serversFileName = ElectrumPool.GetLocalConfigFilePath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            var json = File.ReadAllText(serversFileName);
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-
-            var tasks = new List<Task> { };
-            foreach (var s in servers)
-            {
-                Console.WriteLine($"Connecting to {s.Domain}:{s.PrivatePort}...");
-
-                var electrum = s.ElectrumClient;
-
-                var t = Task.Run(async () =>
-                {
-                    try
-                    {
-                        Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
-                        var res = await electrum.ServerVersion();
-
-                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
-
-                        Debug.WriteLine($"Done! at {DateTime.UtcNow}");
-
-                        return (s, res.ToString(), false);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Error = {e.Message}");
-
-                        return (s, e.Message, true);
-                    }
-                });
-
-                tasks.Add(t);
-            }
-
-            var tarray = tasks.ToArray();
-
-            Task.WaitAll(tasks.ToArray());
-
-            foreach (var t in tarray)
-            {
-                var ct = (Task<ValueTuple<Liviano.Models.Server, string, bool>>)t;
-
-                var domain = ct.Result.Item1.Domain;
-                var content = ct.Result.Item2;
-                var hasError = ct.Result.Item3;
-
-                if (hasError)
-                {
-                    Console.WriteLine($"ERROR!     {domain} => {content}");
-                    continue;
-                }
-
-                Console.WriteLine($"CONNECTED! {domain} => {content}");
-            }
-
-            WaitUntilEscapeIsPressed();
-        }
-
-        public static void TestElectrumConnection(string address, string txHash, Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            logger.Information("Running on {network}", network.Name);
-            logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
-
-            Console.WriteLine("Welcome to a demo");
-
-            Console.WriteLine("Delete previous wallets");
-
-            if (Directory.Exists("wallets"))
-                Directory.Delete("wallets", recursive: true);
-
-            //Console.WriteLine(contents);
-            var mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-
-            Console.WriteLine($"Creating wallet for mnemonic: \"{mnemonic}\"");
-
-            var w = new Wallet();
-
-            w.Init(mnemonic, "", network: network);
-            //w.AddAccount("paper", options: new { Network = Network.TestNet });
-            w.AddAccount("bip141", options: new { Network = network });
-            var account = w.Accounts[0].CastToAccountType();
-
-            Console.WriteLine($"Account Type: {account.GetType()}");
-            Console.WriteLine($"Added account with path: {account.HdPath}");
-
-            w.Storage.Save();
-
-            Console.WriteLine("Saved Wallet!");
-
-            if (account.AccountType == "paper")
-            {
-                var addr = account.GetReceiveAddress();
-                Console.WriteLine($"{addr} => scriptHash: {addr.ToScriptHash().ToHex()}");
-            }
-            else
-            {
-                int n = account.GapLimit;
-                Console.WriteLine($"Addresses ({n})");
-
-                foreach (var addr in account.GetReceiveAddress(n))
-                {
-                    Console.WriteLine($"{addr} => scriptHash: {addr.ToScriptHash().ToHex()}");
-                }
-
-                account.ExternalAddressesCount = 0;
-            }
-
-            Console.WriteLine("\nPress [ESC] to stop!\n");
-
-            Console.WriteLine("Syncing...");
-
-            var start = new DateTimeOffset();
-            var end = new DateTimeOffset();
-            w.SyncStarted += (obj, _) =>
-            {
-                start = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"Syncing started at {start.LocalDateTime.ToLongTimeString()}");
-            };
-
-            w.SyncFinished += (obj, _) =>
-            {
-                end = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
-                Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
-
-                Console.WriteLine($"Balance: {w.Accounts[0].GetBalance()}");
-
-                w.Storage.Save();
-
-                // await w.Start();
-            };
-
-            _ = w.Sync();
-
-            Console.WriteLine("Started, now listening to txs");
-
-
-            WaitUntilEscapeIsPressed();
         }
 
         static void WaitUntilEscapeIsPressed()
@@ -602,11 +394,6 @@ namespace Liviano.CLI
             logger.Information("bye!");
 
             process.Kill();
-        }
-
-        static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
-        {
-            return network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
         }
     }
 }

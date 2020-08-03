@@ -59,12 +59,12 @@ namespace Liviano.Accounts
         int gapLimit = 20;
         public int GapLimit
         {
-            get => GapLimit;
+            get => gapLimit;
             set
             {
                 if (value < 0) throw new ArgumentException($"Invalid value {value}");
 
-                GapLimit = value;
+                gapLimit = value;
             }
         }
 
@@ -151,11 +151,6 @@ namespace Liviano.Accounts
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
-
-        public event EventHandler<TxEventArgs> OnNewSpendingTransaction;
-        public event EventHandler<TxEventArgs> OnUpdateSpendingTransaction;
-        public event EventHandler<TxEventArgs> OnNewTransaction;
-        public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
         public abstract Money GetBalance();
 

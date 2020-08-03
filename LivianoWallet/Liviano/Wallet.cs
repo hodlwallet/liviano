@@ -151,7 +151,7 @@ namespace Liviano
             CurrentAssembly ??= assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
-            var extKey = Hd.GetExtendedKey(mnemonicObj, password);
+            extKey = Hd.GetExtendedKey(mnemonicObj, password);
 
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
@@ -311,9 +311,7 @@ namespace Liviano
                                         var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
                                         account.AddTx(tx);
-
-                                        if (tx.AccountId == CurrentAccountId)
-                                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, account));
+                                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, account));
 
                                         return;
                                     }
@@ -325,8 +323,7 @@ namespace Liviano
 
                                         account.UpdateTx(tx);
 
-                                        if (tx.AccountId == CurrentAccountId)
-                                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, account));
+                                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, account));
 
                                         // Here for safety, at any time somebody can add code to this
                                         return;
