@@ -56,15 +56,15 @@ namespace Liviano.Accounts
         /// <summary>
         /// This is the amount of address to generate
         /// </summary>
-        int _GapLimit = 20;
+        int gapLimit = 20;
         public int GapLimit
         {
-            get => _GapLimit;
+            get => GapLimit;
             set
             {
                 if (value < 0) throw new ArgumentException($"Invalid value {value}");
 
-                _GapLimit = value;
+                GapLimit = value;
             }
         }
 
@@ -76,17 +76,8 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "internalAddressesCount")]
         public int InternalAddressesCount
         {
-            get
-            {
-                return internalAddressesCount;
-            }
-            set
-            {
-                if (value >= GapLimit)
-                    internalAddressesCount = 0;
-                else
-                    internalAddressesCount = value;
-            }
+            get => internalAddressesCount;
+            set => internalAddressesCount = value >= GapLimit ? 0 : value;
         }
 
         /// <summary>
@@ -97,17 +88,8 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "externalAddressesCount")]
         public int ExternalAddressesCount
         {
-            get
-            {
-                return externalAddressesCount;
-            }
-            set
-            {
-                if (value >= GapLimit)
-                    externalAddressesCount = 0;
-                else
-                    externalAddressesCount = value;
-            }
+            get => externalAddressesCount;
+            set => externalAddressesCount = value >= GapLimit ? 0 : value;
         }
 
         /// <summary>
@@ -172,8 +154,8 @@ namespace Liviano.Accounts
 
         public event EventHandler<Tx> OnNewSpendingTransaction;
         public event EventHandler<Tx> OnUpdateSpendingTransaction;
-        public event EventHandler<Tx> OnNewTransaction;
-        public event EventHandler<Tx> OnUpdateTransaction;
+        public event EventHandler<TxEventArgs> OnNewTransaction;
+        public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
         public abstract Money GetBalance();
 

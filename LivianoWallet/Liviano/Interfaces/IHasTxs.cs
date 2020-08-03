@@ -53,21 +53,21 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Event for a new spending transaction.
         /// </summary>
-        event EventHandler<Tx> OnNewSpendingTransaction;
+        event EventHandler<TxEventArgs> OnNewSpendingTransaction;
 
         /// <summary>
         /// Event for updating a spending transaction.
         /// </summary>
-        event EventHandler<Tx> OnUpdateSpendingTransaction;
+        event EventHandler<TxEventArgs> OnUpdateSpendingTransaction;
 
         /// <summary>
         /// Event for a new transaction.
         /// </summary>
-        event EventHandler<Tx> OnNewTransaction;
+        event EventHandler<TxEventArgs> OnNewTransaction;
 
         /// <summary>
         /// Event for updating a transaction.
         /// </summary>
-        event EventHandler<Tx> OnUpdateTransaction;
+        event EventHandler<TxEventArgs> OnUpdateTransaction;
     }
 }

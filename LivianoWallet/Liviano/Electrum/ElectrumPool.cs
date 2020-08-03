@@ -96,9 +96,9 @@ namespace Liviano.Electrum
 
         public event EventHandler OnCancelFindingPeersEvent;
 
-        public event EventHandler<Tx> OnNewTransaction;
+        public event EventHandler<TxEventArgs> OnNewTransaction;
 
-        public event EventHandler<Tx> OnUpdateTransaction;
+        public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
         public Server[] AllServers { get; set; }
 
@@ -317,14 +317,14 @@ namespace Liviano.Electrum
                     acc.UpdateTx(tx);
 
                     if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnUpdateTransaction?.Invoke(this, tx);
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc));
                 }
                 else
                 {
                     acc.AddTx(tx);
 
                     if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnNewTransaction?.Invoke(this, tx);
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc));
                 }
 
                 foreach (var txAddr in txAddresses)
