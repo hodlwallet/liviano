@@ -36,7 +36,7 @@ using System;
 
 namespace Liviano.Accounts
 {
-    public abstract class HdAccount : IAccount
+    public abstract class HdAccount : IAccount, ICloneable
     {
         /// <summary>
         /// Id of the account, usually a guid
@@ -189,6 +189,11 @@ namespace Liviano.Accounts
                 InternalAddressesCount = 0;
                 while (GetChangeAddress() != address) ;
             }
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }
