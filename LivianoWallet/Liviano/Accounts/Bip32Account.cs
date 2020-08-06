@@ -74,13 +74,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
-            {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, ExternalAddressesCount, false);
-
-                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
-
-                ExternalAddressesCount++;
-            }
+                addresses.Add(GetReceiveAddress());
 
             return addresses.ToArray();
         }
@@ -101,13 +95,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
-            {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, InternalAddressesCount, true);
-
-                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
-
-                InternalAddressesCount++;
-            }
+                addresses.Add(GetChangeAddress());
 
             return addresses.ToArray();
         }
