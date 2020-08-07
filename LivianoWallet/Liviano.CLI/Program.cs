@@ -87,7 +87,8 @@ namespace Liviano.CLI
         /// <summary>
         /// Defines all the options that we need for the CLI
         /// </summary>
-        /// <returns></returns>
+        /// <remarks>Sets a lot of static variables on this class</remarks>
+        /// <returns>A <see cref="OptionSet"/> of the CLI option</returns>
         static OptionSet GetOptions()
         {
             return new OptionSet
@@ -130,6 +131,9 @@ namespace Liviano.CLI
             };
         }
 
+        /// <summary>
+        /// Main, uses the args and run the options
+        /// </summary>
         static void Main(string[] args)
         {
             logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
@@ -348,7 +352,7 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-
+                // TODO Start a wallet listen to transactions
                 throw new NotImplementedException("Start is not implemented");
             }
 
@@ -373,7 +377,6 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 // TODO Send from an account
-
                 throw new NotImplementedException("Send is not implemented");
             }
 
@@ -405,6 +408,10 @@ namespace Liviano.CLI
             InvalidArguments();
         }
 
+        /// <summary>
+        /// Display cli command help
+        /// </summary>
+        /// <param name="options">An <see cref="OptionSet"/> with the options that ran</param>
         static void ShowHelp(OptionSet options)
         {
             // show some app description message
@@ -418,6 +425,10 @@ namespace Liviano.CLI
             options.WriteOptionDescriptions(Console.Out);
         }
 
+        /// <summary>
+        /// Displays invalid argument message
+        /// </summary>
+        /// <param name="msg">A <see cref="string"/> with a custom message</param>
         static void InvalidArguments(string msg = "Invalid argument options.")
         {
             Console.WriteLine($"{msg}\n");
