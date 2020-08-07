@@ -362,7 +362,7 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
 
-                LightClient.ReSync(config);
+                throw new NotImplementedException("Start is not implemented");
 
                 return;
             }
