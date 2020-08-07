@@ -388,14 +388,19 @@ namespace Liviano.CLI
 
                 if (accountIndex != -1)
                 {
-                    LightClient.AccountBalance(config, null, accountIndex);
+                    var balance = LightClient.AccountBalance(config, null, accountIndex);
+
+                    Console.WriteLine($"{accountIndex} = {balance.ToString()}");
 
                     return;
                 }
 
-                // TODO Get balance from an account or from all of them in the wallet
+                var accountsWithBalance = LightClient.AllAccountsBalances(config);
 
-                throw new NotImplementedException("Balance is not implemented");
+                foreach (var entry in accountsWithBalance)
+                    Console.WriteLine($"{entry.Key.Index} = {entry.Value}");
+
+                return;
             }
 
             // End... invalid options
