@@ -125,6 +125,16 @@ namespace Liviano
 
         public string Server { get; set; }
 
+        /// <summary>
+        /// Inits the wallet with some defaults mostly empty fields
+        /// </summary>
+        /// <param name="mnemonic">A <see cref="string"/> with the mnemonic words</param>
+        /// <param name="password">A <see cref="string"/> with password</param>
+        /// <param name="name">A <see cref="string"/> with name</param>
+        /// <param name="network">A <see cref="Network"/></param>
+        /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
+        /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
+        /// <param name="assembly">A <see cref="Assembly"/> that the wallet is loaded from</param>
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
@@ -162,6 +172,9 @@ namespace Liviano
             InitAccountsIndex();
         }
 
+        /// <summary>
+        /// Inits the electrum pool and subscribe to the handle connected servers if it is connected
+        /// </summary>
         public void InitElectrumPool()
         {
             ElectrumPool ??= GetElectrumPool();
@@ -172,6 +185,9 @@ namespace Liviano
                 ElectrumPool.HandleConnectedServers(ElectrumPool.CurrentServer, null);
         }
 
+        /// <summary>
+        /// Starts the possible accounts with indexes, these are {type_string: int_amount_of_accounts}
+        /// </summary>
         public void InitAccountsIndex()
         {
             if (!(AccountsIndex is null)) return;
@@ -199,6 +215,12 @@ namespace Liviano
             return ElectrumPool.Load(Network, CurrentAssembly);
         }
 
+        /// <summary>
+        /// Inits the private key
+        /// </summary>
+        /// <remarks>If you pass no password it's a way to create accounts with no pass</remarks>
+        /// <param name="password">A <see cref="string"/> of the password</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
         public void InitPrivateKey(string password = "", bool decrypt = false)
         {
             privateKey = GetPrivateKey(password, decrypt);
@@ -207,8 +229,8 @@ namespace Liviano
         /// <summary>
         /// Gets the private key, and puts it into <see cref="privateKey"/>
         /// </summary>
-        /// <param name="password"></param>
-        /// <param name="decrypt"></param>
+        /// <param name="password">A <see cref="string"/> of the password</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
         /// <returns>a private <see cref="Key"/></returns>
         public Key GetPrivateKey(string password = "", bool decrypt = false)
         {
@@ -257,6 +279,9 @@ namespace Liviano
             CurrentAccountId = account.Id;
         }
 
+        /// <summary>
+        /// Starts to listen to new tx and sync is needed
+        /// </summary>
         public async Task Start()
         {
             Debug.WriteLine($"[Start] Starting wallet: {Id}");
@@ -347,6 +372,9 @@ namespace Liviano
             await Task.WhenAll(tasks).WithCancellation(CancellationToken.None);
         }
 
+        /// <summary>
+        /// Sync wallet
+        /// </summary>
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
@@ -363,6 +391,9 @@ namespace Liviano
             }
         }
 
+        /// <summary>
+        /// Resync wallet, clean and sync
+        /// </summary>
         public async Task Resync()
         {
             Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
@@ -373,6 +404,9 @@ namespace Liviano
             await Sync();
         }
 
+        /// <summary>
+        /// Cleanup wallet, set internal / external addr acocunts to 0
+        /// </summary>
         public void Cleanup()
         {
             Debug.WriteLine($"[Cleanup] Attempting to clean wallet with id: {Id}");
@@ -395,6 +429,9 @@ namespace Liviano
             }
         }
 
+        /// <summary>
+        /// Helper for sync
+        /// </summary>
         async Task SyncTask()
         {
             Debug.WriteLine("[Sync] Syncing...");
@@ -448,6 +485,9 @@ namespace Liviano
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
+        /// <summary>
+        /// Update the tx with updated tx
+        /// </summary>
         public void UpdateCurrentTransaction(Tx tx)
         {
             if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
