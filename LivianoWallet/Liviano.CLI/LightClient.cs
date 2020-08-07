@@ -57,6 +57,9 @@ namespace Liviano.CLI
 
         static IWallet wallet;
 
+        /// <summary>
+        /// Saves the wallet every <see cref="PERIODIC_SAVE_DELAY"/>
+        /// </summary>
         static async Task PeriodicSave()
         {
             while (true)
@@ -67,6 +70,9 @@ namespace Liviano.CLI
             }
         }
 
+        /// <summary>
+        /// Saves the wallet
+        /// </summary>
         static async Task Save()
         {
             await Task.Factory.StartNew(() =>
@@ -78,6 +84,9 @@ namespace Liviano.CLI
             });
         }
 
+        /// <summary>
+        /// Creates a new wallet from a mnemonic <see cref="string"/> on a <see cref="Network"/>
+        /// </summary>
         public static Wallet NewWalletFromMnemonic(string mnemonic, Network network)
         {
             var wallet = new Wallet();
@@ -87,6 +96,12 @@ namespace Liviano.CLI
             return wallet;
         }
 
+        /// <summary>
+        /// Creates new wallet from a wordliest, count and <see cref="Network"/>
+        /// </summary>
+        /// <param name="wordlist">The mnemonic separated by spaces</param>
+        /// <param name="wordCount">The amount of words in the mnemonic</param>
+        /// <param name="network">The <see cref="Network"/> it's from</param>
         public static Wallet NewWallet(string wordlist, int wordCount, Network network)
         {
             var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
@@ -94,6 +109,10 @@ namespace Liviano.CLI
             return NewWalletFromMnemonic(mnemonic, network);
         }
 
+        /// <summary>
+        /// Loads a wallet from a config
+        /// </summary>
+        /// <param name="config">a <see cref="Config"/> of the light wallet</param>
         static void Load(Config config)
         {
             network = Hd.GetNetwork(config.Network);
@@ -156,6 +175,13 @@ namespace Liviano.CLI
             return (wasCreated, wasSent, tx, error);
         }
 
+        /// <summary>
+        /// Gets accounts balance
+        /// </summary>
+        /// <returns>A <see cref="Money"/> with the balance in Bitcoin</returns>
+        /// <param name="config">Light client config</param>
+        /// <param name="accountName">Account name to check balance for<param>
+        /// <param name="accountIndex">Index of the account, 0 for first</param>
         public static Money AccountBalance(Config config, string accountName = null, int accountIndex = -1)
         {
             Load(config);
@@ -172,6 +198,10 @@ namespace Liviano.CLI
             return account.GetBalance();
         }
 
+        /// <summary>
+        /// Gets a dictionary of key <see cref="IAccount"/> and a <see cref="Money"/> as value from the <see cref="IWallet"/>
+        /// </summary>
+        /// <param name="config">Config of the light client<param>
         public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
         {
             Load(config);
@@ -186,6 +216,11 @@ namespace Liviano.CLI
             return res;
         }
 
+        /// <summary>
+        /// Gets an address from a <see cref="Config"/> and a index
+        /// </summary>
+        /// <param name="config">Light client config</param>
+        /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
         public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
         {
             network = Hd.GetNetwork(config.Network);
@@ -212,6 +247,11 @@ namespace Liviano.CLI
             return addr;
         }
 
+        /// <summary>
+        /// Gets a number of addresses in an array
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/></param>
+        /// <param name="addressAmount">Amount of addresses to generate</param>
         public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
         {
             network = Hd.GetNetwork(config.Network);
@@ -238,6 +278,10 @@ namespace Liviano.CLI
             return addrs;
         }
 
+        /// <summary>
+        /// Resyncs a wallet from a config
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/> for the client</param>
         public static void ReSync(Config config)
         {
             Load(config);
@@ -259,6 +303,11 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
+        /// <summary>
+        /// Starts a wallet and waits for new txs
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/> for the light client</param>
+        /// <param name="resync">A <see cref="bool"/> asking to resync or continue syncing</param>
         public static void Start(Config config, bool resync = false)
         {
             Load(config);
@@ -337,6 +386,9 @@ namespace Liviano.CLI
             Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 
+        /// <summary>
+        /// Waits until the user press esc
+        /// </summary>
         static void WaitUntilEscapeIsPressed()
         {
             bool quit = false;
@@ -375,6 +427,9 @@ namespace Liviano.CLI
             }
         }
 
+        /// <summary>
+        /// Exits the program
+        /// </summary>
         static void Exit()
         {
             var process = Process.GetCurrentProcess();
