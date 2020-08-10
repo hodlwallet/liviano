@@ -216,15 +216,15 @@ namespace Liviano.Electrum
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
                     foreach (var addr in receiveAddresses)
-                        _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
 
                     foreach (var addr in changeAddresses)
-                        _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
         }
 
-        async Task GetAddressHistoryTask(
+        public async Task SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
@@ -261,7 +261,7 @@ namespace Liviano.Electrum
 
                     SetNewConnectedServer();
 
-                    _ = GetAddressHistoryTask(
+                    _ = SyncAddress(
                         acc,
                         addr,
                         receiveAddresses,

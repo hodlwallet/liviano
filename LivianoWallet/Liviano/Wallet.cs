@@ -405,18 +405,31 @@ namespace Liviano
             ElectrumPool.OnNewTransaction += (o, txArgs) =>
             {
                 var tx = txArgs.Tx;
+                var addr = txArgs.Address;
                 var acc = txArgs.Account;
+                var accIndex = Accounts.FindIndex(a => a.Index == acc.Index);
 
-                Console.WriteLine($"Found a tx! tx_id: {tx.Id}");
+                Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
+                Console.WriteLine($"            acc_index: {accIndex}");
+                Console.WriteLine($"            addr:      {addr}");
 
                 if (tx.IsSend)
                 {
-                    Debug.WriteLine("Add to external address count");
+                    Accounts[accIndex].UsedExternalAddresses.Add(addr);
                 }
                 else
                 {
-                    Debug.WriteLine("Add to internal address count");
+                    Accounts[accIndex].UsedInternalAddresses.Add(addr);
                 }
+
+                acc = (IAccount)Accounts[accIndex].Clone();
+
+                // TODO Next, we should sync the addresses after the gap + 1
+                // - Get a new address
+                // - Get all receiveAddresses
+                // - Get all changeAddresses
+                // - Send your 'ct'
+                // - Call SyncAddress
 
                 Storage.Save();
             };

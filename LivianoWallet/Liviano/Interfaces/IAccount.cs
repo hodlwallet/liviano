@@ -23,19 +23,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
-using Newtonsoft.Json.Converters;
 
 namespace Liviano.Interfaces
 {
-    public interface IAccount : IHasTxs
+    public interface IAccount : IHasTxs, ICloneable
     {
         [JsonProperty(PropertyName = "id")]
         string Id { get; set; }
