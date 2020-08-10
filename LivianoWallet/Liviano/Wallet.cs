@@ -265,20 +265,20 @@ namespace Liviano
             var tasks = new List<Task>();
             var @lock = new object();
 
-            foreach (var account in Accounts)
+            foreach (var acc in Accounts)
             {
-                Debug.WriteLine($"Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
+                Debug.WriteLine($"Listening for account: {acc.Name} ({acc.AccountType} : {acc.HdPath})");
 
-                var externalCount = account.ExternalAddressesCount;
-                var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
-                account.ExternalAddressesCount = externalCount;
+                var externalCount = acc.ExternalAddressesCount;
+                var addresses = acc.GetReceiveAddress(externalCount + acc.GapLimit);
+                acc.ExternalAddressesCount = externalCount;
 
                 var accountWithAddresses = AccountsWithAddresses(@lock);
 
-                foreach (var addr in account.GetReceiveAddress(account.GapLimit))
+                foreach (var addr in acc.GetReceiveAddress(acc.GapLimit))
                 {
                     var scriptHashStr = addr.ToScriptHash().ToHex();
-                    var accountAddresses = GetAccountAddresses(account);
+                    var accountAddresses = GetAccountAddresses(acc);
 
                     var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                     {
@@ -297,7 +297,7 @@ namespace Liviano
                                     var txHash = unspentResult.TxHash;
                                     var height = unspentResult.Height;
 
-                                    var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+                                    var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
                                     var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
                                     var txHex = blkChainTxGetVerbose.Result.Hex;
@@ -308,10 +308,10 @@ namespace Liviano
                                     // Tx is new
                                     if (currentTx is null)
                                     {
-                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
-                                        account.AddTx(tx);
-                                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, account));
+                                        acc.AddTx(tx);
+                                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
                                         return;
                                     }
@@ -319,11 +319,11 @@ namespace Liviano
                                     // A potential update if tx heights are different
                                     if (currentTx.BlockHeight != height)
                                     {
-                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
 
-                                        account.UpdateTx(tx);
+                                        acc.UpdateTx(tx);
 
-                                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, account));
+                                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
                                         // Here for safety, at any time somebody can add code to this
                                         return;
@@ -340,7 +340,7 @@ namespace Liviano
                     tasks.Add(t);
                 }
 
-                account.ExternalAddressesCount = 0;
+                acc.ExternalAddressesCount = 0;
             }
 
             // Runs all the script hash suscribers
@@ -405,20 +405,17 @@ namespace Liviano
             ElectrumPool.OnNewTransaction += (o, txArgs) =>
             {
                 var tx = txArgs.Tx;
-                // TODO send acc as the account the tx belong to
+                var acc = txArgs.Account;
 
-                Console.WriteLine($"Found a tx! hex: {tx.Hex}");
+                Console.WriteLine($"Found a tx! tx_id: {tx.Id}");
 
-                // TODO Update externaladdress or internal address acount
                 if (tx.IsSend)
                 {
                     Debug.WriteLine("Add to external address count");
-                    // acc.ExternalAddressCount++;
                 }
                 else
                 {
                     Debug.WriteLine("Add to internal address count");
-                    // acc.InternalAddressCount++;
                 }
 
                 Storage.Save();
@@ -446,15 +443,6 @@ namespace Liviano
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
-        }
-
-        public void UpdateCurrentTransaction(Tx tx)
-        {
-            if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
-            {
-                CurrentAccount.UpdateTx(tx);
-                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, CurrentAccount));
-            }
         }
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
