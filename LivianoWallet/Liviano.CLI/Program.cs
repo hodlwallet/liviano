@@ -87,7 +87,7 @@ namespace Liviano.CLI
         /// <summary>
         /// Defines all the options that we need for the CLI
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The constructred options set</returns>
         static OptionSet GetOptions()
         {
             return new OptionSet
