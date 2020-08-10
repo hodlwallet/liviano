@@ -53,6 +53,11 @@ namespace Liviano.CLI
         [JsonProperty(PropertyName = "wallets")]
         public List<string> Wallets { get; set; }
 
+        /// <summary>
+        /// Initializer
+        /// </summary>
+        /// <param name="walletId">Wallet id as a <see cref="string"/></param>
+        /// <param name="network">Network as a <see cref="string"/></param>
         public Config(string walletId, string network)
         {
             // Initializing with wallet id and network
@@ -70,11 +75,17 @@ namespace Liviano.CLI
             }
         }
 
+        /// <summary>
+        /// Saves changes on the config
+        /// </summary>
         public void SaveChanges()
         {
             Save(this);
         }
 
+        /// <summary>
+        /// Reloads the config
+        /// </summary>
         public void ReLoad()
         {
             Config loadedConfig = Load();
@@ -84,11 +95,20 @@ namespace Liviano.CLI
             Wallets = loadedConfig.Wallets;
         }
 
+        /// <summary>
+        /// Check if the config has a walletId
+        /// </summary>
+        /// <param name="walletId">Walelt id as a <see cref="string"/></param>
+        /// <returns>True if exists</returns>
         public bool HasWallet(string walletId)
         {
             return Wallets.Contains(walletId);
         }
 
+        /// <summary>
+        /// Add wallet to the config
+        /// </summary>
+        /// <param name="walletId">A <see cref="string"/> the walletId</param>
         public void AddWallet(string walletId)
         {
             if (string.IsNullOrWhiteSpace(walletId)) return;
@@ -98,16 +118,26 @@ namespace Liviano.CLI
             if (!HasWallet(walletId) && !string.IsNullOrWhiteSpace(WalletId)) Wallets.Add(walletId);
         }
 
+        /// <summary>
+        /// Saves a config into the filesystem
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/> instance to save</param>
         public static void Save(Config config)
         {
             File.WriteAllText(ConfigFile(), JsonConvert.SerializeObject(config, Formatting.Indented));
         }
 
+        /// <summary>
+        /// Check if the config exist in the filesystem
+        /// </summary>
         public bool IsSaved()
         {
             return Exists();
         }
 
+        /// <summary>
+        /// Loads a config
+        /// </summary>
         public static Config Load()
         {
             var content = File.ReadAllText(ConfigFile());
@@ -117,11 +147,19 @@ namespace Liviano.CLI
             return config;
         }
 
+        /// <summary>
+        /// Checks if the config file exists
+        /// </summary>
+        /// <returns>True if it exists</returns>
         public static bool Exists()
         {
             return File.Exists(ConfigFile());
         }
 
+        /// <summary>
+        /// Get where the config file is
+        /// </summary>
+        /// <returns>A <see cref="string"/> the config file location</returns>
         public static string ConfigFile()
         {
             return Path.Combine(Directory.GetCurrentDirectory(), "liviano.json");
