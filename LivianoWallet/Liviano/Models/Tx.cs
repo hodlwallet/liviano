@@ -124,9 +124,9 @@ namespace Liviano.Models
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
-        [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "blockhash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
-        public uint256 BlockHash { get; set; }
+        public uint256 Blockhash { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
@@ -188,12 +188,6 @@ namespace Liviano.Models
         public int Confirmations { get; set; }
 
         /// <summary>
-        /// Blockhash this tx was included on
-        /// </summary>
-        [JsonProperty(PropertyName = "blockhash", NullValueHandling = NullValueHandling.Ignore)]
-        public string Blockhash { get; set; }
-
-        /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
         public bool IsConfirmed()
@@ -238,7 +232,7 @@ namespace Liviano.Models
             AccountId = copy.AccountId;
             AmountReceived = copy.AmountReceived;
             AmountSent = copy.AmountSent;
-            BlockHash = copy.BlockHash;
+            Blockhash = copy.Blockhash;
             BlockHeight = copy.BlockHeight;
             CreatedAt = copy.CreatedAt;
             Hex = copy.Hex;
@@ -272,7 +266,7 @@ namespace Liviano.Models
                 AccountId = account.Id,
                 CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
-                Blockhash = blockhash,
+                Blockhash = uint256.Parse(blockhash),
                 Hex = hex,
                 Confirmations = confirmations,
                 IsRBF = transaction.RBF,
@@ -356,7 +350,7 @@ namespace Liviano.Models
             Console.WriteLine($"Amount Sent: {tx.AmountSent}");
             Console.WriteLine();
 
-            tx.BlockHash = 0; // TODO
+            tx.Blockhash = uint256.Parse(blockhash);
             tx.IsPropagated = true; // TODO
             tx.TotalFees = Money.Zero; // TODO
 

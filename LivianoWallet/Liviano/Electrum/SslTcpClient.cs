@@ -110,13 +110,6 @@ namespace Liviano.Electrum
             return sslStream;
         }
 
-        // TODO We need a ReadMessage as below but that doesn't close the connection
-        // instead it should keep it open and looping over it waiting on read.
-        // this way we can call an event on send respond to it and forget about it
-        // this is very useful for the case of a subscription to a block height
-        // given a server on the right chain we can then pick up a new one this is untested
-        // pseudo code to make it happen I guess...
-
         /// <summary>
         /// Reads a message from the SSL Stream on subscription mode.
         /// </summary>
