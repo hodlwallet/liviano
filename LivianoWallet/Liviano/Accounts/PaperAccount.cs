@@ -155,6 +155,16 @@ namespace Liviano.Accounts
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
+        public BitcoinAddress GetReceiveAddressAtIndex(int i)
+        {
+            throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
+        }
+
+        public BitcoinAddress GetChangeAddressAtIndex(int i)
+        {
+            throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
+        }
+
         public static PaperAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();

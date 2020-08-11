@@ -100,6 +100,22 @@ namespace Liviano.Accounts
             return addresses.ToArray();
         }
 
+        public override BitcoinAddress GetReceiveAddressAtIndex(int i)
+        {
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, false);
+            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+            return address;
+        }
+
+        public override BitcoinAddress GetChangeAddressAtIndex(int i)
+        {
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+            return address;
+        }
+
         public override void AddTx(Tx tx)
         {
             if (TxIds.Contains(tx.Id.ToString()))

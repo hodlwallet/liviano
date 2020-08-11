@@ -132,28 +132,42 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Gets 1 receiving address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
         BitcoinAddress GetReceiveAddress();
 
         /// <summary>
         /// Gets n receiving addresses
         /// </summary>
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
-        /// <returns></returns>
+        /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
         BitcoinAddress[] GetReceiveAddress(int n);
 
         /// <summary>
         /// Gets 1 change address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
         BitcoinAddress GetChangeAddress();
 
         /// <summary>
         /// Gets n change addresses
         /// </summary>
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
-        /// <returns></returns>
+        /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
         BitcoinAddress[] GetChangeAddress(int n);
+
+        /// <summary>
+        /// Gets a receive address at an index without increasing the count
+        /// </summary>
+        /// <param name="i">A <see cref="int"/> index of the address to get</param>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
+        BitcoinAddress GetReceiveAddressAtIndex(int i);
+
+        /// <summary>
+        /// Gets a change address at an index without increasing the count
+        /// </summary>
+        /// <param name="i">A <see cref="int"/> index of the address to get</param>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
+        BitcoinAddress GetChangeAddressAtIndex(int i);
 
         /// <summary>
         /// Gets the balance of the account
