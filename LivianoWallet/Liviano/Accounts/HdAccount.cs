@@ -36,7 +36,7 @@ using Liviano.Models;
 
 namespace Liviano.Accounts
 {
-    public abstract class HdAccount : IAccount, ICloneable
+    public abstract class HdAccount : IAccount
     {
         /// <summary>
         /// Id of the account, usually a guid
@@ -156,7 +156,7 @@ namespace Liviano.Accounts
 
         public object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
     }
 }

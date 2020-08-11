@@ -176,13 +176,6 @@ namespace Liviano.Interfaces
         Task Resync();
 
         /// <summary>
-        /// Updates a transaction from the current account.
-        /// </summary>
-        /// <param name="tx">The transaction to be updated.</param>
-        /// <returns></returns>
-        void UpdateCurrentTransaction(Tx tx);
-
-        /// <summary>
         /// Sends a transaction using the electrum client initialized in the wallet.
         /// </summary>
         /// <param name="tx">The transaction to be broadcasted.</param>
@@ -235,11 +228,13 @@ namespace Liviano.Interfaces
     {
         public Tx Tx { get; set; }
         public IAccount Account { get; set; }
+        public BitcoinAddress Address { get; set; }
 
-        public TxEventArgs(Tx tx, IAccount account)
+        public TxEventArgs(Tx tx, IAccount account, BitcoinAddress address)
         {
             Tx = tx;
             Account = account;
+            Address = address;
         }
     }
 }

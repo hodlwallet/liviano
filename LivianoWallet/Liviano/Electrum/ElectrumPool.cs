@@ -216,15 +216,20 @@ namespace Liviano.Electrum
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
                     foreach (var addr in receiveAddresses)
-                        _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
 
                     foreach (var addr in changeAddresses)
-                        _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
         }
 
-        async Task GetAddressHistoryTask(IAccount acc, BitcoinAddress addr, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, CancellationToken ct)
+        public async Task SyncAddress(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                CancellationToken ct)
         {
             var isReceive = receiveAddresses.Contains(addr);
 
@@ -240,7 +245,14 @@ namespace Liviano.Electrum
                 {
                     _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
                     {
-                        _ = InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result.Result, ct);
+                        _ = InsertTransactionsFromHistory(
+                            acc,
+                            addr,
+                            receiveAddresses,
+                            changeAddresses,
+                            result.Result,
+                            ct
+                        );
                     });
                 }
                 catch (Exception e)
@@ -249,7 +261,13 @@ namespace Liviano.Electrum
 
                     SetNewConnectedServer();
 
-                    _ = GetAddressHistoryTask(acc, addr, receiveAddresses, changeAddresses, ct);
+                    _ = SyncAddress(
+                        acc,
+                        addr,
+                        receiveAddresses,
+                        changeAddresses,
+                        ct
+                    );
 
                     return;
                 }
@@ -260,10 +278,18 @@ namespace Liviano.Electrum
         /// Insert transactions from a result of the electrum network
         /// </summary>
         /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
+        /// <param name="address">a <see cref="BitcoinAddress"/> that found this tx</param>
         /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
         /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
         /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
-        async Task InsertTransactionsFromHistory(IAccount acc, BitcoinAddress[] receiveAddresses, BitcoinAddress[] changeAddresses, BlockchainScriptHashGetHistoryResult result, CancellationToken ct)
+        async Task InsertTransactionsFromHistory(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                BlockchainScriptHashGetHistoryResult
+                result,
+                CancellationToken ct)
         {
             foreach (var r in result.Result)
             {
@@ -289,7 +315,7 @@ namespace Liviano.Electrum
 
                     SetNewConnectedServer();
 
-                    await InsertTransactionsFromHistory(acc, receiveAddresses, changeAddresses, result, ct);
+                    await InsertTransactionsFromHistory(acc, addr, receiveAddresses, changeAddresses, result, ct);
                     return;
                 }
 
@@ -317,14 +343,14 @@ namespace Liviano.Electrum
                     acc.UpdateTx(tx);
 
                     if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc));
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
                 else
                 {
                     acc.AddTx(tx);
 
                     if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc));
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
 
                 foreach (var txAddr in txAddresses)

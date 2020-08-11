@@ -264,5 +264,10 @@ namespace Liviano.Accounts
 
             return received - sent;
         }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 }
