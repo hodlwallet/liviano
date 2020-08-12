@@ -450,23 +450,17 @@ namespace Liviano
                 Console.WriteLine($"            acc_index: {accIndex}");
                 Console.WriteLine($"            addr:      {addr}");
 
+                BitcoinAddress newAddressToQueue;
                 if (tx.IsSend)
                 {
-                    Accounts[accIndex].UsedExternalAddresses.Add(addr);
+                    newAddressToQueue = Accounts[accIndex].GetReceiveAddressAtIndex(1);
                 }
                 else
                 {
                     Accounts[accIndex].UsedInternalAddresses.Add(addr);
+
+                    newAddressToQueue = Accounts[accIndex].GetChangeAddressAtIndex(1);
                 }
-
-                acc = (IAccount)Accounts[accIndex].Clone();
-
-                // TODO Next, we should sync the addresses after the gap + 1
-                // - Get a new address
-                // - Get all receiveAddresses
-                // - Get all changeAddresses
-                // - Send your 'ct'
-                // - Call SyncAddress
 
                 Storage.Save();
             };
