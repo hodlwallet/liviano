@@ -212,7 +212,7 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested)
                 return;
 
-            await Task.Factory.StartNew(o =>
+            await Task.Factory.StartNew(async o =>
             {
                 OnSyncStarted?.Invoke(this, null);
 
@@ -222,10 +222,10 @@ namespace Liviano.Electrum
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
                     foreach (var addr in receiveAddresses)
-                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
 
                     foreach (var addr in changeAddresses)
-                        _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
 
@@ -233,6 +233,14 @@ namespace Liviano.Electrum
             OnSyncFinished?.Invoke(this, null);
         }
 
+        /// <summary>
+        /// Syncs an address as a children task from the main SyncWallet
+        /// </summary>
+        /// <param name="acc">The <see cref="IAccount"/> that address comes from</param>
+        /// <param name="addr">The <see cref="BitcoinAddress"/> to sync</param>
+        /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
+        /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
+        /// <param name="ct">A <see cref="CancellationToken"/></param>
         public async Task SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
