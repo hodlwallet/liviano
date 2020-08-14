@@ -69,7 +69,7 @@ namespace Liviano.Electrum
                 {
                     Connected = true;
 
-                    OnConnectedEvent?.Invoke(this, value);
+                    OnConnected?.Invoke(this, value);
                 }
 
                 if (value is null && !(currentServer is null))
@@ -88,7 +88,7 @@ namespace Liviano.Electrum
 
         public event EventHandler<Server> OnCurrentServerChangedEvent;
 
-        public event EventHandler<Server> OnConnectedEvent;
+        public event EventHandler<Server> OnConnected;
 
         public event EventHandler<Server> OnDisconnectedEvent;
 
@@ -99,6 +99,10 @@ namespace Liviano.Electrum
         public event EventHandler<TxEventArgs> OnNewTransaction;
 
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
+
+        public event EventHandler OnSyncStarted;
+
+        public event EventHandler OnSyncFinished;
 
         public Server[] AllServers { get; set; }
 
@@ -210,6 +214,8 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(o =>
             {
+                OnSyncStarted?.Invoke(this, null);
+
                 foreach (var acc in wallet.Accounts)
                 {
                     var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
@@ -222,6 +228,9 @@ namespace Liviano.Electrum
                         _ = SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
             }, TaskCreationOptions.LongRunning, ct);
+
+            // FIXME this is not the right "when I'm done", in fact it's hard to konw at the moment
+            OnSyncFinished?.Invoke(this, null);
         }
 
         public async Task SyncAddress(

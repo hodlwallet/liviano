@@ -218,8 +218,8 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
-        event EventHandler SyncStarted;
-        event EventHandler SyncFinished;
+        event EventHandler OnSyncStarted;
+        event EventHandler OnSyncFinished;
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
     }

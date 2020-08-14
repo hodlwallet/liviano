@@ -286,12 +286,12 @@ namespace Liviano.CLI
         {
             Load(config);
 
-            wallet.SyncStarted += (s, e) =>
+            wallet.OnSyncStarted += (s, e) =>
             {
                 logger.Information("Sync started!");
             };
 
-            wallet.SyncFinished += (s, e) =>
+            wallet.OnSyncFinished += (s, e) =>
             {
                 logger.Information("Sync finished!");
                 logger.Information("TODO log txs found");
@@ -312,12 +312,12 @@ namespace Liviano.CLI
         {
             Load(config);
 
-            wallet.SyncStarted += (s, e) =>
+            wallet.OnSyncStarted += (s, e) =>
             {
                 logger.Information("Sync started!");
             };
 
-            wallet.SyncFinished += (s, e) =>
+            wallet.OnSyncFinished += (s, e) =>
             {
                 logger.Information("Sync finished, now waiting for txs!");
 

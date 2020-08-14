@@ -101,8 +101,8 @@ namespace Liviano
 
         public Dictionary<string, int> AccountsIndex { get; set; }
 
-        public event EventHandler SyncStarted;
-        public event EventHandler SyncFinished;
+        public event EventHandler OnSyncStarted;
+        public event EventHandler OnSyncFinished;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -378,7 +378,6 @@ namespace Liviano
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
-            SyncStarted?.Invoke(this, null);
 
             try
             {
@@ -439,54 +438,72 @@ namespace Liviano
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
-            ElectrumPool.OnNewTransaction += (o, txArgs) =>
-            {
-                var tx = txArgs.Tx;
-                var addr = txArgs.Address;
-                var acc = txArgs.Account;
-                var accIndex = Accounts.FindIndex(a => a.Index == acc.Index);
-
-                Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
-                Console.WriteLine($"            acc_index: {accIndex}");
-                Console.WriteLine($"            addr:      {addr}");
-
-                BitcoinAddress newAddressToQueue;
-                if (tx.IsSend)
-                {
-                    newAddressToQueue = Accounts[accIndex].GetReceiveAddressAtIndex(1);
-                }
-                else
-                {
-                    Accounts[accIndex].UsedInternalAddresses.Add(addr);
-
-                    newAddressToQueue = Accounts[accIndex].GetChangeAddressAtIndex(1);
-                }
-
-                Storage.Save();
-            };
+            ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
+            ElectrumPool.OnSyncStarted += ElectrumPool_OnSyncFinished;
+            ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncStarted;
 
             if (ElectrumPool.Connected)
-            {
-                Console.WriteLine($"Connected to {ElectrumPool.CurrentServer.Domain}, recently connected server.");
-                Console.WriteLine($"Now starts to sync wallet");
-                Console.WriteLine();
-
-                await ElectrumPool.SyncWallet(this, ct);
-            }
+                await ElectrumPool_OnConnected(ElectrumPool, ElectrumPool.CurrentServer, ct);
             else
-            {
-                ElectrumPool.OnConnectedEvent += async (o, server) =>
-                {
-                    Console.WriteLine($"Connected to {server.Domain}, new server!");
-                    Console.WriteLine($"Now starts to sync wallet");
-                    Console.WriteLine();
-
-                    await ElectrumPool.SyncWallet(this, ct);
-                };
-            }
+                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnected(
+                        ElectrumPool,
+                        server,
+                        ct
+                );
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+        }
+
+        private async Task ElectrumPool_OnConnected(object sender, Server server, CancellationToken ct)
+        {
+            Console.WriteLine($"Connected to {server.Domain}, recently connected server.");
+            Console.WriteLine($"Now starts to sync wallet");
+            Console.WriteLine();
+
+            await ElectrumPool.SyncWallet(this, ct);
+        }
+
+        private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+
+            this.OnSyncStarted?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync finished at {DateTime.Now.ToString()}");
+
+            this.OnSyncFinished?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
+        {
+            var tx = txArgs.Tx;
+            var addr = txArgs.Address;
+            var acc = txArgs.Account;
+            var accIndex = Accounts.FindIndex(a => a.Index == acc.Index);
+
+            Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
+            Console.WriteLine($"            acc_index: {accIndex}");
+            Console.WriteLine($"            addr:      {addr}");
+
+            BitcoinAddress newAddressToQueue;
+            if (tx.IsSend)
+            {
+                newAddressToQueue = Accounts[accIndex].GetReceiveAddressAtIndex(1);
+            }
+            else
+            {
+                Accounts[accIndex].UsedInternalAddresses.Add(addr);
+
+                newAddressToQueue = Accounts[accIndex].GetChangeAddressAtIndex(1);
+            }
+
+            // TODO Do something with newAddressToQueue
+
+            Storage.Save();
         }
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
