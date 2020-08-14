@@ -222,10 +222,20 @@ namespace Liviano.Electrum
                     var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
                     foreach (var addr in receiveAddresses)
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    {
+                        await Task.Factory.StartNew(o =>
+                        {
+                            SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        }, TaskCreationOptions.AttachedToParent, ct);
+                    }
 
                     foreach (var addr in changeAddresses)
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    {
+                        await Task.Factory.StartNew(o =>
+                        {
+                            SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        }, TaskCreationOptions.AttachedToParent, ct);
+                    }
                 }
             }, TaskCreationOptions.LongRunning, ct);
 
@@ -241,7 +251,7 @@ namespace Liviano.Electrum
         /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
         /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
         /// <param name="ct">A <see cref="CancellationToken"/></param>
-        public async Task SyncAddress(
+        public void SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
@@ -250,45 +260,42 @@ namespace Liviano.Electrum
         {
             var isReceive = receiveAddresses.Contains(addr);
 
-            await Task.Factory.StartNew(o =>
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+
+            var addrLabel = isReceive ? "External" : "Internal";
+            Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}");
+
+            // Get history
+            try
             {
-                var scriptHashStr = addr.ToScriptHash().ToHex();
-
-                var addrLabel = isReceive ? "External" : "Internal";
-                Debug.WriteLine($"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}");
-
-                // Get history
-                try
+                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
                 {
-                    _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
-                    {
-                        _ = InsertTransactionsFromHistory(
-                            acc,
-                            addr,
-                            receiveAddresses,
-                            changeAddresses,
-                            result.Result,
-                            ct
-                        );
-                    });
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"{e}");
-
-                    SetNewConnectedServer();
-
-                    _ = SyncAddress(
+                    _ = InsertTransactionsFromHistory(
                         acc,
                         addr,
                         receiveAddresses,
                         changeAddresses,
+                        result.Result,
                         ct
                     );
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e}");
 
-                    return;
-                }
-            }, TaskCreationOptions.AttachedToParent, ct);
+                SetNewConnectedServer();
+
+                SyncAddress(
+                    acc,
+                    addr,
+                    receiveAddresses,
+                    changeAddresses,
+                    ct
+                );
+
+                return;
+            }
         }
 
         /// <summary>
