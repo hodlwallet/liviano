@@ -237,10 +237,9 @@ namespace Liviano.Electrum
                         }, TaskCreationOptions.AttachedToParent, ct);
                     }
                 }
-            }, TaskCreationOptions.LongRunning, ct);
 
-            // FIXME this is not the right "when I'm done", in fact it's hard to konw at the moment
-            OnSyncFinished?.Invoke(this, null);
+                OnSyncFinished?.Invoke(this, null);
+            }, TaskCreationOptions.LongRunning, ct);
         }
 
         /// <summary>

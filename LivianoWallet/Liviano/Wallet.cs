@@ -439,8 +439,8 @@ namespace Liviano
             var ct = cts.Token;
 
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
-            ElectrumPool.OnSyncStarted += ElectrumPool_OnSyncFinished;
-            ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncStarted;
+            ElectrumPool.OnSyncStarted += ElectrumPool_OnSyncStarted;
+            ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncFinished;
 
             if (ElectrumPool.Connected)
                 await ElectrumPool_OnConnected(ElectrumPool, ElectrumPool.CurrentServer, ct);
