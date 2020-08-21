@@ -48,13 +48,9 @@ namespace Liviano.CLI
     public static class LightClient
     {
         const int PERIODIC_SAVE_DELAY = 30_000;
-
         static readonly object @lock = new object();
-
         static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
         static Network network;
-
         static IWallet wallet;
 
         /// <summary>
@@ -295,6 +291,8 @@ namespace Liviano.CLI
             {
                 logger.Information("Sync finished!");
                 logger.Information("TODO log txs found");
+
+                Quit();
             };
 
             wallet.Resync();
@@ -423,14 +421,14 @@ namespace Liviano.CLI
             }
             else
             {
-                Exit();
+                Quit();
             }
         }
 
         /// <summary>
-        /// Exits the program
+        /// Quits the program
         /// </summary>
-        static void Exit()
+        static void Quit(int retVal = 0)
         {
             var process = Process.GetCurrentProcess();
 
@@ -448,7 +446,9 @@ namespace Liviano.CLI
             logger.Information("Closing thread with pid: {pid}", process.Id);
             logger.Information("bye!");
 
-            process.Kill();
+            process.Close();
+
+            Environment.Exit(retVal);
         }
     }
 }

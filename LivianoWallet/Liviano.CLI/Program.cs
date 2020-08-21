@@ -363,7 +363,6 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-
                 LightClient.ReSync(config);
 
                 return;
