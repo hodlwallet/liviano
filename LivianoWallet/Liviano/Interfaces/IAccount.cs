@@ -61,11 +61,25 @@ namespace Liviano.Interfaces
         int InternalAddressesCount { get; set; }
 
         /// <summary>
+        /// Change addresses index
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "internalAddressesIndex")]
+        int InternalAddressesIndex { get; set; }
+
+        /// <summary>
         /// Receive addresess count
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "externalAddressesCount")]
         int ExternalAddressesCount { get; set; }
+
+        /// <summary>
+        /// Receive addresses index
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "externalAddressesIndex")]
+        int ExternalAddressesIndex { get; set; }
 
         /// <summary>
         /// Wallet the account belongs to

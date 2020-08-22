@@ -220,60 +220,54 @@ namespace Liviano.Electrum
             }, TaskCreationOptions.LongRunning, ct);
         }
 
-        public async Task SyncAccount(IAccount acc, CancellationToken ct)
+        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
         {
             var receiveAddressesIndex = acc.GetExternalLastIndex();
-            var changeAddressesIndex = acc.GetExternalLastIndex();
+            var changeAddressesIndex = acc.GetInternalLastIndex();
 
-            var receiveAddresses = acc.GetReceiveAddress(
-                receiveAddressesIndex + 1 + acc.GapLimit
-            );
-            var changeAddresses = acc.GetChangeAddress(
-                changeAddressesIndex + 1 + acc.GapLimit
-            );
+            var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+            var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
 
-            foreach (var addr in receiveAddresses)
+            if (syncExternal)
             {
-                if (ct.IsCancellationRequested) return;
-
-                await Task.Factory.StartNew(async o =>
+                foreach (var addr in receiveAddresses)
                 {
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                }, TaskCreationOptions.AttachedToParent, ct);
+                    if (ct.IsCancellationRequested) return;
+
+                    await Task.Factory.StartNew(async o =>
+                    {
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }, TaskCreationOptions.AttachedToParent, ct);
+                }
             }
 
-            foreach (var usedAddr in acc.UsedExternalAddresses)
+            if (syncInternal)
             {
-                Console.WriteLine($"{usedAddr}");
-            }
-
-            foreach (var addr in changeAddresses)
-            {
-                if (ct.IsCancellationRequested) return;
-
-                await Task.Factory.StartNew(async o =>
+                foreach (var addr in changeAddresses)
                 {
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                }, TaskCreationOptions.AttachedToParent, ct);
+                    if (ct.IsCancellationRequested) return;
+
+                    await Task.Factory.StartNew(async o =>
+                    {
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }, TaskCreationOptions.AttachedToParent, ct);
+                }
             }
 
             // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
-            Console.WriteLine($"acc.GetExternalLastIndex() = {acc.GetExternalLastIndex()}");
-            Console.WriteLine($"acc.GetInternalLastIndex() = {acc.GetInternalLastIndex()}");
-
-            if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
             {
-                acc.ExternalAddressesCount = acc.GetExternalLastIndex() + 1;
+                // This is the default but we wanna be explicit
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
 
-                await SyncAccount(acc, ct);
+                return;
             }
 
             if (acc.GetExternalLastIndex() > receiveAddressesIndex)
-            {
-                acc.ExternalAddressesCount = acc.GetInternalLastIndex() + 1;
+                await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
 
-                await SyncAccount(acc, ct);
-            }
+            if (acc.GetInternalLastIndex() > changeAddressesIndex)
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
         }
 
         /// <summary>
