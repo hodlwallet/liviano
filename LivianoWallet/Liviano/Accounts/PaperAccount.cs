@@ -279,5 +279,15 @@ namespace Liviano.Accounts
         {
             return MemberwiseClone();
         }
+
+        public int GetExternalLastIndex()
+        {
+            return 0;
+        }
+
+        public int GetInternalLastIndex()
+        {
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+        }
     }
 }

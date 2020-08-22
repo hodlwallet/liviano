@@ -428,6 +428,7 @@ namespace Liviano.CLI
         /// <summary>
         /// Quits the program
         /// </summary>
+        /// <param name="retVal">Unix return value an <see cref="int"/></param>
         static void Quit(int retVal = 0)
         {
             var process = Process.GetCurrentProcess();

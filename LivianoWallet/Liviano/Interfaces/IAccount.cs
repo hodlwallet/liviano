@@ -170,6 +170,16 @@ namespace Liviano.Interfaces
         BitcoinAddress GetChangeAddressAtIndex(int i);
 
         /// <summary>
+        /// Gets the last external index
+        /// </summary>
+        int GetExternalLastIndex();
+
+        /// <summary>
+        /// Gets the last external index
+        /// </summary>
+        int GetInternalLastIndex();
+
+        /// <summary>
         /// Gets the balance of the account
         /// </summary>
         /// <returns>A <see cref="Money"/> of the balance of the account</returns>

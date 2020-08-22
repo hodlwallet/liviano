@@ -275,6 +275,7 @@ namespace Liviano.Models
 
             // Decide if the tx is a send tx or a receive tx
             var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
+            BitcoinAddress currentAddress = null;
             foreach (var addr in addresses)
             {
                 if (externalAddresses.Contains(addr))
@@ -283,6 +284,8 @@ namespace Liviano.Models
 
                     tx.IsReceive = true;
                     tx.IsSend = false;
+                    currentAddress = addr;
+
                     break;
                 }
 
@@ -292,6 +295,8 @@ namespace Liviano.Models
 
                     tx.IsSend = true;
                     tx.IsReceive = false;
+                    currentAddress = addr;
+
                     break;
                 }
             }
@@ -344,7 +349,10 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
+            Console.WriteLine("Creating a transaction");
+            Console.WriteLine(new string('*', 22));
             Console.WriteLine($"Txid: {tx.Id}");
+            Console.WriteLine($"Address: {currentAddress}");
             Console.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
             Console.WriteLine($"Amount Received: {tx.AmountReceived}");
             Console.WriteLine($"Amount Sent: {tx.AmountSent}");

@@ -147,13 +147,9 @@ namespace Liviano.Electrum
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
             if (cancellationToken.IsCancellationRequested)
-            {
                 OnCancelFindingPeersEvent?.Invoke(this, null);
-            }
             else
-            {
                 OnDoneFindingPeersEvent?.Invoke(this, null);
-            }
         }
 
         public void RemoveServer(Server server)
@@ -209,8 +205,7 @@ namespace Liviano.Electrum
         /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
-            if (ct.IsCancellationRequested)
-                return;
+            if (ct.IsCancellationRequested) return;
 
             await Task.Factory.StartNew(async o =>
             {
@@ -218,28 +213,67 @@ namespace Liviano.Electrum
 
                 foreach (var acc in wallet.Accounts)
                 {
-                    var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
-                    var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
-
-                    foreach (var addr in receiveAddresses)
-                    {
-                        await Task.Factory.StartNew(o =>
-                        {
-                            SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                        }, TaskCreationOptions.AttachedToParent, ct);
-                    }
-
-                    foreach (var addr in changeAddresses)
-                    {
-                        await Task.Factory.StartNew(o =>
-                        {
-                            SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                        }, TaskCreationOptions.AttachedToParent, ct);
-                    }
+                    await SyncAccount(acc, ct);
                 }
 
                 OnSyncFinished?.Invoke(this, null);
             }, TaskCreationOptions.LongRunning, ct);
+        }
+
+        public async Task SyncAccount(IAccount acc, CancellationToken ct)
+        {
+            var receiveAddressesIndex = acc.GetExternalLastIndex();
+            var changeAddressesIndex = acc.GetExternalLastIndex();
+
+            var receiveAddresses = acc.GetReceiveAddress(
+                receiveAddressesIndex + 1 + acc.GapLimit
+            );
+            var changeAddresses = acc.GetChangeAddress(
+                changeAddressesIndex + 1 + acc.GapLimit
+            );
+
+            foreach (var addr in receiveAddresses)
+            {
+                if (ct.IsCancellationRequested) return;
+
+                await Task.Factory.StartNew(async o =>
+                {
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                }, TaskCreationOptions.AttachedToParent, ct);
+            }
+
+            foreach (var usedAddr in acc.UsedExternalAddresses)
+            {
+                Console.WriteLine($"{usedAddr}");
+            }
+
+            foreach (var addr in changeAddresses)
+            {
+                if (ct.IsCancellationRequested) return;
+
+                await Task.Factory.StartNew(async o =>
+                {
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                }, TaskCreationOptions.AttachedToParent, ct);
+            }
+
+            // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
+            Console.WriteLine($"acc.GetExternalLastIndex() = {acc.GetExternalLastIndex()}");
+            Console.WriteLine($"acc.GetInternalLastIndex() = {acc.GetInternalLastIndex()}");
+
+            if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            {
+                acc.ExternalAddressesCount = acc.GetExternalLastIndex() + 1;
+
+                await SyncAccount(acc, ct);
+            }
+
+            if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            {
+                acc.ExternalAddressesCount = acc.GetInternalLastIndex() + 1;
+
+                await SyncAccount(acc, ct);
+            }
         }
 
         /// <summary>
@@ -250,26 +284,29 @@ namespace Liviano.Electrum
         /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
         /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
         /// <param name="ct">A <see cref="CancellationToken"/></param>
-        public void SyncAddress(
+        public async Task SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
                 BitcoinAddress[] changeAddresses,
                 CancellationToken ct)
         {
+            if (ct.IsCancellationRequested) return;
+
             var isReceive = receiveAddresses.Contains(addr);
-
             var scriptHashStr = addr.ToScriptHash().ToHex();
-
             var addrLabel = isReceive ? "External" : "Internal";
-            Console.WriteLine($"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}");
+
+            Console.WriteLine(
+                $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
+            );
 
             // Get history
             try
             {
-                _ = ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(result =>
+                await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(async result =>
                 {
-                    _ = InsertTransactionsFromHistory(
+                    await InsertTransactionsFromHistory(
                         acc,
                         addr,
                         receiveAddresses,
@@ -285,7 +322,7 @@ namespace Liviano.Electrum
 
                 SetNewConnectedServer();
 
-                SyncAddress(
+                await SyncAddress(
                     acc,
                     addr,
                     receiveAddresses,
@@ -361,21 +398,6 @@ namespace Liviano.Electrum
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
                 );
 
-                if (((Wallet)acc.Wallet).TxIds.Contains(tx.Id.ToString()))
-                {
-                    acc.UpdateTx(tx);
-
-                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                }
-                else
-                {
-                    acc.AddTx(tx);
-
-                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                }
-
                 foreach (var txAddr in txAddresses)
                 {
                     if (receiveAddresses.Contains(txAddr))
@@ -393,6 +415,21 @@ namespace Liviano.Electrum
 
                         acc.UsedInternalAddresses.Add(txAddr);
                     }
+                }
+
+                if (((Wallet)acc.Wallet).TxIds.Contains(tx.Id.ToString()))
+                {
+                    acc.UpdateTx(tx);
+
+                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+                else
+                {
+                    acc.AddTx(tx);
+
+                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
             }
         }

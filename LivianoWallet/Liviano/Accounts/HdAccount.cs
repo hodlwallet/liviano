@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
@@ -159,6 +160,44 @@ namespace Liviano.Accounts
         public object Clone()
         {
             return MemberwiseClone();
+        }
+
+        public int GetExternalLastIndex()
+        {
+            if (UsedExternalAddresses.Count == 0)
+                return -1;
+
+            var acc = (HdAccount)Clone();
+            acc.ExternalAddressesCount = 0;
+
+            var lastAddress = acc.UsedExternalAddresses.Last();
+
+            while (true)
+            {
+                var addr = acc.GetReceiveAddress();
+
+                if (lastAddress == addr)
+                    return acc.ExternalAddressesCount;
+            }
+        }
+
+        public int GetInternalLastIndex()
+        {
+            if (UsedInternalAddresses.Count == 0)
+                return -1;
+
+            var acc = (HdAccount)Clone();
+            acc.InternalAddressesCount = 0;
+
+            var lastAddress = acc.UsedInternalAddresses.Last();
+
+            while (true)
+            {
+                var addr = acc.GetReceiveAddress();
+
+                if (lastAddress == addr)
+                    return acc.InternalAddressesCount;
+            }
         }
     }
 }
