@@ -222,6 +222,8 @@ namespace Liviano.Electrum
 
         public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
         {
+            Console.WriteLine("called #1");
+
             var receiveAddressesIndex = acc.GetExternalLastIndex();
             var changeAddressesIndex = acc.GetInternalLastIndex();
 
@@ -239,6 +241,8 @@ namespace Liviano.Electrum
                         await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                     }, TaskCreationOptions.AttachedToParent, ct);
                 }
+
+                acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
             }
 
             if (syncInternal)
@@ -252,6 +256,8 @@ namespace Liviano.Electrum
                         await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                     }, TaskCreationOptions.AttachedToParent, ct);
                 }
+
+                acc.InternalAddressesIndex = acc.GetInternalLastIndex();
             }
 
             // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit

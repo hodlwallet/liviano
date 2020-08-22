@@ -108,6 +108,8 @@ namespace Liviano.Accounts
         public string ExtendedPrivKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
+        public int InternalAddressesIndex { get; set; }
+        public int ExternalAddressesIndex { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {

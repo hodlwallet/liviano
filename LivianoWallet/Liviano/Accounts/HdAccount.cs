@@ -78,7 +78,19 @@ namespace Liviano.Accounts
         public int InternalAddressesCount
         {
             get => internalAddressesCount;
-            set => internalAddressesCount = value >= GapLimit ? 0 : value;
+            set => internalAddressesCount = value >= GapLimit + InternalAddressesIndex ? InternalAddressesIndex : value;
+        }
+
+        /// <summary>
+        /// Change addresess index
+        /// </summary>
+        /// <value></value>
+        int internalAddressesIndex = 0;
+        [JsonProperty(PropertyName = "internalAddressesIndex")]
+        public int InternalAddressesIndex
+        {
+            get => internalAddressesIndex;
+            set => internalAddressesIndex = value;
         }
 
         /// <summary>
@@ -90,7 +102,19 @@ namespace Liviano.Accounts
         public int ExternalAddressesCount
         {
             get => externalAddressesCount;
-            set => externalAddressesCount = value >= GapLimit ? 0 : value;
+            set => externalAddressesCount = value >= GapLimit + ExternalAddressesIndex ? ExternalAddressesIndex : value;
+        }
+
+        /// <summary>
+        /// Receive addresess index
+        /// </summary>
+        /// <value></value>
+        int externalAddressesIndex = 0;
+        [JsonProperty(PropertyName = "externalAddressesIndex")]
+        public int ExternalAddressesIndex
+        {
+            get => externalAddressesIndex;
+            set => externalAddressesIndex = value;
         }
 
         /// <summary>
