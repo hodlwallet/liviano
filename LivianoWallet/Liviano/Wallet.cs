@@ -489,20 +489,6 @@ namespace Liviano
             Console.WriteLine($"            acc_index: {accIndex}");
             Console.WriteLine($"            addr:      {addr}");
 
-            BitcoinAddress newAddressToQueue;
-            if (tx.IsSend)
-            {
-                newAddressToQueue = Accounts[accIndex].GetReceiveAddressAtIndex(1);
-            }
-            else
-            {
-                Accounts[accIndex].UsedInternalAddresses.Add(addr);
-
-                newAddressToQueue = Accounts[accIndex].GetChangeAddressAtIndex(1);
-            }
-
-            // TODO Do something with newAddressToQueue
-
             Storage.Save();
         }
 
