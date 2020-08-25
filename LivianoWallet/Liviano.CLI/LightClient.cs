@@ -291,22 +291,26 @@ namespace Liviano.CLI
             {
                 logger.Information("Sync finished!");
 
-                logger.Information("Found the following transactions:");
+                List<Tx> txs = new List<Tx> { };
 
                 foreach (var account in wallet.Accounts)
-                {
                     foreach (var tx in account.Txs)
-                    {
-                        Console.Write($"Id: {tx.Id} ");
+                        txs.Add(tx);
 
-                        if (tx.IsReceive)
-                        {
-                            Console.WriteLine($"Amount: {tx.AmountReceived}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Amount: {tx.AmountSent}");
-                        }
+                if (txs.Count() == 0)
+                    Quit();
+
+                foreach (var tx in txs)
+                {
+                    Console.Write($"Id: {tx.Id} ");
+
+                    if (tx.IsReceive)
+                    {
+                        Console.WriteLine($"Amount: {tx.AmountReceived}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Amount: {tx.AmountSent}");
                     }
                 }
 
