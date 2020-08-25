@@ -303,7 +303,7 @@ namespace Liviano.Electrum
             var scriptHashStr = addr.ToScriptHash().ToHex();
             var addrLabel = isReceive ? "External" : "Internal";
 
-            Console.WriteLine(
+            Debug.WriteLine(
                 $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
             );
 
@@ -423,19 +423,25 @@ namespace Liviano.Electrum
                     }
                 }
 
-                if (((Wallet)acc.Wallet).TxIds.Contains(tx.Id.ToString()))
+                Console.WriteLine("DIS EVER HAPPEN?");
+                Console.WriteLine($"???");
+                var w = ((Wallet)acc.Wallet);
+                Console.WriteLine($"??? {acc.Wallet.Id}");
+
+                Console.WriteLine($"WTF DUDE?");
+
+                if (w.TxIds.Contains(tx.Id.ToString()))
                 {
                     acc.UpdateTx(tx);
 
-                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
                 else
                 {
+                    Console.WriteLine("invoked?");
                     acc.AddTx(tx);
 
-                    if (tx.AccountId == acc.Wallet.CurrentAccountId)
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
             }
         }

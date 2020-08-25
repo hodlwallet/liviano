@@ -480,10 +480,13 @@ namespace Liviano
 
         private void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
         {
+            Console.WriteLine("IS THIS EVER FIRED?");
             var tx = txArgs.Tx;
             var addr = txArgs.Address;
             var acc = txArgs.Account;
             var accIndex = Accounts.FindIndex(a => a.Index == acc.Index);
+
+            acc.AddTx(tx);
 
             Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
             Console.WriteLine($"            acc_index: {accIndex}");

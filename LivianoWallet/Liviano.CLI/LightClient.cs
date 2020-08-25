@@ -290,7 +290,25 @@ namespace Liviano.CLI
             wallet.OnSyncFinished += (s, e) =>
             {
                 logger.Information("Sync finished!");
-                logger.Information("TODO log txs found");
+
+                logger.Information("Found the following transactions:");
+
+                foreach (var account in wallet.Accounts)
+                {
+                    foreach (var tx in account.Txs)
+                    {
+                        Console.Write($"Id: {tx.Id} ");
+
+                        if (tx.IsReceive)
+                        {
+                            Console.WriteLine($"Amount: {tx.AmountReceived}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Amount: {tx.AmountSent}");
+                        }
+                    }
+                }
 
                 Quit();
             };
