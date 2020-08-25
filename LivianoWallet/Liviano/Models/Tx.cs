@@ -349,14 +349,15 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
-            Console.WriteLine("Creating a transaction");
-            Console.WriteLine(new string('*', 22));
-            Console.WriteLine($"Txid: {tx.Id}");
-            Console.WriteLine($"Address: {currentAddress}");
-            Console.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
-            Console.WriteLine($"Amount Received: {tx.AmountReceived}");
-            Console.WriteLine($"Amount Sent: {tx.AmountSent}");
-            Console.WriteLine();
+            Debug.WriteLine("");
+            Debug.WriteLine("Creating a transaction");
+            Debug.WriteLine(new string('*', 22));
+            Debug.WriteLine($"Txid: {tx.Id}");
+            Debug.WriteLine($"Address: {currentAddress}");
+            Debug.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
+            Debug.WriteLine($"Amount Received: {tx.AmountReceived}");
+            Debug.WriteLine($"Amount Sent: {tx.AmountSent}");
+            Debug.WriteLine("");
 
             tx.Blockhash = uint256.Parse(blockhash);
             tx.IsPropagated = true; // TODO

@@ -487,9 +487,9 @@ namespace Liviano
 
             acc.AddTx(tx);
 
-            Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
-            Console.WriteLine($"            acc_index: {accIndex}");
-            Console.WriteLine($"            addr:      {addr}");
+            Debug.WriteLine($"Found a tx! tx_id:     {tx.Id}");
+            Debug.WriteLine($"            acc_index: {accIndex}");
+            Debug.WriteLine($"            addr:      {addr}");
 
             OnNewTransaction?.Invoke(this, txArgs);
 
