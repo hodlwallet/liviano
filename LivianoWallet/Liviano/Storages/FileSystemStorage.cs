@@ -162,7 +162,7 @@ namespace Liviano.Storages
 
                 var accountType = JsonConvert.DeserializeAnonymousType(
                     content, new { accountType = " " }
-                    ).accountType;
+                ).accountType;
 
                 switch (accountType)
                 {

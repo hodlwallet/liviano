@@ -222,8 +222,6 @@ namespace Liviano.Electrum
 
         public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
         {
-            Console.WriteLine("called #1");
-
             var receiveAddressesIndex = acc.GetExternalLastIndex();
             var changeAddressesIndex = acc.GetInternalLastIndex();
 
@@ -270,10 +268,18 @@ namespace Liviano.Electrum
             }
 
             if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            {
                 await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
 
+                return;
+            }
+
             if (acc.GetInternalLastIndex() > changeAddressesIndex)
+            {
                 await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
+
+                return;
+            }
         }
 
         /// <summary>

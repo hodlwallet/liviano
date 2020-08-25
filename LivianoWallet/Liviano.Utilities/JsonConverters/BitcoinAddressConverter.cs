@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 
 using NBitcoin;
 
@@ -41,7 +42,17 @@ namespace Liviano.Utilities.JsonConverters
         /// <inheritdoc />
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return Network.Parse((string)reader.Value, null);
+            try
+            {
+
+                return Network.Parse((string)reader.Value, expectedNetwork: Network.Main, null);
+            }
+            catch (FormatException e)
+            {
+                Debug.WriteLine($"Address cannot be parsed on mainnet selecting testnet, error: {e.ToString()}");
+
+                return Network.Parse((string)reader.Value, expectedNetwork: Network.TestNet, null);
+            }
         }
 
         /// <inheritdoc />
