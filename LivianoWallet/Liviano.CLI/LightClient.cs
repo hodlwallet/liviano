@@ -305,13 +305,9 @@ namespace Liviano.CLI
                     Console.Write($"Id: {tx.Id} ");
 
                     if (tx.IsReceive)
-                    {
                         Console.WriteLine($"Amount: {tx.AmountReceived}");
-                    }
                     else
-                    {
                         Console.WriteLine($"Amount: {tx.AmountSent}");
-                    }
                 }
 
                 Quit();
