@@ -301,14 +301,9 @@ namespace Liviano.CLI
                     Quit();
 
                 foreach (var tx in txs)
-                {
-                    Console.Write($"Id: {tx.Id} ");
-
-                    if (tx.IsReceive)
-                        Console.WriteLine($"Amount: {tx.AmountReceived}");
-                    else
-                        Console.WriteLine($"Amount: {tx.AmountSent}");
-                }
+                    logger.Information(
+                        $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
+                    );
 
                 Quit();
             };
