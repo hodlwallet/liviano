@@ -131,12 +131,6 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         ElectrumPool ElectrumPool { get; set; }
 
-        [JsonProperty(PropertyName = "txIds")]
-        List<string> TxIds { get; set; }
-
-        [JsonIgnore]
-        List<Tx> Txs { get; set; }
-
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main

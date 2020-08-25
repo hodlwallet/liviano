@@ -93,9 +93,6 @@ namespace Liviano
             }
         }
 
-        public List<string> TxIds { get; set; }
-        public List<Tx> Txs { get; set; }
-
         public List<string> AccountIds { get; set; }
         public List<IAccount> Accounts { get; set; }
 
@@ -148,9 +145,6 @@ namespace Liviano
             CreatedAt ??= createdAt ?? DateTimeOffset.UtcNow;
 
             Storage ??= storage ?? new FileSystemStorage(Id, Network);
-
-            TxIds ??= new List<string>();
-            Txs ??= new List<Tx>();
 
             AccountIds ??= new List<string>();
             Accounts ??= new List<IAccount>();
@@ -411,9 +405,6 @@ namespace Liviano
             Debug.WriteLine($"[Cleanup] Attempting to clean wallet with id: {Id}");
 
             // First we do a cleanup so we can rediscover txs
-            TxIds = new List<string> { };
-            Txs = new List<Tx> { };
-
             var @lock = new object();
             foreach (var account in Accounts)
             {
@@ -439,6 +430,7 @@ namespace Liviano
             var ct = cts.Token;
 
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
+            ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
             ElectrumPool.OnSyncStarted += ElectrumPool_OnSyncStarted;
             ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncFinished;
 
@@ -483,17 +475,31 @@ namespace Liviano
             var tx = txArgs.Tx;
             var addr = txArgs.Address;
             var acc = txArgs.Account;
-            var accIndex = Accounts.FindIndex(a => a.Index == acc.Index);
 
             acc.AddTx(tx);
 
-            Debug.WriteLine($"Found a tx! tx_id:     {tx.Id}");
-            Debug.WriteLine($"            acc_index: {accIndex}");
-            Debug.WriteLine($"            addr:      {addr}");
-
-            OnNewTransaction?.Invoke(this, txArgs);
+            Debug.WriteLine($"Found a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"            addr:  {addr}");
 
             Storage.Save();
+
+            OnNewTransaction?.Invoke(this, txArgs);
+        }
+
+        private void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)
+        {
+            var tx = txArgs.Tx;
+            var addr = txArgs.Address;
+            var acc = txArgs.Account;
+
+            acc.UpdateTx(tx);
+
+            Debug.WriteLine($"Updating a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"               addr:  {addr}");
+
+            Storage.Save();
+
+            OnUpdateTransaction?.Invoke(this, txArgs);
         }
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)

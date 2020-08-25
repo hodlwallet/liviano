@@ -291,6 +291,7 @@ namespace Liviano.CLI
             {
                 logger.Information("Sync finished!");
 
+                // Print transactions
                 List<Tx> txs = new List<Tx> { };
 
                 foreach (var account in wallet.Accounts)
@@ -299,6 +300,8 @@ namespace Liviano.CLI
 
                 if (txs.Count() == 0)
                     Quit();
+                else
+                    logger.Information("Transactions:");
 
                 foreach (var tx in txs)
                     logger.Information(

@@ -423,7 +423,7 @@ namespace Liviano.Electrum
                     }
                 }
 
-                if (acc.Wallet.TxIds.Contains(tx.Id.ToString()))
+                if (acc.TxIds.Contains(tx.Id.ToString()))
                 {
                     acc.UpdateTx(tx);
 
