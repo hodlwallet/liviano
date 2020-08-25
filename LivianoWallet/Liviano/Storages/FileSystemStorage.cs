@@ -167,25 +167,40 @@ namespace Liviano.Storages
                 switch (accountType)
                 {
                     case "bip44":
-                        accounts.Add(JsonConvert.DeserializeObject<Bip44Account>(content));
+                        var bip44Account = JsonConvert.DeserializeObject<Bip44Account>(content);
+                        bip44Account.Wallet = Wallet;
+                        accounts.Add(bip44Account);
+
                         break;
                     case "bip49":
-                        accounts.Add(JsonConvert.DeserializeObject<Bip49Account>(content));
+                        var bip49Account = JsonConvert.DeserializeObject<Bip49Account>(content);
+                        bip49Account.Wallet = Wallet;
+                        accounts.Add(bip49Account);
+
                         break;
                     case "bip84":
-                        accounts.Add(JsonConvert.DeserializeObject<Bip84Account>(content));
+                        var bip84Account = JsonConvert.DeserializeObject<Bip84Account>(content);
+                        bip84Account.Wallet = Wallet;
+                        accounts.Add(bip84Account);
+
                         break;
                     case "bip141":
-                        accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
-                        break;
-                    case "wasabi":
-                        accounts.Add(JsonConvert.DeserializeObject<WasabiAccount>(content));
+                        var bip141Account = JsonConvert.DeserializeObject<Bip141Account>(content);
+                        bip141Account.Wallet = Wallet;
+                        accounts.Add(bip141Account);
+
                         break;
                     case "paper":
-                        accounts.Add(JsonConvert.DeserializeObject<PaperAccount>(content));
+                        var paperAccount = JsonConvert.DeserializeObject<PaperAccount>(content);
+                        paperAccount.Wallet = Wallet;
+                        accounts.Add(paperAccount);
+
                         break;
                     default:
-                        accounts.Add(JsonConvert.DeserializeObject<Bip141Account>(content));
+                        var defaultAccount = JsonConvert.DeserializeObject<Bip141Account>(content);
+                        defaultAccount.Wallet = Wallet;
+                        accounts.Add(defaultAccount);
+
                         break;
                 }
             }

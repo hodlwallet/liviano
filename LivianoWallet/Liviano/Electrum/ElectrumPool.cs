@@ -423,14 +423,7 @@ namespace Liviano.Electrum
                     }
                 }
 
-                Console.WriteLine("DIS EVER HAPPEN?");
-                Console.WriteLine($"???");
-                var w = ((Wallet)acc.Wallet);
-                Console.WriteLine($"??? {acc.Wallet.Id}");
-
-                Console.WriteLine($"WTF DUDE?");
-
-                if (w.TxIds.Contains(tx.Id.ToString()))
+                if (acc.Wallet.TxIds.Contains(tx.Id.ToString()))
                 {
                     acc.UpdateTx(tx);
 
@@ -438,7 +431,6 @@ namespace Liviano.Electrum
                 }
                 else
                 {
-                    Console.WriteLine("invoked?");
                     acc.AddTx(tx);
 
                     OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
