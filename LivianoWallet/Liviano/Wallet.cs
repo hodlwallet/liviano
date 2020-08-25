@@ -475,12 +475,11 @@ namespace Liviano
         {
             Console.WriteLine($"Sync finished at {DateTime.Now.ToString()}");
 
-            this.OnSyncFinished?.Invoke(this, null);
+            this.OnSyncFinished?.Invoke(this, args);
         }
 
         private void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
         {
-            Console.WriteLine("IS THIS EVER FIRED?");
             var tx = txArgs.Tx;
             var addr = txArgs.Address;
             var acc = txArgs.Account;
@@ -491,6 +490,8 @@ namespace Liviano
             Console.WriteLine($"Found a tx! tx_id:     {tx.Id}");
             Console.WriteLine($"            acc_index: {accIndex}");
             Console.WriteLine($"            addr:      {addr}");
+
+            OnNewTransaction?.Invoke(this, txArgs);
 
             Storage.Save();
         }
