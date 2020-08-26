@@ -238,6 +238,16 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
+        /// Watches an address for new transactions
+        /// </summary>
+        /// <param name="address">An <see cref="BitcoinAddress"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAddress(IAccount account, CancellationToken ct)
+        {
+            await Task.Delay(1);
+        }
+
+        /// <summary>
         /// Sync wallet
         /// </summary>
         /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
