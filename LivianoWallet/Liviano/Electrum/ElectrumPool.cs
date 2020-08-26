@@ -104,6 +104,8 @@ namespace Liviano.Electrum
 
         public event EventHandler OnSyncFinished;
 
+        public event EventHandler OnWatchStarted;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -200,9 +202,46 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
+        /// Watches a wallet for new transactions
+        /// </summary>
+        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
+        public async Task WatchWallet(IWallet wallet, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(async o =>
+            {
+                OnWatchStarted?.Invoke(this, null);
+
+                foreach (var acc in wallet.Accounts)
+                {
+                    // This makes the task run but not wait, essentially creating
+                    // background tasks
+                    _ = WatchAccount(acc, ct);
+                }
+
+                // Watch should never finish. Should be cancelled with the ct instead
+                // could implement an infinite loop if needed like
+                while (true) await Task.Delay(3000); // Every 3 seconds do loop. to avoid CPU usage
+            }, TaskCreationOptions.LongRunning, ct);
+        }
+
+        /// <summary>
+        /// Watches an account for new transactions
+        /// </summary>
+        /// <param name="account">An <see cref="IAccount"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAccount(IAccount account, CancellationToken ct)
+        {
+            await Task.Delay(1);
+        }
+
+        /// <summary>
         /// Sync wallet
         /// </summary>
         /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
+        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
@@ -220,6 +259,13 @@ namespace Liviano.Electrum
             }, TaskCreationOptions.LongRunning, ct);
         }
 
+        /// <summary>
+        /// Syncs an account of the wallet
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> to sync/param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
+        /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
         public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
         {
             var receiveAddressesIndex = acc.GetExternalLastIndex();

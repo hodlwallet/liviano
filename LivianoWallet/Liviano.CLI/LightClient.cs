@@ -333,13 +333,30 @@ namespace Liviano.CLI
 
             wallet.OnSyncFinished += (s, e) =>
             {
-                logger.Information("Sync finished, now waiting for txs!");
+                logger.Information("Sync finished!");
 
-                wallet.Start();
+                // Print transactions
+                List<Tx> txs = new List<Tx> { };
+
+                foreach (var account in wallet.Accounts)
+                    foreach (var tx in account.Txs)
+                        txs.Add(tx);
+
+                if (txs.Count() == 0)
+                    Quit();
+                else
+                    logger.Information("Transactions:");
+
+                foreach (var tx in txs)
+                    logger.Information(
+                        $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
+                    );
+
+                Quit();
             };
 
-            if (resync) wallet.Resync();
-            else wallet.Sync();
+            wallet.Sync();
+            wallet.Start();
 
             _ = PeriodicSave();
 
