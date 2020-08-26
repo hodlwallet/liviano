@@ -214,12 +214,9 @@ namespace Liviano.Electrum
             {
                 OnWatchStarted?.Invoke(this, null);
 
-                foreach (var acc in wallet.Accounts)
-                {
-                    // This makes the task run but not wait, essentially creating
-                    // background tasks
-                    _ = WatchAccount(acc, ct);
-                }
+                // This makes the task run but not wait, essentially creating
+                // background tasks
+                foreach (var acc in wallet.Accounts) _ = WatchAccount(acc, ct);
 
                 // Watch should never finish. Should be cancelled with the ct instead
                 // could implement an infinite loop if needed like
@@ -234,7 +231,12 @@ namespace Liviano.Electrum
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
         public async Task WatchAccount(IAccount account, CancellationToken ct)
         {
-            await Task.Delay(1);
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(async o =>
+            {
+                //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+            }, TaskCreationOptions.AttachedToParent, ct);
         }
 
         /// <summary>

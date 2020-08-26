@@ -184,6 +184,11 @@ namespace Liviano.Interfaces
         BitcoinAddress GetChangeAddressAtIndex(int i);
 
         /// <summary>
+        /// Gets all addresses to watch, start on 0 and get all until grap
+        /// </summary>
+        BitcoinAddress[] GetAddressesToWatch();
+
+        /// <summary>
         /// Gets the last external index
         /// </summary>
         int GetExternalLastIndex();

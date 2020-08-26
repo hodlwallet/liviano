@@ -223,5 +223,10 @@ namespace Liviano.Accounts
                     return acc.InternalAddressesCount;
             }
         }
+
+        public BitcoinAddress[] GetAddressesToWatch()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

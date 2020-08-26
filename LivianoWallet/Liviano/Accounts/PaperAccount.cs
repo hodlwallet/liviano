@@ -291,5 +291,10 @@ namespace Liviano.Accounts
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
         }
+
+        public BitcoinAddress[] GetAddressesToWatch()
+        {
+            return new BitcoinAddress[] { GetReceiveAddress() };
+        }
     }
 }
