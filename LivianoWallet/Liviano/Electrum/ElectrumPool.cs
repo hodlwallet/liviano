@@ -227,15 +227,78 @@ namespace Liviano.Electrum
         /// <summary>
         /// Watches an account for new transactions
         /// </summary>
-        /// <param name="account">An <see cref="IAccount"/> to watch</param>
+        /// <param name="acc">An <see cref="IAccount"/> to watch</param>
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
-        public async Task WatchAccount(IAccount account, CancellationToken ct)
+        public async Task WatchAccount(IAccount acc, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(o =>
+            {
+                foreach (var addr in acc.GetAddressesToWatch())
+                    _ = WatchAddress(acc, addr, ct);
+            }, TaskCreationOptions.AttachedToParent, ct);
+        }
+
+        /// <summary>
+        /// Watches an address
+        /// </summary>
+        public async Task WatchAddress(IAccount acc, BitcoinAddress addr, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
             await Task.Factory.StartNew(async o =>
             {
-                //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                var addresses = acc.GetAddressesToWatch();
+                var scriptHashStr = addr.ToScriptHash().ToHex();
+
+                await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+                {
+                    var status = Deserialize<ResultAsString>(str);
+
+                    if (string.IsNullOrEmpty(status.Result)) return;
+
+                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                    foreach (var unspentResult in unspent.Result)
+                    {
+                        var txHash = unspentResult.TxHash;
+                        var height = unspentResult.Height;
+
+                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                        var blkChainTxGetVerbose = await ElectrumClient.BlockchainTransactionGetVerbose(txHash);
+
+                        var txHex = blkChainTxGetVerbose.Result.Hex;
+                        var time = blkChainTxGetVerbose.Result.Time;
+                        var confirmations = blkChainTxGetVerbose.Result.Confirmations;
+                        var blockhash = blkChainTxGetVerbose.Result.Blockhash;
+
+                        // Tx is new
+                        if (currentTx is null)
+                        {
+                            var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                            acc.AddTx(tx);
+                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                            return;
+                        }
+
+                        // A potential update if tx heights are different
+                        if (currentTx.BlockHeight != height)
+                        {
+                            var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
+
+                            acc.UpdateTx(tx);
+
+                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                            // Here for safety, at any time somebody can add code to this
+                            return;
+                        }
+                    }
+                });
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 

@@ -170,6 +170,12 @@ namespace Liviano.Interfaces
         Task Resync();
 
         /// <summary>
+        /// Watches a wallet for new transactions
+        /// </summary>
+        /// <returns></returns>
+        Task Watch();
+
+        /// <summary>
         /// Sends a transaction using the electrum client initialized in the wallet.
         /// </summary>
         /// <param name="tx">The transaction to be broadcasted.</param>

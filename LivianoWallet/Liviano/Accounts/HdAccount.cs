@@ -171,6 +171,7 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetChangeAddress(int n);
         public abstract BitcoinAddress GetReceiveAddressAtIndex(int i);
         public abstract BitcoinAddress GetChangeAddressAtIndex(int i);
+        public abstract BitcoinAddress[] GetAddressesToWatch();
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
@@ -222,11 +223,6 @@ namespace Liviano.Accounts
                 if (lastAddress == addr)
                     return acc.InternalAddressesCount;
             }
-        }
-
-        public BitcoinAddress[] GetAddressesToWatch()
-        {
-            throw new NotImplementedException();
         }
     }
 }

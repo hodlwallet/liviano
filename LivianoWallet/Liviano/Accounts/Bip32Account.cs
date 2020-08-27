@@ -60,8 +60,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetReceiveAddress()
         {
-            var addrIndex = UsedExternalAddresses.Count + ExternalAddressesCount;
-            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, addrIndex, false);
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, ExternalAddressesCount, false);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             ExternalAddressesCount++;
@@ -81,8 +80,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetChangeAddress()
         {
-            var addrIndex = UsedInternalAddresses.Count + InternalAddressesCount;
-            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, addrIndex, true);
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, InternalAddressesCount, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             InternalAddressesCount++;
@@ -114,6 +112,32 @@ namespace Liviano.Accounts
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
             return address;
+        }
+
+        public override BitcoinAddress[] GetAddressesToWatch()
+        {
+            var addresses = new List<BitcoinAddress> { };
+
+            var externalMaxIndex = ExternalAddressesIndex + GapLimit;
+            var internalMaxIndex = InternalAddressesIndex + GapLimit;
+            
+            for (int i = 0; i < externalMaxIndex; i++)
+            {
+                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+                addresses.Add(addr);
+            }
+
+            for (int i = 0; i < internalMaxIndex; i++)
+            {
+                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+                addresses.Add(addr);
+            }
+
+            return addresses.ToArray();
         }
 
         public override void AddTx(Tx tx)

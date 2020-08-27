@@ -397,6 +397,11 @@ namespace Liviano
             await Sync();
         }
 
+        public Task Watch()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Cleanup wallet, set internal / external addr acocunts to 0
         /// </summary>

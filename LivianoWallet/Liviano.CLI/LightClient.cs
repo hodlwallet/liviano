@@ -356,7 +356,7 @@ namespace Liviano.CLI
             };
 
             wallet.Sync();
-            wallet.Start();
+            wallet.Watch();
 
             _ = PeriodicSave();
 

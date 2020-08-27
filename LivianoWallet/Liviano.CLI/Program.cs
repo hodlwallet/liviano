@@ -352,8 +352,9 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                // TODO Start a wallet listen to transactions
-                throw new NotImplementedException("Start is not implemented");
+                LightClient.Start(config);
+
+                return;
             }
 
             if (resync)
