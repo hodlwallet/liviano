@@ -114,21 +114,29 @@ namespace Liviano.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetAddressesToWatch()
+        public override BitcoinAddress[] GetReceiveAddressesToWatch()
         {
             var addresses = new List<BitcoinAddress> { };
 
             var externalMaxIndex = ExternalAddressesIndex + GapLimit;
-            var internalMaxIndex = InternalAddressesIndex + GapLimit;
             
             for (int i = 0; i < externalMaxIndex; i++)
             {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, false);
                 var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
 
                 addresses.Add(addr);
             }
 
+            return addresses.ToArray();
+        }
+
+        public override BitcoinAddress[] GetChangeAddressesToWatch()
+        {
+            var addresses = new List<BitcoinAddress> { };
+
+            var internalMaxIndex = InternalAddressesIndex + GapLimit;
+            
             for (int i = 0; i < internalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
@@ -136,7 +144,6 @@ namespace Liviano.Accounts
 
                 addresses.Add(addr);
             }
-
             return addresses.ToArray();
         }
 

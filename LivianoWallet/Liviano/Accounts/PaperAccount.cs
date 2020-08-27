@@ -137,12 +137,12 @@ namespace Liviano.Accounts
 
         public BitcoinAddress GetChangeAddress()
         {
-            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
         public BitcoinAddress[] GetChangeAddress(int n)
         {
-            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
         public BitcoinAddress GetReceiveAddress()
@@ -289,12 +289,17 @@ namespace Liviano.Accounts
 
         public int GetInternalLastIndex()
         {
-            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress[] GetAddressesToWatch()
+        public BitcoinAddress[] GetReceiveAddressesToWatch()
         {
             return new BitcoinAddress[] { GetReceiveAddress() };
+        }
+
+        public BitcoinAddress[] GetChangeAddressesToWatch()
+        {
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
     }
 }

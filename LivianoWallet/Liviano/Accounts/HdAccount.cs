@@ -171,7 +171,8 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetChangeAddress(int n);
         public abstract BitcoinAddress GetReceiveAddressAtIndex(int i);
         public abstract BitcoinAddress GetChangeAddressAtIndex(int i);
-        public abstract BitcoinAddress[] GetAddressesToWatch();
+        public abstract BitcoinAddress[] GetReceiveAddressesToWatch();
+        public abstract BitcoinAddress[] GetChangeAddressesToWatch();
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
