@@ -342,6 +342,12 @@ namespace Liviano
                     account.InternalAddressesCount = 0;
                     account.ExternalAddressesCount = 0;
 
+                    account.InternalAddressesIndex = 0;
+                    account.ExternalAddressesIndex = 0;
+
+                    account.UsedExternalAddresses = new List<BitcoinAddress> {};
+                    account.UsedInternalAddresses = new List<BitcoinAddress> {};
+
                     account.TxIds = new List<string> { };
                     account.Txs = new List<Tx> { };
                 }
