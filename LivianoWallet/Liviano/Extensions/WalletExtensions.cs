@@ -93,6 +93,7 @@ namespace Liviano.Extensions
         /// 
         /// Please check Workbooks/CheckpointsGenerator.workbook to see how this is generated.
         /// </summary>
+        /// <remarks>The idea behind this is that it will get completed with the rest of the blocks</remarks>
         /// <returns>The checkpoints.</returns>
         /// <param name="network">Network.</param>
         public static List<ChainedBlock> GetCheckpoints(this Network network)
