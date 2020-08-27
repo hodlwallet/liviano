@@ -214,6 +214,7 @@ namespace Liviano.Interfaces
         /// </summary>
         event EventHandler OnSyncStarted;
         event EventHandler OnSyncFinished;
+        event EventHandler OnWatchStarted;
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
     }
