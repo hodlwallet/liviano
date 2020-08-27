@@ -191,7 +191,7 @@ namespace Liviano.Accounts
         public int GetExternalLastIndex()
         {
             if (UsedExternalAddresses.Count == 0)
-                return -1;
+                return 0;
 
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
@@ -210,7 +210,7 @@ namespace Liviano.Accounts
         public int GetInternalLastIndex()
         {
             if (UsedInternalAddresses.Count == 0)
-                return -1;
+                return 0;
 
             var acc = (HdAccount)Clone();
             acc.InternalAddressesCount = 0;

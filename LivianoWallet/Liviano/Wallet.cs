@@ -40,9 +40,6 @@ using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
-using Liviano.Extensions;
-
-using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano
 {
@@ -594,6 +591,13 @@ namespace Liviano
                 default:
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }
+        }
+
+        public Tx[] GetTranscations(int accountIndex = 0)
+        {
+            if (Accounts.Count() - 1 < accountIndex + 1) return new Tx[] {};
+
+            return Accounts[accountIndex].Txs.ToArray();
         }
     }
 }

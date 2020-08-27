@@ -209,6 +209,8 @@ namespace Liviano.Interfaces
         /// </param>
         void AddAccount(string type = "", string name = null, object options = null);
 
+        Tx[] GetTranscations(int accountIndex = 0);
+
         /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>

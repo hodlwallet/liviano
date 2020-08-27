@@ -339,17 +339,15 @@ namespace Liviano.CLI
                     foreach (var tx in account.Txs)
                         txs.Add(tx);
 
-                if (txs.Count() == 0)
-                    Quit();
-                else
+                if (txs.Count() > 0)
+                {
                     logger.Information("Transactions:");
 
-                foreach (var tx in txs)
-                    logger.Information(
-                        $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
-                    );
+                    foreach (var tx in txs)
+                        logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}");
+                }
 
-                Quit();
+                wallet.Watch();
             };
 
             wallet.OnWatchStarted += (s, e) =>
@@ -358,7 +356,6 @@ namespace Liviano.CLI
             };
 
             wallet.Sync();
-            wallet.Watch();
 
             _ = PeriodicSave();
 
@@ -435,6 +432,9 @@ namespace Liviano.CLI
         /// <param name="retVal">Unix return value an <see cref="int"/></param>
         static void Quit(int retVal = 0)
         {
+            logger.Information("Saving...");
+            Save().Wait();
+
             var process = Process.GetCurrentProcess();
 
             foreach (ProcessThread thread in process.Threads.OfType<ProcessThread>())
