@@ -60,6 +60,11 @@ namespace Liviano.Models
             Checkpoints ??= GetCheckpoints().ToArray();
         }
 
+        /// <summary>
+        /// Gets the static checkpoints of a network
+        /// </summary>
+        /// <returns>A list of <see cref="ChainedBlock"/> of all the checkpoints</returns>
+        /// <remarks>See Workbooks/CheckpointsGenerator.workbook for an example of how to generate more checkpoints, checkpoints must be a static list and have a sequence, and should never change.</remarks>
         List<ChainedBlock> GetCheckpoints()
         {
             return Network.GetCheckpoints();
