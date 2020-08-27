@@ -26,12 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Threading;
 
-using Newtonsoft.Json;
 using NBitcoin;
 using Serilog;
 
@@ -355,8 +352,13 @@ namespace Liviano.CLI
                 Quit();
             };
 
+            wallet.OnWatchStarted += (s, e) =>
+            {
+                logger.Information("Watch started!");
+            };
+
             wallet.Sync();
-            wallet.Start();
+            wallet.Watch();
 
             _ = PeriodicSave();
 
@@ -384,37 +386,6 @@ namespace Liviano.CLI
             config.SaveChanges();
 
             return wallet.Accounts.Last().ExtendedPubKey;
-        }
-
-        static void Pool_OnCancelFindingPeersEvent(object sender, EventArgs e)
-        {
-            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Cancelled finding peers at {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        }
-
-        static void Pool_OnDoneFindingPeersEvent(object sender, EventArgs e)
-        {
-            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"Done finding peers at {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-
-            var pool = (ElectrumPool)sender;
-
-            Console.WriteLine($"Current server: {pool.CurrentServer.Domain}:{pool.CurrentServer.PrivatePort}");
-            Console.WriteLine("Other servers connected: \n");
-
-            foreach (var s in pool.ConnectedServers)
-            {
-                Console.WriteLine($"{s.Domain}:{s.PrivatePort}");
-            }
-        }
-
-        static void Pool_OnConnectedEvent(object sender, Server e)
-        {
-            Console.WriteLine("\n!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Console.WriteLine($"First Server to Connect!\n{e.Domain} at {DateTime.UtcNow}");
-            Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         }
 
         /// <summary>
