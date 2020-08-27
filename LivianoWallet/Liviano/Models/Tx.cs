@@ -252,25 +252,26 @@ namespace Liviano.Models
 
         public Tx() { }
 
-        public static Tx CreateFromHex(string hex, int time, int confirmations, string blockhash, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
 
+            // TODO Once chain is downloaded complete the transactions somehow
             var tx = new Tx
             {
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
-                CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
+                //CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
-                Blockhash = uint256.Parse(blockhash),
+                //Blockhash = uint256.Parse(blockhash),
                 Hex = hex,
-                Confirmations = confirmations,
+                //Confirmations = confirmations,
                 IsRBF = transaction.RBF,
-                BlockHeight = blockHeight
+                //BlockHeight = blockHeight
             };
 
             // Decide if the tx is a send tx or a receive tx
@@ -359,7 +360,7 @@ namespace Liviano.Models
             Debug.WriteLine($"Amount Sent: {tx.AmountSent}");
             Debug.WriteLine("");
 
-            tx.Blockhash = uint256.Parse(blockhash);
+            //tx.Blockhash = uint256.Parse(blockhash);
             tx.IsPropagated = true; // TODO
             tx.TotalFees = Money.Zero; // TODO
 

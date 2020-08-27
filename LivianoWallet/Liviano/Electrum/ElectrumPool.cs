@@ -288,8 +288,7 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, time, confirmations, blockhash,
-                                acc, Network, height, receiveAddresses, changeAddresses
+                                txHex, acc, Network, receiveAddresses, changeAddresses
                             );
 
                             acc.AddTx(tx);
@@ -302,8 +301,7 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, time, confirmations, blockhash,
-                                acc, Network, height, receiveAddresses, changeAddresses
+                                txHex, acc, Network, receiveAddresses, changeAddresses
                             );
 
                             acc.UpdateTx(tx);
@@ -507,10 +505,10 @@ namespace Liviano.Electrum
 #endif
                 Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
 
-                BlockchainTransactionGetVerboseResult txRes;
+                BlockchainTransactionGetResult txRes;
                 try
                 {
-                    txRes = await ElectrumClient.BlockchainTransactionGetVerbose(r.TxHash);
+                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
                 }
                 catch (ElectrumException e)
                 {
@@ -523,13 +521,9 @@ namespace Liviano.Electrum
                 }
 
                 var tx = Tx.CreateFromHex(
-                    txRes.Result.Hex,
-                    txRes.Result.Time,
-                    txRes.Result.Confirmations,
-                    txRes.Result.Blockhash,
+                    txRes.Result,
                     acc,
                     Network,
-                    r.Height,
                     receiveAddresses,
                     changeAddresses
                 );
