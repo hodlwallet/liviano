@@ -100,6 +100,7 @@ namespace Liviano
 
         public event EventHandler OnSyncStarted;
         public event EventHandler OnSyncFinished;
+        public event EventHandler OnWatchStarted;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -274,99 +275,6 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Starts to listen to new tx and sync is needed
-        /// </summary>
-        public async Task Start()
-        {
-            Debug.WriteLine($"[Start] Starting wallet: {Id}");
-
-            var electrum = await GetElectrumClient();
-            var tasks = new List<Task>();
-            var @lock = new object();
-
-            foreach (var acc in Accounts)
-            {
-                Debug.WriteLine($"Listening for account: {acc.Name} ({acc.AccountType} : {acc.HdPath})");
-
-                var externalCount = acc.ExternalAddressesCount;
-                var addresses = acc.GetReceiveAddress(externalCount + acc.GapLimit);
-                acc.ExternalAddressesCount = externalCount;
-
-                var accountWithAddresses = AccountsWithAddresses(@lock);
-
-                foreach (var addr in acc.GetReceiveAddress(acc.GapLimit))
-                {
-                    var scriptHashStr = addr.ToScriptHash().ToHex();
-                    var accountAddresses = GetAccountAddresses(acc);
-
-                    var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
-                    {
-                        var status = Deserialize<ResultAsString>(str);
-
-                        if (!string.IsNullOrEmpty(status.Result))
-                        {
-                            Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr}");
-
-                            try
-                            {
-                                var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
-
-                                foreach (var unspentResult in unspent.Result)
-                                {
-                                    var txHash = unspentResult.TxHash;
-                                    var height = unspentResult.Height;
-
-                                    var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                                    var blkChainTxGetVerbose = await electrum.BlockchainTransactionGetVerbose(txHash);
-                                    var txHex = blkChainTxGetVerbose.Result.Hex;
-                                    var time = blkChainTxGetVerbose.Result.Time;
-                                    var confirmations = blkChainTxGetVerbose.Result.Confirmations;
-                                    var blockhash = blkChainTxGetVerbose.Result.Blockhash;
-
-                                    // Tx is new
-                                    if (currentTx is null)
-                                    {
-                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                        acc.AddTx(tx);
-                                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-
-                                        return;
-                                    }
-
-                                    // A potential update if tx heights are different
-                                    if (currentTx.BlockHeight != height)
-                                    {
-                                        var tx = Tx.CreateFromHex(txHex, time, confirmations, blockhash, acc, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                        acc.UpdateTx(tx);
-
-                                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-
-                                        // Here for safety, at any time somebody can add code to this
-                                        return;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
-                            }
-                        }
-                    });
-
-                    tasks.Add(t);
-                }
-
-                acc.ExternalAddressesCount = 0;
-            }
-
-            // Runs all the script hash suscribers
-            await Task.WhenAll(tasks).WithCancellation(CancellationToken.None);
-        }
-
-        /// <summary>
         /// Sync wallet
         /// </summary>
         public async Task Sync()
@@ -397,9 +305,28 @@ namespace Liviano
             await Sync();
         }
 
-        public Task Watch()
+        public async Task Watch()
         {
-            throw new NotImplementedException();
+            Debug.WriteLine("[Sync] Syncing...");
+
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+
+            ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
+            ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
+            ElectrumPool.OnWatchStarted += ElectrumPool_OnWatchStarted;
+
+            if (ElectrumPool.Connected)
+                await ElectrumPool_OnConnectedToWatch(ElectrumPool, ElectrumPool.CurrentServer, ct);
+            else
+                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToWatch(
+                        ElectrumPool,
+                        server,
+                        ct
+                );
+
+            if (!ElectrumPool.Connected)
+                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
         /// <summary>
@@ -440,9 +367,9 @@ namespace Liviano
             ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncFinished;
 
             if (ElectrumPool.Connected)
-                await ElectrumPool_OnConnected(ElectrumPool, ElectrumPool.CurrentServer, ct);
+                await ElectrumPool_OnConnectedToSync(ElectrumPool, ElectrumPool.CurrentServer, ct);
             else
-                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnected(
+                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToSync(
                         ElectrumPool,
                         server,
                         ct
@@ -452,7 +379,7 @@ namespace Liviano
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
-        private async Task ElectrumPool_OnConnected(object sender, Server server, CancellationToken ct)
+        private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
         {
             Console.WriteLine($"Connected to {server.Domain}, recently connected server.");
             Console.WriteLine($"Now starts to sync wallet");
@@ -461,11 +388,25 @@ namespace Liviano
             await ElectrumPool.SyncWallet(this, ct);
         }
 
+        private async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
+        {
+            Console.WriteLine($"Now starts to watch wallet");
+
+            await ElectrumPool.WatchWallet(this, ct);
+        }
+
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
         {
             Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
 
             this.OnSyncStarted?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+
+            this.OnWatchStarted?.Invoke(this, null);
         }
 
         private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
