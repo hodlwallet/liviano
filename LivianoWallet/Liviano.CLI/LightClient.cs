@@ -35,7 +35,6 @@ using Serilog;
 using Liviano.Exceptions;
 using Liviano.Models;
 using Liviano.Interfaces;
-using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Bips;
 using Liviano.Storages;
@@ -122,9 +121,18 @@ namespace Liviano.CLI
             wallet = storage.Load();
         }
 
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, int accountIndex = -1)
         {
             Load(config);
+
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
 
             await Task.Delay(1);
 
