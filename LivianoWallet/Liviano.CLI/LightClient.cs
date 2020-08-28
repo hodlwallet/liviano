@@ -188,7 +188,16 @@ namespace Liviano.CLI
             else
                 account = wallet.Accounts.First();
 
-            return account.GetBalance();
+            try
+            {
+                return account.GetBalance();
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.WriteLine($"[AccountBalance] Error {e.Message}");
+
+                return 0L;
+            }
         }
 
         /// <summary>
