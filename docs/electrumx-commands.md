@@ -28,3 +28,16 @@ Ready to copy paste and look at what happens.
 
 ```json
 {"id": 0, "method": "server.donation_address", "params": []}
+```
+
+### server ping
+
+```json
+{"id": 0, "method": "server.ping", "params": []}
+```
+
+### server banner
+
+```json
+{"id": 0, "method": "server.banner", "params": []}
+```

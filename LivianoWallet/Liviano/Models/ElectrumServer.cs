@@ -156,6 +156,20 @@ namespace Liviano.Models
             }
         }
 
+        public async Task<string> Banner()
+        {
+            var banner = await ElectrumClient.ServerBanner();
+
+            return banner;
+        }
+
+        public async Task<bool> Ping()
+        {
+            var ping = await ElectrumClient.ServerDonationAddress();
+
+            return ping == null;
+        }
+
         public async Task<string> DonationAddress()
         {
             var donationAddress = await ElectrumClient.ServerDonationAddress();
