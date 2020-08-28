@@ -67,6 +67,7 @@ namespace Liviano.Extensions
             var toDestination = BitcoinAddress.Create(destinationAddress, network);
 
             var noFeeBuilder = network.CreateTransactionBuilder();
+
             // Create transaction buidler with change and signing keys.
             Transaction txWithNoFees = noFeeBuilder
                 .AddCoins(coins)

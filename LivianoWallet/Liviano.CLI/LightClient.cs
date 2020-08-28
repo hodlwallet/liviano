@@ -122,13 +122,31 @@ namespace Liviano.CLI
             wallet = storage.Load();
         }
 
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(Transaction Tx, string Error)> Send(
+                Config config,
+                string password,
+                string destinationAddress,
+                double amount,
+                int satsPerByte,
+                string accountName = null,
+                string accountIndex = null)
         {
-            Load(config);
+            network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            wallet = storage.Load();
 
             await Task.Delay(1);
 
-            throw new NotImplementedException("TODO");
+            return (null, null);
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
