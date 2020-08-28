@@ -739,7 +739,7 @@ namespace Liviano.Electrum
 
             Console.WriteLine($"Connected to: {server.Domain}:{server.PrivatePort}");
 
-            Task<Server[]> t = server.FindPeersAsync();
+            Task<Server[]> t = server.FindPeers();
             t.Wait();
 
             if (AllServers.ContainsAllServers(t.Result)) return;

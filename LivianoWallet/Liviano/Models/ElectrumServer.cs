@@ -156,9 +156,16 @@ namespace Liviano.Models
             }
         }
 
-        public async Task<Server[]> FindPeersAsync()
+        public async Task<string> DonationAddress()
         {
-            Debug.WriteLine($"[FindPeersAsync] for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
+            var donationAddress = await ElectrumClient.ServerDonationAddress();
+
+            return donationAddress.Result;
+        }
+
+        public async Task<Server[]> FindPeers()
+        {
+            Debug.WriteLine($"[FindPeers] for {Domain}:{PrivatePort} at {DateTime.UtcNow}");
 
             try
             {
@@ -168,7 +175,9 @@ namespace Liviano.Models
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[FindPeersAsync] Error: {e.Message}");
+                Debug.WriteLine($"[FindPeers] Error: {e.Message}");
+
+                // TODO ngl this shit should fail.
 
                 return new Server[] { };
             }
