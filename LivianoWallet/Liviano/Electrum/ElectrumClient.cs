@@ -77,6 +77,8 @@ namespace Liviano.Electrum
             public List<List<object>> Result { get; set; }
         }
 
+        public class ServerDonationAddressResult : ResultAsString { }
+
         public class BlockchainBlockHeaderResult : BaseResult
         {
             public int Id { get; set; }
@@ -209,6 +211,26 @@ namespace Liviano.Electrum
         {
             public int Id { get; set; }
             public BlockchainTransactionGetMerkleInnerResult Result { get; set; }
+        }
+
+        public class BlockchainTransactionIdFromPosResult : ResultAsString { }
+
+        public class BlockchainTransactionIdFromPosMerkleInnerResult : BaseResult
+        {
+            public string TxHash { get; set; }
+            public string[] Merkle { get; set; }
+        }
+
+        public class BlockchainTransactionIdFromPosMerkleResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionIdFromPosMerkleInnerResult Result { get; set; }
+        }
+
+        public class MempoolGetFeeHistogramResult : BaseResult
+        {
+            public int Id { get; set; }
+            public int[][] Result { get; set; }
         }
 
         public class BlockchainScriptSigResult : BaseResult
@@ -433,6 +455,14 @@ namespace Liviano.Electrum
             return CreateVersion(resObj.Result[1]);
         }
 
+        public async Task<ServerDonationAddressResult> ServerDonationAddress()
+        {
+            var obj = new Request { Id = 0, Method = "server.donation_address", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<ServerDonationAddressResult>(json);
+        }
+
         public async Task<BlockchainScriptHashListUnspentResult> BlockchainScriptHashListUnspent(string scriptHash)
         {
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
@@ -490,6 +520,35 @@ namespace Liviano.Electrum
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionGetMerkleResult>(json);
+        }
+
+        public async Task<BlockchainTransactionIdFromPosResult> BlockchainTransactionIdFromPos(int height, int txPos)
+        {
+            List<object> @params = new List<object> { height, txPos, false };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionIdFromPosResult>(json);
+        }
+
+        public async Task<BlockchainTransactionIdFromPosMerkleResult> BlockchainTransactionIdFromPosMerkle(int height, int txPos)
+        {
+            List<object> @params = new List<object> { height, txPos, true };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionIdFromPosMerkleResult>(json);
+        }
+
+        public async Task<MempoolGetFeeHistogramResult> MempoolGetFeeHistogram()
+        {
+            List<object> @params = new List<object> { };
+            var obj = new Request { Id = 0, Method = "mempool.get_fee_histogram", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<MempoolGetFeeHistogramResult>(json);
         }
 
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)

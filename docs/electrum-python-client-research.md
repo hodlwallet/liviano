@@ -30,17 +30,17 @@ Some of that stuff is for a plugin, so I gonna remove that, here's the methods (
 
 - [x] blockchain.transaction.broadcast
 - [x] blockchain.transaction.get
-- [] blockchain.transaction.get_merkle
-- [] blockchain.transaction.get_id_from_pos
+- [x] blockchain.transaction.get_merkle
+- [x] blockchain.transaction.id_from_pos
 
 ### Mempool
 
-- [] mempool.get_fee_histogram
+- [x] mempool.get_fee_histogram
 
 ### Server
 
 - [x] server.banner
-- [] server.donation_address
+- [x] server.donation_address
 - [x] server.peers.subscribe
 - [x] server.ping
 - [x] server.version
