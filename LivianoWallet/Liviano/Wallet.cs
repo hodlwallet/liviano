@@ -459,7 +459,7 @@ namespace Liviano
 
             try
             {
-                var electrum = await GetElectrumClient();
+                var electrum = ElectrumPool.CurrentServer.ElectrumClient;
                 var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
 
                 if (broadcast.Result != tx.GetHash().ToString())
@@ -526,13 +526,6 @@ namespace Liviano
             }
 
             return addresses;
-        }
-
-        async Task<ElectrumClient> GetElectrumClient()
-        {
-            var recentServers = await GetRecentlyConnectedServers();
-
-            return recentServers[0].ElectrumClient;
         }
 
         async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)

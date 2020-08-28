@@ -79,6 +79,12 @@ namespace Liviano.Electrum
 
         public class ServerDonationAddressResult : ResultAsString { }
 
+        public class ServerPingResult : BaseResult
+        {
+            public int Id { get; set; }
+            public object Result { get; set; } = new object();
+        }
+
         public class BlockchainBlockHeaderResult : BaseResult
         {
             public int Id { get; set; }
@@ -430,14 +436,12 @@ namespace Liviano.Electrum
             return resObj.Result;
         }
 
-        public async Task<object> ServerPing()
+        public async Task<ServerPingResult> ServerPing()
         {
             var obj = new Request { Id = 0, Method = "server.ping", Params = new List<string> { } };
             var json = Serialize(obj);
 
-            BannerResult resObj = await RequestInternal<BannerResult>(json);
-
-            return resObj.Result;
+            return await RequestInternal<ServerPingResult>(json);
         }
 
         public async Task<System.Version> ServerVersion()
