@@ -17,19 +17,19 @@ Some of that stuff is for a plugin, so I gonna remove that, here's the methods (
 
 ### Fees
 
-- [] blockchain.estimatefee
+- [x] blockchain.estimatefee
 - [] blockchain.relayfee
 
 ### Scripthash (address)
 
-- [] blockchain.scripthash.get_balance
-- [] blockchain.scripthash.get_history
-- [] blockchain.scripthash.listunspent
+- [x] blockchain.scripthash.get_balance
+- [x] blockchain.scripthash.get_history
+- [x] blockchain.scripthash.listunspent
 
 ### Transactions
 
-- [] blockchain.transaction.broadcast
-- [] blockchain.transaction.get
+- [x] blockchain.transaction.broadcast
+- [x] blockchain.transaction.get
 - [] blockchain.transaction.get_merkle
 
 ### Mempool
@@ -38,9 +38,8 @@ Some of that stuff is for a plugin, so I gonna remove that, here's the methods (
 
 ### Server
 
-- [] server.banner
+- [x] server.banner
 - [] server.donation_address
-- [] server.peers.subscribe
-- [] server.peers.subscribe
-- [] server.ping
-- [] server.version
+- [x] server.peers.subscribe
+- [x] server.ping
+- [x] server.version
