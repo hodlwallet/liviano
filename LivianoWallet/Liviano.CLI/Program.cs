@@ -46,7 +46,7 @@ namespace Liviano.CLI
         public const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
 
         // Defaults options values
-        static Network network = Network.Main;
+        static Network network = null;
         static string passphrase = "";
         static string mnemonic = "";
         static string wordlist = "english";
@@ -94,8 +94,8 @@ namespace Liviano.CLI
             return new OptionSet
             {
                 // Global variables
-                {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : Network.TestNet},
-                {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : Network.Main},
+                {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : null},
+                {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : null},
 
                 // Actions
                 {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
