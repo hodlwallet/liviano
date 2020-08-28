@@ -18,7 +18,7 @@ Some of that stuff is for a plugin, so I gonna remove that, here's the methods (
 ### Fees
 
 - [x] blockchain.estimatefee
-- [] blockchain.relayfee
+- [x] blockchain.relayfee
 
 ### Scripthash (address)
 
@@ -31,6 +31,7 @@ Some of that stuff is for a plugin, so I gonna remove that, here's the methods (
 - [x] blockchain.transaction.broadcast
 - [x] blockchain.transaction.get
 - [] blockchain.transaction.get_merkle
+- [] blockchain.transaction.get_id_from_pos
 
 ### Mempool
 

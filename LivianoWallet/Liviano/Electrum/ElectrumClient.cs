@@ -174,6 +174,43 @@ namespace Liviano.Electrum
 
         public class BlockchainTransactionGetResult : ResultAsString { }
 
+        public class BlockchainTransactionGetVerboseInnerResult : BaseResult
+        {
+            public string Txid { get; set; }
+            public string Hash { get; set; }
+            public int Version { get; set; }
+            public int Size { get; set; }
+            public int Vsize { get; set; }
+            public int Weight { get; set; }
+            public int Locktime { get; set; }
+            public BlockchainVinResult[] Vin { get; set; }
+            public BlockchainVoutResult[] Vout { get; set; }
+            public string Hex { get; set; }
+            public string Blockhash { get; set; }
+            public int Confirmations { get; set; }
+            public int Time { get; set; }
+            public int Blocktime { get; set; }
+        }
+
+        public class BlockchainTransactionGetVerboseResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionGetVerboseInnerResult Result { get; set; }
+        }
+
+        public class BlockchainTransactionGetMerkleInnerResult : BaseResult
+        {
+            public int BlockHeight { get; set; }
+            public string[] Merkle { get; set; }
+            public int Pos { get; set; }
+        }
+
+        public class BlockchainTransactionGetMerkleResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionGetMerkleInnerResult Result { get; set; }
+        }
+
         public class BlockchainScriptSigResult : BaseResult
         {
             public string Asm { get; set; }
@@ -205,31 +242,13 @@ namespace Liviano.Electrum
             public BlockchainScriptPubKeyResult ScriptPubKey { get; set; }
         }
 
-        public class BlockchainTransactionGetVerboseInnerResult : BaseResult
-        {
-            public string Txid { get; set; }
-            public string Hash { get; set; }
-            public int Version { get; set; }
-            public int Size { get; set; }
-            public int Vsize { get; set; }
-            public int Weight { get; set; }
-            public int Locktime { get; set; }
-            public BlockchainVinResult[] Vin { get; set; }
-            public BlockchainVoutResult[] Vout { get; set; }
-            public string Hex { get; set; }
-            public string Blockhash { get; set; }
-            public int Confirmations { get; set; }
-            public int Time { get; set; }
-            public int Blocktime { get; set; }
-        }
-
-        public class BlockchainTransactionGetVerboseResult : BaseResult
+        public class BlockchainEstimateFeeResult : BaseResult
         {
             public int Id { get; set; }
-            public BlockchainTransactionGetVerboseInnerResult Result { get; set; }
+            public double Result { get; set; }
         }
 
-        public class BlockchainEstimateFeeResult : BaseResult
+        public class BlockchainRelayFeeResult : BaseResult
         {
             public int Id { get; set; }
             public double Result { get; set; }
@@ -463,12 +482,30 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
         }
 
+        public async Task<BlockchainTransactionGetMerkleResult> BlockchainTransactionGetMerkle(string txhash, int height)
+        {
+            List<object> @params = new List<object> { txhash, height };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionGetMerkleResult>(json);
+        }
+
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)
         {
             var obj = new Request { Id = 0, Method = "blockchain.estimatefee", Params = new List<int> { numBlocksTarget } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainEstimateFeeResult>(json);
+        }
+
+        public async Task<BlockchainRelayFeeResult> BlockchainRelayFee()
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.relayfee", Params = new List<int> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainRelayFeeResult>(json);
         }
 
         // From electrumx.readthedocs.io:
