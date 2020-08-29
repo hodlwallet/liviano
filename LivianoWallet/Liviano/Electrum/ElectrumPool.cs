@@ -1,0 +1,798 @@
+﻿//
+// ElectrumPool.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2020 HODL Wallet
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Text;
+using System.Linq;
+using System.Reflection;
+using System.IO;
+
+using NBitcoin;
+using Newtonsoft.Json;
+
+using Liviano.Models;
+using Liviano.Interfaces;
+using Liviano.Extensions;
+using Liviano.Exceptions;
+using static Liviano.Electrum.ElectrumClient;
+
+namespace Liviano.Electrum
+{
+    public class ElectrumPool
+    {
+#if DEBUG
+        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 1;
+#else
+        public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 4;
+#endif
+        public const int MAX_NUMBER_OF_CONNECTED_SERVERS = 20;
+        readonly object @lock = new object();
+
+        public bool Connected { get; private set; }
+
+        public Network Network { get; set; }
+
+        Server currentServer;
+        public Server CurrentServer
+        {
+            get => currentServer;
+
+            set
+            {
+                if (currentServer is null && !Connected)
+                {
+                    Connected = true;
+
+                    OnConnected?.Invoke(this, value);
+                }
+
+                if (value is null && !(currentServer is null))
+                {
+                    Connected = false;
+
+                    OnDisconnectedEvent?.Invoke(this, currentServer);
+                }
+
+                currentServer = value;
+                ElectrumClient = currentServer.ElectrumClient;
+
+                OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+            }
+        }
+
+        public event EventHandler<Server> OnCurrentServerChangedEvent;
+
+        public event EventHandler<Server> OnConnected;
+
+        public event EventHandler<Server> OnDisconnectedEvent;
+
+        public event EventHandler OnDoneFindingPeersEvent;
+
+        public event EventHandler OnCancelFindingPeersEvent;
+
+        public event EventHandler<TxEventArgs> OnNewTransaction;
+
+        public event EventHandler<TxEventArgs> OnUpdateTransaction;
+
+        public event EventHandler OnSyncStarted;
+
+        public event EventHandler OnSyncFinished;
+
+        public event EventHandler OnWatchStarted;
+
+        public Server[] AllServers { get; set; }
+
+        public List<Server> ConnectedServers { get; set; }
+
+        public ElectrumClient ElectrumClient { get; private set; }
+
+        public ElectrumPool(Server[] servers, Network network = null)
+        {
+            Network ??= network ?? Network.Main;
+            AllServers ??= servers.Shuffle();
+            ConnectedServers ??= new List<Server> { };
+        }
+
+        public async Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null, Assembly assembly = null)
+        {
+            await FindConnectedServers(cts);
+
+            if (ConnectedServers.Count < MIN_NUMBER_OF_CONNECTED_SERVERS)
+                await FindConnectedServersUntilMinNumber(cts);
+            else
+                Save(assembly);
+        }
+
+        public async Task FindConnectedServers(CancellationTokenSource cts = null)
+        {
+            cts ??= new CancellationTokenSource();
+            var cancellationToken = cts.Token;
+
+            await Task.Factory.StartNew(() =>
+            {
+                foreach (var s in AllServers)
+                {
+                    Task.Factory.StartNew((o) =>
+                    {
+                        s.CancellationToken = cancellationToken;
+                        s.OnConnectedEvent += HandleConnectedServers;
+
+                        s.ConnectAsync().Wait();
+                    }, cancellationToken, TaskCreationOptions.AttachedToParent);
+                }
+            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+            if (cancellationToken.IsCancellationRequested)
+                OnCancelFindingPeersEvent?.Invoke(this, null);
+            else
+                OnDoneFindingPeersEvent?.Invoke(this, null);
+        }
+
+        public void RemoveServer(Server server)
+        {
+            lock (@lock) ConnectedServers.RemoveServer(server);
+        }
+
+        public void SetNewConnectedServer()
+        {
+            var oldCurrentServer = CurrentServer;
+
+            CurrentServer = GetNewConnectedServers().Shuffle().First();
+
+            RemoveServer(oldCurrentServer);
+        }
+
+        public List<Server> GetNewConnectedServers()
+        {
+            return GetConnectedWithout(CurrentServer);
+        }
+
+        public List<Server> GetConnectedWithout(Server server)
+        {
+            return ConnectedServers.Where(s => s.Domain == server.Domain).ToList();
+        }
+
+        /// <summary>
+        /// Saves the recently connected servers to disk or resource?
+        /// </summary>
+        public void Save(Assembly assembly = null)
+        {
+            var data = JsonConvert.SerializeObject(ConnectedServers);
+
+            if (string.IsNullOrEmpty(data)) return;
+
+            if (assembly != null)
+            {
+                var resourceName = $"Resources.Electrum.servers.recent_{Network.Name.ToLower()}.json";
+                using var stream = assembly.GetManifestResourceStream(resourceName);
+
+                var @bytes = Encoding.GetEncoding("UTF-8").GetBytes(data);
+                stream.Write(@bytes, 0, @bytes.Length);
+
+                return;
+            }
+
+            File.WriteAllText(GetRecentServersFileName(Network), data);
+        }
+
+        /// <summary>
+        /// Watches a wallet for new transactions
+        /// </summary>
+        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
+        public async Task WatchWallet(IWallet wallet, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(async o =>
+            {
+                OnWatchStarted?.Invoke(this, null);
+
+                // This makes the task run but not wait, essentially creating
+                // background tasks
+                foreach (var acc in wallet.Accounts) _ = WatchAccount(acc, ct);
+
+                // Watch should never finish. Should be cancelled with the ct instead
+                // could implement an infinite loop if needed like
+                while (true) await Task.Delay(3000); // Every 3 seconds do loop. to avoid CPU usage
+            }, TaskCreationOptions.LongRunning, ct);
+        }
+
+        /// <summary>
+        /// Watches an account for new transactions
+        /// </summary>
+        /// <param name="acc">An <see cref="IAccount"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAccount(IAccount acc, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(o =>
+            {
+                var changeAddresses = acc.GetChangeAddressesToWatch();
+                var receiveAddresses = acc.GetReceiveAddressesToWatch();
+
+                foreach (var addr in changeAddresses)
+                    _ = WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+
+                foreach (var addr in receiveAddresses)
+                    _ = WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+
+            }, TaskCreationOptions.AttachedToParent, ct);
+        }
+
+        /// <summary>
+        /// Watches an address
+        /// </summary>
+        public async Task WatchAddress(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+
+            await Task.Factory.StartNew(async o =>
+            {
+                await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+                {
+                    var status = Deserialize<ResultAsString>(str);
+
+                    if (string.IsNullOrEmpty(status.Result)) return;
+
+                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                    foreach (var unspentResult in unspent.Result)
+                    {
+                        var txHash = unspentResult.TxHash;
+                        var height = unspentResult.Height;
+
+                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                        var blkChainTxGetVerbose = await ElectrumClient.BlockchainTransactionGetVerbose(txHash);
+
+                        var txHex = blkChainTxGetVerbose.Result.Hex;
+                        var time = blkChainTxGetVerbose.Result.Time;
+                        var confirmations = blkChainTxGetVerbose.Result.Confirmations;
+                        var blockhash = blkChainTxGetVerbose.Result.Blockhash;
+
+                        // Tx is new
+                        if (currentTx is null)
+                        {
+                            var tx = Tx.CreateFromHex(
+                                txHex, acc, Network, receiveAddresses, changeAddresses
+                            );
+
+                            acc.AddTx(tx);
+                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                            return;
+                        }
+
+                        // A potential update if tx heights are different
+                        if (currentTx.BlockHeight != height)
+                        {
+                            var tx = Tx.CreateFromHex(
+                                txHex, acc, Network, receiveAddresses, changeAddresses
+                            );
+
+                            acc.UpdateTx(tx);
+
+                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                            // Here for safety, at any time somebody can add code to this
+                            return;
+                        }
+                    }
+                });
+            }, TaskCreationOptions.AttachedToParent, ct);
+        }
+
+        /// <summary>
+        /// Watches an address for new transactions
+        /// </summary>
+        /// <param name="address">An <see cref="BitcoinAddress"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAddress(IAccount account, CancellationToken ct)
+        {
+            await Task.Delay(1);
+        }
+
+        /// <summary>
+        /// Sync wallet
+        /// </summary>
+        /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
+        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task SyncWallet(IWallet wallet, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await Task.Factory.StartNew(async o =>
+            {
+                OnSyncStarted?.Invoke(this, null);
+
+                foreach (var acc in wallet.Accounts)
+                {
+                    await SyncAccount(acc, ct);
+                }
+
+                OnSyncFinished?.Invoke(this, null);
+            }, TaskCreationOptions.LongRunning, ct);
+        }
+
+        /// <summary>
+        /// Syncs an account of the wallet
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> to sync/param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
+        /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
+        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        {
+            var receiveAddressesIndex = acc.GetExternalLastIndex();
+            var changeAddressesIndex = acc.GetInternalLastIndex();
+
+            var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+            var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
+
+            if (syncExternal)
+            {
+                foreach (var addr in receiveAddresses)
+                {
+                    if (ct.IsCancellationRequested) return;
+
+                    await Task.Factory.StartNew(async o =>
+                    {
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }, TaskCreationOptions.AttachedToParent, ct);
+                }
+
+                acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
+            }
+
+            if (syncInternal)
+            {
+                foreach (var addr in changeAddresses)
+                {
+                    if (ct.IsCancellationRequested) return;
+
+                    await Task.Factory.StartNew(async o =>
+                    {
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }, TaskCreationOptions.AttachedToParent, ct);
+                }
+
+                acc.InternalAddressesIndex = acc.GetInternalLastIndex();
+            }
+
+            // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
+            if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
+            {
+                // This is the default but we wanna be explicit
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
+
+                return;
+            }
+
+            if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            {
+                await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
+
+                return;
+            }
+
+            if (acc.GetInternalLastIndex() > changeAddressesIndex)
+            {
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
+
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Syncs an address as a children task from the main SyncWallet
+        /// </summary>
+        /// <param name="acc">The <see cref="IAccount"/> that address comes from</param>
+        /// <param name="addr">The <see cref="BitcoinAddress"/> to sync</param>
+        /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
+        /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
+        /// <param name="ct">A <see cref="CancellationToken"/></param>
+        public async Task SyncAddress(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            var isReceive = receiveAddresses.Contains(addr);
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+            var addrLabel = isReceive ? "External" : "Internal";
+
+            Debug.WriteLine(
+                $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
+            );
+
+            // Get history
+            try
+            {
+                await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(async result =>
+                {
+                    await InsertTransactionsFromHistory(
+                        acc,
+                        addr,
+                        receiveAddresses,
+                        changeAddresses,
+                        result.Result,
+                        ct
+                    );
+                });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e}");
+
+                SetNewConnectedServer();
+
+                await SyncAddress(
+                    acc,
+                    addr,
+                    receiveAddresses,
+                    changeAddresses,
+                    ct
+                );
+
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Broadcast Bitcoin Transaction
+        /// </summary>
+        /// <param name="transaction">A signed<see cref="Transaction"/> to be broadcasted</param>
+        public async Task<bool> BroadcastTransaction(Transaction transaction)
+        {
+            var txHex = transaction.ToHex();
+
+            try
+            {
+                var broadcast = await ElectrumClient.BlockchainTransactionBroadcast(txHex);
+
+                if (broadcast.Result != transaction.GetHash().ToString())
+                {
+                    Debug.WriteLine("[BroadcastTransaction]  Error could not broadcast");
+
+                    return false;
+                }
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[BroadcastTransaction]  Error could not broadcast: {err.Message}");
+
+                return false;
+            }
+
+
+            return true;
+        }
+
+        /// <summary>
+        /// Insert transactions from a result of the electrum network
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
+        /// <param name="address">a <see cref="BitcoinAddress"/> that found this tx</param>
+        /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
+        /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
+        /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
+        async Task InsertTransactionsFromHistory(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                BlockchainScriptHashGetHistoryResult
+                result,
+                CancellationToken ct)
+        {
+            foreach (var r in result.Result)
+            {
+                if (ct.IsCancellationRequested) return;
+
+#if DEBUG
+                // Upps... This is what happens when you test some bitcoin wallets,
+                // this happened because I sent to a change address so the software thinks is a receive...
+                // now I don't have a way to tell if the tx is receive or send...
+                if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
+                    continue;
+#endif
+                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+
+                BlockchainTransactionGetResult txRes;
+                try
+                {
+                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                }
+                catch (ElectrumException e)
+                {
+                    Console.WriteLine(e.Message);
+
+                    SetNewConnectedServer();
+
+                    await InsertTransactionsFromHistory(acc, addr, receiveAddresses, changeAddresses, result, ct);
+                    return;
+                }
+
+                var tx = Tx.CreateFromHex(
+                    txRes.Result,
+                    acc,
+                    Network,
+                    receiveAddresses,
+                    changeAddresses
+                );
+
+                var txAddresses = Transaction.Parse(
+                    tx.Hex,
+                    Network
+                ).Outputs.Select(
+                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+                );
+
+                foreach (var txAddr in txAddresses)
+                {
+                    if (receiveAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedExternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedExternalAddresses.Add(txAddr);
+                    }
+
+                    if (changeAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedInternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedInternalAddresses.Add(txAddr);
+                    }
+                }
+
+                if (acc.TxIds.Contains(tx.Id.ToString()))
+                {
+                    acc.UpdateTx(tx);
+
+                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+                else
+                {
+                    acc.AddTx(tx);
+
+                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Loads the pool from the filesystem
+        /// </summary>
+        /// <param name="network">a <see cref="Network"/> to load files from</param>
+        /// <returns>A new <see cref="ElectrumPool"/></returns>
+        public static ElectrumPool Load(Network network = null, Assembly assembly = null)
+        {
+            network ??= Network.Main;
+
+            ElectrumPool pool;
+
+            Dictionary<string, Dictionary<string, string>> allServersData;
+
+            List<Server> allServers;
+            List<Server> recentServers;
+
+            string allServersFileName;
+            string recentServersFileName;
+            string json;
+
+            if (assembly != null)
+            {
+                allServersFileName = $"Resources.Electrum.servers.{network.Name.ToLower()}.json";
+                recentServersFileName = $"Resources.Electrum.servers.recent_{network.Name.ToLower()}.json";
+
+                using var allServersStream = assembly.GetManifestResourceStream(allServersFileName);
+                using var recentServersStream = assembly.GetManifestResourceStream(recentServersFileName);
+
+                using var allServersReader = new StreamReader(allServersStream);
+                json = allServersReader.ReadToEnd();
+                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
+
+                if (recentServersStream.Length > 0)
+                {
+                    using var recentServersReader = new StreamReader(recentServersStream);
+                    json = allServersReader.ReadToEnd();
+                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
+                }
+                else
+                {
+                    recentServers = new List<Server> { };
+                }
+            }
+            else
+            {
+                allServersFileName = GetAllServersFileName(network);
+                json = File.ReadAllText(allServersFileName);
+                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
+
+                recentServersFileName = GetRecentServersFileName(network);
+
+                if (File.Exists(recentServersFileName))
+                {
+                    json = File.ReadAllText(recentServersFileName);
+                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
+                }
+                else
+                {
+                    recentServers = new List<Server> { };
+                }
+            }
+
+            pool = new ElectrumPool(allServers.ToArray().Shuffle(), network);
+
+            if (recentServers.Count > 0)
+            {
+                var recentServersWithClients = recentServers.Select(s =>
+                {
+                    s.ElectrumClient = new ElectrumClient(new JsonRpcClient(s));
+
+                    return s;
+                }).ToList();
+
+                pool.ConnectedServers = recentServersWithClients;
+                pool.CurrentServer = recentServersWithClients[0];
+            }
+
+            return pool;
+        }
+
+        static string GetRecentServersFileName(Network network)
+        {
+            return GetLocalConfigFilePath("Electrum", "servers", $"recent_servers_{network.Name.ToLower()}.json");
+        }
+
+        static string GetAllServersFileName(Network network)
+        {
+            return GetLocalConfigFilePath("Electrum", "servers", $"{network.Name.ToLower()}.json");
+        }
+
+        /// <summary>
+        /// Gets a list of recently conneted servers, these would be ready to connect
+        /// </summary>
+        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
+        public static List<Server> GetRecentServers(Network network = null)
+        {
+            network ??= Network.Main;
+
+            List<Server> recentServers = new List<Server>();
+            var fileName = Path.GetFullPath(GetRecentServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return recentServers;
+
+            var content = File.ReadAllText(fileName);
+
+            if (!string.IsNullOrEmpty(content))
+                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
+
+            return recentServers;
+        }
+
+        /// <summary>
+        /// Overwrites recently connected servers, as intended for startup.
+        /// </summary>
+        public static void CleanRecentlyConnectedServersFile(Network network = null)
+        {
+            network ??= Network.Main;
+
+            var fileName = Path.GetFullPath(GetRecentServersFileName(network));
+
+            if (!File.Exists(fileName))
+                return;
+
+            File.WriteAllText(fileName, "");
+        }
+
+        public static string GetLocalConfigFilePath(params string[] fileNames)
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(
+                    Assembly.GetCallingAssembly().Location
+                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            );
+        }
+
+        public void HandleConnectedServers(object sender, EventArgs e)
+        {
+            var server = (Server)sender;
+
+            if (server.CancellationToken.IsCancellationRequested)
+            {
+                Debug.WriteLine("Cancellation requested, NOT HANDLING!");
+
+                return;
+            }
+
+            lock (@lock)
+            {
+                if (ConnectedServers.ContainsServer(server))
+                {
+                    Debug.WriteLine($"Already connected to {server.Domain}:{server.PrivatePort}");
+
+                    return;
+                }
+
+                ConnectedServers.Insert(0, server);
+
+                Save();
+
+                if (CurrentServer is null) CurrentServer = server;
+
+                // If we have enough connected servers we stop looking for peers
+                if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+            }
+
+            Console.WriteLine($"Connected to: {server.Domain}:{server.PrivatePort}");
+
+            Task<Server[]> t = server.FindPeers();
+            t.Wait();
+
+            if (AllServers.ContainsAllServers(t.Result)) return;
+            lock (@lock) if (ConnectedServers.ContainsAllServers(t.Result)) return;
+            if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+
+            Task.Factory.StartNew(() =>
+            {
+                foreach (var s in t.Result)
+                {
+                    if (AllServers.ContainsServer(s)) continue;
+                    lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        s.ConnectAsync().Wait();
+
+                        lock (@lock) if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+
+                        HandleConnectedServers(s, null);
+                    }, TaskCreationOptions.AttachedToParent);
+                }
+            }, TaskCreationOptions.AttachedToParent).Wait();
+        }
+    }
+}

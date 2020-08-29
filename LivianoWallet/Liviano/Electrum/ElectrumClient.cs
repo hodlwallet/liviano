@@ -21,35 +21,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Threading;
-using System.IO;
 using System.Diagnostics;
-using System.Reflection;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-using NBitcoin;
-
-using Liviano.Models;
-using Liviano.Extensions;
 using Liviano.Exceptions;
 
 namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
-        public static string CLIENT_NAME = $"{Liviano.Version.ElectrumUserAgent}";
+        public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
-
-        const int NUMBER_OF_RECENT_SERVERS = 1;
-
-        JsonRpcClient _JsonRpcClient;
+        readonly JsonRpcClient jsonRpcClient;
 
         public class Request
         {
@@ -80,6 +69,76 @@ namespace Liviano.Electrum
         {
             public int Id { get; set; }
             public string[] Result { get; set; }
+        }
+
+        public class ServerPeersSubscribeResult : BaseResult
+        {
+            public int Id { get; set; }
+            public List<List<object>> Result { get; set; }
+        }
+
+        public class ServerDonationAddressResult : ResultAsString { }
+
+        public class ServerPingResult : BaseResult
+        {
+            public int Id { get; set; }
+            public object Result { get; set; } = new object();
+        }
+
+        public class BlockchainBlockHeaderResult : BaseResult
+        {
+            public int Id { get; set; }
+            public ResultAsString Result { get; set; }
+        }
+
+        public class BlockchainBlockHeadersInnerResult : BaseResult
+        {
+            public int Count { get; set; }
+            public string Hex { get; set; }
+            public int Max { get; set; }
+        }
+
+        public class BlockchainBlockHeadersResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeadersInnerResult Result { get; set; }
+        }
+
+        public class BlockchainBlockHeadersWithCheckpointHeightInnerResult : BlockchainBlockHeadersInnerResult
+        {
+            public string[] Branch { get; set; }
+            public string Root { get; set; }
+        }
+
+        public class BlockchainBlockHeadersWithCheckpointHeightResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeadersWithCheckpointHeightInnerResult Result { get; set; }
+        }
+
+        public class BlockchainBlockHeaderWithCheckpointHeightInnerResult : BaseResult
+        {
+            public string Header { get; set; }
+            public string[] Branch { get; set; }
+            public string Root { get; set; }
+        }
+
+        public class BlockchainBlockHeaderWithCheckpointHeightResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainBlockHeaderWithCheckpointHeightInnerResult Result { get; set; }
+        }
+
+        public class BlockchainHeadersSubscribeInnerResult : BaseResult
+        {
+            public string Hex { get; set; }
+            public int Height { get; set; }
+        }
+
+        public class BlockchainHeadersSubscribeResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainHeadersSubscribeInnerResult Result { get; set; }
         }
 
         public class BlockchainScriptHashGetBalanceInnerResult : BaseResult
@@ -123,6 +182,63 @@ namespace Liviano.Electrum
 
         public class BlockchainTransactionGetResult : ResultAsString { }
 
+        public class BlockchainTransactionGetVerboseInnerResult : BaseResult
+        {
+            public string Txid { get; set; }
+            public string Hash { get; set; }
+            public int Version { get; set; }
+            public int Size { get; set; }
+            public int Vsize { get; set; }
+            public int Weight { get; set; }
+            public int Locktime { get; set; }
+            public BlockchainVinResult[] Vin { get; set; }
+            public BlockchainVoutResult[] Vout { get; set; }
+            public string Hex { get; set; }
+            public string Blockhash { get; set; }
+            public int Confirmations { get; set; }
+            public int Time { get; set; }
+            public int Blocktime { get; set; }
+        }
+
+        public class BlockchainTransactionGetVerboseResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionGetVerboseInnerResult Result { get; set; }
+        }
+
+        public class BlockchainTransactionGetMerkleInnerResult : BaseResult
+        {
+            public int BlockHeight { get; set; }
+            public string[] Merkle { get; set; }
+            public int Pos { get; set; }
+        }
+
+        public class BlockchainTransactionGetMerkleResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionGetMerkleInnerResult Result { get; set; }
+        }
+
+        public class BlockchainTransactionIdFromPosResult : ResultAsString { }
+
+        public class BlockchainTransactionIdFromPosMerkleInnerResult : BaseResult
+        {
+            public string TxHash { get; set; }
+            public string[] Merkle { get; set; }
+        }
+
+        public class BlockchainTransactionIdFromPosMerkleResult : BaseResult
+        {
+            public int Id { get; set; }
+            public BlockchainTransactionIdFromPosMerkleInnerResult Result { get; set; }
+        }
+
+        public class MempoolGetFeeHistogramResult : BaseResult
+        {
+            public int Id { get; set; }
+            public int[][] Result { get; set; }
+        }
+
         public class BlockchainScriptSigResult : BaseResult
         {
             public string Asm { get; set; }
@@ -133,7 +249,7 @@ namespace Liviano.Electrum
         {
             public string Asm { get; set; }
             public string Hex { get; set; }
-            public int Reqsigs { get; set; }
+            public int ReqSigs { get; set; }
             public string Type { get; set; }
             public string[] Addresses { get; set; }
         }
@@ -154,25 +270,13 @@ namespace Liviano.Electrum
             public BlockchainScriptPubKeyResult ScriptPubKey { get; set; }
         }
 
-        public class BlockchainTransactionGetVerboseResult : BaseResult
+        public class BlockchainEstimateFeeResult : BaseResult
         {
-            public string Txid { get; set; }
-            public string Hash { get; set; }
-            public int Version { get; set; }
-            public int Size { get; set; }
-            public int Vsize { get; set; }
-            public int Weight { get; set; }
-            public int Locktime { get; set; }
-            public BlockchainVinResult[] Vin { get; set; }
-            public BlockchainVoutResult[] Vout { get; set; }
-            public string Hex { get; set; }
-            public string Blockhash { get; set; }
-            public int Confirmations { get; set; }
-            public int Time { get; set; }
-            public int Blocktime { get; set; }
+            public int Id { get; set; }
+            public double Result { get; set; }
         }
 
-        public class BlockchainEstimateFeeResult : BaseResult
+        public class BlockchainRelayFeeResult : BaseResult
         {
             public int Id { get; set; }
             public double Result { get; set; }
@@ -192,15 +296,15 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
-        public ElectrumClient(List<Server> servers)
+        public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
-            _JsonRpcClient = new JsonRpcClient(servers);
+            this.jsonRpcClient = jsonRpcClient;
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
         {
-            Regex pascalToUnderScoreRegex = new Regex(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
-            string pascalToUnderScoreReplacementExpression = "_$1$2";
+            readonly Regex pascalToUnderScoreRegex = new Regex(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
+            readonly string pascalToUnderScoreReplacementExpression = "_$1$2";
 
             protected override string ResolvePropertyName(string propertyName)
             {
@@ -220,11 +324,11 @@ namespace Liviano.Electrum
 
         async Task<T> RequestInternal<T>(string jsonRequest)
         {
-            var rawResponse = await _JsonRpcClient.Request(jsonRequest);
+            var rawResponse = await jsonRpcClient.Request(jsonRequest);
 
             if (string.IsNullOrEmpty(rawResponse))
             {
-                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", _JsonRpcClient.Host, jsonRequest));
+                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", jsonRpcClient.Host, jsonRequest));
             }
 
             try
@@ -233,6 +337,8 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"There's an error??? {ex.Message}");
+
                 throw new ElectrumException(ex.Message);
             }
         }
@@ -272,12 +378,52 @@ namespace Liviano.Electrum
             return deserializedValue;
         }
 
+        public async Task<BlockchainBlockHeaderResult> BlockchainBlockHeader(int height)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, 0 } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeaderResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeaderWithCheckpointHeightResult> BlockchainBlockHeaderWithCheckpointHeight(int height, int cpHeight)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, cpHeight } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeaderWithCheckpointHeightResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeadersResult> BlockchainBlockHeaders(int height, int count = 0)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, 0 } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeadersResult>(json);
+        }
+
+        public async Task<BlockchainBlockHeadersWithCheckpointHeightResult> BlockchainBlockHeaders(int height, int count, int cpHeight)
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, cpHeight } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainBlockHeadersWithCheckpointHeightResult>(json);
+        }
+
         public async Task<BlockchainScriptHashGetBalanceResult> BlockchainScriptHashGetBalance(string scriptHash)
         {
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_balance", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashGetBalanceResult>(json);
+        }
+
+        public async Task<ServerPeersSubscribeResult> ServerPeersSubscribe()
+        {
+            var obj = new Request { Id = 0, Method = "server.peers.subscribe", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<ServerPeersSubscribeResult>(json);
         }
 
         public async Task<string> ServerBanner()
@@ -290,14 +436,17 @@ namespace Liviano.Electrum
             return resObj.Result;
         }
 
-        public async Task<object> ServerPing()
+        public async Task<ServerPingResult> ServerPing()
         {
             var obj = new Request { Id = 0, Method = "server.ping", Params = new List<string> { } };
             var json = Serialize(obj);
 
-            BannerResult resObj = await RequestInternal<BannerResult>(json);
+            return await RequestInternal<ServerPingResult>(json);
+        }
 
-            return resObj.Result;
+        public async Task<System.Version> ServerVersion()
+        {
+            return await ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
         }
 
         public async Task<System.Version> ServerVersion(string clientName, System.Version protocolVersion)
@@ -310,6 +459,14 @@ namespace Liviano.Electrum
             return CreateVersion(resObj.Result[1]);
         }
 
+        public async Task<ServerDonationAddressResult> ServerDonationAddress()
+        {
+            var obj = new Request { Id = 0, Method = "server.donation_address", Params = new List<string> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<ServerDonationAddressResult>(json);
+        }
+
         public async Task<BlockchainScriptHashListUnspentResult> BlockchainScriptHashListUnspent(string scriptHash)
         {
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
@@ -320,6 +477,8 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashGetHistoryResult> BlockchainScriptHashGetHistory(string scriptHash)
         {
+            Debug.WriteLine($"Trying to call history for {scriptHash}");
+
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
@@ -331,7 +490,7 @@ namespace Liviano.Electrum
             var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            await _JsonRpcClient.Subscribe(json, (res) =>
+            await jsonRpcClient.Subscribe(json, (res) =>
             {
                 foundTxCallback(res);
             });
@@ -357,12 +516,59 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
         }
 
+        public async Task<BlockchainTransactionGetMerkleResult> BlockchainTransactionGetMerkle(string txhash, int height)
+        {
+            List<object> @params = new List<object> { txhash, height };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionGetMerkleResult>(json);
+        }
+
+        public async Task<BlockchainTransactionIdFromPosResult> BlockchainTransactionIdFromPos(int height, int txPos)
+        {
+            List<object> @params = new List<object> { height, txPos, false };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionIdFromPosResult>(json);
+        }
+
+        public async Task<BlockchainTransactionIdFromPosMerkleResult> BlockchainTransactionIdFromPosMerkle(int height, int txPos)
+        {
+            List<object> @params = new List<object> { height, txPos, true };
+
+            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainTransactionIdFromPosMerkleResult>(json);
+        }
+
+        public async Task<MempoolGetFeeHistogramResult> MempoolGetFeeHistogram()
+        {
+            List<object> @params = new List<object> { };
+            var obj = new Request { Id = 0, Method = "mempool.get_fee_histogram", Params = @params };
+            var json = Serialize(obj);
+
+            return await RequestInternal<MempoolGetFeeHistogramResult>(json);
+        }
+
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)
         {
             var obj = new Request { Id = 0, Method = "blockchain.estimatefee", Params = new List<int> { numBlocksTarget } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainEstimateFeeResult>(json);
+        }
+
+        public async Task<BlockchainRelayFeeResult> BlockchainRelayFee()
+        {
+            var obj = new Request { Id = 0, Method = "blockchain.relayfee", Params = new List<int> { } };
+            var json = Serialize(obj);
+
+            return await RequestInternal<BlockchainRelayFeeResult>(json);
         }
 
         // From electrumx.readthedocs.io:
@@ -375,204 +581,6 @@ namespace Liviano.Electrum
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionBroadcastResult>(json);
-        }
-
-        /// <summary>
-        /// Gets a list of recently conneted servers, these would be ready to connect
-        /// </summary>
-        /// <returns>a <see cref="List{Server}"/> of the recent servers</returns>
-        public static List<Server> GetRecentlyConnectedServers(Network network = null)
-        {
-            network = network ?? Network.Main;
-
-            List<Server> recentServers = new List<Server>();
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return recentServers;
-
-            var content = File.ReadAllText(fileName);
-
-            if (!string.IsNullOrEmpty(content))
-                recentServers.AddRange(JsonConvert.DeserializeObject<Server[]>(content));
-
-            return recentServers;
-        }
-
-        /// <summary>
-        /// Overwrites recently connected servers, as intended for startup.
-        /// </summary>
-        public static void OverwriteRecentlyConnectedServers(Network network = null)
-        {
-            network = network ?? Network.Main;
-
-            var fileName = Path.GetFullPath(GetRecentlyConnectedServersFileName(network));
-
-            if (!File.Exists(fileName))
-                return;
-
-            File.WriteAllText(fileName, "");
-        }
-
-        /// <summary>
-        /// Creates the file of the recently connected,
-        /// this functions picks up to <see cref="NUMBER_OF_RECENT_SERVERS"/> servers at the time, and try to send
-        /// a server.version() to the electrum server, if we get 1.4 then we're good,
-        /// the server get added, this all happens and we wait for it to finish,
-        /// then we get out once we get <see cref="NUMBER_OF_RECENT_SERVERS"/> servers
-        /// </summary>
-        /// <param name="serverContent">Content of the Electrum servers list</param>
-        /// <param name="network">Bitcoin network to connect to, <see cref="Network.Main"/> is the default</param>
-        public static void PopulateRecentlyConnectedServers(Stream serverContent, Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            List<Server> connectedServers = new List<Server>();
-            string json;
-
-            // Get network list of servers
-            string serversFileName = GetLocalConfigFilePath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
-
-            if (!File.Exists(serversFileName))
-            {
-                try
-                {
-                    using (var reader = new StreamReader(serverContent))
-                    {
-                        json = reader.ReadToEnd();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new ArgumentException($"Invalid network: {network.Name}\n{ex.Message}");
-                }
-            }
-            else
-            {
-                json = File.ReadAllText(serversFileName);
-            }
-
-            // Get the servers list from the file.
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
-
-            // Able to pop servers so we can check their version
-            var popableServers = new List<Server>();
-            popableServers.AddRange(servers);
-
-            // We need to get a ranom server from the list, this will be the index
-            var rng = new Random();
-
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-            var cts = new CancellationTokenSource();
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-
-            // Lock for the servers collection
-            var _lock = new object();
-            while (popableServers.Count > 0)
-            {
-                var tasks = new List<Task>();
-
-                // pick 5 randos
-                int count = 0;
-                var randomServers = new List<Server>();
-                while (count < NUMBER_OF_RECENT_SERVERS) // Remove this amount from the the popable
-                {
-                    if (popableServers.Count == 0) break;
-
-                    var i = rng.Next(popableServers.Count);
-                    var s = popableServers[i];
-
-                    if (!randomServers.Contains(s))
-                    {
-                        randomServers.Add(s);
-                        popableServers.Remove(s);
-                    }
-                    count += 1;
-                }
-
-                // Get out if we don't have any serves to process anymore
-                if (popableServers.Count == 0 && randomServers.Count == 0)
-                    break;
-
-                for (int i = 0, serversCount = randomServers.Count; i < serversCount; i++)
-                {
-                    var s = randomServers[i];
-
-                    // We create a task, for each server that checks for the version
-                    var t = Task.Factory.StartNew(async (state) =>
-                    {
-                        var connServers = (List<Server>)state;
-
-                        if (cts.IsCancellationRequested) return;
-
-                        var electrum = new ElectrumClient(new List<Server>() { s });
-
-                        try
-                        {
-                            var res = await electrum.ServerVersion(CLIENT_NAME, REQUESTED_VERSION);
-
-                            Debug.WriteLine(
-                            "Connected to: {0}:{1} => {2}",
-                            s.Domain,
-                            s.PrivatePort,
-                            res
-                            );
-
-                            lock (_lock) connectedServers.Add(s);
-
-                            // When we get NUMBER_OF_RECENT_SERVERS we get out
-                            if (connServers.Count >= NUMBER_OF_RECENT_SERVERS) cts.Cancel();
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"There was an issue with requesting an electrum server version: {ex.Message}");
-                        }
-                    }, connectedServers);
-
-                    tasks.Add(t);
-                }
-
-                // Executute (usually) NUMBER_OF_RECENT_SERVERS tasks...
-                Task.WaitAll(tasks.ToArray());
-
-                // Get out once we got enough
-                if (connectedServers.Count > NUMBER_OF_RECENT_SERVERS)
-                    break;
-            }
-
-            // Sadly, none connected...
-            if (connectedServers.Count == 0)
-            {
-                Debug.WriteLine("Cound not connect to any server...");
-
-                return;
-            }
-
-            // Show warning over connected to less than the prefered amount
-            if (connectedServers.Count < NUMBER_OF_RECENT_SERVERS)
-                Debug.WriteLine("Conneted to too few servers {0}", connectedServers.Count);
-
-
-            // Save our file now.
-            lock (_lock)
-                File.WriteAllText(
-                    GetRecentlyConnectedServersFileName(network),
-                    JsonConvert.SerializeObject(connectedServers, Formatting.Indented)
-                );
-        }
-
-        public static string GetLocalConfigFilePath(params string[] fileNames)
-        {
-            return Path.Combine(
-                Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
-                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
-            );
         }
 
         System.Version CreateVersion(string versionStr)
@@ -592,11 +600,6 @@ namespace Liviano.Electrum
             {
                 throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
             }
-        }
-
-        static string GetRecentlyConnectedServersFileName(Network network)
-        {
-            return GetLocalConfigFilePath($"recent_servers_{network.Name.ToLower()}.json");
         }
     }
 }

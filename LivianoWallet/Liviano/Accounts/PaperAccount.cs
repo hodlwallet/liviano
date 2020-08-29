@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,6 @@ using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using NBitcoin.OpenAsset;
 
 namespace Liviano.Accounts
 {
@@ -62,10 +60,6 @@ namespace Liviano.Accounts
                 _GapLimit = value;
             }
         }
-
-        public string StartHex { get; set; }
-
-        public string EndHex { get; set; }
 
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
@@ -101,15 +95,11 @@ namespace Liviano.Accounts
 
         public int ExternalAddressesCount
         {
-            get => 0;
+            get => 1;
             set { }
         }
 
-        public int Index
-        {
-            get => 0;
-            set { }
-        }
+        public int Index { get; set; }
 
         public IWallet Wallet { get; set; }
 
@@ -118,13 +108,10 @@ namespace Liviano.Accounts
         public string ExtendedPrivKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
+        public int InternalAddressesIndex { get; set; }
+        public int ExternalAddressesIndex { get; set; }
 
-        public event EventHandler<Tx> OnNewSpendingTransaction;
-        public event EventHandler<Tx> OnUpdateSpendingTransaction;
-        public event EventHandler<Tx> OnNewTransaction;
-        public event EventHandler<Tx> OnUpdateTransaction;
-
-        public PaperAccount(string name, string wif = null, Network network = null)
+        public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
             Guard.NotNull(name, nameof(name));
 
@@ -136,22 +123,26 @@ namespace Liviano.Accounts
             UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
             UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
 
+            Index = index;
+
             Initialize(name, scriptPubKeyType, wif, network);
         }
 
-        public PaperAccount(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null)
+        public PaperAccount(string name, ScriptPubKeyType scriptPubKeyType, string wif = null, Network network = null, int index = 0)
         {
+            Index = index;
+
             Initialize(name, scriptPubKeyType, wif, network);
         }
 
         public BitcoinAddress GetChangeAddress()
         {
-            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
         public BitcoinAddress[] GetChangeAddress(int n)
         {
-            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into anothen account!");
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
         public BitcoinAddress GetReceiveAddress()
@@ -166,7 +157,17 @@ namespace Liviano.Accounts
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
-        public static PaperAccount Create(string name, (string, string) colors, object options)
+        public BitcoinAddress GetReceiveAddressAtIndex(int i)
+        {
+            throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
+        }
+
+        public BitcoinAddress GetChangeAddressAtIndex(int i)
+        {
+            throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
+        }
+
+        public static PaperAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();
 
@@ -184,7 +185,7 @@ namespace Liviano.Accounts
                 scriptPubKeyType,
                 wif,
                 network
-            ) { StartHex = colors.Item1, EndHex = colors.Item2 };
+            );
 
             return account;
         }
@@ -274,6 +275,31 @@ namespace Liviano.Accounts
             }
 
             return received - sent;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public int GetExternalLastIndex()
+        {
+            return 0;
+        }
+
+        public int GetInternalLastIndex()
+        {
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
+        }
+
+        public BitcoinAddress[] GetReceiveAddressesToWatch()
+        {
+            return new BitcoinAddress[] { GetReceiveAddress() };
+        }
+
+        public BitcoinAddress[] GetChangeAddressesToWatch()
+        {
+            throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
     }
 }

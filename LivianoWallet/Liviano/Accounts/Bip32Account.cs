@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,14 +45,14 @@ namespace Liviano.Accounts
         {
             Id = Guid.NewGuid().ToString();
 
-            TxIds = TxIds ?? new List<string>();
-            Txs = Txs ?? new List<Tx>();
+            TxIds ??= new List<string>();
+            Txs ??= new List<Tx>();
 
             InternalAddressesCount = 0;
             ExternalAddressesCount = 0;
 
-            UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
-            UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
+            UsedExternalAddresses ??= new List<BitcoinAddress>();
+            UsedInternalAddresses ??= new List<BitcoinAddress>();
 
             Index = index;
             HdPath = string.Format(HdPathFormat, Index);
@@ -73,13 +73,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
-            {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, ExternalAddressesCount, false);
-
-                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
-
-                ExternalAddressesCount++;
-            }
+                addresses.Add(GetReceiveAddress());
 
             return addresses.ToArray();
         }
@@ -99,14 +93,57 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
+                addresses.Add(GetChangeAddress());
+
+            return addresses.ToArray();
+        }
+
+        public override BitcoinAddress GetReceiveAddressAtIndex(int i)
+        {
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, false);
+            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+            return address;
+        }
+
+        public override BitcoinAddress GetChangeAddressAtIndex(int i)
+        {
+            var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+            return address;
+        }
+
+        public override BitcoinAddress[] GetReceiveAddressesToWatch()
+        {
+            var addresses = new List<BitcoinAddress> { };
+
+            var externalMaxIndex = ExternalAddressesIndex + GapLimit;
+            
+            for (int i = 0; i < externalMaxIndex; i++)
             {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, InternalAddressesCount, true);
+                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, false);
+                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
 
-                addresses.Add(pubKey.GetAddress(ScriptPubKeyType, Network));
-
-                InternalAddressesCount++;
+                addresses.Add(addr);
             }
 
+            return addresses.ToArray();
+        }
+
+        public override BitcoinAddress[] GetChangeAddressesToWatch()
+        {
+            var addresses = new List<BitcoinAddress> { };
+
+            var internalMaxIndex = InternalAddressesIndex + GapLimit;
+            
+            for (int i = 0; i < internalMaxIndex; i++)
+            {
+                var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);
+                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+                addresses.Add(addr);
+            }
             return addresses.ToArray();
         }
 
@@ -160,7 +197,7 @@ namespace Liviano.Accounts
         /// </summary>
         /// <param name="name">Name of the account</param>
         /// <returns></returns>
-        public static Bip32Account Create(string name, (string, string) colors, object options)
+        public static Bip32Account Create(string name, object options)
         {
             Guard.NotEmpty(name, nameof(name));
 
@@ -169,30 +206,17 @@ namespace Liviano.Accounts
             var type = (string)kwargs.TryGet("Type");
             var network = (Network)kwargs.TryGet("Network");
             var wallet = (IWallet)kwargs.TryGet("Wallet");
+            var index = (int)kwargs.TryGet("Index");
 
-            Bip32Account account;
-            switch (type)
+            Bip32Account account = type switch
             {
-                case "bip44":
-                    account = new Bip44Account();
-                    break;
-                case "bip49":
-                    account = new Bip49Account();
-                    break;
-                case "bip84":
-                    account = new Bip84Account();
-                    break;
-                case "bip141":
-                    account = new Bip141Account();
-                    break;
-                case "wasabi":
-                    // This makes very little sence, but it's here just in case
-                    account = new WasabiAccount();
-                    break;
-                default:
-                    account = null;
-                    break;
-            }
+                "bip44" => new Bip44Account(),
+                "bip49" => new Bip49Account(),
+                "bip84" => new Bip84Account(index),
+                "bip141" => new Bip141Account(),
+                "wasabi" => new WasabiAccount(), // This makes very little sense, but it's here just in case
+                _ => null,
+            };
 
             if (account is null)
                 throw new ArgumentException($"Incorrect account type: {type}");
@@ -201,8 +225,7 @@ namespace Liviano.Accounts
             account.Wallet = wallet;
             account.WalletId = wallet.Id;
             account.Network = network;
-            account.StartHex = colors.Item1;
-            account.EndHex = colors.Item2;
+            account.Index = index;
 
             var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));
             var extPubKey = extPrivKey.Neuter();

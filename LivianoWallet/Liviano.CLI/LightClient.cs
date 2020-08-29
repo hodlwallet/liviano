@@ -1,405 +1,422 @@
+//
+// LightClient.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 HODL Wallet
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Reflection;
 
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using Serilog;
 
 using Liviano.Exceptions;
 using Liviano.Models;
-using Liviano.Utilities;
-using System.Threading;
 using Liviano.Interfaces;
-using Liviano.Electrum;
-
-using NBitcoin.DataEncoders;
-using System.Reflection;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
 using Liviano.Extensions;
-using Serilog.Core;
 using Liviano.Bips;
-using System.Data.Common;
 using Liviano.Storages;
-using System.Runtime.CompilerServices;
-using System.Runtime;
 
 namespace Liviano.CLI
 {
     public static class LightClient
     {
-        const int SEND_PAUSE = 30000;
+        const int PERIODIC_SAVE_DELAY = 30_000;
+        static readonly object @lock = new object();
+        static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        static Network network;
+        static IWallet wallet;
 
-        private static object _Lock = new object();
-
-        private static ILogger _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
-        private static Network _Network;
-
-        private static IWallet _Wallet;
-
-        private static async Task PeriodicSave()
+        /// <summary>
+        /// Saves the wallet every <see cref="PERIODIC_SAVE_DELAY"/>
+        /// </summary>
+        static async Task PeriodicSave()
         {
             while (true)
             {
                 await Save();
 
-                await Task.Delay(30_000);
+                await Task.Delay(PERIODIC_SAVE_DELAY);
             }
         }
 
-        private static async Task Save()
+        /// <summary>
+        /// Saves the wallet
+        /// </summary>
+        static async Task Save()
         {
             await Task.Factory.StartNew(() =>
             {
-                lock (_Lock)
+                lock (@lock)
                 {
-                    _Wallet.Storage.Save();
+                    wallet.Storage.Save();
                 }
             });
         }
 
-        private static void LoadWallet(Config config)
+        /// <summary>
+        /// Creates a new wallet from a mnemonic <see cref="string"/> on a <see cref="Network"/>
+        /// </summary>
+        public static Wallet NewWalletFromMnemonic(string mnemonic, Network network)
         {
-            _Network = Hd.GetNetwork(config.Network);
+            var wallet = new Wallet();
 
-            var storage = new FileSystemStorage(config.WalletId, _Network);
+            wallet.Init(mnemonic: mnemonic, network: network);
+
+            return wallet;
+        }
+
+        /// <summary>
+        /// Creates new wallet from a wordliest, count and <see cref="Network"/>
+        /// </summary>
+        /// <param name="wordlist">The mnemonic separated by spaces</param>
+        /// <param name="wordCount">The amount of words in the mnemonic</param>
+        /// <param name="network">The <see cref="Network"/> it's from</param>
+        public static Wallet NewWallet(string wordlist, int wordCount, Network network)
+        {
+            var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
+
+            return NewWalletFromMnemonic(mnemonic, network);
+        }
+
+        /// <summary>
+        /// Loads a wallet from a config
+        /// </summary>
+        /// <param name="config">a <see cref="Config"/> of the light wallet</param>
+        static void Load(Config config)
+        {
+            network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
-                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
 
                 throw new WalletException("Invalid wallet id");
             }
 
-            _Wallet = storage.Load();
+            wallet = storage.Load();
         }
 
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, string accountIndex = null)
+        public static async Task<(Transaction Transaction, string Error)> Send(
+                Config config,
+                string destinationAddress, double amount, int feeSatsPerByte,
+                string accountName = null, int accountIndex = -1, string password = "")
         {
-            LoadWallet(config);
+            network = Hd.GetNetwork(config.Network);
 
-            throw new NotImplementedException("TODO");
-        }
-
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
-        {
-            LoadWallet(config);
-
-            Transaction tx = null;
-            string error = "";
-            bool wasCreated = false;
-            bool wasSent = false;
-            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
-
-            try
-            {
-                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, _Wallet, account, _Network);
-                wasCreated = true;
-            }
-            catch (WalletException e)
-            {
-                _Logger.Error(e.ToString());
-
-                error = e.Message;
-                wasCreated = false;
-
-                return (wasCreated, wasSent, tx, error);
-            }
-
-            TransactionExtensions.VerifyTransaction(tx, _Network, out var errors);
-
-            if (errors.Any())
-            {
-                error = string.Join<string>(", ", errors.Select(o => o.Message));
-            }
-
-            if (wasCreated)
-            {
-                Thread.Sleep(SEND_PAUSE);
-
-                try
-                {
-                    var txHex = tx.ToHex();
-
-                    var electrumClient = new ElectrumClient(ElectrumClient.GetRecentlyConnectedServers());
-                    var broadcast = await electrumClient.BlockchainTransactionBroadcast(txHex);
-
-                    if (broadcast.Result != tx.GetHash().ToString())
-                    {
-                        throw new ElectrumException($"Transaction broadcast failed for tx: {txHex}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    _Logger.Error(e.ToString());
-
-                    error = e.Message;
-                    wasSent = false;
-
-                    return (wasCreated, wasSent, tx, error);
-                }
-
-                wasSent = true;
-            }
-
-            return (wasCreated, wasSent, tx, error);
-        }
-
-        public static Money AccountBalance(Config config, string accountName = null, string accountIndex = null)
-        {
-            LoadWallet(config);
-
-            throw new NotImplementedException("TODO");
-        }
-
-        public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
-        {
-            LoadWallet(config);
-
-            throw new NotImplementedException("TODO");
-        }
-
-        public static BitcoinAddress GetAddress(Config config, string password, string accountIndex = null, string accountName = null)
-        {
-            _Network = Hd.GetNetwork(config.Network);
-
-            var storage = new FileSystemStorage(config.WalletId, _Network);
+            var storage = new FileSystemStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
-                Console.WriteLine($"Wallet {config.WalletId} doesn't exists.");
+                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            wallet = storage.Load();
+            Transaction tx = null;
+            string error;
+
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
+
+            try
+            {
+                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, password);
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    return (tx, error);
+                }
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Send] Failed to create transcation: {err.Message}");
+
+                return (tx, "Failed to create transaction");
+            }
+
+            try
+            {
+                var res = await wallet.BroadcastTransaction(tx);
+
+                if (!res) return (tx, "Failed to broadcast transaction");
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Send] Failed to broadcast transcation: {err.Message}");
+
+                return (tx, "Failed to broadcast transaction");
+            }
+
+            return (tx, null);
+        }
+
+        /// <summary>
+        /// Gets accounts balance
+        /// </summary>
+        /// <returns>A <see cref="Money"/> with the balance in Bitcoin</returns>
+        /// <param name="config">Light client config</param>
+        /// <param name="accountName">Account name to check balance for<param>
+        /// <param name="accountIndex">Index of the account, 0 for first</param>
+        public static Money AccountBalance(Config config, string accountName = null, int accountIndex = -1)
+        {
+            Load(config);
+
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
+
+            try
+            {
+                return account.GetBalance();
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.WriteLine($"[AccountBalance] Error {e.Message}");
+
+                return 0L;
+            }
+        }
+
+        /// <summary>
+        /// Gets a dictionary of key <see cref="IAccount"/> and a <see cref="Money"/> as value from the <see cref="IWallet"/>
+        /// </summary>
+        /// <param name="config">Config of the light client<param>
+        public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
+        {
+            Load(config);
+
+            var res = new Dictionary<IAccount, Money> ();
+
+            foreach (var account in wallet.Accounts)
+            {
+                res[account] = account.GetBalance();
+            }
+
+            return res;
+        }
+
+        /// <summary>
+        /// Gets an address from a <see cref="Config"/> and a index
+        /// </summary>
+        /// <param name="config">Light client config</param>
+        /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
+        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
+        {
+            network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
 
                 return null;
             }
 
-            _Wallet = storage.Load();
+            wallet = storage.Load();
 
-            IAccount account;
-            if (accountName is null)
-            {
-                account = _Wallet.Accounts[int.Parse(accountIndex)];
-            }
-            else
-            {
-                account = _Wallet.Accounts.FirstOrDefault((i) => i.Name == accountName);
-            }
+            IAccount account = wallet.Accounts[accountIndex];
 
             if (account is null) return null;
 
-            return account.GetReceiveAddress();
+            var addr = account.GetReceiveAddress();
+
+            wallet.Storage.Save();
+
+            return addr;
         }
 
-        public static void CreateWallet(Config config, string password, string mnemonic)
+        /// <summary>
+        /// Gets a number of addresses in an array
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/></param>
+        /// <param name="addressAmount">Amount of addresses to generate</param>
+        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
         {
-            _Network = Hd.GetNetwork(config.Network);
+            network = Hd.GetNetwork(config.Network);
 
-            if (password == null)
-                password = "";
+            var storage = new FileSystemStorage(config.WalletId, network);
 
-            _Logger.Information("Creating wallet for file: {walletFileId} on {network}", config.WalletId, _Network.Name);
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
 
-            _Wallet = new Wallet { Id = config.WalletId };
+                return null;
+            }
 
-            _Wallet.Init(mnemonic, password, network: _Network);
+            wallet = storage.Load();
 
-            _Wallet.Storage.Save();
+            IAccount account = wallet.Accounts[accountIndex];
+
+            if (account is null) return null;
+
+            var addrs = account.GetReceiveAddress(addressAmount);
+
+            wallet.Storage.Save();
+
+            return addrs;
         }
 
+        /// <summary>
+        /// Resyncs a wallet from a config
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/> for the client</param>
+        public static void ReSync(Config config)
+        {
+            Load(config);
+
+            wallet.OnSyncStarted += (s, e) =>
+            {
+                logger.Information("Sync started!");
+            };
+
+            wallet.OnSyncFinished += (s, e) =>
+            {
+                logger.Information("Sync finished!");
+
+                // Print transactions
+                List<Tx> txs = new List<Tx> { };
+
+                foreach (var account in wallet.Accounts)
+                    foreach (var tx in account.Txs)
+                        txs.Add(tx);
+
+                if (txs.Count() == 0)
+                    Quit();
+                else
+                    logger.Information("Transactions:");
+
+                foreach (var tx in txs)
+                    logger.Information(
+                        $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
+                    );
+
+                Quit();
+            };
+
+            wallet.Resync();
+            _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
+        }
+
+        /// <summary>
+        /// Starts a wallet and waits for new txs
+        /// </summary>
+        /// <param name="config">A <see cref="Config"/> for the light client</param>
+        /// <param name="resync">A <see cref="bool"/> asking to resync or continue syncing</param>
         public static void Start(Config config, bool resync = false)
         {
-            LoadWallet(config);
+            Load(config);
 
-            _Wallet.SyncStarted += (s, e) =>
+            wallet.OnSyncStarted += (s, e) =>
             {
-                _Logger.Information("Sync started!");
+                logger.Information("Sync started!");
             };
 
-            _Wallet.SyncFinished += (s, e) =>
+            wallet.OnSyncFinished += (s, e) =>
             {
-                _Logger.Information("Sync finished!");
+                logger.Information("Sync finished!");
+
+                // Print transactions
+                List<Tx> txs = new List<Tx> { };
+
+                foreach (var account in wallet.Accounts)
+                    foreach (var tx in account.Txs)
+                        txs.Add(tx);
+
+                if (txs.Count() > 0)
+                {
+                    logger.Information("Transactions:");
+
+                    foreach (var tx in txs)
+                        logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}");
+                }
+
+                wallet.Watch();
             };
 
-            if (resync) _Wallet.Resync();
-            else _Wallet.Sync();
+            wallet.OnWatchStarted += (s, e) =>
+            {
+                logger.Information("Watch started!");
+            };
 
-            _Wallet.Start();
+            wallet.Sync();
 
             _ = PeriodicSave();
 
             WaitUntilEscapeIsPressed();
         }
 
-        public static void TestElectrumConnection2(Network network)
+        /// <summary>
+        /// Adds an account to the wallet and returns its xpub
+        /// </summary>
+        /// <param name="config"><see cref="Config"/> to load the wallet from</param>
+        /// <param name="type">Type of the account</param>
+        /// <param name="name">Name of the account</param>
+        /// <returns>An xpub of the account</returns>
+        public static string AddAccount(Config config, string type, string name)
         {
-            _Logger.Information("Try to connect to each electrum server manually");
-            _Logger.Information($"Running on {network}");
+            Load(config);
 
-            int connectedServers = 0;
+            wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = wallet.Id, Network = wallet.Network });
 
-            string serversFileName = ElectrumClient.GetLocalConfigFilePath(
-                "Electrum",
-                "servers",
-                $"{network.Name.ToLower()}.json"
-            );
+            wallet.Storage.Save();
 
-            var json = File.ReadAllText(serversFileName);
-            var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var servers = ElectrumServers.FromDictionary(data).Servers.CompatibleServers();
+            config.Network = wallet.Network.ToString();
+            config.AddWallet(wallet.Id);
 
-            var tasks = new List<Task> { };
-            foreach (var s in servers)
-            {
-                Console.WriteLine($"Connecting to {s.Domain}:{s.PrivatePort}...");
+            config.SaveChanges();
 
-                var electrum = new ElectrumClient(new List<Server>() { s });
-
-                var t = Task.Run(async () =>
-                {
-                    try
-                    {
-                        Debug.WriteLine($"Got in! at {DateTime.UtcNow}");
-                        var res = await electrum.ServerVersion(ElectrumClient.CLIENT_NAME, ElectrumClient.REQUESTED_VERSION);
-
-                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Res = {res}");
-
-                        Debug.WriteLine($"Done! at {DateTime.UtcNow}");
-
-                        return (s, res.ToString(), false);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine($"Server: {s.Domain}:{s.PrivatePort}, Error = {e.Message}");
-
-                        return (s, e.Message, true);
-                    }
-                });
-
-                tasks.Add(t);
-            }
-
-            var tarray = tasks.ToArray();
-
-            Task.WaitAll(tasks.ToArray());
-
-            foreach (var t in tarray)
-            {
-                var ct = (Task<ValueTuple<Liviano.Models.Server, string, bool>>) t;
-
-                var domain = ct.Result.Item1.Domain;
-                var content = ct.Result.Item2;
-                var hasError = ct.Result.Item3;
-
-                if (hasError)
-                {
-                    Console.WriteLine($"ERROR!     {domain} => {content}");
-                    continue;
-                }
-
-                Console.WriteLine($"CONNECTED! {domain} => {content}");
-            }
-
-            WaitUntilEscapeIsPressed();
+            return wallet.Accounts.Last().ExtendedPubKey;
         }
 
-        public static void TestElectrumConnection(string address, string txHash, Network network = null)
-        {
-            if (network is null) network = Network.Main;
-
-            _Logger.Information("Running on {network}", network.Name);
-            _Logger.Information("Getting address balance from: {address} and tx details from: {txHash}", address, txHash);
-
-            Console.WriteLine("Welcome to a demo");
-
-            Console.WriteLine("Delete previous wallets");
-
-            if (Directory.Exists("wallets"))
-                Directory.Delete("wallets", recursive: true);
-
-            //Console.WriteLine(contents);
-            var mnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-
-            Console.WriteLine($"Creating wallet for mnemonic: \"{mnemonic}\"");
-
-            var w = new Wallet();
-
-            w.Init(mnemonic, "", network: network);
-            //w.AddAccount("paper", options: new { Network = Network.TestNet });
-            w.AddAccount("bip141", options: new { Network = network });
-            var account = w.Accounts[0].CastToAccountType();
-
-            Console.WriteLine($"Account Type: {account.GetType()}");
-            Console.WriteLine($"Added account with path: {account.HdPath}");
-
-            w.Storage.Save();
-
-            Console.WriteLine("Saved Wallet!");
-
-            if (account.AccountType == "paper")
-            {
-                var addr = account.GetReceiveAddress();
-                Console.WriteLine($"{addr.ToString()} => scriptHash: {addr.ToScriptHash().ToHex()}");
-            }
-            else
-            {
-                int n = account.GapLimit;
-                Console.WriteLine($"Addresses ({n})");
-
-                foreach (var addr in account.GetReceiveAddress(n))
-                {
-                    Console.WriteLine($"{addr} => scriptHash: {addr.ToScriptHash().ToHex()}");
-                }
-
-                account.ExternalAddressesCount = 0;
-            }
-
-            Console.WriteLine("\nPress [ESC] to stop!\n");
-
-            Console.WriteLine("Syncing...");
-
-            var start = new DateTimeOffset();
-            var end = new DateTimeOffset();
-            w.SyncStarted += (obj, _) =>
-            {
-                start = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"Syncing started at {start.LocalDateTime.ToLongTimeString()}");
-            };
-
-            w.SyncFinished += async (obj, _) =>
-            {
-                end = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"Syncing ended at {end.LocalDateTime.ToLongTimeString()}");
-                Console.WriteLine($"Syncing time: {(end - start).TotalSeconds}");
-
-                Console.WriteLine($"Balance: {w.Accounts[0].GetBalance()}");
-
-                w.Storage.Save();
-
-                // await w.Start();
-            };
-
-            _ = w.Sync();
-
-            Console.WriteLine("Started, now listening to txs");
-
-
-            WaitUntilEscapeIsPressed();
-        }
-
-        private static void WaitUntilEscapeIsPressed()
+        /// <summary>
+        /// Waits until the user press esc
+        /// </summary>
+        static void WaitUntilEscapeIsPressed()
         {
             bool quit = false;
             bool quitHandledByIDE = false;
 
-            _Logger.Information("Press {key} to stop Liviano...", "ESC");
+            logger.Information("Press {key} to stop Liviano...", "ESC");
 
             while (!quit)
             {
@@ -414,8 +431,8 @@ namespace Liviano.CLI
                 }
                 catch (InvalidOperationException e)
                 {
-                    _Logger.Error("{error}", e.Message);
-                    _Logger.Information("Stop handled by IDE");
+                    logger.Error("{error}", e.Message);
+                    logger.Information("Stop handled by IDE");
 
                     quitHandledByIDE = true;
                     quit = true;
@@ -428,13 +445,20 @@ namespace Liviano.CLI
             }
             else
             {
-                Exit();
+                Quit();
             }
         }
 
-        private static void Exit()
+        /// <summary>
+        /// Quits the program
+        /// </summary>
+        /// <param name="retVal">Unix return value an <see cref="int"/></param>
+        static void Quit(int retVal = 0)
         {
-            var process = System.Diagnostics.Process.GetCurrentProcess();
+            logger.Information("Saving...");
+            Save().Wait();
+
+            var process = Process.GetCurrentProcess();
 
             foreach (ProcessThread thread in process.Threads.OfType<ProcessThread>())
             {
@@ -444,18 +468,15 @@ namespace Liviano.CLI
                 thread.Dispose();
 
                 if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated)
-                    _Logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
+                    logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
             }
 
-            _Logger.Information("Closing thread with pid: {pid}", process.Id);
-            _Logger.Information("bye!");
+            logger.Information("Closing thread with pid: {pid}", process.Id);
+            logger.Information("bye!");
 
-            process.Kill();
-        }
+            process.Close();
 
-        private static ChainedBlock GetClosestChainedBlockToDateTimeOffset(DateTimeOffset creationDate)
-        {
-            return _Network.GetCheckpoints().OrderBy(chainedBlock => Math.Abs(chainedBlock.Header.BlockTime.Ticks - creationDate.Ticks)).FirstOrDefault();
+            Environment.Exit(retVal);
         }
     }
 }

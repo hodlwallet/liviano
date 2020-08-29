@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,56 @@ namespace Liviano.Extensions
                 !server.Domain.EndsWith(".onion", StringComparison.CurrentCulture) &&
                 server.PrivatePort != null
             ).ToList();
+        }
+
+        public static void RemoveServer(this List<Server> servers, Server server)
+        {
+            var i = servers.FindIndex(s =>
+                s.Domain == server.Domain &&
+                s.PrivatePort == server.PrivatePort
+            );
+
+            servers.RemoveAt(i);
+        }
+
+        public static bool ContainsAllServers(this Server[] servers, Server[] serversToCompare)
+        {
+            return servers.ToList().ContainsAllServers(serversToCompare);
+        }
+
+        public static bool ContainsAllServers(this List<Server> servers, Server[] serversToCompare)
+        {
+            List<bool> res = new List<bool> { };
+
+            foreach (var s in serversToCompare)
+            {
+                res.Add(servers.ContainsServer(s));
+            }
+
+            return res.All(i => i);
+        }
+
+        public static bool ContainsServer(this List<Server> servers, Server server)
+        {
+            return servers.Any(s =>
+                s.Domain == server.Domain &&
+                s.PrivatePort == server.PrivatePort
+            );
+        }
+
+        public static bool ContainsServer(this Server[] servers, Server server)
+        {
+            return (new List<Server>(servers)).ContainsServer(server);
+        }
+
+        public static Server[] Shuffle(this List<Server> servers)
+        {
+            return servers.ToArray().Shuffle();
+        }
+
+        public static Server[] Shuffle(this Server[] servers)
+        {
+            return servers.OrderBy(_ => Guid.NewGuid()).ToArray();
         }
     }
 }

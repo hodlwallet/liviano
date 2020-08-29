@@ -41,8 +41,7 @@ using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
-
-using static Liviano.Electrum.ElectrumClient;
+using Liviano.Exceptions;
 
 namespace Liviano
 {
@@ -51,9 +50,9 @@ namespace Liviano
         const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
 
-        Key _PrivateKey;
+        Key privateKey;
 
-        ExtKey _ExtKey;
+        ExtKey extKey;
 
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
@@ -73,121 +72,182 @@ namespace Liviano
 
         public Assembly CurrentAssembly { get; set; }
 
-        IAccount _CurrentAccount;
+        IAccount currentAccount;
         public IAccount CurrentAccount
         {
             get
             {
-                if (_CurrentAccount is null || _CurrentAccount.Id != CurrentAccountId)
+                if (currentAccount is null || currentAccount.Id != CurrentAccountId)
                 {
-                    _CurrentAccount = Accounts.FirstOrDefault((a) => a.Id == CurrentAccountId);
+                    currentAccount = Accounts.FirstOrDefault((a) => a.Id == CurrentAccountId);
                 }
 
-                return _CurrentAccount;
+                return currentAccount;
             }
 
             set
             {
                 CurrentAccountId = value.Id;
-                _CurrentAccount = value;
+                currentAccount = value;
             }
         }
-
-        public List<string> TxIds { get; set; }
-        public List<Tx> Txs { get; set; }
 
         public List<string> AccountIds { get; set; }
         public List<IAccount> Accounts { get; set; }
 
-        IStorage _Storage;
+        public Dictionary<string, int> AccountsIndex { get; set; }
 
-        public event EventHandler SyncStarted;
-        public event EventHandler SyncFinished;
+        public event EventHandler OnSyncStarted;
+        public event EventHandler OnSyncFinished;
+        public event EventHandler OnWatchStarted;
 
-        public event EventHandler<Tx> OnNewTransaction;
-        public event EventHandler<Tx> OnUpdateTransaction;
+        public event EventHandler<TxEventArgs> OnNewTransaction;
+        public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
+        IStorage storage;
         public IStorage Storage
         {
-            get => _Storage;
+            get => storage;
             set
             {
-                _Storage = value;
+                storage = value;
 
-                _Storage.Id = Id;
-                _Storage.Network = Network;
-                _Storage.Wallet = this;
+                storage.Id = Id;
+                storage.Network = Network;
+                storage.Wallet = this;
             }
         }
 
+        public ElectrumPool ElectrumPool { get; set; }
+
+        public string Server { get; set; }
+
+        /// <summary>
+        /// Inits the wallet with some defaults mostly empty fields
+        /// </summary>
+        /// <param name="mnemonic">A <see cref="string"/> with the mnemonic words</param>
+        /// <param name="password">A <see cref="string"/> with password</param>
+        /// <param name="name">A <see cref="string"/> with name</param>
+        /// <param name="network">A <see cref="Network"/></param>
+        /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
+        /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
+        /// <param name="assembly">A <see cref="Assembly"/> that the wallet is loaded from</param>
         public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
 
-            Id = Id ?? Guid.NewGuid().ToString();
-            Name = Name ?? name ?? DEFAULT_WALLET_NAME;
+            Id ??= Guid.NewGuid().ToString();
+            Name ??= name ?? DEFAULT_WALLET_NAME;
 
-            Network = Network ?? network ?? Network.Main;
+            Network ??= network ?? Network.Main;
 
-            CreatedAt = CreatedAt ?? createdAt ?? DateTimeOffset.UtcNow;
+            CreatedAt ??= createdAt ?? DateTimeOffset.UtcNow;
 
-            Storage = Storage ?? storage ?? new FileSystemStorage(Id, Network);
+            Storage ??= storage ?? new FileSystemStorage(Id, Network);
 
-            TxIds = TxIds ?? new List<string>();
-            Txs = Txs ?? new List<Tx>();
+            AccountIds ??= new List<string>();
+            Accounts ??= new List<IAccount>();
 
-            AccountIds = AccountIds ?? new List<string>();
-            Accounts = Accounts ?? new List<IAccount>();
+            CurrentAccountId ??= null;
+            currentAccount ??= null;
 
-            CurrentAccountId = CurrentAccountId ?? null;
-            _CurrentAccount = _CurrentAccount ?? null;
-
-            CurrentAssembly = assembly ?? Assembly.GetExecutingAssembly();
+            CurrentAssembly ??= assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
-            var extKey = Hd.GetExtendedKey(mnemonicObj, password);
+            extKey = Hd.GetExtendedKey(mnemonicObj, password);
 
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            // To cache them
-            GetPrivateKey(password);
-            GetExtendedKey(password);
+            privateKey ??= GetPrivateKey(password, decrypt: true);
+
+            InitElectrumPool();
+            InitAccountsIndex();
         }
 
         /// <summary>
-        /// Gets the private key, and puts it into <see cref="_PrivateKey"/>
+        /// Inits the electrum pool and subscribe to the handle connected servers if it is connected
         /// </summary>
-        /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
-        /// <returns></returns>
-        public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
+        public void InitElectrumPool()
         {
-            if (_PrivateKey == null || forcePasswordVerification)
-                _PrivateKey = Hd.DecryptSeed(EncryptedSeed, Network, password);
+            ElectrumPool ??= GetElectrumPool();
 
-            return _PrivateKey;
+            // The event wont be invoked if it's null at first load because it wont have
+            // an method to be attached to, this is why HandleConnectedServers ended up being public
+            if (ElectrumPool.Connected)
+                ElectrumPool.HandleConnectedServers(ElectrumPool.CurrentServer, null);
         }
 
         /// <summary>
-        /// Gets the ext key and puts it into <see cref="_ExtKey"/>
+        /// Starts the possible accounts with indexes, these are {type_string: int_amount_of_accounts}
+        /// </summary>
+        public void InitAccountsIndex()
+        {
+            if (!(AccountsIndex is null)) return;
+
+            AccountsIndex = new Dictionary<string, int>();
+            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
+
+            foreach (var t in types)
+            {
+                AccountsIndex.Add(t, -1);
+            }
+        }
+
+        /// <summary>
+        /// Get an electrum pool loaded from the assembly or files.
+        /// </summary>
+        /// <returns>a <see cref="ElectrumPool"/></returns>
+        public ElectrumPool GetElectrumPool()
+        {
+            if (!(ElectrumPool is null))
+            {
+                return ElectrumPool;
+            }
+
+            return ElectrumPool.Load(Network, CurrentAssembly);
+        }
+
+        /// <summary>
+        /// Inits the private key
+        /// </summary>
+        /// <remarks>If you pass no password it's a way to create accounts with no pass</remarks>
+        /// <param name="password">A <see cref="string"/> of the password</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
+        public void InitPrivateKey(string password = "", bool decrypt = false)
+        {
+            privateKey = GetPrivateKey(password, decrypt);
+        }
+
+        /// <summary>
+        /// Gets the private key, and puts it into <see cref="privateKey"/>
+        /// </summary>
+        /// <param name="password">A <see cref="string"/> of the password</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
+        /// <returns>a private <see cref="Key"/></returns>
+        public Key GetPrivateKey(string password = "", bool decrypt = false)
+        {
+            if (!(privateKey is null) && !decrypt) return privateKey;
+
+            return Hd.DecryptSeed(EncryptedSeed, Network, password);
+        }
+
+        /// <summary>
+        /// Gets the ext key and puts it into <see cref="extKey"/>
         /// </summary>
         /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
+        /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false)
+        public ExtKey GetExtendedKey(string password = "", bool decrypt = false)
         {
-            Guard.NotNull(_PrivateKey, nameof(_PrivateKey));
+            Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
-            if (forcePasswordVerification)
-                _PrivateKey = GetPrivateKey(password, forcePasswordVerification);
+            if (decrypt)
+                privateKey = GetPrivateKey(password, decrypt);
 
-            if (_ExtKey is null || forcePasswordVerification)
-                _ExtKey = new ExtKey(_PrivateKey, ChainCode);
-
-            return _ExtKey;
+            return new ExtKey(privateKey, ChainCode);
         }
 
         /// <summary>
@@ -213,122 +273,69 @@ namespace Liviano
             CurrentAccountId = account.Id;
         }
 
-        public async Task Start()
-        {
-            Debug.WriteLine($"[Start] Starting wallet: {Id}");
-
-            var electrum = await GetElectrumClient();
-            var tasks = new List<Task>();
-            var @lock = new object();
-
-            foreach (var account in Accounts)
-            {
-                Debug.WriteLine($"Listening for account: {account.Name} ({account.AccountType} : {account.HdPath})");
-
-                var externalCount = account.ExternalAddressesCount;
-                var addresses = account.GetReceiveAddress(externalCount + account.GapLimit);
-                account.ExternalAddressesCount = externalCount;
-
-                var accountWithAddresses = _AccountsWithAddresses(@lock);
-
-                foreach (var addr in account.GetReceiveAddress(account.GapLimit))
-                {
-                    var scriptHashStr = addr.ToScriptHash().ToHex();
-                    var accountAddresses = _GetAccountAddresses(account);
-
-                    var t = electrum.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
-                    {
-                        var status = Deserialize<ResultAsString>(str);
-
-                        if (!string.IsNullOrEmpty(status.Result))
-                        {
-                            Debug.WriteLine($"[Start] Subscribed to {status.Result}, for address: {addr.ToString()}");
-
-                            try
-                            {
-                                var unspent = await electrum.BlockchainScriptHashListUnspent(scriptHashStr);
-
-                                foreach (var unspentResult in unspent.Result)
-                                {
-                                    var txHash = unspentResult.TxHash;
-                                    var height = unspentResult.Height;
-
-                                    var currentTx = account.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                                    // Tx is new
-                                    if (currentTx is null)
-                                    {
-                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                        var txHex = blkChainTxGet.Result;
-
-                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                        account.AddTx(tx);
-
-                                        if (tx.AccountId == CurrentAccountId)
-                                            OnNewTransaction?.Invoke(this, tx);
-
-                                        return;
-                                    }
-
-                                    // A potential update if tx heights are different
-                                    if (currentTx.BlockHeight != height)
-                                    {
-                                        var blkChainTxGet = await electrum.BlockchainTransactionGet(txHash);
-                                        var txHex = blkChainTxGet.Result;
-
-                                        var tx = Tx.CreateFromHex(txHex, account, Network, height, accountAddresses["external"], accountAddresses["internal"]);
-
-                                        account.UpdateTx(tx);
-
-                                        if (tx.AccountId == CurrentAccountId)
-                                            OnUpdateTransaction?.Invoke(this, tx);
-
-                                        // Here for safety, at any time somebody can add code to this
-                                        return;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"[Start] There was an error gathering UTXOs: {ex.Message}");
-                            }
-                        }
-                    });
-
-                    tasks.Add(t);
-                }
-
-                account.ExternalAddressesCount = 0;
-            }
-
-            // Runs all the script hash suscribers
-            await Task.WhenAll(tasks).WithCancellation(CancellationToken.None);
-        }
-
+        /// <summary>
+        /// Sync wallet
+        /// </summary>
         public async Task Sync()
         {
             Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
-            SyncStarted?.Invoke(this, null);
 
             try
             {
-                await _SyncTask();
+                await SyncTask();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"There was an error during sync: {ex.Message}");
+                throw ex;
             }
         }
 
+        /// <summary>
+        /// Resync wallet, clean and sync
+        /// </summary>
         public async Task Resync()
         {
             Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
 
-            // First we do a cleanup so we can rediscover txs
-            TxIds = new List<string> { };
-            Txs = new List<Tx> { };
+            Cleanup();
 
+            //  And we do the regular sync
+            await Sync();
+        }
+
+        public async Task Watch()
+        {
+            Debug.WriteLine("[Sync] Syncing...");
+
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+
+            ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
+            ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
+            ElectrumPool.OnWatchStarted += ElectrumPool_OnWatchStarted;
+
+            if (ElectrumPool.Connected)
+                await ElectrumPool_OnConnectedToWatch(ElectrumPool, ElectrumPool.CurrentServer, ct);
+            else
+                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToWatch(
+                        ElectrumPool,
+                        server,
+                        ct
+                        );
+
+            if (!ElectrumPool.Connected)
+                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+        }
+
+        /// <summary>
+        /// Cleanup wallet, set internal / external addr acocunts to 0
+        /// </summary>
+        public void Cleanup()
+        {
+            Debug.WriteLine($"[Cleanup] Attempting to clean wallet with id: {Id}");
+
+            // First we do a cleanup so we can rediscover txs
             var @lock = new object();
             foreach (var account in Accounts)
             {
@@ -337,54 +344,113 @@ namespace Liviano
                     account.InternalAddressesCount = 0;
                     account.ExternalAddressesCount = 0;
 
+                    account.InternalAddressesIndex = 0;
+                    account.ExternalAddressesIndex = 0;
+
+                    account.UsedExternalAddresses = new List<BitcoinAddress> {};
+                    account.UsedInternalAddresses = new List<BitcoinAddress> {};
+
                     account.TxIds = new List<string> { };
                     account.Txs = new List<Tx> { };
                 }
             }
-
-            //  And we do the regular sync
-            await Sync();
         }
 
-        async Task _SyncTask()
+        /// <summary>
+        /// Helper for sync
+        /// </summary>
+        async Task SyncTask()
         {
             Debug.WriteLine("[Sync] Syncing...");
 
-            var electrum = await GetElectrumClient();
-            var @lock = new object();
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
 
-            var accountsWithAddresses = _AccountsWithAddresses(@lock);
+            ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
+            ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
+            ElectrumPool.OnSyncStarted += ElectrumPool_OnSyncStarted;
+            ElectrumPool.OnSyncFinished += ElectrumPool_OnSyncFinished;
 
-            var tasks = new List<Task>();
-            foreach (KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry in accountsWithAddresses)
-            {
-                var t = _GetAccountTask(entry, electrum);
+            if (ElectrumPool.Connected)
+                await ElectrumPool_OnConnectedToSync(ElectrumPool, ElectrumPool.CurrentServer, ct);
+            else
+                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToSync(
+                        ElectrumPool,
+                        server,
+                        ct
+                        );
 
-                tasks.Add(t);
-            }
-
-            await Task.Factory.ContinueWhenAll(tasks.ToArray(), (completedTasks) =>
-            {
-                SyncFinished?.Invoke(this, null);
-            });
-
-            //while (tasks.Count > 0)
-            //{
-            //    var firstFinishedTask = await Task.WhenAny(tasks);
-
-            //    tasks.Remove(firstFinishedTask);
-
-            //    await firstFinishedTask;
-            //}
+            if (!ElectrumPool.Connected)
+                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
-        public void UpdateCurrentTransaction(Tx tx)
+        private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
         {
-            if (CurrentAccount.TxIds.Contains(tx.Id.ToString()))
-            {
-                CurrentAccount.UpdateTx(tx);
-                OnUpdateTransaction?.Invoke(this, tx);
-            }
+            Console.WriteLine($"Connected to {server.Domain}, recently connected server.");
+            Console.WriteLine($"Now starts to sync wallet");
+            Console.WriteLine();
+
+            await ElectrumPool.SyncWallet(this, ct);
+        }
+
+        private async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
+        {
+            Console.WriteLine($"Now starts to watch wallet");
+
+            await ElectrumPool.WatchWallet(this, ct);
+        }
+
+        private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+
+            this.OnSyncStarted?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+
+            this.OnWatchStarted?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
+        {
+            Console.WriteLine($"Sync finished at {DateTime.Now.ToString()}");
+
+            this.OnSyncFinished?.Invoke(this, args);
+        }
+
+        private void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
+        {
+            var tx = txArgs.Tx;
+            var addr = txArgs.Address;
+            var acc = txArgs.Account;
+
+            acc.AddTx(tx);
+
+            Debug.WriteLine($"Found a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"            addr:  {addr}");
+
+            Storage.Save();
+
+            OnNewTransaction?.Invoke(this, txArgs);
+        }
+
+        private void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)
+        {
+            var tx = txArgs.Tx;
+            var addr = txArgs.Address;
+            var acc = txArgs.Account;
+
+            acc.UpdateTx(tx);
+
+            Debug.WriteLine($"Updating a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"               addr:  {addr}");
+
+            Storage.Save();
+
+            OnUpdateTransaction?.Invoke(this, txArgs);
         }
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
@@ -395,7 +461,7 @@ namespace Liviano
 
             try
             {
-                var electrum = await GetElectrumClient();
+                var electrum = ElectrumPool.CurrentServer.ElectrumClient;
                 var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
 
                 if (broadcast.Result != tx.GetHash().ToString())
@@ -413,128 +479,14 @@ namespace Liviano
             return (true, null);
         }
 
-        Task _GetAccountTask(KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry, ElectrumClient electrum)
-        {
-            var t = Task.Factory.StartNew(async () =>
-            {
-                var account = entry.Key;
-                var addresses = new List<BitcoinAddress> { };
-
-                addresses.AddRange(entry.Value["external"]);
-                addresses.AddRange(entry.Value["internal"]);
-
-                var tasks = new List<Task>();
-                foreach (var addr in addresses)
-                {
-                    Debug.WriteLine($"[Sync] Trying to sync: {addr}");
-
-                    var scriptHashHex = addr.ToScriptHash().ToHex();
-
-                    var electrumTask = Task.Factory.StartNew(async () =>
-                    {
-                        var historyRes = await electrum.BlockchainScriptHashGetHistory(scriptHashHex);
-
-                        await _InsertTransactionsFromHistory(historyRes, account, electrum, entry);
-                    }, TaskCreationOptions.LongRunning);
-
-                    tasks.Add(electrumTask);
-                }
-
-                while (tasks.Count > 0)
-                {
-                    var firstFinishedTask = await Task.WhenAny(tasks);
-
-                    tasks.Remove(firstFinishedTask);
-
-                    await firstFinishedTask;
-
-                    Console.WriteLine($"Addresses count {tasks.Count}");
-                }
-            }, TaskCreationOptions.LongRunning);
-
-            return t;
-        }
-
-        async Task _InsertTransactionsFromHistory(BlockchainScriptHashGetHistoryResult result, IAccount account, ElectrumClient electrum, KeyValuePair<IAccount, Dictionary<string, BitcoinAddress[]>> entry)
-        {
-            foreach (var r in result.Result)
-            {
-#if DEBUG
-                // Upps... This is what happens when you test some bitcoin wallets,
-                // this happened because I sent to a change address so the software thinks is a receive...
-                // now I don't have a way to tell if the tx is receive or send...
-                if (r.TxHash == "45f4d79ea7754cfdb3be338d1e5d674d6f7f4dc5a1c71867b68b647bed788d00")
-                    continue;
-#endif
-
-                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
-
-                var externalAddresses = entry.Value["external"];
-                var internalAddresses = entry.Value["internal"];
-
-                var txRes = await electrum.BlockchainTransactionGet(r.TxHash);
-
-                var tx = Tx.CreateFromHex(
-                    txRes.Result,
-                    account,
-                    Network,
-                    r.Height,
-                    externalAddresses,
-                    internalAddresses
-                );
-
-                var txAddresses = Transaction.Parse(
-                    tx.Hex,
-                    Network
-                ).Outputs.Select(
-                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                );
-
-                if (TxIds.Contains(tx.Id.ToString()))
-                {
-                    account.UpdateTx(tx);
-
-                    if (tx.AccountId == CurrentAccountId)
-                        OnUpdateTransaction?.Invoke(this, tx);
-                }
-                else
-                {
-                    account.AddTx(tx);
-
-                    if (tx.AccountId == CurrentAccountId)
-                        OnNewTransaction?.Invoke(this, tx);
-                }
-
-                foreach (var txAddr in txAddresses)
-                {
-                    if (externalAddresses.Contains(txAddr))
-                    {
-                        if (account.UsedExternalAddresses.Contains(txAddr))
-                            continue;
-
-                        account.UsedExternalAddresses.Add(txAddr);
-                    }
-
-                    if (internalAddresses.Contains(txAddr))
-                    {
-                        if (account.UsedInternalAddresses.Contains(txAddr))
-                            continue;
-
-                        account.UsedInternalAddresses.Add(txAddr);
-                    }
-                }
-
-            }
-        }
-
-        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> _AccountsWithAddresses(object @lock = null)
+        Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>> AccountsWithAddresses(object @lock = null)
         {
             @lock = @lock ?? new object();
             var accountsWithAddresses = new Dictionary<IAccount, Dictionary<string, BitcoinAddress[]>>();
 
             foreach (var account in Accounts)
             {
-                var addresses = _GetAccountAddresses(account, @lock);
+                var addresses = GetAccountAddresses(account, @lock);
 
                 accountsWithAddresses.Add(account, addresses);
             }
@@ -542,9 +494,9 @@ namespace Liviano
             return accountsWithAddresses;
         }
 
-        Dictionary<string, BitcoinAddress[]> _GetAccountAddresses(IAccount account, object @lock = null)
+        Dictionary<string, BitcoinAddress[]> GetAccountAddresses(IAccount account, object @lock = null)
         {
-            @lock = @lock ?? new object();
+            @lock ??= new object();
             var addresses = new Dictionary<string, BitcoinAddress[]>();
 
             if (account.AccountType == "paper")
@@ -578,24 +530,11 @@ namespace Liviano
             return addresses;
         }
 
-        async Task<ElectrumClient> GetElectrumClient()
-        {
-            var recentServers = await GetRecentlyConnectedServers();
-
-            Debug.WriteLine("[GetElectrumClient] Will connect to:");
-            foreach (var server in recentServers)
-            {
-                Debug.WriteLine($"[GetElectrumClient] {server.Domain}:{server.PrivatePort} ({server.Version})");
-            }
-
-            return new ElectrumClient(recentServers);
-        }
-
         async Task<List<Server>> GetRecentlyConnectedServers(bool retrying = false)
         {
             Debug.WriteLine("[GetRecentlyConnectedServers] Attempting to get the recent servers");
 
-            var recentServers = ElectrumClient.GetRecentlyConnectedServers(Network);
+            var recentServers = ElectrumPool.GetRecentServers(Network);
 
             if (recentServers.Count == 0)
             {
@@ -605,10 +544,10 @@ namespace Liviano
                 if (retrying) await Task.Delay(TimeSpan.FromSeconds(2.0));
 
                 var name = $"Resources.Electrum.servers.{Network.Name.ToLower()}.json";
-                using (var stream = CurrentAssembly.GetManifestResourceStream(name))
-                {
-                    ElectrumClient.PopulateRecentlyConnectedServers(stream, Network);
-                }
+                //using (var stream = CurrentAssembly.GetManifestResourceStream(name))
+                //{
+                //    ElectrumClient.PopulateRecentlyConnectedServers(stream, Network);
+                //}
 
                 return await GetRecentlyConnectedServers(retrying: true);
             }
@@ -637,7 +576,7 @@ namespace Liviano
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Invalid account name: It cannot be empty!");
 
-            var colors = GradientHex();
+            var index = ++AccountsIndex[type];
 
             switch (type)
             {
@@ -645,29 +584,59 @@ namespace Liviano
                 case "bip49":
                 case "bip84":
                 case "bip141":
-                    return Bip32Account.Create(name, colors, new { Wallet = this, Network, Type = type });
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
                 case "wasabi":
-                    return WasabiAccount.Create(name, colors, options);
+                    return WasabiAccount.Create(name, options);
                 case "paper":
-                    return PaperAccount.Create(name, colors, options);
+                    return PaperAccount.Create(name, options);
+                default:
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
             }
-
-            return Bip32Account.Create(name, colors, new { Wallet = this, Network, Type = "bip141" });
         }
 
-        /// <summary>
-        /// Creates the two Hexadecimal strings representing an account gradient.
-        /// </summary>
-        public static (string, string) GradientHex()
+        public Tx[] GetTranscations(int accountIndex = 0)
         {
-            var rng = new Random();
+            if (Accounts.Count() - 1 < accountIndex + 1) return new Tx[] {};
 
-            var startRGB = (rng.Next(128, 200), rng.Next(128, 200), rng.Next(128, 200));
+            return Accounts[accountIndex].Txs.ToArray();
+        }
 
-            var endRGB = ((int)(startRGB.Item1 / 1.25), (int)(startRGB.Item2 / 1.25), (int)(startRGB.Item3 / 1.25));
+        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "")
+        {
+            Transaction tx = null;
+            string error = null;
+            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
 
-            return ($"{startRGB.Item1:X2}{startRGB.Item2:X2}{startRGB.Item3:X2}",
-                    $"{endRGB.Item1:X2}{endRGB.Item2:X2}{endRGB.Item3:X2}");
+            try
+            {
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)feeSatsPerByte, this, account, Network);
+            }
+            catch (WalletException err)
+            {
+                Debug.WriteLine($"[CreateTransaction] Error: {err.Message}");
+
+                return (tx, err.Message);
+            }
+
+            TransactionExtensions.VerifyTransaction(tx, Network, out var errors);
+
+            if (errors.Any())
+            {
+                error = string.Join<string>(", ", errors.Select(o => o.Message));
+
+                Debug.WriteLine($"[CreateTransaction] Error: {error}");
+
+                return (tx, error);
+            }
+
+            return (tx, null);
+        }
+
+        public async Task<bool> BroadcastTransaction(Transaction tx)
+        {
+            var res = await ElectrumPool.BroadcastTransaction(tx);
+
+            return res;
         }
     }
 }

@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
+using Liviano.Electrum;
 
 namespace Liviano.Interfaces
 {
@@ -112,17 +113,43 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         List<IAccount> Accounts { get; set; }
 
+        /// <summary>
+        /// Get account indexes
+        /// </summary>
+        [JsonProperty(PropertyName = "accountsIndex", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        Dictionary<string, int> AccountsIndex { get; set; }
+
         [JsonIgnore]
         IStorage Storage { get; set; }
 
         [JsonIgnore]
         Assembly CurrentAssembly { get; set; }
 
+        [JsonProperty(PropertyName = "server", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        string Server { get; set; }
+
+        [JsonIgnore]
+        ElectrumPool ElectrumPool { get; set; }
+
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
         void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null);
+
+        void InitElectrumPool();
+
+        /// <summary>
+        /// Inits the priv key
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="decrypt"></param>
+        void InitPrivateKey(string password = "", bool decrypt = false);
+
+        /// <summary>
+        /// Starts all the indexes of all types of accounts tracked
+        /// </summary>
+        void InitAccountsIndex();
 
         /// <summary>
         /// Syncing, used to start syncing from 0 and also to continue after booting
@@ -131,23 +158,16 @@ namespace Liviano.Interfaces
         Task Sync();
 
         /// <summary>
-        /// Starts the wallet to listen for new transactions on every account
-        /// </summary>
-        /// <returns></returns>
-        Task Start();
-
-        /// <summary>
         /// Resyncing is done to start from 0 always, and discover the HD accounts attached to it.
         /// </summary>
         /// <returns></returns>
         Task Resync();
 
         /// <summary>
-        /// Updates a transaction from the current account.
+        /// Watches a wallet for new transactions
         /// </summary>
-        /// <param name="tx">The transaction to be updated.</param>
         /// <returns></returns>
-        void UpdateCurrentTransaction(Tx tx);
+        Task Watch();
 
         /// <summary>
         /// Sends a transaction using the electrum client initialized in the wallet.
@@ -163,6 +183,11 @@ namespace Liviano.Interfaces
         /// <param name="forcePasswordVerification">Force the password verification, avoid cache! Default false</param>
         /// <returns></returns>
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
+
+        /// <summary>
+        /// Gets the electrum pool from the network and maybe the current assembly
+        /// </summary>
+        ElectrumPool GetElectrumPool();
 
         /// <summary>
         /// Gets a extended private key this method also caches it on memory
@@ -184,12 +209,33 @@ namespace Liviano.Interfaces
         /// </param>
         void AddAccount(string type = "", string name = null, object options = null);
 
+        Tx[] GetTranscations(int accountIndex = 0);
+
+        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "");
+
+        Task<bool> BroadcastTransaction(Transaction tx);
+
         /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
-        event EventHandler SyncStarted;
-        event EventHandler SyncFinished;
-        event EventHandler<Tx> OnNewTransaction;
-        event EventHandler<Tx> OnUpdateTransaction;
+        event EventHandler OnSyncStarted;
+        event EventHandler OnSyncFinished;
+        event EventHandler OnWatchStarted;
+        event EventHandler<TxEventArgs> OnNewTransaction;
+        event EventHandler<TxEventArgs> OnUpdateTransaction;
+    }
+
+    public class TxEventArgs : EventArgs
+    {
+        public Tx Tx { get; set; }
+        public IAccount Account { get; set; }
+        public BitcoinAddress Address { get; set; }
+
+        public TxEventArgs(Tx tx, IAccount account, BitcoinAddress address)
+        {
+            Tx = tx;
+            Account = account;
+            Address = address;
+        }
     }
 }

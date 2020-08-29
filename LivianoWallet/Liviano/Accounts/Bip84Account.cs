@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace Liviano.Accounts
 
         public Bip84Account(int index = 0) : base(index)
         {
-
+            Index = index;
         }
     }
 }

@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
@@ -32,7 +34,6 @@ using Newtonsoft.Json.Converters;
 
 using Liviano.Interfaces;
 using Liviano.Models;
-using System;
 
 namespace Liviano.Accounts
 {
@@ -56,41 +57,65 @@ namespace Liviano.Accounts
         /// <summary>
         /// This is the amount of address to generate
         /// </summary>
-        int _GapLimit = 20;
+        int gapLimit = 20;
         public int GapLimit
         {
-            get => _GapLimit;
+            get => gapLimit;
             set
             {
                 if (value < 0) throw new ArgumentException($"Invalid value {value}");
 
-                _GapLimit = value;
+                gapLimit = value;
             }
         }
-
-        /// <summary>
-        /// Start color of the account gradient as a hexadecimal string
-        /// </summary>
-        public string StartHex { get; set; }
-
-        /// <summary>
-        /// End color of the account gradient as a hexadecimal string
-        /// </summary>
-        public string EndHex { get; set; }
 
         /// <summary>
         /// Change addresses count
         /// </summary>
         /// <value></value>
+        int internalAddressesCount = 0;
         [JsonProperty(PropertyName = "internalAddressesCount")]
-        public int InternalAddressesCount { get; set; }
+        public int InternalAddressesCount
+        {
+            get => internalAddressesCount;
+            set => internalAddressesCount = value >= GapLimit + InternalAddressesIndex ? InternalAddressesIndex : value;
+        }
+
+        /// <summary>
+        /// Change addresess index
+        /// </summary>
+        /// <value></value>
+        int internalAddressesIndex = 0;
+        [JsonProperty(PropertyName = "internalAddressesIndex")]
+        public int InternalAddressesIndex
+        {
+            get => internalAddressesIndex;
+            set => internalAddressesIndex = value;
+        }
 
         /// <summary>
         /// Receive addresess count
         /// </summary>
         /// <value></value>
+        int externalAddressesCount = 0;
         [JsonProperty(PropertyName = "externalAddressesCount")]
-        public int ExternalAddressesCount { get; set; }
+        public int ExternalAddressesCount
+        {
+            get => externalAddressesCount;
+            set => externalAddressesCount = value >= GapLimit + ExternalAddressesIndex ? ExternalAddressesIndex : value;
+        }
+
+        /// <summary>
+        /// Receive addresess index
+        /// </summary>
+        /// <value></value>
+        int externalAddressesIndex = 0;
+        [JsonProperty(PropertyName = "externalAddressesIndex")]
+        public int ExternalAddressesIndex
+        {
+            get => externalAddressesIndex;
+            set => externalAddressesIndex = value;
+        }
 
         /// <summary>
         /// Wallet the account belongs to
@@ -135,9 +160,6 @@ namespace Liviano.Accounts
         [JsonConverter(typeof(StringEnumConverter))]
         public abstract ScriptPubKeyType ScriptPubKeyType { get; set; }
 
-
-
-        #region IAccountFields
         public Network Network { get; set; }
         public string Name { get; set; }
         public List<string> TxIds { get; set; }
@@ -147,6 +169,10 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetReceiveAddress(int n);
         public abstract BitcoinAddress GetChangeAddress();
         public abstract BitcoinAddress[] GetChangeAddress(int n);
+        public abstract BitcoinAddress GetReceiveAddressAtIndex(int i);
+        public abstract BitcoinAddress GetChangeAddressAtIndex(int i);
+        public abstract BitcoinAddress[] GetReceiveAddressesToWatch();
+        public abstract BitcoinAddress[] GetChangeAddressesToWatch();
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
@@ -155,12 +181,49 @@ namespace Liviano.Accounts
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
 
-        public event EventHandler<Tx> OnNewSpendingTransaction;
-        public event EventHandler<Tx> OnUpdateSpendingTransaction;
-        public event EventHandler<Tx> OnNewTransaction;
-        public event EventHandler<Tx> OnUpdateTransaction;
-
         public abstract Money GetBalance();
-        #endregion
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public int GetExternalLastIndex()
+        {
+            if (UsedExternalAddresses.Count == 0)
+                return 0;
+
+            var acc = (HdAccount)Clone();
+            acc.ExternalAddressesCount = 0;
+
+            var lastAddress = acc.UsedExternalAddresses.Last();
+
+            while (true)
+            {
+                var addr = acc.GetReceiveAddress();
+
+                if (lastAddress == addr)
+                    return acc.ExternalAddressesCount;
+            }
+        }
+
+        public int GetInternalLastIndex()
+        {
+            if (UsedInternalAddresses.Count == 0)
+                return 0;
+
+            var acc = (HdAccount)Clone();
+            acc.InternalAddressesCount = 0;
+
+            var lastAddress = acc.UsedInternalAddresses.Last();
+
+            while (true)
+            {
+                var addr = acc.GetReceiveAddress();
+
+                if (lastAddress == addr)
+                    return acc.InternalAddressesCount;
+            }
+        }
     }
 }

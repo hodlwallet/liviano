@@ -1,6 +1,30 @@
+//
+// WalletExtensions.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 HODL Wallet
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,9 +33,6 @@ using NBitcoin.Protocol;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
-
-using Liviano.Utilities;
-using System.Reflection;
 
 namespace Liviano.Extensions
 {
@@ -72,6 +93,7 @@ namespace Liviano.Extensions
         /// 
         /// Please check Workbooks/CheckpointsGenerator.workbook to see how this is generated.
         /// </summary>
+        /// <remarks>The idea behind this is that it will get completed with the rest of the blocks</remarks>
         /// <returns>The checkpoints.</returns>
         /// <param name="network">Network.</param>
         public static List<ChainedBlock> GetCheckpoints(this Network network)
@@ -290,23 +312,12 @@ namespace Liviano.Extensions
 
         public static Dictionary<string, object> ToDict(this object options)
         {
-            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+            var kwargs = new Dictionary<string, object>();
 
             if (options is null) return kwargs;
 
-            foreach (PropertyInfo prop in options.GetType().GetProperties())
-            {
-                string propName = prop.Name;
-                var val = options.GetType().GetProperty(propName).GetValue(options, null);
-                if (val != null)
-                {
-                    kwargs.Add(propName, val);
-                }
-                else
-                {
-                    kwargs.Add(propName, null);
-                }
-            }
+            foreach (var prop in options.GetType().GetProperties())
+                kwargs.Add(prop.Name, prop.GetValue(options, null));
 
             return kwargs;
         }

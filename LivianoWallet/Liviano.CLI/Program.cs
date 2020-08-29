@@ -1,593 +1,461 @@
+//
+// Program.cs
+//
+// Author:
+//       igor <igorgue@protonmail.com>
+//
+// Copyright (c) 2019 HODL Wallet
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
+
+using Mono.Options;
 using NBitcoin;
-using CommandLine;
 using Serilog;
 
-using Liviano.Exceptions;
 using Liviano.Bips;
 
 namespace Liviano.CLI
 {
     class Program
     {
-        private static ILogger _Logger;
+        static ILogger logger;
+        static Config config;
+        static OptionSet options;
 
+        public const string DEFAULT_ACCOUNT_NAME = "Main Account";
+        public const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
+
+        // Defaults options values
+        static Network network = null;
+        static string passphrase = "";
+        static string mnemonic = "";
+        static string wordlist = "english";
+        static int wordCount = 12;
+        static int addressAmount = 1;
+        static bool hasInputText = false;
+        static string inputText = "";
+        static string wif = "";
+        static string address = "";
+        static string addressType = "p2wpkh";
+        static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
+        static string server = "";
+        static double amount = 0.00;
+        static int feeSatsPerByte = 1;
+        static int accountIndex = -1;
+        static string accountName = null;
+        static string walletId = "";
+        static string walletName = DEFAULT_WALLET_NAME;
+        static string newAccName = DEFAULT_ACCOUNT_NAME;
+        static string newAccType = "bip84";
+
+        // Menu of the cli program
+        static bool showHelp = false;
+        static bool getXPrv = false;
+        static bool getXPub = false;
+        static bool getAddr = false;
+        static bool newMnemonic = false;
+        static bool newWallet = false;
+        static bool getScriptPubKey = false;
+        static bool send = false;
+        static bool balance = false;
+        static bool newAcc = false;
+        static bool start = false;
+        static bool resync = false;
+
+        // Parse extra options arguments
+        static List<string> extra;
+
+        /// <summary>
+        /// Defines all the options that we need for the CLI
+        /// </summary>
+        /// <remarks>Sets a lot of static variables on this class</remarks>
+        /// <returns>A <see cref="OptionSet"/> of the CLI option</returns>
+        static OptionSet GetOptions()
+        {
+            return new OptionSet
+            {
+                // Global variables
+                {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : null},
+                {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : null},
+
+                // Actions
+                {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
+                {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
+                {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
+                {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
+                {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
+                {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
+                {"send|send-to-address", "Send to address", v => send = !(v is null)},
+                {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
+                {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
+                {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
+                {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
+
+                // Variables or modifiers
+                {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
+                {"wc|word-count=", "Mnemonic word count", (int v) => wordCount = v},
+                {"type|address-type=", "Set address type", (string v) => addressType = v},
+                {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
+                {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
+                {"s|server=", "Server", (string v) => server = v},
+                {"amt|amount=", "Amount to send", (string v) => amount = double.Parse(v)},
+                {"fee|fee-sats-per-byte=", "Fees in satoshis per byte", (string v) => feeSatsPerByte = int.Parse(v)},
+                {"acci|account-index=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
+                {"accn|account-name=", "Account to send from", (string v) => accountName = v},
+                {"naccname|new-account-name=", "New account name", (string v) => newAccName = v},
+                {"nacctype|new-account-type=", "New account type", (string v) => newAccType = v},
+                {"w|wallet=", "Wallet id", (string v) => walletId = v},
+                {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
+                {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
+
+                // Default & help
+                {"h|help", "Liviano help", v => showHelp = !(v is null)}
+            };
+        }
+
+        /// <summary>
+        /// Main, uses the args and run the options
+        /// </summary>
         static void Main(string[] args)
         {
-            _Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-            _ = Parser.Default.ParseArguments<MnemonicOptions, ExtendedKeyOptions, ExtendedPubKeyOptions, DeriveAddressOptions, AddressToScriptPubKeyOptions, NewWalletOptions, WalletBalanceOptions, NewAddressOptions, SendOptions, StartOptions, ElectrumTestOptions, ElectrumTest2Options>(args)
-            .WithParsed<MnemonicOptions>(o =>
+            // Set standard input
+            hasInputText = Console.IsInputRedirected;
+            if (hasInputText && !Debugger.IsAttached) inputText = Console.ReadLine().Trim();
+
+            // Get the options
+            options = GetOptions();
+
+            // Variables that support input text from the terminal
+            if (hasInputText)
             {
-                string wordlist = "english";
-                int wordCount = 24;
-
-                if (o.WordCount != 0)
-                {
-                    wordCount = o.WordCount;
-                }
-
-                if (o.Wordlist != null)
-                {
-                    wordlist = o.Wordlist;
-                }
-
-                Console.WriteLine(Hd.NewMnemonic(wordlist, wordCount));
-            })
-            .WithParsed<ExtendedKeyOptions>(o =>
+                mnemonic = inputText;
+                address = inputText;
+                wif = inputText;
+            }
+            else
             {
-                string mnemonic = null;
-                string passphrase = null;
-                string network = "main";
+                options.Add("mn|mnemonic=", "Mnemonic", (string v) => mnemonic = v);
+                options.Add("addr|address=", "Address", (string v) => address = v);
+                options.Add("wif|with-wif=", "Wif", (string v) => wif = v);
+            }
 
-                if (o.Mnemonic != null)
-                {
-                    mnemonic = o.Mnemonic;
-                }
-                else
-                {
-                    mnemonic = Console.ReadLine();
-                }
-
-                if (o.Passphrase != null)
-                {
-                    passphrase = o.Passphrase;
-                }
-
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else if (o.Regtest)
-                {
-                    network = "regtest";
-                }
-
-                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
-                var wif = Hd.GetWif(extKey, network);
-
-                Console.WriteLine(wif);
-            })
-            .WithParsed<ExtendedPubKeyOptions>(o =>
+            try
             {
-                string wif;
-                string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-                string network = "main";
+                extra = options.Parse(args);
 
-                if (o.Wif != null)
-                {
-                    wif = o.Wif;
-                }
-                else
-                {
-                    wif = Console.ReadLine();
-                }
-
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else if (o.Regtest)
-                {
-                    network = "regtest";
-                }
-
-                if (o.HdPath != null)
-                {
-                    hdPath = o.HdPath;
-                }
-
-                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network);
-                var extPubKeyWif = Hd.GetWif(extPubKey, network);
-
-                Console.WriteLine(extPubKeyWif);
-            })
-            .WithParsed<DeriveAddressOptions>(o =>
+                if (extra.Count > 0)
+                    logger.Information($"Extra arguments: {extra}");
+            }
+            catch (OptionException e)
             {
-                string wif;
-                int index = 1;
-                bool isChange = false;
-                string network = "main";
-                string type = "p2wpkh";
+                InvalidArguments($"Error: {e.Message}");
 
-                if (o.Wif != null)
-                {
-                    wif = o.Wif;
-                }
-                else
-                {
-                    wif = Console.ReadLine();
-                }
+                return;
+            }
 
-                if (o.Index != null)
-                {
-                    index = (int)o.Index;
-                }
-
-                if (o.IsChange)
-                {
-                    isChange = o.IsChange;
-                }
-
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else if (o.Regtest)
-                {
-                    network = "regtest";
-                }
-
-                if (o.Type != null)
-                {
-                    type = o.Type;
-                }
-
-                Console.WriteLine(Hd.GetAddress(wif, index, isChange, network, type));
-            })
-            .WithParsed<AddressToScriptPubKeyOptions>(o =>
+            // Check if help was sent
+            if (showHelp)
             {
-                string network = "main";
-                string address = null;
+                ShowHelp(options);
 
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else if (o.Regtest)
-                {
-                    network = "regtest";
-                }
+                return;
+            }
 
-                if (o.Address != null)
-                {
-                    address = o.Address;
-                }
-                else
-                {
-                    address = Console.ReadLine();
-                }
+            // Load configs
+            if (Config.Exists())
+                config = Config.Load();
+            else
+                config = new Config(walletId, network.ToString());
 
-                Console.WriteLine(Hd.GetScriptPubKey(address, network));
-            })
-            .WithParsed<NewWalletOptions>(o =>
+            if (config.HasWallet(walletId) && walletId is null)
+                walletId = config.WalletId;
+
+            if (!string.IsNullOrEmpty(config.Network) && network is null)
+                network = Hd.GetNetwork(config.Network);
+
+            config.Network = network.ToString();
+            config.AddWallet(walletId);
+
+            config.SaveChanges();
+
+            // LightClient commands, set everything before here
+            if (newMnemonic)
             {
-                string mnemonic = null;
-                string name = Guid.NewGuid().ToString();
-                string network = "main";
+                var mnemonicRes = Hd.NewMnemonic(wordlist, wordCount);
 
-                if (o.Mnemonic != null)
-                {
-                    mnemonic = o.Mnemonic;
-                }
-                else
-                {
-                    mnemonic = Console.ReadLine();
-                }
+                Console.WriteLine(mnemonicRes);
 
-                if (o.Name != null)
-                {
-                    name = o.Name;
-                }
+                return;
+            }
 
-                _Logger.Information("New wallet with name {name} to be created", name);
-
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-
+            if (getXPrv)
+            {
                 if (string.IsNullOrEmpty(mnemonic))
                 {
-                    _Logger.Error("Empty mnemonic");
-
-                    _Logger.Information("Generating new mnemonic");
-
-                    mnemonic = new Mnemonic(Hd.WordlistFromString(), Hd.WordCountFromInt()).ToString();
-                }
-
-                // If the configuration exists, we just add a new wallet
-                Config config;
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-
-                    if (config.HasWallet(name))
-                    {
-                        _Logger.Error("Wallet already exists: {name}", name);
-
-                        throw new WalletException($"Wallet already exists {name}");
-                    }
-
-                    config.WalletId = name;
-                    config.Network = network;
-
-                    config.Add(name);
-
-                    config.SaveChanges();
-                }
-                else
-                {
-                    config = new Config(name, network);
-                }
-
-                config.SaveChanges();
-
-                LightClient.CreateWallet(config, o.Password, mnemonic);
-
-                Console.WriteLine(name);
-            })
-            .WithParsed<WalletBalanceOptions>(o =>
-            {
-                string walletId = null;
-                Config config = null;
-
-                if (o.WalletId != null)
-                {
-                    walletId = o.WalletId;
-                }
-
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-
-                    if (walletId != null && !config.HasWallet(walletId))
-                    {
-                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
-
-                        throw new WalletException($"Please create a new wallet for {walletId}");
-                    }
-
-                    walletId = config.WalletId;
-                }
-                else
-                {
-                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
-
-                    throw new WalletException("Please create a new wallet with the command new-wallet");
-                }
-
-                if (o.Testnet)
-                {
-                    config.Network = "testnet";
-                }
-
-                config.SaveChanges();
-
-                bool shownBalance = false;
-
-                try
-                {
-                    if (o.Name != null)
-                    {
-                        Money confirmedAmount = LightClient.AccountBalance(config, o.Password, o.Name);
-
-                        Console.WriteLine("Name, Amount");
-                        Console.WriteLine("============");
-
-                        Console.WriteLine($"{o.Name}, {confirmedAmount}");
-
-                        shownBalance = true;
-                    }
-
-                    if (o.Index != null)
-                    {
-                        Money confirmedAmount = LightClient.AccountBalance(config, o.Password, accountIndex: o.Index);
-
-                        Console.WriteLine("Name, Amount");
-                        Console.WriteLine("============");
-
-                        Console.WriteLine($"{o.Name}, {confirmedAmount}");
-
-                        shownBalance = true;
-                    }
-                }
-                catch (WalletException e)
-                {
-                    _Logger.Error(e.ToString());
-
-                    Console.WriteLine($"Account ({o.Name ?? o.Index}) not found.");
-                }
-
-                if (!shownBalance)
-                {
-                    //var balances = LightClient.AllAccountsBalance(config, o.Password);
-
-                    //if (balances.Count() > 0)
-                    //{
-                    //    Console.WriteLine("Name, HdPath, Confirmed Amount, Unconfirmed Amount");
-                    //    Console.WriteLine("==================================================");
-
-                    //    foreach (var balance in balances)
-                    //    {
-                    //        Console.WriteLine($"{balance.Name}, {balance.HdPath}, {balance.ConfirmedAmount}, {balance.UnConfirmedAmount}");
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    Console.WriteLine("No accounts with balances found");
-                    //}
-                    throw new NotImplementedException("Upps we haven't done this!");
-                }
-            })
-            .WithParsed<NewAddressOptions>(o =>
-            {
-                string walletId = null;
-                Config config = null;
-
-                if (o.WalletId != null)
-                {
-                    walletId = o.WalletId;
-                }
-
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-
-                    if (walletId != null && !config.HasWallet(walletId))
-                    {
-                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
-
-                        throw new WalletException($"Please create a new wallet for {walletId}");
-                    }
-
-                    walletId = config.WalletId;
-                }
-                else
-                {
-                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
-
-                    throw new WalletException("Please create a new wallet with the command new-wallet");
-                }
-
-                if (o.Testnet)
-                {
-                    config.Network = "testnet";
-                }
-
-                config.SaveChanges();
-
-                BitcoinAddress address = null;
-
-                try
-                {
-                    if (o.Name == null && o.Index == null)
-                    {
-                        address = LightClient.GetAddress(config, o.Password);
-                    }
-                    else if (o.Name != null)
-                    {
-                        address = LightClient.GetAddress(config, o.Password, accountName: o.Name);
-                    }
-                    else if (o.Index != null)
-                    {
-                        address = LightClient.GetAddress(config, o.Password, accountIndex: o.Index);
-                    }
-                }
-                catch (InvalidOperationException e)
-                {
-                    _Logger.Error(e.ToString());
-
-                    Console.WriteLine($"Unable to find account ({o.Name ?? o.Index})");
+                    InvalidArguments();
 
                     return;
                 }
 
-                Console.WriteLine($"{address.ToString()}");
-            })
-            .WithParsed<SendOptions>(async o =>
-            {
-                string walletId = null;
-                Config config = null;
+                var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
+                var wifRes = Hd.GetWif(extKey, network);
 
-                if (o.WalletId != null)
+                Console.WriteLine(wifRes);
+
+                return;
+            }
+
+            if (getXPub)
+            {
+                if (string.IsNullOrEmpty(wif))
                 {
-                    walletId = o.WalletId;
+                    InvalidArguments();
+
+                    return;
                 }
 
-                if (Config.Exists())
+                var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name);
+                var extPubKeyWif = Hd.GetWif(extPubKey, network);
+
+                Console.WriteLine(extPubKeyWif);
+
+                return;
+            }
+
+            if (getAddr)
+            {
+                if (string.IsNullOrEmpty(wif) && string.IsNullOrEmpty(walletId) && config.WalletId == null)
                 {
-                    config = Config.Load();
+                    InvalidArguments();
 
-                    if (walletId != null && !config.HasWallet(walletId))
+                    return;
+                }
+
+                if (accountIndex == -1) accountIndex = 0;
+
+                if (!string.IsNullOrEmpty(wif))
+                    Console.WriteLine(Hd.GetAddress(wif, accountIndex, false, network.Name, addressType));
+                else if (config.WalletId != null)
+                {
+                    if (addressAmount == 1)
                     {
-                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
+                        var address = LightClient.GetAddress(config, accountIndex);
 
-                        throw new WalletException($"Please create a new wallet for {walletId}");
+                        if (address is null)
+                        {
+                            InvalidArguments("Could not get address because wallet was not found");
+
+                            return;
+                        }
+
+
+                        Console.WriteLine(address.ToString());
+
+                        return;
                     }
 
-                    walletId = config.WalletId;
+                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
+
+                    var data = string.Join('\n', addresses.ToList());
+
+                    Console.WriteLine(data);
+
+                    return;
                 }
+                else {
+                    InvalidArguments("Could not find wallet or wif was not provided");
+
+                    return;
+                }
+
+                return;
+            }
+
+            if (getScriptPubKey)
+            {
+                if (string.IsNullOrEmpty(address))
+                {
+                    InvalidArguments();
+
+                    return;
+                }
+
+                Console.WriteLine(Hd.GetScriptPubKey(address, network.Name));
+
+                return;
+            }
+
+            if (newWallet)
+            {
+                Wallet wallet;
+                if (string.IsNullOrEmpty(mnemonic))
+                    wallet = LightClient.NewWallet(wordlist, wordCount, network);
                 else
-                {
-                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
+                    wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
 
-                    throw new WalletException("Please create a new wallet with the command new-wallet");
-                }
+                if (!string.IsNullOrEmpty(newAccName) && !string.IsNullOrEmpty(newAccType))
+                    wallet.AddAccount(newAccType, newAccName, new { Wallet = wallet, WalletId = wallet.Id, Network = network });
 
-                if (o.Testnet)
-                {
-                    config.Network = "testnet";
-                }
+                wallet.Storage.Save();
 
+                // Save wallet on config
+                config.AddWallet(wallet.Id);
                 config.SaveChanges();
 
-                bool wasCreated = false;
-                bool wasSent = false;
+                Console.WriteLine($"{wallet.Id}");
+
+                return;
+            }
+
+            if (newAcc)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                if (string.IsNullOrEmpty(newAccName) || string.IsNullOrEmpty(newAccType))
+                    throw new ArgumentException("New account needs a account type and account name");
+
+                var res = LightClient.AddAccount(config, newAccType, newAccName);
+
+                // Returns wif of account
+                Console.WriteLine($"{res}");
+
+                return;
+            }
+
+            if (start)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                LightClient.Start(config);
+
+                return;
+            }
+
+            if (resync)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                LightClient.ReSync(config);
+
+                return;
+            }
+
+            if (send)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
                 Transaction tx = null;
-                string error = null;
+                string error;
+                var res = LightClient.Send(
+                    config,
+                    address, amount, feeSatsPerByte,
+                    accountName: null, accountIndex: accountIndex,
+                    password: passphrase
+                );
 
-                if (o.Name == null && o.Index == null)
-                {
-                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte);
-                }
-                else if (o.Name != null)
-                {
-                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountName: o.Name);
-                }
-                else if (o.Index != null)
-                {
-                    (wasCreated, wasSent, tx, error) = await LightClient.Send(config, o.Password, o.To, o.Amount, o.SatsPerByte, accountIndex: o.Index);
-                }
+                res.Wait();
 
-                Console.WriteLine($"TxId: {tx.GetHash()}");
-                Console.WriteLine("=====================" + new string('=', tx.GetHash().ToString().Length));
-                Console.WriteLine($"Size: {tx.GetVirtualSize()}");
-                Console.WriteLine($"Created: {wasCreated}");
-                Console.WriteLine($"Sent: {wasSent}");
-                Console.WriteLine("Inputs");
-                Console.WriteLine("------");
+                tx = res.Result.Transaction;
+                error = res.Result.Error;
 
-                foreach (var input in tx.Inputs)
+                if (!string.IsNullOrEmpty(error))
                 {
-                    Console.WriteLine($"{input.PrevOut.Hash} ({input.PrevOut.N})");
+                    Console.WriteLine($"Error sending transaction {error}");
                 }
 
-                Console.WriteLine($"Fees: {new Money((long)tx.GetVirtualSize() * o.SatsPerByte).ToDecimal(MoneyUnit.BTC)}");
+                Console.WriteLine("Successfully sent transaction!");
 
-                Console.WriteLine($"Hex: {tx.ToHex()}");
-            })
-            .WithParsed<StartOptions>(o =>
+                return;
+            }
+
+            if (balance)
             {
-                string network = "main";
-                string walletId = null;
-                Config config = null;
-
-                if (o.WalletId != null)
-                {
-                    walletId = o.WalletId;
-                }
-
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-
-                    if (walletId != null && !config.HasWallet(walletId))
-                    {
-                        _Logger.Error("Please create a new wallet for {walletId}", walletId);
-
-                        throw new WalletException($"Please create a new wallet for {walletId}");
-                    }
-
-                    walletId = config.WalletId;
-                }
+                if (string.IsNullOrEmpty(config.WalletId))
+                    throw new ArgumentException("New account needs a wallet id");
                 else
-                {
-                    _Logger.Error("Client configuration not found, use the command new-wallet to initalize your wallet with a mnemonic");
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                    throw new WalletException("Please create a new wallet with the command new-wallet");
-                }
+                if (accountIndex != -1)
+                {
+                    var balance = LightClient.AccountBalance(config, null, accountIndex);
 
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                    config.Network = network;
-                }
+                    Console.WriteLine($"{accountIndex} = {balance.ToString()}");
 
-                if (o.NodesToConnect != 0)
-                {
-                    config.NodesToConnect = o.NodesToConnect;
-                }
-                else if (config.NodesToConnect == 0)
-                {
-                    config.NodesToConnect = 4; // safe default.
+                    return;
                 }
 
-                config.SaveChanges();
+                var accountsWithBalance = LightClient.AllAccountsBalances(config);
 
-                LightClient.Start(config, o.Resync);
-            })
-            .WithParsed<ElectrumTestOptions>(o =>
-            {
-                Config config;
-                string network;
+                foreach (var entry in accountsWithBalance)
+                    Console.WriteLine($"{entry.Key.Index} = {entry.Value}");
 
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else
-                {
-                    network = "main";
-                }
+                return;
+            }
 
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-                }
-                else
-                {
-                    config = new Config("electrum-test", network);
-                }
+            // End... invalid options
+            InvalidArguments();
+        }
 
-                config.Network = network;
+        /// <summary>
+        /// Display cli command help
+        /// </summary>
+        /// <param name="options">An <see cref="OptionSet"/> with the options that ran</param>
+        static void ShowHelp(OptionSet options)
+        {
+            // show some app description message
+            Console.WriteLine("Usage: ./liviano-cli [OPTIONS]");
+            Console.WriteLine("CLI version of Liviano.");
+            Console.WriteLine("Can be used as an example for a Wallet or as an utility for Bitcoin");
+            Console.WriteLine();
 
-                config.SaveChanges();
+            // output the options
+            Console.WriteLine("Options:");
+            options.WriteOptionDescriptions(Console.Out);
+        }
 
-                if (network == "main")
-                {
+        /// <summary>
+        /// Displays invalid argument message
+        /// </summary>
+        /// <param name="msg">A <see cref="string"/> with a custom message</param>
+        static void InvalidArguments(string msg = "Invalid argument options.")
+        {
+            Console.WriteLine($"{msg}\n");
 
-                    LightClient.TestElectrumConnection("1HgFikZZi9C4t7B1gRohtiEon2FtmDvwnu", "fbe0b33f38059e88840f8d222597e1b6edd5280663094f4b3300f15551dc6b74", Network.Main);
-                }
-                else
-                {
-                    LightClient.TestElectrumConnection("2NDkEKKqP5rqhMYBq4JSXn8LppFFdSg6gtn", "eae1eeba5a5fb87629e362e346688443d106bb4e835798ec0f311da75b9cc80f", Network.TestNet);
-                }
-            }).WithParsed<ElectrumTest2Options>(o =>
-            {
-                Config config;
-                string network;
-
-                if (o.Testnet)
-                {
-                    network = "testnet";
-                }
-                else
-                {
-                    network = "mainnet";
-                }
-
-                if (Config.Exists())
-                {
-                    config = Config.Load();
-                }
-                else
-                {
-                    config = new Config("electrum-test2", network);
-                }
-
-                config.Network = network;
-                config.SaveChanges();
-
-                if (network == "mainnet")
-                {
-                    LightClient.TestElectrumConnection2(Network.Main);
-                }
-                else
-                {
-                    LightClient.TestElectrumConnection2(Network.TestNet);
-                }
-            });
+            ShowHelp(options);
         }
     }
 }

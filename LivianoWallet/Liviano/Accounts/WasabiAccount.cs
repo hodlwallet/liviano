@@ -4,7 +4,7 @@
 // Author:
 //       igor <igorgue@protonmail.com>
 //
-// Copyright (c) 2019 
+// Copyright (c) 2019 HODL Wallet
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using Liviano.Bips;
-using Liviano.Extensions;
-using Liviano.Interfaces;
-using Liviano.Utilities;
-using Liviano.Utilities.JsonConverters;
 using NBitcoin;
 using Newtonsoft.Json;
+
+using Liviano.Bips;
+using Liviano.Extensions;
+using Liviano.Utilities;
+using Liviano.Utilities.JsonConverters;
 
 namespace Liviano.Accounts
 {
@@ -60,6 +59,7 @@ namespace Liviano.Accounts
 
         public WasabiAccount(int index = 0) : base(index)
         {
+            Index = index;
         }
 
         public WasabiAccount(string mnemonic, string password = "", Network network = null, int index = 0) : base(index)
@@ -104,7 +104,7 @@ namespace Liviano.Accounts
             return _ExtKey;
         }
 
-        public new static WasabiAccount Create(string name, (string, string) colors, object options)
+        public new static WasabiAccount Create(string name, object options)
         {
             var kwargs = options.ToDict();
 
@@ -114,9 +114,7 @@ namespace Liviano.Accounts
 
             var account = new WasabiAccount(mnemonic, password, network)
             {
-                Name = name,
-                StartHex = colors.Item1,
-                EndHex = colors.Item2
+                Name = name
             };
 
             return account;

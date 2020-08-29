@@ -23,19 +23,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
-using Newtonsoft.Json.Converters;
 
 namespace Liviano.Interfaces
 {
-    public interface IAccount : IHasTxs
+    public interface IAccount : IHasTxs, ICloneable
     {
         [JsonProperty(PropertyName = "id")]
         string Id { get; set; }
@@ -52,12 +53,6 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "gapLimit")]
         int GapLimit { get; set; }
 
-        [JsonProperty(PropertyName = "startHex")]
-        string StartHex { get; set; }
-
-        [JsonProperty(PropertyName = "endHex")]
-        string EndHex { get; set; }
-
         /// <summary>
         /// Change addresses count
         /// </summary>
@@ -66,11 +61,25 @@ namespace Liviano.Interfaces
         int InternalAddressesCount { get; set; }
 
         /// <summary>
+        /// Change addresses index
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "internalAddressesIndex")]
+        int InternalAddressesIndex { get; set; }
+
+        /// <summary>
         /// Receive addresess count
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "externalAddressesCount")]
         int ExternalAddressesCount { get; set; }
+
+        /// <summary>
+        /// Receive addresses index
+        /// </summary>
+        /// <value></value>
+        [JsonProperty(PropertyName = "externalAddressesIndex")]
+        int ExternalAddressesIndex { get; set; }
 
         /// <summary>
         /// Wallet the account belongs to
@@ -137,28 +146,62 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Gets 1 receiving address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
         BitcoinAddress GetReceiveAddress();
 
         /// <summary>
         /// Gets n receiving addresses
         /// </summary>
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
-        /// <returns></returns>
+        /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
         BitcoinAddress[] GetReceiveAddress(int n);
 
         /// <summary>
         /// Gets 1 change address
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
         BitcoinAddress GetChangeAddress();
 
         /// <summary>
         /// Gets n change addresses
         /// </summary>
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
-        /// <returns></returns>
+        /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
         BitcoinAddress[] GetChangeAddress(int n);
+
+        /// <summary>
+        /// Gets a receive address at an index without increasing the count
+        /// </summary>
+        /// <param name="i">A <see cref="int"/> index of the address to get</param>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
+        BitcoinAddress GetReceiveAddressAtIndex(int i);
+
+        /// <summary>
+        /// Gets a change address at an index without increasing the count
+        /// </summary>
+        /// <param name="i">A <see cref="int"/> index of the address to get</param>
+        /// <returns>A <see cref="BitcoinAddress"/></returns>
+        BitcoinAddress GetChangeAddressAtIndex(int i);
+
+        /// <summary>
+        /// Gets all receive addresses to watch, start on 0 and get all until grap
+        /// </summary>
+        BitcoinAddress[] GetReceiveAddressesToWatch();
+
+        /// <summary>
+        /// Gets all change addresses to watch, start on 0 and get all until grap
+        /// </summary>
+        BitcoinAddress[] GetChangeAddressesToWatch();
+
+        /// <summary>
+        /// Gets the last external index
+        /// </summary>
+        int GetExternalLastIndex();
+
+        /// <summary>
+        /// Gets the last external index
+        /// </summary>
+        int GetInternalLastIndex();
 
         /// <summary>
         /// Gets the balance of the account

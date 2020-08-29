@@ -37,6 +37,7 @@ using Liviano.Exceptions;
 using System.Diagnostics;
 
 using static Liviano.Electrum.ElectrumClient;
+using Newtonsoft.Json.Converters;
 
 namespace Liviano.Models
 {
@@ -123,15 +124,15 @@ namespace Liviano.Models
         /// <summary>
         /// The hash of the block including this transaction.
         /// </summary>
-        [JsonProperty(PropertyName = "blockHash", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "blockhash", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
-        public uint256 BlockHash { get; set; }
+        public uint256 Blockhash { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(Liviano.Utilities.JsonConverters.DateTimeOffsetConverter))]
+        [JsonConverter(typeof(DateTimeOffsetConverter))]
         public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
@@ -147,6 +148,12 @@ namespace Liviano.Models
         [JsonProperty(PropertyName = "scriptPubKey")]
         [JsonConverter(typeof(ScriptJsonConverter))]
         public Script ScriptPubKey { get; set; }
+
+        /// <summary>
+        /// Check if the tx is rbf
+        /// </summary>
+        [JsonProperty(PropertyName = "isRBF", NullValueHandling = NullValueHandling.Ignore)]
+        public bool IsRBF { get; set; }
 
         /// <summary>
         /// The script pub key for the address we sent to
@@ -173,6 +180,12 @@ namespace Liviano.Models
         /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
         [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
         public bool IsPropagated { get; set; }
+
+        /// <summary>
+        /// Number of confirmations
+        /// </summary>
+        [JsonProperty(PropertyName = "confirmations", NullValueHandling = NullValueHandling.Ignore)]
+        public int Confirmations { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
@@ -219,7 +232,7 @@ namespace Liviano.Models
             AccountId = copy.AccountId;
             AmountReceived = copy.AmountReceived;
             AmountSent = copy.AmountSent;
-            BlockHash = copy.BlockHash;
+            Blockhash = copy.Blockhash;
             BlockHeight = copy.BlockHeight;
             CreatedAt = copy.CreatedAt;
             Hex = copy.Hex;
@@ -239,26 +252,31 @@ namespace Liviano.Models
 
         public Tx() { }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, long blockHeight, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
         {
-            Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}");
+            Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
 
+            // TODO Once chain is downloaded complete the transactions somehow
             var tx = new Tx
             {
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
-                CreatedAt = DateTimeOffset.UtcNow, // TODO this is incorrect...
+                //CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
+                //Blockhash = uint256.Parse(blockhash),
                 Hex = hex,
-                BlockHeight = blockHeight
+                //Confirmations = confirmations,
+                IsRBF = transaction.RBF,
+                //BlockHeight = blockHeight
             };
 
             // Decide if the tx is a send tx or a receive tx
             var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
+            BitcoinAddress currentAddress = null;
             foreach (var addr in addresses)
             {
                 if (externalAddresses.Contains(addr))
@@ -267,6 +285,8 @@ namespace Liviano.Models
 
                     tx.IsReceive = true;
                     tx.IsSend = false;
+                    currentAddress = addr;
+
                     break;
                 }
 
@@ -276,6 +296,8 @@ namespace Liviano.Models
 
                     tx.IsSend = true;
                     tx.IsReceive = false;
+                    currentAddress = addr;
+
                     break;
                 }
             }
@@ -283,7 +305,7 @@ namespace Liviano.Models
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
 
-            Console.WriteLine($"[CreateFromHex] Total amount: {tx.TotalAmount}");
+            Debug.WriteLine($"[CreateFromHex] Total amount in tx: {tx.TotalAmount}");
 
             if (tx.IsReceive)
             {
@@ -328,11 +350,17 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
-            Debug.WriteLine($"[CreateFromHex] Amount Received: {tx.AmountReceived}");
-            Debug.WriteLine($"[CreateFromHex] Amount Sent: {tx.AmountSent}");
+            Debug.WriteLine("");
+            Debug.WriteLine("Creating a transaction");
+            Debug.WriteLine(new string('*', 22));
+            Debug.WriteLine($"Txid: {tx.Id}");
+            Debug.WriteLine($"Address: {currentAddress}");
+            Debug.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
+            Debug.WriteLine($"Amount Received: {tx.AmountReceived}");
+            Debug.WriteLine($"Amount Sent: {tx.AmountSent}");
+            Debug.WriteLine("");
 
-
-            tx.BlockHash = 0; // TODO
+            //tx.Blockhash = uint256.Parse(blockhash);
             tx.IsPropagated = true; // TODO
             tx.TotalFees = Money.Zero; // TODO
 
@@ -343,11 +371,11 @@ namespace Liviano.Models
         {
             var tx = new Tx
             {
-                Id = uint256.Parse(result.Txid),
+                Id = uint256.Parse(result.Result.Txid),
                 Account = account,
                 AccountId = account.Id,
                 Network = network,
-                Hex = result.Hex
+                Hex = result.Result.Hex
             };
 
             return tx;
