@@ -126,8 +126,20 @@ namespace Liviano.CLI
                 string destinationAddress, double amount, int feeSatsPerByte,
                 IAccount account, string password = "")
         {
+            network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemStorage(config.WalletId, network);
+
+            if (!storage.Exists())
+            {
+                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            wallet = storage.Load();
             Transaction tx = null;
-            string error = null;
+            string error;
 
             try
             {
