@@ -389,7 +389,7 @@ namespace Liviano.CLI
 
                 res.Wait();
 
-                tx = res.Result.Tx;
+                tx = res.Result.Transaction;
                 error = res.Result.Error;
 
                 if (!string.IsNullOrEmpty(error))

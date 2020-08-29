@@ -121,7 +121,7 @@ namespace Liviano.CLI
             wallet = storage.Load();
         }
 
-        public static async Task<(Transaction Tx, string Error)> Send(
+        public static async Task<(Transaction Transaction, string Error)> Send(
                 Config config,
                 string destinationAddress, double amount, int feeSatsPerByte,
                 string accountName = null, int accountIndex = -1, string password = "")
