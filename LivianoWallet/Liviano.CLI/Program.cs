@@ -389,8 +389,8 @@ namespace Liviano.CLI
 
                 res.Wait();
 
-                tx = res.Result.Item1;
-                error = res.Result.Item2;
+                tx = res.Result.Tx;
+                error = res.Result.Error;
 
                 if (!string.IsNullOrEmpty(error))
                 {
