@@ -59,7 +59,8 @@ namespace Liviano.CLI
         static string addressType = "p2wpkh";
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
         static string server = "";
-        static decimal amount = new decimal(0.00);
+        static double amount = 0.00;
+        static int feeSatsPerByte = 1;
         static int accountIndex = -1;
         static string accountName = null;
         static string walletId = "";
@@ -117,7 +118,8 @@ namespace Liviano.CLI
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
                 {"s|server=", "Server", (string v) => server = v},
-                {"amt|amount=", "Amount to send", (string v) => amount = decimal.Parse(v)},
+                {"amt|amount=", "Amount to send", (string v) => amount = double.Parse(v)},
+                {"fee|fee-sats-per-byte=", "Fees in satoshis per byte", (string v) => feeSatsPerByte = int.Parse(v)},
                 {"acci|account-index=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
                 {"accn|account-name=", "Account to send from", (string v) => accountName = v},
                 {"naccname|new-account-name=", "New account name", (string v) => newAccName = v},
@@ -376,8 +378,28 @@ namespace Liviano.CLI
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                // TODO Send from an account
-                throw new NotImplementedException("Send is not implemented");
+                Transaction tx = null;
+                string error;
+                var res = LightClient.Send(
+                    config,
+                    address, amount, feeSatsPerByte,
+                    accountName: null, accountIndex: accountIndex,
+                    password: passphrase
+                );
+
+                res.Wait();
+
+                tx = res.Result.Item1;
+                error = res.Result.Item2;
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Console.WriteLine($"Error sending transaction {error}");
+                }
+
+                Console.WriteLine("Successfully sent transaction!");
+
+                return;
             }
 
             if (balance)

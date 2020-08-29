@@ -124,7 +124,7 @@ namespace Liviano.CLI
         public static async Task<(Transaction Tx, string Error)> Send(
                 Config config,
                 string destinationAddress, double amount, int feeSatsPerByte,
-                IAccount account, string password = "")
+                string accountName = null, int accountIndex = -1, string password = "")
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -140,6 +140,15 @@ namespace Liviano.CLI
             wallet = storage.Load();
             Transaction tx = null;
             string error;
+
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
 
             try
             {
