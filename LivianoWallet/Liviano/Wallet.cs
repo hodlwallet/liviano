@@ -40,6 +40,8 @@ using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Models;
 using Liviano.Electrum;
+using Liviano.Extensions;
+using Liviano.Exceptions;
 
 namespace Liviano
 {
@@ -320,7 +322,7 @@ namespace Liviano
                         ElectrumPool,
                         server,
                         ct
-                );
+                        );
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
@@ -376,7 +378,7 @@ namespace Liviano
                         ElectrumPool,
                         server,
                         ct
-                );
+                        );
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
@@ -597,6 +599,44 @@ namespace Liviano
             if (Accounts.Count() - 1 < accountIndex + 1) return new Tx[] {};
 
             return Accounts[accountIndex].Txs.ToArray();
+        }
+
+        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "")
+        {
+            Transaction tx = null;
+            string error = null;
+            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
+
+            try
+            {
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)feeSatsPerByte, this, account, Network);
+            }
+            catch (WalletException err)
+            {
+                Debug.WriteLine($"[CreateTransaction] Error: {err.Message}");
+
+                return (tx, err.Message);
+            }
+
+            TransactionExtensions.VerifyTransaction(tx, Network, out var errors);
+
+            if (errors.Any())
+            {
+                error = string.Join<string>(", ", errors.Select(o => o.Message));
+
+                Debug.WriteLine($"[CreateTransaction] Error: {error}");
+
+                return (tx, error);
+            }
+
+            return (tx, null);
+        }
+
+        public async Task<bool> BroadcastTransaction(Transaction tx)
+        {
+            var res = await ElectrumPool.BroadcastTransaction(tx);
+
+            return res;
         }
     }
 }

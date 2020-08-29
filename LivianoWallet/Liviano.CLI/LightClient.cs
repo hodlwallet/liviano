@@ -121,12 +121,44 @@ namespace Liviano.CLI
             wallet = storage.Load();
         }
 
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, string accountName = null, int accountIndex = -1)
+        public static async Task<(Transaction Tx, string Error)> Send(
+                Config config,
+                string destinationAddress, double amount, int feeSatsPerByte,
+                IAccount account, string password = "")
         {
+            Transaction tx = null;
+            string error = null;
 
-            await Task.Delay(1);
+            try
+            {
+                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, password);
 
-            return (null, null);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    return (tx, error);
+                }
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Send] Failed to create transcation: {err.Message}");
+
+                return (null, "Failed to create transaction");
+            }
+
+            try
+            {
+                var res = await wallet.BroadcastTransaction(tx);
+
+                if (!res) return (tx, "Failed to broadcast transaction");
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Send] Failed to broadcast transcation: {err.Message}");
+
+                return (tx, "Failed to broadcast transaction");
+            }
+
+            return (tx, null);
         }
 
         public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)

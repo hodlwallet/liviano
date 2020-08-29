@@ -211,6 +211,10 @@ namespace Liviano.Interfaces
 
         Tx[] GetTranscations(int accountIndex = 0);
 
+        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "");
+
+        Task<bool> BroadcastTransaction(Transaction tx);
+
         /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>

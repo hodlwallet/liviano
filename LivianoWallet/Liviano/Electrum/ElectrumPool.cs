@@ -476,6 +476,36 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
+        /// Broadcast Bitcoin Transaction
+        /// </summary>
+        /// <param name="transaction">A signed<see cref="Transaction"/> to be broadcasted</param>
+        public async Task<bool> BroadcastTransaction(Transaction transaction)
+        {
+            var txHex = transaction.ToHex();
+
+            try
+            {
+                var broadcast = await ElectrumClient.BlockchainTransactionBroadcast(txHex);
+
+                if (broadcast.Result != transaction.GetHash().ToString())
+                {
+                    Debug.WriteLine("[BroadcastTransaction]  Error could not broadcast");
+
+                    return false;
+                }
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[BroadcastTransaction]  Error could not broadcast: {err.Message}");
+
+                return false;
+            }
+
+
+            return true;
+        }
+
+        /// <summary>
         /// Insert transactions from a result of the electrum network
         /// </summary>
         /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
