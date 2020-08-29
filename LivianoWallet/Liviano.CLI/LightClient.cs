@@ -142,7 +142,7 @@ namespace Liviano.CLI
             {
                 Debug.WriteLine($"[Send] Failed to create transcation: {err.Message}");
 
-                return (null, "Failed to create transaction");
+                return (tx, "Failed to create transaction");
             }
 
             try
@@ -159,43 +159,6 @@ namespace Liviano.CLI
             }
 
             return (tx, null);
-        }
-
-        public static async Task<(bool WasCreated, bool WasSent, Transaction Tx, string Error)> Send(Config config, string password, string destinationAddress, double amount, int satsPerByte, IAccount account)
-        {
-            Load(config);
-
-            await Task.Delay(1);
-
-            Transaction tx = null;
-            string error = "";
-            bool wasCreated = false;
-            bool wasSent = false;
-            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
-
-            try
-            {
-                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)satsPerByte, wallet, account, network);
-                wasCreated = true;
-            }
-            catch (WalletException e)
-            {
-                logger.Error(e.ToString());
-
-                error = e.Message;
-                wasCreated = false;
-
-                return (wasCreated, wasSent, tx, error);
-            }
-
-            TransactionExtensions.VerifyTransaction(tx, network, out var errors);
-
-            if (errors.Any())
-            {
-                error = string.Join<string>(", ", errors.Select(o => o.Message));
-            }
-
-            return (wasCreated, wasSent, tx, error);
         }
 
         /// <summary>
