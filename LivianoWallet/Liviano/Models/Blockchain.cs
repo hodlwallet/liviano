@@ -47,8 +47,11 @@ namespace Liviano.Models
         [JsonIgnore]
         public ChainedBlock[] Checkpoints { get; set; }
 
+        /// <summary>
+        /// An array of ChainedBlocks representing the block headers
+        /// </summary>
         [JsonIgnore]
-        public Dictionary<int, ChainedBlock> Headers { get; set; }
+        public ChainedBlock[] Headers { get; set; }
 
         /// <summary>
         /// Initializer
