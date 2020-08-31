@@ -306,7 +306,7 @@ namespace Liviano
 
         public async Task Watch()
         {
-            Debug.WriteLine("[Sync] Syncing...");
+            Debug.WriteLine("[Watch] Watch started...");
 
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
@@ -398,6 +398,8 @@ namespace Liviano
             Console.WriteLine($"Now starts to watch wallet");
 
             await ElectrumPool.WatchWallet(this, ct);
+
+            Console.WriteLine("WTHIS FINISHES?");
         }
 
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)

@@ -210,18 +210,16 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            await Task.Factory.StartNew(async o =>
-            {
-                OnWatchStarted?.Invoke(this, null);
+            OnWatchStarted?.Invoke(this, null);
 
-                // This makes the task run but not wait, essentially creating
-                // background tasks
-                foreach (var acc in wallet.Accounts) _ = WatchAccount(acc, ct);
+            foreach (var acc in wallet.Accounts)
+                await Task.Factory.StartNew(
+                    async o => await WatchAccount(acc, ct),
+                    TaskCreationOptions.LongRunning,
+                    ct
+                );
 
-                // Watch should never finish. Should be cancelled with the ct instead
-                // could implement an infinite loop if needed like
-                while (true) await Task.Delay(3000); // Every 3 seconds do loop. to avoid CPU usage
-            }, TaskCreationOptions.LongRunning, ct);
+            Console.WriteLine("it finished???");
         }
 
         /// <summary>
@@ -233,16 +231,16 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            await Task.Factory.StartNew(o =>
+            await Task.Factory.StartNew(async o =>
             {
                 var changeAddresses = acc.GetChangeAddressesToWatch();
                 var receiveAddresses = acc.GetReceiveAddressesToWatch();
 
                 foreach (var addr in changeAddresses)
-                    _ = WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
 
                 foreach (var addr in receiveAddresses)
-                    _ = WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
 
             }, TaskCreationOptions.AttachedToParent, ct);
         }
