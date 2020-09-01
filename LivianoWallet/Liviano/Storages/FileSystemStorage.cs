@@ -107,6 +107,9 @@ namespace Liviano.Storages
             Guard.NotNull(Wallet, nameof(Wallet));
             Guard.NotNull(RootDirectory, nameof(RootDirectory));
 
+            // Interruptions could be dangerous, so I rather make a backup first
+            MakeWalletBackup();
+
             Id = Wallet.Id;
             Network = Wallet.Network;
 
@@ -117,6 +120,14 @@ namespace Liviano.Storages
 
             SaveAccounts();
             SaveTxs();
+        }
+
+        void MakeWalletBackup()
+        {
+            var filePath = GetWalletFilePath();
+            var backupFilePath = GetWalletBackupFilePath();
+
+            File.Copy(filePath, backupFilePath);
         }
 
         List<Tx> GetTxs(IAccount account)
@@ -302,6 +313,20 @@ namespace Liviano.Storages
 
             // e.g.: "/home/igor/.liviano/testnet/de88e127-8c41-4b70-a226-de38189b38b1/wallet.json"
             path += "wallet.json";
+
+            return path;
+        }
+
+        string GetWalletBackupFilePath()
+        {
+            // e.g.: "/home/igor/.liviano/testnet"
+            var path = GetWalletDirectory();
+
+            // "\" or "/"
+            path += Path.DirectorySeparatorChar;
+
+            // e.g.: "/home/igor/.liviano/testnet/de88e127-8c41-4b70-a226-de38189b38b1/wallet.old.json"
+            path += "wallet.old.json";
 
             return path;
         }
