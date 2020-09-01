@@ -452,7 +452,7 @@ namespace Liviano.Electrum
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e}");
+                Debug.WriteLine($"[GetAddressHistoryTask] Error: {e}");
 
                 SetNewConnectedServer();
 
@@ -535,7 +535,7 @@ namespace Liviano.Electrum
                 }
                 catch (ElectrumException e)
                 {
-                    Console.WriteLine(e.Message);
+                    Console.WriteLine($"[Sync] Error: {e.Message}");
 
                     SetNewConnectedServer();
 

@@ -78,7 +78,8 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Debug.WriteLine("[ResolveHost] Error: ", ex.Message);
+
                 throw new ElectrumException($"DNS host entry lookup resulted in no records for {hostName}\n{ex.Message}");
             }
         }
@@ -199,6 +200,7 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request, bool useSsl = true)
         {
+            // TODO Handle exception somewhere else or here.
             //try
             //{
                 Host = server.Domain;
