@@ -150,6 +150,8 @@ namespace Liviano.Electrum
 
         string RequestInternal(string request, bool useSsl = true)
         {
+            Debug.WriteLine($"[RequestInternal] Sending request: {request}");
+
             if (!useSsl)
                 return RequestInternalNonSsl(request);
 
@@ -243,14 +245,20 @@ namespace Liviano.Electrum
             return stream;
         }
 
-        public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource ctr = null)
+        public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource cts = null)
         {
-            if (ctr is null) ctr = new CancellationTokenSource();
+            Debug.WriteLine($"[Subscribe] {request}");
+
+            if (cts is null) cts = new CancellationTokenSource();
 
             var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
-            var ct = ctr.Token;
+            var ct = cts.Token;
 
             using var stream = GetSslStream();
+
+            // Subscribe requests don't have timeouts, we will get more responses from it
+            stream.WriteTimeout = Timeout.Infinite;
+            stream.ReadTimeout = Timeout.Infinite;
 
             stream.Write(requestBytes, 0, requestBytes.Length);
             stream.Flush();
