@@ -144,7 +144,7 @@ namespace Liviano.Storages
             var filePath = GetWalletFilePath();
             var backupFilePath = GetWalletBackupFilePath();
 
-            File.Copy(filePath, backupFilePath);
+            File.Copy(filePath, backupFilePath, true);
         }
 
         void RestoreFromBackup()
@@ -155,7 +155,7 @@ namespace Liviano.Storages
             if (!File.Exists(backupFilePath))
                 throw new WalletException("Backup does not exists, cannot restore from backup");
 
-            File.Copy(backupFilePath, filePath);
+            File.Copy(backupFilePath, filePath, true);
         }
 
         List<Tx> GetTxs(IAccount account)
