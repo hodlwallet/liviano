@@ -1,5 +1,5 @@
-﻿//
-// BitcoinAddressConverter.cs
+//
+// Args.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -24,41 +24,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Diagnostics;
-
 using NBitcoin;
 
-using Newtonsoft.Json;
+using Liviano.Interfaces;
+using Liviano.Models;
 
-namespace Liviano.Utilities.JsonConverters
+namespace Liviano.Events
 {
-    public class BitcoinAddressConverter : JsonConverter
+    public class TxEventArgs : EventArgs
     {
-        public override bool CanConvert(Type objectType)
+        public Tx Tx { get; set; }
+        public IAccount Account { get; set; }
+        public BitcoinAddress Address { get; set; }
+
+        public TxEventArgs(Tx tx, IAccount account, BitcoinAddress address)
         {
-            return objectType == typeof(BitcoinAddress);
-        }
-
-        /// <inheritdoc />
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            try
-            {
-
-                return Network.Parse((string)reader.Value, expectedNetwork: Network.Main, null);
-            }
-            catch (FormatException e)
-            {
-                Debug.WriteLine($"[ReadJson] Address cannot be parsed on mainnet selecting testnet, error: {e.ToString()}");
-
-                return Network.Parse((string)reader.Value, expectedNetwork: Network.TestNet, null);
-            }
-        }
-
-        /// <inheritdoc />
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            writer.WriteValue(((BitcoinAddress)value).ToString());
+            Tx = tx;
+            Account = account;
+            Address = address;
         }
     }
 }

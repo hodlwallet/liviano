@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
+using Liviano.Events;
 using Liviano.Electrum;
 
 namespace Liviano.Interfaces
@@ -223,19 +224,5 @@ namespace Liviano.Interfaces
         event EventHandler OnWatchStarted;
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
-    }
-
-    public class TxEventArgs : EventArgs
-    {
-        public Tx Tx { get; set; }
-        public IAccount Account { get; set; }
-        public BitcoinAddress Address { get; set; }
-
-        public TxEventArgs(Tx tx, IAccount account, BitcoinAddress address)
-        {
-            Tx = tx;
-            Account = account;
-            Address = address;
-        }
     }
 }

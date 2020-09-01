@@ -42,6 +42,7 @@ using Liviano.Models;
 using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using Liviano.Events;
 
 namespace Liviano
 {
@@ -429,8 +430,8 @@ namespace Liviano
 
             acc.AddTx(tx);
 
-            Debug.WriteLine($"Found a tx! tx_id: {tx.Id}");
-            Debug.WriteLine($"            addr:  {addr}");
+            Debug.WriteLine($"[ElectrumPool_OnNewTransaction] Found a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"[ElectrumPool_OnNewTransaction]             addr:  {addr}");
 
             Storage.Save();
 
@@ -445,8 +446,8 @@ namespace Liviano
 
             acc.UpdateTx(tx);
 
-            Debug.WriteLine($"Updating a tx! tx_id: {tx.Id}");
-            Debug.WriteLine($"               addr:  {addr}");
+            Debug.WriteLine($"[ElectrumPool_OnUpdateTransaction] Updating a tx! tx_id: {tx.Id}");
+            Debug.WriteLine($"[ElectrumPool_OnUpdateTransaction]               addr:  {addr}");
 
             Storage.Save();
 
@@ -466,7 +467,7 @@ namespace Liviano
 
                 if (broadcast.Result != tx.GetHash().ToString())
                 {
-                    throw new Exception($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
+                    throw new WalletException($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
                 }
             }
             catch (Exception e)

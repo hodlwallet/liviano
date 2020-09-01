@@ -47,6 +47,7 @@ namespace Liviano.Storages
         public Network Network { get; set; }
         public IWallet Wallet { get; set; }
         public string RootDirectory { get; set; }
+        object @lock = new object();
 
         public FileSystemStorage(string id = null, Network network = null, string directory = "wallets")
         {
@@ -124,19 +125,22 @@ namespace Liviano.Storages
             Guard.NotNull(Wallet, nameof(Wallet));
             Guard.NotNull(RootDirectory, nameof(RootDirectory));
 
-            // Interruptions could be dangerous, so I rather make a backup first
-            MakeWalletBackup();
+            lock (@lock)
+            {
+                // Interruptions could be dangerous, so I rather make a backup first
+                MakeWalletBackup();
 
-            Id = Wallet.Id;
-            Network = Wallet.Network;
+                Id = Wallet.Id;
+                Network = Wallet.Network;
 
-            var filePath = GetWalletFilePath();
-            var contents = JsonConvert.SerializeObject(Wallet, Formatting.Indented);
+                var filePath = GetWalletFilePath();
+                var contents = JsonConvert.SerializeObject(Wallet, Formatting.Indented);
 
-            File.WriteAllText(filePath, contents);
+                File.WriteAllText(filePath, contents);
 
-            SaveAccounts();
-            SaveTxs();
+                SaveAccounts();
+                SaveTxs();
+            }
         }
 
         void MakeWalletBackup()

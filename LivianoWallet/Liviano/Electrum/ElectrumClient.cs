@@ -338,7 +338,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"There's an error??? {ex.Message}");
+                Debug.WriteLine($"[RequestInternal] There's an error??? {ex.Message}");
 
                 throw new ElectrumException(ex.Message);
             }
@@ -478,8 +478,6 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashGetHistoryResult> BlockchainScriptHashGetHistory(string scriptHash)
         {
-            Debug.WriteLine($"Trying to call history for {scriptHash}");
-
             var obj = new Request { Id = RequestId, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 

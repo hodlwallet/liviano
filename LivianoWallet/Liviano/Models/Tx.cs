@@ -136,13 +136,6 @@ namespace Liviano.Models
         public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
-        /// Gets or sets the Merkle proof for this transaction.
-        /// </summary>
-        //[JsonProperty(PropertyName = "merkleProof", NullValueHandling = NullValueHandling.Ignore)]
-        //[JsonConverter(typeof(BitcoinSerializableJsonConverter))]
-        //public PartialMerkleTree MerkleProof { get; set; }
-
-        /// <summary>
         /// The script pub key for this address.
         /// </summary>
         [JsonProperty(PropertyName = "scriptPubKey")]
@@ -242,7 +235,6 @@ namespace Liviano.Models
             IsReceive = copy.IsReceive;
             IsSend = copy.IsSend;
             Memo = copy.Memo;
-            //MerkleProof = copy.MerkleProof;
             Network = copy.Network;
             ScriptPubKey = copy.ScriptPubKey;
             SentScriptPubKey = copy.SentScriptPubKey;
@@ -351,7 +343,7 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
-            // TODO must bring the blockhash to tx somehow...
+            // TODO must bring the blockhash to tx somehow since it's not passed anymore...
             //tx.Blockhash = uint256.Parse(blockhash);
 
             // TODO Propagation could be get from electrum and their blockchain.scripthash.subscribe
@@ -361,19 +353,6 @@ namespace Liviano.Models
                 tx.TotalFees = Money.Zero;
             else
                 tx.TotalFees = GetTotalValueFromTxInputsCallback(transaction.Inputs) - tx.TotalAmount;
-
-            Debug.WriteLine("");
-            Debug.WriteLine("Creating a transaction");
-            Debug.WriteLine(new string('*', 22));
-            Debug.WriteLine($"Txid: {tx.Id}");
-            Debug.WriteLine($"Address: {currentAddress}");
-            Debug.WriteLine($"Total Amount: {tx.TotalAmount}");
-            Debug.WriteLine($"Total Fees: {tx.TotalFees}");
-            Debug.WriteLine($"Transaction:");
-            Debug.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
-            Debug.WriteLine($"Amount Received: {tx.AmountReceived}");
-            Debug.WriteLine($"Amount Sent: {tx.AmountSent}");
-            Debug.WriteLine("");
 
             return tx;
         }

@@ -40,6 +40,7 @@ using Liviano.Models;
 using Liviano.Interfaces;
 using Liviano.Extensions;
 using Liviano.Exceptions;
+using Liviano.Events;
 using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
