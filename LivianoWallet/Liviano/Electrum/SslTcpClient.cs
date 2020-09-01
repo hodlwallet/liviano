@@ -24,13 +24,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Collections;
+using System.Diagnostics;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
-using System.Text;
 using System.Security.Cryptography.X509Certificates;
-using System.Diagnostics;
+using System.Text;
 
 using Newtonsoft.Json;
 
@@ -38,7 +37,6 @@ namespace Liviano.Electrum
 {
     public static class SslTcpClient
     {
-        public static readonly Hashtable _CertificateErrors = new Hashtable();
         public static EventHandler<string> OnSubscriptionMessageEvent;
 
         /// <summary>
@@ -51,6 +49,7 @@ namespace Liviano.Electrum
         /// <returns></returns>
         public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
+            // The remote certificate is valid!
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
             // If there is more than one error then it shouldn't be allowed
