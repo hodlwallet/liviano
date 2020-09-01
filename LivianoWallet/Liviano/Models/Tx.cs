@@ -252,7 +252,13 @@ namespace Liviano.Models
 
         public Tx() { }
 
-        public static Tx CreateFromHex(string hex, IAccount account, Network network, BitcoinAddress[] externalAddresses, BitcoinAddress[] internalAddresses)
+        public static Tx CreateFromHex(
+                string hex,
+                IAccount account,
+                Network network,
+                BitcoinAddress[] externalAddresses,
+                BitcoinAddress[] internalAddresses,
+                Func<TxInList, Money> GetTotalValueFromTxInputsCallback = null)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
@@ -309,15 +315,12 @@ namespace Liviano.Models
 
             if (tx.IsReceive)
             {
-                // When sending every output that belongs to our external addresses
-                // gets summed in
                 tx.AmountReceived = transaction.Outputs.Sum((@out) =>
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                     if (externalAddresses.Contains(outAddr))
                     {
-                        // TODO Check for expected result.
                         tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
                     }
@@ -328,14 +331,12 @@ namespace Liviano.Models
             }
             else if (tx.IsSend)
             {
-                // When 
                 tx.AmountSent = transaction.Outputs.Sum((@out) =>
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                     if (!internalAddresses.Contains(outAddr))
                     {
-                        // TODO This could be wrong, because we could implement send to many!
                         tx.SentScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
                     }
@@ -350,19 +351,29 @@ namespace Liviano.Models
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
+            // TODO must bring the blockhash to tx somehow...
+            //tx.Blockhash = uint256.Parse(blockhash);
+
+            // TODO Propagation could be get from electrum and their blockchain.scripthash.subscribe
+            tx.IsPropagated = true;
+
+            if (GetTotalValueFromTxInputsCallback is null)
+                tx.TotalFees = Money.Zero;
+            else
+                tx.TotalFees = GetTotalValueFromTxInputsCallback(transaction.Inputs) - tx.TotalAmount;
+
             Debug.WriteLine("");
             Debug.WriteLine("Creating a transaction");
             Debug.WriteLine(new string('*', 22));
             Debug.WriteLine($"Txid: {tx.Id}");
             Debug.WriteLine($"Address: {currentAddress}");
+            Debug.WriteLine($"Total Amount: {tx.TotalAmount}");
+            Debug.WriteLine($"Total Fees: {tx.TotalFees}");
+            Debug.WriteLine($"Transaction:");
             Debug.WriteLine(JsonConvert.SerializeObject(tx, Formatting.Indented, new JsonConverter[] { new StringEnumConverter() }));
             Debug.WriteLine($"Amount Received: {tx.AmountReceived}");
             Debug.WriteLine($"Amount Sent: {tx.AmountSent}");
             Debug.WriteLine("");
-
-            //tx.Blockhash = uint256.Parse(blockhash);
-            tx.IsPropagated = true; // TODO
-            tx.TotalFees = Money.Zero; // TODO
 
             return tx;
         }

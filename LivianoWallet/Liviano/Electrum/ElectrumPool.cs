@@ -281,7 +281,8 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, acc, Network, receiveAddresses, changeAddresses
+                                txHex, acc, Network, receiveAddresses, changeAddresses,
+                                GetOutValueFromTxInputs
                             );
 
                             acc.AddTx(tx);
@@ -294,7 +295,8 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, acc, Network, receiveAddresses, changeAddresses
+                                txHex, acc, Network, receiveAddresses, changeAddresses,
+                                GetOutValueFromTxInputs
                             );
 
                             acc.UpdateTx(tx);
@@ -548,7 +550,8 @@ namespace Liviano.Electrum
                     acc,
                     Network,
                     receiveAddresses,
-                    changeAddresses
+                    changeAddresses,
+                    GetOutValueFromTxInputs
                 );
 
                 var txAddresses = Transaction.Parse(
@@ -590,6 +593,32 @@ namespace Liviano.Electrum
                     OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
             }
+        }
+
+        /// <summary>
+        /// This will get all the transcations out to know the total
+        /// </summary>
+        Money GetOutValueFromTxInputs(TxInList inputs)
+        {
+            Money total = 0L;
+
+            foreach (var input in inputs)
+            {
+                var outIndex = input.PrevOut.N;
+                var outHash = input.PrevOut.Hash.ToString();
+
+                // Get the transaction from the input
+                var task = ElectrumClient.BlockchainTransactionGet(outHash);
+                task.Wait();
+
+                var hex = task.Result.Result;
+                var transaction = Transaction.Parse(hex, Network);
+                var txOut = transaction.Outputs[outIndex];
+
+                total += txOut.Value;
+            }
+
+            return total;
         }
 
         /// <summary>
