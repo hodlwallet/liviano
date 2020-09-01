@@ -257,7 +257,7 @@ namespace Liviano.Storages
 
             if (Wallet.Accounts is null) return;
 
-            foreach (var account in Wallet.Accounts)
+            foreach (var account in Wallet.Accounts.ToList())
             {
                 var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{account.Id}.json";
                 var content = JsonConvert.SerializeObject(account, Formatting.Indented);
@@ -270,11 +270,11 @@ namespace Liviano.Storages
         {
             var txsPath = GetTxsPath();
 
-            foreach (var account in Wallet.Accounts)
+            foreach (var account in Wallet.Accounts.ToList())
             {
                 if (account.Txs is null) continue;
 
-                foreach (var tx in account.Txs)
+                foreach (var tx in account.Txs.ToList())
                 {
                     var filePath = $"{txsPath}{Path.DirectorySeparatorChar}{tx.Id}.json";
                     var contents = JsonConvert.SerializeObject(tx, Formatting.Indented);
