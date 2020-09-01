@@ -273,12 +273,9 @@ namespace Liviano.Electrum
 
                         var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                        var blkChainTxGetVerbose = await ElectrumClient.BlockchainTransactionGetVerbose(txHash);
+                        var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
 
-                        var txHex = blkChainTxGetVerbose.Result.Hex;
-                        var time = blkChainTxGetVerbose.Result.Time;
-                        var confirmations = blkChainTxGetVerbose.Result.Confirmations;
-                        var blockhash = blkChainTxGetVerbose.Result.Blockhash;
+                        var txHex = blkChainTxGet.Result;
 
                         // Tx is new
                         if (currentTx is null)

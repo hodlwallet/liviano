@@ -42,7 +42,7 @@ namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        int DEFAULT_NETWORK_TIMEOUT_INT = 5
+        int DEFAULT_NETWORK_TIMEOUT_INT = 5;
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
@@ -199,14 +199,14 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request, bool useSsl = true)
         {
-            try
-            {
+            //try
+            //{
                 Host = server.Domain;
                 ipAddress = ResolveHost(server.Domain).Result;
                 port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
 
                 Debug.WriteLine(
-                    $"[Request] Server: {Host}:{port} ({server.Version})"
+                    $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
                 );
 
                 var result = await Task.Run(() => RequestInternal(request, useSsl)).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
@@ -214,14 +214,14 @@ namespace Liviano.Electrum
                 if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
                 return result;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Request] Could not process request: {request}");
-                Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
+            //}
+            //catch (Exception ex)
+            //{
+                //Debug.WriteLine($"[Request] Could not process request: {request}");
+                //Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
 
-                throw new ElectrumException($"{ex.Message}");
-            }
+                //throw new ElectrumException($"{ex.Message}");
+            //}
         }
 
         public SslStream GetSslStream()

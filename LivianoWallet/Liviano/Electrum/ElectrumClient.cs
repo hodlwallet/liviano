@@ -191,7 +191,7 @@ namespace Liviano.Electrum
             public int Size { get; set; }
             public int Vsize { get; set; }
             public int Weight { get; set; }
-            public int Locktime { get; set; }
+            public long Locktime { get; set; }
             public BlockchainVinResult[] Vin { get; set; }
             public BlockchainVoutResult[] Vout { get; set; }
             public string Hex { get; set; }
