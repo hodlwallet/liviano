@@ -42,6 +42,7 @@ namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
+        int DEFAULT_NETWORK_TIMEOUT_INT = 5
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
@@ -239,8 +240,8 @@ namespace Liviano.Electrum
 
             var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
-            stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
-            stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(3).TotalMilliseconds);
+            stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
+            stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
 
             return stream;
         }
