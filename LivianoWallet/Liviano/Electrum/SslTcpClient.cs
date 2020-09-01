@@ -49,21 +49,35 @@ namespace Liviano.Electrum
         /// <param name="chain"></param>
         /// <param name="sslPolicyErrors"></param>
         /// <returns></returns>
-        public static bool ValidateServerCertificate(
-              object sender,
-              X509Certificate certificate,
-              X509Chain chain,
-              SslPolicyErrors sslPolicyErrors)
+        public static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if (sslPolicyErrors == SslPolicyErrors.None)
-                return true;
+            if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
-            Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors);
+            // If there is more than one error then it shouldn't be allowed
+            if (chain.ChainStatus.Length == 1)
+            {
+                // Self signed certificates have the issuer in the subject field
+                if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors || certificate.Subject == certificate.Issuer)
+                {
+                    // If THIS is the cause of of the error then allow the certificate, a static 0 as the index is safe given chain.ChainStatus.Length == 1.
+                    if (chain.ChainStatus[0].Status == X509ChainStatusFlags.UntrustedRoot)
+                    {
+                        Debug.WriteLine("[ValidateServerCertificate] Self-signed ssl certificate");
+
+                        // Self-signed certificates with an untrusted root are valid.
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[ValidateServerCertificate] Error: Failed to validate ssl certificate");
+                    }
+                }
+            }
+
+            Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors); 
 
             // Do not allow this client to communicate with unauthenticated servers.
-            // NOTE: Ummm this is debatable in this case, so we return true
-            // fuck it.
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -138,10 +152,10 @@ namespace Liviano.Electrum
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
 
-                msg = messageData.ToString();
-                Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg.Trim()}");
+                msg = messageData.ToString().Trim();
+                Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg}");
 
-                if (CanParseToJson(messageData.ToString()))
+                if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(msg))
                     OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
             }
         }
@@ -159,8 +173,6 @@ namespace Liviano.Electrum
             byte[] buffer = new byte[2048];
             StringBuilder messageData = new StringBuilder();
 
-            Debug.WriteLine("[ReadMessage] Reading message from: {0}", sslStream);
-
             int bytes = -1;
             while (bytes != 0)
             {
@@ -175,11 +187,8 @@ namespace Liviano.Electrum
                 messageData.Append(chars);
 
                 // Check for EOF && if the message is complete json... Usually this works with electrum
-                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
-                    CanParseToJson(messageData.ToString()))
-                {
+                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(messageData.ToString()))
                     break;
-                }
             }
 
             var msg = messageData.ToString();
@@ -191,19 +200,24 @@ namespace Liviano.Electrum
 
         public static bool CanParseToJson(string message)
         {
+            if (string.IsNullOrEmpty(message))
+            {
+                return false;
+            }
+
             try
             {
                 JsonConvert.DeserializeObject(message);
             }
             catch (JsonSerializationException e)
             {
-                Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message, ".");
+                Debug.WriteLine("[CanParseToJson] Cannot parse to json: {0}.", e.Message);
 
                 return false;
             }
             catch (JsonReaderException e)
             {
-                Debug.WriteLine("[CanParseToJson] Cannot parse to json: ", e.Message, ".");
+                Debug.WriteLine("[CanParseToJson] Cannot parse to json: {0}.", e.Message);
 
                 return false;
             }
