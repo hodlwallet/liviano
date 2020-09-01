@@ -596,8 +596,10 @@ namespace Liviano.Electrum
         }
 
         /// <summary>
-        /// This will get all the transcations out to know the total
+        /// This will get all the transactions out to the total to calculate fees
         /// </summary>
+        /// <param name="inputs">A <see cref="TxInList"/> of the inputs from the tx</param>
+        /// <returns>A <see cref="Money"/> with the outs value from N</returns>
         Money GetOutValueFromTxInputs(TxInList inputs)
         {
             Money total = 0L;
