@@ -144,12 +144,6 @@ namespace Liviano.Electrum
                 if (CanParseToJson(messageData.ToString()))
                     OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
             }
-
-            msg = messageData.ToString();
-            Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg.Trim()}");
-
-            if (CanParseToJson(msg))
-                OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
         }
 
         /// <summary>

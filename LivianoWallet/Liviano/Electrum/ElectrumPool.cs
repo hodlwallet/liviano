@@ -218,8 +218,6 @@ namespace Liviano.Electrum
                     TaskCreationOptions.LongRunning,
                     ct
                 );
-
-            Console.WriteLine("it finished???");
         }
 
         /// <summary>
