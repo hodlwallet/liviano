@@ -38,6 +38,7 @@ namespace Liviano.Electrum
     {
         public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
+        public static int RequestId = -1;
         readonly JsonRpcClient jsonRpcClient;
 
         public class Request
@@ -380,7 +381,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainBlockHeaderResult> BlockchainBlockHeader(int height)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, 0 } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.header", Params = new List<int> { height, 0 } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeaderResult>(json);
@@ -388,7 +389,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainBlockHeaderWithCheckpointHeightResult> BlockchainBlockHeaderWithCheckpointHeight(int height, int cpHeight)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.block.header", Params = new List<int> { height, cpHeight } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.header", Params = new List<int> { height, cpHeight } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeaderWithCheckpointHeightResult>(json);
@@ -396,7 +397,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainBlockHeadersResult> BlockchainBlockHeaders(int height, int count = 0)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, 0 } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.headers", Params = new List<int> { height, count, 0 } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeadersResult>(json);
@@ -404,7 +405,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainBlockHeadersWithCheckpointHeightResult> BlockchainBlockHeaders(int height, int count, int cpHeight)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.block.headers", Params = new List<int> { height, count, cpHeight } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.headers", Params = new List<int> { height, count, cpHeight } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeadersWithCheckpointHeightResult>(json);
@@ -412,7 +413,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashGetBalanceResult> BlockchainScriptHashGetBalance(string scriptHash)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_balance", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.get_balance", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashGetBalanceResult>(json);
@@ -420,7 +421,7 @@ namespace Liviano.Electrum
 
         public async Task<ServerPeersSubscribeResult> ServerPeersSubscribe()
         {
-            var obj = new Request { Id = 0, Method = "server.peers.subscribe", Params = new List<string> { } };
+            var obj = new Request { Id = ++RequestId, Method = "server.peers.subscribe", Params = new List<string> { } };
             var json = Serialize(obj);
 
             return await RequestInternal<ServerPeersSubscribeResult>(json);
@@ -428,7 +429,7 @@ namespace Liviano.Electrum
 
         public async Task<string> ServerBanner()
         {
-            var obj = new Request { Id = 0, Method = "server.banner", Params = new List<string> { } };
+            var obj = new Request { Id = ++RequestId, Method = "server.banner", Params = new List<string> { } };
             var json = Serialize(obj);
 
             BannerResult resObj = await RequestInternal<BannerResult>(json);
@@ -438,7 +439,7 @@ namespace Liviano.Electrum
 
         public async Task<ServerPingResult> ServerPing()
         {
-            var obj = new Request { Id = 0, Method = "server.ping", Params = new List<string> { } };
+            var obj = new Request { Id = ++RequestId, Method = "server.ping", Params = new List<string> { } };
             var json = Serialize(obj);
 
             return await RequestInternal<ServerPingResult>(json);
@@ -451,7 +452,7 @@ namespace Liviano.Electrum
 
         public async Task<System.Version> ServerVersion(string clientName, System.Version protocolVersion)
         {
-            var obj = new Request { Id = 0, Method = "server.version", Params = new List<string> { clientName, protocolVersion.ToString() } };
+            var obj = new Request { Id = ++RequestId, Method = "server.version", Params = new List<string> { clientName, protocolVersion.ToString() } };
             var json = Serialize(obj);
 
             ServerVersionResult resObj = await RequestInternal<ServerVersionResult>(json);
@@ -461,7 +462,7 @@ namespace Liviano.Electrum
 
         public async Task<ServerDonationAddressResult> ServerDonationAddress()
         {
-            var obj = new Request { Id = 0, Method = "server.donation_address", Params = new List<string> { } };
+            var obj = new Request { Id = ++RequestId, Method = "server.donation_address", Params = new List<string> { } };
             var json = Serialize(obj);
 
             return await RequestInternal<ServerDonationAddressResult>(json);
@@ -469,7 +470,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashListUnspentResult> BlockchainScriptHashListUnspent(string scriptHash)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = RequestId, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashListUnspentResult>(json);
@@ -479,7 +480,7 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"Trying to call history for {scriptHash}");
 
-            var obj = new Request { Id = 0, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = RequestId, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
@@ -487,7 +488,7 @@ namespace Liviano.Electrum
 
         public async Task BlockchainScriptHashSubscribe(string scriptHash, Action<string> foundTxCallback)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             await jsonRpcClient.Subscribe(json, (res) =>
@@ -500,7 +501,7 @@ namespace Liviano.Electrum
         {
             List<object> @params = new List<object> { txhash, false };
 
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionGetResult>(json);
@@ -510,7 +511,7 @@ namespace Liviano.Electrum
         {
             List<object> @params = new List<object> { txhash, true };
 
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionGetVerboseResult>(json);
@@ -520,7 +521,7 @@ namespace Liviano.Electrum
         {
             List<object> @params = new List<object> { txhash, height };
 
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.get", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionGetMerkleResult>(json);
@@ -530,7 +531,7 @@ namespace Liviano.Electrum
         {
             List<object> @params = new List<object> { height, txPos, false };
 
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.id_from_pos", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionIdFromPosResult>(json);
@@ -540,7 +541,7 @@ namespace Liviano.Electrum
         {
             List<object> @params = new List<object> { height, txPos, true };
 
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.id_from_pos", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.id_from_pos", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionIdFromPosMerkleResult>(json);
@@ -549,7 +550,7 @@ namespace Liviano.Electrum
         public async Task<MempoolGetFeeHistogramResult> MempoolGetFeeHistogram()
         {
             List<object> @params = new List<object> { };
-            var obj = new Request { Id = 0, Method = "mempool.get_fee_histogram", Params = @params };
+            var obj = new Request { Id = ++RequestId, Method = "mempool.get_fee_histogram", Params = @params };
             var json = Serialize(obj);
 
             return await RequestInternal<MempoolGetFeeHistogramResult>(json);
@@ -557,7 +558,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainEstimateFeeResult> BlockchainEstimateFee(int numBlocksTarget)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.estimatefee", Params = new List<int> { numBlocksTarget } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.estimatefee", Params = new List<int> { numBlocksTarget } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainEstimateFeeResult>(json);
@@ -565,7 +566,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainRelayFeeResult> BlockchainRelayFee()
         {
-            var obj = new Request { Id = 0, Method = "blockchain.relayfee", Params = new List<int> { } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.relayfee", Params = new List<int> { } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainRelayFeeResult>(json);
@@ -577,7 +578,7 @@ namespace Liviano.Electrum
         // the result to the expected transaction hash.
         public async Task<BlockchainTransactionBroadcastResult> BlockchainTransactionBroadcast(string txInHex)
         {
-            var obj = new Request { Id = 0, Method = "blockchain.transaction.broadcast", Params = new List<string> { txInHex } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.broadcast", Params = new List<string> { txInHex } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainTransactionBroadcastResult>(json);
