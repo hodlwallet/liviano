@@ -41,3 +41,7 @@ Ready to copy paste and look at what happens.
 ```json
 {"id": 0, "method": "server.banner", "params": []}
 ```
+
+```json
+{"id": 0, "method": "blockchain.scripthash.subscribe", "params": ["c9ee729a1e8fb436fec6fb0a248fe405f1ed68c359b980f947663cdd32e17916"]}
+```
