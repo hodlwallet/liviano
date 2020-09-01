@@ -398,8 +398,6 @@ namespace Liviano
             Console.WriteLine($"Now starts to watch wallet");
 
             await ElectrumPool.WatchWallet(this, ct);
-
-            Console.WriteLine("WTHIS FINISHES?");
         }
 
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
