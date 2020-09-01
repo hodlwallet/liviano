@@ -491,7 +491,6 @@ namespace Liviano
             if (!AccountTypes.Contains(type))
                 throw new ArgumentException($"Invalid account type: {type}");
 
-            // TODO get this from the wallet I guess we need translations in Liviano as well
             if (string.IsNullOrEmpty(name) && Accounts.Count == 0)
                 name = DEFAULT_ACCOUNT_NAME;
 
