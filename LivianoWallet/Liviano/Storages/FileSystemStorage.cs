@@ -37,6 +37,7 @@ using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Models;
 using Liviano.Accounts;
+using Liviano.Exceptions;
 
 namespace Liviano.Storages
 {
@@ -77,7 +78,23 @@ namespace Liviano.Storages
             var filePath = GetWalletFilePath();
             var contents = File.ReadAllText(filePath);
 
-            Wallet = JsonConvert.DeserializeObject<Wallet>(contents);
+            try
+            {
+                Wallet = JsonConvert.DeserializeObject<Wallet>(contents);
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Load] Unable to load wallet from filesystem, trying backup now. Error: {err.Message}");
+
+                try
+                {
+                    RestoreFromBackup();
+                }
+                catch (WalletException backupErr)
+                {
+                    Debug.WriteLine($"[Load] Unable to restore backup. Error: {backupErr.Message}");
+                }
+            }
 
             Wallet.Accounts = GetAccounts();
             Wallet.AccountIds = Wallet.Accounts.Select((a) => a.Id).ToList();
@@ -128,6 +145,17 @@ namespace Liviano.Storages
             var backupFilePath = GetWalletBackupFilePath();
 
             File.Copy(filePath, backupFilePath);
+        }
+
+        void RestoreFromBackup()
+        {
+            var filePath = GetWalletFilePath();
+            var backupFilePath = GetWalletBackupFilePath();
+
+            if (!File.Exists(backupFilePath))
+                throw new WalletException("Backup does not exists, cannot restore from backup");
+
+            File.Copy(backupFilePath, filePath);
         }
 
         List<Tx> GetTxs(IAccount account)
