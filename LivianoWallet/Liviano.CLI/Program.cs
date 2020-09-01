@@ -187,16 +187,21 @@ namespace Liviano.CLI
             if (Config.Exists())
                 config = Config.Load();
             else
-                config = new Config(walletId, network.ToString());
+            {
+                config = new Config(
+                    walletId,
+                    network is null ? Network.Main.ToString() : network.ToString()
+                );
+            }
 
-            if (config.HasWallet(walletId) && walletId is null)
-                walletId = config.WalletId;
+            if (config.HasWallet(walletId) && walletId is null) walletId = config.WalletId;
 
             if (!string.IsNullOrEmpty(config.Network) && network is null)
                 network = Hd.GetNetwork(config.Network);
 
             config.Network = network.ToString();
-            config.AddWallet(walletId);
+
+            if (!string.IsNullOrEmpty(walletId)) config.AddWallet(walletId);
 
             config.SaveChanges();
 
