@@ -509,6 +509,13 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainTransactionGetVerboseResult> BlockchainTransactionGetVerbose(string txhash)
         {
+            if (!string.IsNullOrEmpty(txhash))
+            {
+                throw new ElectrumException(
+                    "Most servers don't support blockchain.transaction.get on verbose true, so don't use it at all, this forces it to fail"
+                );
+            }
+
             List<object> @params = new List<object> { txhash, true };
 
             var obj = new Request { Id = ++RequestId, Method = "blockchain.transaction.get", Params = @params };
