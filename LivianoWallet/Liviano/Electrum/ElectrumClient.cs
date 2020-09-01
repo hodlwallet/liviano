@@ -491,10 +491,7 @@ namespace Liviano.Electrum
             var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            await jsonRpcClient.Subscribe(json, (res) =>
-            {
-                foundTxCallback(res);
-            });
+            await jsonRpcClient.Subscribe(json, (res) => foundTxCallback(res));
         }
 
         public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)

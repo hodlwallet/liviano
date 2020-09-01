@@ -260,6 +260,8 @@ namespace Liviano.Electrum
             {
                 await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                 {
+                    Debug.WriteLine($"[WatchAddress] Got status from BlockchainScriptHashSubscribe: {str}.");
+
                     var status = Deserialize<ResultAsString>(str);
 
                     if (string.IsNullOrEmpty(status.Result)) return;

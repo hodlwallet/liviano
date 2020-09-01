@@ -136,7 +136,7 @@ namespace Liviano.Electrum
             StringBuilder messageData = new StringBuilder();
 
             int bytes = -1;
-            string msg;
+            string[] msgs;
             while (bytes != 0)
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
@@ -149,11 +149,14 @@ namespace Liviano.Electrum
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
 
-                msg = messageData.ToString().Trim();
-                Debug.WriteLine($"[ReadSubscriptionMessage] Read message {msg}");
+                // This API supports mutiple messages sent separated by \n
+                msgs = GetMessages(messageData.ToString().Trim());
 
-                if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(msg))
-                    OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
+                foreach (var msg in msgs)
+                {
+                    if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(msg))
+                        OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
+                }
             }
         }
 
@@ -190,17 +193,19 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            Debug.WriteLine($"[ReadMessage] Read message {msg.Trim()}");
+            Debug.WriteLine($"[ReadMessage] Read message {msg.Trim()}.");
 
             return msg;
         }
 
+        public static string[] GetMessages(string message)
+        {
+            return message.Split("\n");
+        }
+
         public static bool CanParseToJson(string message)
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(message)) return false;
 
             try
             {
@@ -208,13 +213,13 @@ namespace Liviano.Electrum
             }
             catch (JsonSerializationException e)
             {
-                Debug.WriteLine("[CanParseToJson] Cannot parse to json: {0}.", e.Message);
+                Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
 
                 return false;
             }
             catch (JsonReaderException e)
             {
-                Debug.WriteLine("[CanParseToJson] Cannot parse to json: {0}.", e.Message);
+                Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
 
                 return false;
             }
