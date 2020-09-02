@@ -400,6 +400,8 @@ namespace Liviano.CLI
                 if (!string.IsNullOrEmpty(error))
                 {
                     Console.WriteLine($"Error sending transaction {error}");
+
+                    return;
                 }
 
                 Console.WriteLine("Successfully sent transaction!");
