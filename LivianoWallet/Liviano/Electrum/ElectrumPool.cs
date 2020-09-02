@@ -264,14 +264,26 @@ namespace Liviano.Electrum
                 await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                 {
                     Debug.WriteLine($"[WatchAddress] Got status from BlockchainScriptHashSubscribe: {str}.");
+                    string status;
+                    try
+                    {
+                        var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
 
-                    var status = Deserialize<ResultAsString>(str);
+                        status = string.Join(", ", oStatus.Params);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"[WatchAddress] Error: {e.Message}... Trying with string result now");
+                        var sStatus = Deserialize<ResultAsString>(str);
 
-                    if (string.IsNullOrEmpty(status.Result)) return;
+                        if (string.IsNullOrEmpty(sStatus.Result)) return;
+
+                        status = sStatus.Result;
+                    }
 
                     OnWatchAddressNotified?.Invoke(
                         this,
-                        new WatchAddressEventArgs(status.Result, acc, addr)
+                        new WatchAddressEventArgs(status, acc, addr)
                     );
 
                     var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
