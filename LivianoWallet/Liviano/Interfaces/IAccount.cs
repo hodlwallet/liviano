@@ -194,6 +194,11 @@ namespace Liviano.Interfaces
         BitcoinAddress[] GetChangeAddressesToWatch();
 
         /// <summary>
+        /// Gets all spendable coins
+        /// </summary>
+        Coin[] GetSpendableCoins();
+
+        /// <summary>
         /// Gets the last external index
         /// </summary>
         int GetExternalLastIndex();

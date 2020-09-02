@@ -538,7 +538,7 @@ namespace Liviano
 
             try
             {
-                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)feeSatsPerByte, this, account, Network);
+                tx = TransactionExtensions.CreateTransaction(password, destinationAddress, txAmount, (long)feeSatsPerByte, this, account);
             }
             catch (WalletException err)
             {
@@ -547,7 +547,7 @@ namespace Liviano
                 return (tx, err.Message);
             }
 
-            TransactionExtensions.VerifyTransaction(tx, Network, out var errors);
+            TransactionExtensions.VerifyTransaction(account, tx, out var errors);
 
             if (errors.Any())
             {

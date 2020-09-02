@@ -36,14 +36,14 @@ namespace Liviano.Extensions
 {
     public static class TransactionExtensions
     {
-        public static Coin[] GetSpendableCoins(IAccount account, Network network)
+        public static Coin[] GetSpendableCoins(IAccount account)
         {
             var results = account.Txs
             .Where(
                 o => o.IsSpendable() == true
             )
             .Select(
-                o => Transaction.Parse(o.Hex, network)
+                o => Transaction.Parse(o.Hex, account.Network)
             )
             .SelectMany(
                 o => o.Outputs.AsCoins()
@@ -53,11 +53,11 @@ namespace Liviano.Extensions
             return results;
         }
 
-        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account, Network network)
+        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account)
         {
             // Get coins from coin selector that satisfy our amount.
             //var coinSelector = new DefaultCoinSelector();
-            //ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
+            //ICoin[] coins = coinSelector.Select(GetSpendableCoins(account), amount).ToArray();
 
             //if (coins == null)
             //{
@@ -65,13 +65,13 @@ namespace Liviano.Extensions
             //}
 
             var changeDestination = account.GetChangeAddress();
-            var toDestination = BitcoinAddress.Create(destinationAddress, network);
+            var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
 
-            var builder = network.CreateTransactionBuilder();
+            var builder = account.Network.CreateTransactionBuilder();
 
             // Create transaction buidler with change and signing keys.
             var tx = builder
-                .AddCoins(GetSpendableCoins(account, network))
+                .AddCoins(account.GetSpendableCoins())
                 .AddKeys(wallet.GetPrivateKey(password, true))
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
@@ -82,9 +82,9 @@ namespace Liviano.Extensions
             return tx;
         }
 
-        public static bool VerifyTransaction(Transaction tx, Network network, out WalletException[] transactionPolicyErrors)
+        public static bool VerifyTransaction(IAccount account, Transaction tx, out WalletException[] transactionPolicyErrors)
         {
-            var builder = network.CreateTransactionBuilder();
+            var builder = account.Network.CreateTransactionBuilder();
             var flag = builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
 

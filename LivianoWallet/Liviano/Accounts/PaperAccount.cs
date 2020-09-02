@@ -301,5 +301,25 @@ namespace Liviano.Accounts
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
+
+        public Coin[] GetSpendableCoins()
+        {
+            var address = GetReceiveAddress();
+            var coins = new List<Coin> {};
+
+            foreach (var tx in Txs)
+            {
+                var transaction = Transaction.Create(Network);
+
+                foreach (var outCoin in transaction.Outputs.AsCoins())
+                {
+                    var destinationAddress = outCoin.ScriptPubKey.GetDestinationAddress(Network);
+
+                    if (destinationAddress.Equals(address)) coins.Add(outCoin);
+                }
+            }
+
+            return coins.ToArray();
+        }
     }
 }

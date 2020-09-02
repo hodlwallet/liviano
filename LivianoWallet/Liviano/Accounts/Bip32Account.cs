@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -190,6 +191,29 @@ namespace Liviano.Accounts
                     break;
                 }
             }
+        }
+
+        public override Coin[] GetSpendableCoins()
+        {
+            var addresses = new List<BitcoinAddress> {};
+            var coins = new List<Coin> {};
+
+            addresses.AddRange(UsedExternalAddresses);
+            addresses.AddRange(UsedInternalAddresses);
+
+            foreach (var tx in Txs)
+            {
+                var transaction = Transaction.Create(Network);
+
+                foreach (var outCoin in transaction.Outputs.AsCoins())
+                {
+                    var destinationAddress = outCoin.ScriptPubKey.GetDestinationAddress(Network);
+
+                    if (addresses.Contains(destinationAddress)) coins.Add(outCoin);
+                }
+            }
+
+            return coins.ToArray();
         }
 
         /// <summary>

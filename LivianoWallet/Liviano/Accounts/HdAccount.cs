@@ -181,6 +181,8 @@ namespace Liviano.Accounts
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
 
+        public abstract Coin[] GetSpendableCoins();
+
         public abstract Money GetBalance();
 
         public object Clone()

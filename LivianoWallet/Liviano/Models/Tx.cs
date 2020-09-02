@@ -37,7 +37,6 @@ using Liviano.Exceptions;
 using System.Diagnostics;
 
 using static Liviano.Electrum.ElectrumClient;
-using Newtonsoft.Json.Converters;
 
 namespace Liviano.Models
 {
