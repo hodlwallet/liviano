@@ -381,7 +381,7 @@ namespace Liviano.CLI
             wallet.OnWatchAddressNotified += (s, e) =>
             {
                 logger.Information(
-                    "Got notification on account {0} from address: {1}, content: {2}",
+                    "Got notification on account {0} from address: {1}, notification status hash: {2}",
                     e.Account.Index,
                     e.Address.ToString(),
                     e.Notification
