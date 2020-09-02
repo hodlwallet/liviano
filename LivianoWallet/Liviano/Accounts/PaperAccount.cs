@@ -309,7 +309,7 @@ namespace Liviano.Accounts
 
             foreach (var tx in Txs)
             {
-                var transaction = Transaction.Create(Network);
+                var transaction = Transaction.Parse(tx.Hex, Network);
 
                 foreach (var outCoin in transaction.Outputs.AsCoins())
                 {
