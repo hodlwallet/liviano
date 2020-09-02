@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -55,60 +56,30 @@ namespace Liviano.Extensions
         public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account, Network network)
         {
             // Get coins from coin selector that satisfy our amount.
-            var coinSelector = new DefaultCoinSelector();
-            ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
+            //var coinSelector = new DefaultCoinSelector();
+            //ICoin[] coins = coinSelector.Select(GetSpendableCoins(account, network), amount).ToArray();
 
-            if (coins == null)
-            {
-                throw new WalletException("Balance too low to create transaction.");
-            }
+            //if (coins == null)
+            //{
+                //throw new WalletException("Balance too low to create transaction.");
+            //}
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, network);
 
-            var noFeeBuilder = network.CreateTransactionBuilder();
+            var builder = network.CreateTransactionBuilder();
 
             // Create transaction buidler with change and signing keys.
-            Transaction txWithNoFees = noFeeBuilder
-                .AddCoins(coins)
+            var tx = builder
+                .AddCoins(GetSpendableCoins(account, network))
                 .AddKeys(wallet.GetPrivateKey(password, true))
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
+                .SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
-            // Calculate fees
-            Money fees = txWithNoFees.GetVirtualSize() * satsPerByte;
-
-            // If fees are enough with the coins we got, we should just create the tx.
-            if (coins.Sum(o => o.TxOut.Value) >= (fees + amount))
-            {
-                var goodEnoughBuilder = network.CreateTransactionBuilder();
-                return goodEnoughBuilder
-                    .AddCoins(coins)
-                    .AddKeys(wallet.GetPrivateKey(password, true))
-                    .Send(toDestination, amount)
-                    .SendFees(fees)
-                    .SetChange(changeDestination)
-                    .BuildTransaction(sign: true);
-            }
-
-            // If the coins do not satisfy the fees + amount grand total, then we repeat the process.
-            coins = coinSelector.Select(GetSpendableCoins(account, network), amount + fees).ToArray();
-
-            if (coins == null)
-            {
-                throw new WalletException("Balance too low to create transaction");
-            }
-
-            var finalBuilder = network.CreateTransactionBuilder();
-            // Finally send the transaction.
-            return finalBuilder
-                .AddCoins(coins)
-                .AddKeys(wallet.GetPrivateKey(password, true))
-                .Send(toDestination, amount)
-                .SendFees(fees)
-                .SetChange(changeDestination)
-                .BuildTransaction(sign: true);
+            Debug.WriteLine($"Tx: {tx.ToHex()}");
+            return tx;
         }
 
         public static bool VerifyTransaction(Transaction tx, Network network, out WalletException[] transactionPolicyErrors)
