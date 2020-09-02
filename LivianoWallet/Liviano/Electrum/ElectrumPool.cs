@@ -273,7 +273,7 @@ namespace Liviano.Electrum
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"[WatchAddress] Error: {e.Message}... Trying with string result now");
+                        Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
                         var sStatus = Deserialize<ResultAsString>(str);
 
                         if (string.IsNullOrEmpty(sStatus.Result)) return;
