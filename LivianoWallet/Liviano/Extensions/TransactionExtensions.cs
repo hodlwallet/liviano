@@ -60,7 +60,7 @@ namespace Liviano.Extensions
 
             if (coins == null)
             {
-                throw new WalletException("Balance too low to craete transaction.");
+                throw new WalletException("Balance too low to create transaction.");
             }
 
             var changeDestination = account.GetChangeAddress();
