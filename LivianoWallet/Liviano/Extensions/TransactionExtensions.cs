@@ -36,33 +36,16 @@ namespace Liviano.Extensions
 {
     public static class TransactionExtensions
     {
-        public static Coin[] GetSpendableCoins(IAccount account)
-        {
-            var results = account.Txs
-            .Where(
-                o => o.IsSpendable() == true
-            )
-            .Select(
-                o => Transaction.Parse(o.Hex, account.Network)
-            )
-            .SelectMany(
-                o => o.Outputs.AsCoins()
-            )
-            .ToArray();
-
-            return results;
-        }
-
         public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account)
         {
             // Get coins from coin selector that satisfy our amount.
-            //var coinSelector = new DefaultCoinSelector();
-            //ICoin[] coins = coinSelector.Select(GetSpendableCoins(account), amount).ToArray();
+            var coinSelector = new DefaultCoinSelector();
+            ICoin[] coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
 
-            //if (coins == null)
-            //{
-                //throw new WalletException("Balance too low to create transaction.");
-            //}
+            if (coins == null)
+            {
+                throw new WalletException("Balance too low to create transaction.");
+            }
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
@@ -71,14 +54,15 @@ namespace Liviano.Extensions
 
             // Create transaction buidler with change and signing keys.
             var tx = builder
-                .AddCoins(account.GetSpendableCoins())
                 .AddKeys(wallet.GetPrivateKey(password, true))
+                .AddCoins(coins)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
                 .SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
-            Debug.WriteLine($"Tx: {tx.ToHex()}");
+            Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
+
             return tx;
         }
 
