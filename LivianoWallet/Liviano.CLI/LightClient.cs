@@ -378,6 +378,16 @@ namespace Liviano.CLI
                 logger.Information("Watch started!");
             };
 
+            wallet.OnWatchAddressNotified += (s, e) =>
+            {
+                logger.Information(
+                    "Got notification on account {0} from address: {1}, content: {2}",
+                    e.Account.Index,
+                    e.Address.ToString(),
+                    e.Notification
+                );
+            };
+
             wallet.Sync();
 
             _ = PeriodicSave();

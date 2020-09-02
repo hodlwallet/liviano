@@ -44,4 +44,18 @@ namespace Liviano.Events
             Address = address;
         }
     }
+
+    public class WatchAddressEventArgs : EventArgs
+    {
+        public string Notification { get; set; }
+        public IAccount Account { get; set; }
+        public BitcoinAddress Address { get; set; }
+
+        public WatchAddressEventArgs(string notification, IAccount account, BitcoinAddress address)
+        {
+            Notification = notification;
+            Account = account;
+            Address = address;
+        }
+    }
 }

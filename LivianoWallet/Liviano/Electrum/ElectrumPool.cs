@@ -107,6 +107,8 @@ namespace Liviano.Electrum
 
         public event EventHandler OnWatchStarted;
 
+        public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
+
         public Server[] AllServers { get; set; }
 
         public List<Server> ConnectedServers { get; set; }
@@ -266,6 +268,11 @@ namespace Liviano.Electrum
                     var status = Deserialize<ResultAsString>(str);
 
                     if (string.IsNullOrEmpty(status.Result)) return;
+
+                    OnWatchAddressNotified?.Invoke(
+                        this,
+                        new WatchAddressEventArgs(status.Result, acc, addr)
+                    );
 
                     var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
 

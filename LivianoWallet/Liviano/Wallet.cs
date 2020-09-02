@@ -101,6 +101,7 @@ namespace Liviano
         public event EventHandler OnSyncStarted;
         public event EventHandler OnSyncFinished;
         public event EventHandler OnWatchStarted;
+        public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -319,11 +320,13 @@ namespace Liviano
             if (ElectrumPool.Connected)
                 await ElectrumPool_OnConnectedToWatch(ElectrumPool, ElectrumPool.CurrentServer, ct);
             else
-                ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToWatch(
+                ElectrumPool.OnConnected += async (o, server) => {
+                    await ElectrumPool_OnConnectedToWatch(
                         ElectrumPool,
                         server,
                         ct
-                        );
+                    );
+                };
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
@@ -398,6 +401,10 @@ namespace Liviano
         {
             Console.WriteLine($"Now starts to watch wallet");
 
+            ElectrumPool.OnWatchAddressNotified += (o, args) => {
+                OnWatchAddressNotified?.Invoke(this, args);
+            };
+
             await ElectrumPool.WatchWallet(this, ct);
         }
 
@@ -410,7 +417,7 @@ namespace Liviano
 
         private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
         {
-            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Watch started at {DateTime.Now.ToString()}");
 
             this.OnWatchStarted?.Invoke(this, null);
         }
