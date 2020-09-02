@@ -145,7 +145,7 @@ namespace Liviano.Accounts
         public string ExtendedPubKey { get; set; }
 
         /// <summary>
-        /// An extended pub key used to generate addresses.
+        /// An extended private key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPrivKey")]
         public string ExtendedPrivKey { get; set; }

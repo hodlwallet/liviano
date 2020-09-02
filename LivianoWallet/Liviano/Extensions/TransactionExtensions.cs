@@ -40,9 +40,9 @@ namespace Liviano.Extensions
         {
             // Get coins from coin selector that satisfy our amount.
             var coinSelector = new DefaultCoinSelector();
-            ICoin[] coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
+            var coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
 
-            if (coins == null)
+            if (coins.Count() == 0)
             {
                 throw new WalletException("Balance too low to create transaction.");
             }
@@ -51,17 +51,19 @@ namespace Liviano.Extensions
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
 
             var builder = account.Network.CreateTransactionBuilder();
+            var key = ExtKey.Parse(account.ExtendedPrivKey, account.Network);
 
             // Create transaction buidler with change and signing keys.
             var tx = builder
-                .AddKeys(wallet.GetPrivateKey(password, true))
-                .AddCoins(coins)
+                .AddKeys(key)
+                //.AddCoins(coins)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                .SendEstimatedFees(new FeeRate(satsPerByte))
+                //.SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
+            Debug.WriteLine($"[CreateTransaction] Inputs: {tx.Inputs[0].PrevOut.Hash}");
 
             return tx;
         }
