@@ -62,11 +62,9 @@ namespace Liviano.Extensions
         }
 
         public static Transaction CreateTransaction(
-                string password,
                 string destinationAddress,
                 Money amount,
                 long satsPerByte,
-                IWallet wallet,
                 IAccount account)
         {
             // Get coins from coin selector that satisfy our amount.
@@ -79,11 +77,12 @@ namespace Liviano.Extensions
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
 
-            var builder = account.Network.CreateTransactionBuilder();
             var key = ExtKey.Parse(account.ExtendedPrivKey, account.Network);
             var keys = GetCoinsKeys(coins, account);
 
             Debug.WriteLine($"Coins: {(string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString())))}");
+
+            var builder = account.Network.CreateTransactionBuilder();
 
             // Create transaction buidler with change and signing keys.
             var tx = builder
@@ -91,7 +90,7 @@ namespace Liviano.Extensions
                 .AddKeys(key)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                .SendEstimatedFees(new FeeRate(satsPerByte))
+                .SendEstimatedFeesSplit(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");

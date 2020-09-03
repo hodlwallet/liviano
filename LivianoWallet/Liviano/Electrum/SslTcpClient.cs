@@ -200,7 +200,7 @@ namespace Liviano.Electrum
 
         public static string[] GetMessages(string message)
         {
-            return message.Split("\n");
+            return message.Split('\n');
         }
 
         public static bool CanParseToJson(string message)
