@@ -36,7 +36,7 @@ namespace Liviano.Extensions
 {
     public static class TransactionExtensions
     {
-        static ExtKey[] GetCoinsKeys(Coin[] coins, IAccount account)
+        static ExtKey[] GetCoinsKeys(ICoin[] coins, IAccount account)
         {
             var keys = new List<ExtKey> {};
 
@@ -83,6 +83,7 @@ namespace Liviano.Extensions
 
             var builder = account.Network.CreateTransactionBuilder();
             var key = ExtKey.Parse(account.ExtendedPrivKey, account.Network);
+            var keys = GetCoinsKeys(coins, account);
 
             // Create transaction buidler with change and signing keys.
             var tx = builder
