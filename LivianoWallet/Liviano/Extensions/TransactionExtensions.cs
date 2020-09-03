@@ -38,27 +38,25 @@ namespace Liviano.Extensions
     {
         static ExtKey[] GetCoinsKeys(ICoin[] coins, IAccount account)
         {
-            var keys = new List<ExtKey> {};
+            return coins.Select(o => GetCoinKey(o, account)).ToArray();
+        }
 
-            foreach (var coin in coins)
-            {
-                var tx = account.Txs.FirstOrDefault(o => o.Id == coin.Outpoint.Hash);
-                var transaction = Transaction.Parse(tx.Hex, account.Network);
-                var output = transaction.Outputs[coin.Outpoint.N];
-                var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
+        static ExtKey GetCoinKey(ICoin coin, IAccount account)
+        {
+            var tx = account.Txs.FirstOrDefault(o => o.Id == coin.Outpoint.Hash);
+            var transaction = Transaction.Parse(tx.Hex, account.Network);
+            var output = transaction.Outputs[coin.Outpoint.N];
+            var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
 
-                int index;
-                if (tx.IsReceive) index = account.GetExternalIndex(addr);
-                else index = account.GetInternalIndex(addr);
+            int index;
+            if (tx.IsReceive) index = account.GetExternalIndex(addr);
+            else index = account.GetInternalIndex(addr);
 
-                int change = tx.IsSend ? 1 : 0;
-                var keyPath = new KeyPath($"{change}/{index}");
-                var extKey = ExtKey.Parse(account.ExtendedPrivKey, account.Network).Derive(keyPath);
+            int change = tx.IsSend ? 1 : 0;
+            var keyPath = new KeyPath($"{change}/{index}");
+            var extKey = ExtKey.Parse(account.ExtendedPrivKey, account.Network).Derive(keyPath);
 
-                keys.Add(extKey);
-            }
-
-            return keys.ToArray();
+            return extKey;
         }
 
         public static Transaction CreateTransaction(
@@ -71,13 +69,11 @@ namespace Liviano.Extensions
             var coinSelector = new DefaultCoinSelector();
             var coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
 
-            if (coins.Count() == 0)
-                throw new WalletException("Balance too low to create transaction.");
+            if (coins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
 
-            var key = ExtKey.Parse(account.ExtendedPrivKey, account.Network);
             var keys = GetCoinsKeys(coins, account);
 
             Debug.WriteLine($"Coins: {(string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString())))}");
@@ -87,7 +83,7 @@ namespace Liviano.Extensions
             // Create transaction buidler with change and signing keys.
             var tx = builder
                 .AddCoins(coins)
-                .AddKeys(key)
+                .AddKeys(keys)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
                 .SendEstimatedFeesSplit(new FeeRate(satsPerByte))
