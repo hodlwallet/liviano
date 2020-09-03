@@ -199,6 +199,16 @@ namespace Liviano.Interfaces
         Coin[] GetSpendableCoins();
 
         /// <summary>
+        /// Gets external address index
+        /// </summary>
+        int GetExternalIndex(BitcoinAddress address);
+
+        /// <summary>
+        /// Gets internal address index
+        /// </summary>
+        int GetInternalIndex(BitcoinAddress address);
+
+        /// <summary>
         /// Gets the last external index
         /// </summary>
         int GetExternalLastIndex();

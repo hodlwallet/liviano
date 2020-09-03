@@ -200,13 +200,7 @@ namespace Liviano.Accounts
 
             var lastAddress = acc.UsedExternalAddresses.Last();
 
-            while (true)
-            {
-                var addr = acc.GetReceiveAddress();
-
-                if (lastAddress == addr)
-                    return acc.ExternalAddressesCount;
-            }
+            return GetExternalIndex(lastAddress);
         }
 
         public int GetInternalLastIndex()
@@ -219,12 +213,38 @@ namespace Liviano.Accounts
 
             var lastAddress = acc.UsedInternalAddresses.Last();
 
+            return GetInternalIndex(lastAddress);
+        }
+
+        public int GetExternalIndex(BitcoinAddress address)
+        {
+            var acc = (HdAccount)Clone();
+            acc.ExternalAddressesCount = 0;
+
+            // TODO this is a problem...
+            // It cannot be like this it will generate bugs of infinite looping
+            // this must have an end
             while (true)
             {
                 var addr = acc.GetReceiveAddress();
 
-                if (lastAddress == addr)
-                    return acc.InternalAddressesCount;
+                if (address == addr) return acc.ExternalAddressesCount;
+            }
+        }
+
+        public int GetInternalIndex(BitcoinAddress address)
+        {
+            var acc = (HdAccount)Clone();
+            acc.ExternalAddressesCount = 0;
+
+            // TODO this is a problem...
+            // It cannot be like this it will generate bugs of infinite looping
+            // this must have an end
+            while (true)
+            {
+                var addr = acc.GetChangeAddress();
+
+                if (address == addr) return acc.InternalAddressesCount;
             }
         }
     }

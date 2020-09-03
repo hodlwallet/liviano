@@ -36,16 +36,41 @@ namespace Liviano.Extensions
 {
     public static class TransactionExtensions
     {
-        public static Transaction CreateTransaction(string password, string destinationAddress, Money amount, long satsPerByte, IWallet wallet, IAccount account)
+        static ExtKey[] GetCoinsKeys(Coin[] coins, IAccount account)
+        {
+            var keys = new List<ExtKey> {};
+
+            foreach (var coin in coins)
+            {
+                var tx = account.Txs.FirstOrDefault(o => o.Id == coin.Outpoint.Hash);
+                var transaction = Transaction.Parse(tx.Hex, account.Network);
+                var output = transaction.Outputs[coin.Outpoint.N];
+                var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
+
+                int addrAccIndex;
+                if (tx.IsSend)
+                    addrAccIndex = account.GetExternalIndex(addr);
+                else
+                    addrAccIndex = account.GetInternalIndex(addr);
+            }
+
+            return keys.ToArray();
+        }
+
+        public static Transaction CreateTransaction(
+                string password,
+                string destinationAddress,
+                Money amount,
+                long satsPerByte,
+                IWallet wallet,
+                IAccount account)
         {
             // Get coins from coin selector that satisfy our amount.
             var coinSelector = new DefaultCoinSelector();
             var coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
 
             if (coins.Count() == 0)
-            {
                 throw new WalletException("Balance too low to create transaction.");
-            }
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
@@ -56,10 +81,10 @@ namespace Liviano.Extensions
             // Create transaction buidler with change and signing keys.
             var tx = builder
                 .AddKeys(key)
-                //.AddCoins(coins)
+                .AddCoins(coins)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                //.SendEstimatedFees(new FeeRate(satsPerByte))
+                .SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
@@ -68,7 +93,10 @@ namespace Liviano.Extensions
             return tx;
         }
 
-        public static bool VerifyTransaction(IAccount account, Transaction tx, out WalletException[] transactionPolicyErrors)
+        public static bool VerifyTransaction(
+                IAccount account,
+                Transaction tx,
+                out WalletException[] transactionPolicyErrors)
         {
             var builder = account.Network.CreateTransactionBuilder();
             var flag = builder.Verify(tx, out var errors);
@@ -77,9 +105,7 @@ namespace Liviano.Extensions
             if (errors.Any())
             {
                 foreach (var error in errors)
-                {
                     exceptions.Add(new WalletException(error.ToString()));
-                }
             }
 
             transactionPolicyErrors = exceptions.ToArray();
