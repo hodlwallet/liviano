@@ -47,11 +47,17 @@ namespace Liviano.Extensions
                 var output = transaction.Outputs[coin.Outpoint.N];
                 var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
 
-                int addrAccIndex;
+                int index;
                 if (tx.IsSend)
-                    addrAccIndex = account.GetExternalIndex(addr);
+                    index = account.GetInternalIndex(addr);
                 else
-                    addrAccIndex = account.GetInternalIndex(addr);
+                    index = account.GetExternalIndex(addr);
+
+                int change = tx.IsSend ? 1 : 0;
+                var keyPath = new KeyPath($"{change}/{index}");
+                var extKey = ExtKey.Parse(account.ExtendedPrivKey, account.Network).Derive(keyPath);
+
+                keys.Add(extKey);
             }
 
             return keys.ToArray();

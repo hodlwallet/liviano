@@ -34,6 +34,7 @@ using Newtonsoft.Json.Converters;
 
 using Liviano.Interfaces;
 using Liviano.Models;
+using Liviano.Exceptions;
 
 namespace Liviano.Accounts
 {
@@ -192,8 +193,7 @@ namespace Liviano.Accounts
 
         public int GetExternalLastIndex()
         {
-            if (UsedExternalAddresses.Count == 0)
-                return 0;
+            if (UsedExternalAddresses.Count == 0) return 0;
 
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
@@ -205,8 +205,7 @@ namespace Liviano.Accounts
 
         public int GetInternalLastIndex()
         {
-            if (UsedInternalAddresses.Count == 0)
-                return 0;
+            if (UsedInternalAddresses.Count == 0) return 0;
 
             var acc = (HdAccount)Clone();
             acc.InternalAddressesCount = 0;
@@ -221,15 +220,14 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            // TODO this is a problem...
-            // It cannot be like this it will generate bugs of infinite looping
-            // this must have an end
-            while (true)
+            for (int i = 0; i < this.ExternalAddressesCount; i++)
             {
                 var addr = acc.GetReceiveAddress();
 
                 if (address == addr) return acc.ExternalAddressesCount;
             }
+
+            throw new WalletException("Could not find external address, are you sure it's external?");
         }
 
         public int GetInternalIndex(BitcoinAddress address)
@@ -237,15 +235,14 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            // TODO this is a problem...
-            // It cannot be like this it will generate bugs of infinite looping
-            // this must have an end
-            while (true)
+            for (int i = 0; i < this.InternalAddressesCount; i++)
             {
                 var addr = acc.GetChangeAddress();
 
                 if (address == addr) return acc.InternalAddressesCount;
             }
+
+            throw new WalletException("Could not find internal address, are you sure it's internal?");
         }
     }
 }
