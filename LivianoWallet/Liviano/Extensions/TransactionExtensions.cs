@@ -48,10 +48,8 @@ namespace Liviano.Extensions
                 var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
 
                 int index;
-                if (tx.IsSend)
-                    index = account.GetInternalIndex(addr);
-                else
-                    index = account.GetExternalIndex(addr);
+                if (tx.IsReceive) index = account.GetExternalIndex(addr);
+                else index = account.GetInternalIndex(addr);
 
                 int change = tx.IsSend ? 1 : 0;
                 var keyPath = new KeyPath($"{change}/{index}");
@@ -85,17 +83,21 @@ namespace Liviano.Extensions
             var key = ExtKey.Parse(account.ExtendedPrivKey, account.Network);
             var keys = GetCoinsKeys(coins, account);
 
+            Debug.WriteLine($"Coins: {(string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString())))}");
+
             // Create transaction buidler with change and signing keys.
             var tx = builder
-                .AddKeys(key)
                 .AddCoins(coins)
+                .AddKeys(key)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
                 .SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
-            Debug.WriteLine($"[CreateTransaction] Inputs: {tx.Inputs[0].PrevOut.Hash}");
+
+            foreach (var input in tx.Inputs)
+                Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
 
             return tx;
         }

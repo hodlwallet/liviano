@@ -220,11 +220,11 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            for (int i = 0; i < this.ExternalAddressesCount; i++)
+            for (int i = 0; i < this.ExternalAddressesIndex; i++)
             {
                 var addr = acc.GetReceiveAddress();
 
-                if (address == addr) return acc.ExternalAddressesCount;
+                if (address.Equals(addr)) return acc.ExternalAddressesCount;
             }
 
             throw new WalletException("Could not find external address, are you sure it's external?");
@@ -235,11 +235,11 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            for (int i = 0; i < this.InternalAddressesCount; i++)
+            for (int i = 0; i < this.InternalAddressesIndex; i++)
             {
                 var addr = acc.GetChangeAddress();
 
-                if (address == addr) return acc.InternalAddressesCount;
+                if (address.Equals(addr)) return acc.InternalAddressesCount;
             }
 
             throw new WalletException("Could not find internal address, are you sure it's internal?");
