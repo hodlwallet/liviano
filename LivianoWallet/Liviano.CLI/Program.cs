@@ -420,7 +420,7 @@ namespace Liviano.CLI
                 {
                     var balance = LightClient.AccountBalance(config, null, accountIndex);
 
-                    Console.WriteLine($"{accountIndex} = {balance.ToString()}");
+                    Console.WriteLine($"{accountIndex} = {balance}");
 
                     return;
                 }

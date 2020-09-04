@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -119,7 +120,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress> { };
 
             var externalMaxIndex = ExternalAddressesIndex + GapLimit;
-            
+
             for (int i = 0; i < externalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, false);
@@ -136,7 +137,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress> { };
 
             var internalMaxIndex = InternalAddressesIndex + GapLimit;
-            
+
             for (int i = 0; i < internalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtendedPubKey, i, true);

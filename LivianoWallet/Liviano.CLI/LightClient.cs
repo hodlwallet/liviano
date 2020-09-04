@@ -346,6 +346,32 @@ namespace Liviano.CLI
         {
             Load(config);
 
+            wallet.OnWatchStarted += (s, e) =>
+            {
+                logger.Information("Watch started!");
+            };
+
+            wallet.OnWatchAddressNotified += (s, e) =>
+            {
+                logger.Information(
+                    "Got notification on account {0} from address: {1}, notification status hash: {2}",
+                    e.Account.Index,
+                    e.Address.ToString(),
+                    e.Notification
+                );
+            };
+
+            if (!resync)
+            {
+                wallet.Watch();
+
+                _ = PeriodicSave();
+
+                WaitUntilEscapeIsPressed();
+
+                return;
+            }
+
             wallet.OnSyncStarted += (s, e) =>
             {
                 logger.Information("Sync started!");
@@ -373,21 +399,6 @@ namespace Liviano.CLI
                 wallet.Watch();
             };
 
-            wallet.OnWatchStarted += (s, e) =>
-            {
-                logger.Information("Watch started!");
-            };
-
-            wallet.OnWatchAddressNotified += (s, e) =>
-            {
-                logger.Information(
-                    "Got notification on account {0} from address: {1}, notification status hash: {2}",
-                    e.Account.Index,
-                    e.Address.ToString(),
-                    e.Notification
-                );
-            };
-
             wallet.Sync();
 
             _ = PeriodicSave();
@@ -406,7 +417,10 @@ namespace Liviano.CLI
         {
             Load(config);
 
-            wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = wallet.Id, Network = wallet.Network });
+            var network = wallet.Network;
+            var id = wallet.Id;
+
+            wallet.AddAccount(type, name, new { Wallet = wallet, WalletId = id, Network = network });
 
             wallet.Storage.Save();
 

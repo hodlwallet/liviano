@@ -220,7 +220,7 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            for (int i = 0; i < this.ExternalAddressesIndex; i++)
+            for (int i = 0; i < ExternalAddressesIndex; i++)
             {
                 var addr = acc.GetReceiveAddress();
 
@@ -235,7 +235,7 @@ namespace Liviano.Accounts
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
-            for (int i = 0; i < this.InternalAddressesIndex; i++)
+            for (int i = 0; i < InternalAddressesIndex; i++)
             {
                 var addr = acc.GetChangeAddress();
 
