@@ -36,12 +36,12 @@ namespace Liviano.Extensions
 {
     public static class TransactionExtensions
     {
-        static ExtKey[] GetCoinsKeys(ICoin[] coins, IAccount account)
+        static Key[] GetCoinsKeys(ICoin[] coins, IAccount account)
         {
             return coins.Select(o => GetCoinKey(o, account)).ToArray();
         }
 
-        static ExtKey GetCoinKey(ICoin coin, IAccount account)
+        static Key GetCoinKey(ICoin coin, IAccount account)
         {
             var tx = account.Txs.FirstOrDefault(o => o.Id == coin.Outpoint.Hash);
             var transaction = Transaction.Parse(tx.Hex, account.Network);
@@ -56,7 +56,7 @@ namespace Liviano.Extensions
             var keyPath = new KeyPath($"{change}/{index}");
             var extKey = ExtKey.Parse(account.ExtendedPrivKey, account.Network).Derive(keyPath);
 
-            return extKey;
+            return extKey.PrivateKey;
         }
 
         public static Transaction CreateTransaction(
@@ -86,13 +86,15 @@ namespace Liviano.Extensions
                 .AddKeys(keys)
                 .Send(toDestination, amount)
                 .SetChange(changeDestination)
-                .SendEstimatedFeesSplit(new FeeRate(satsPerByte))
+                .SendEstimatedFees(new FeeRate(satsPerByte))
                 .BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
 
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
+
+            builder.SignTransactionInPlace(tx);
 
             return tx;
         }
