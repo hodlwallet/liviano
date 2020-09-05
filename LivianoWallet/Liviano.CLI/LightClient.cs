@@ -161,7 +161,7 @@ namespace Liviano.CLI
             }
             catch (Exception err)
             {
-                Debug.WriteLine($"[Send] Failed to create transcation: {err.Message}");
+                Debug.WriteLine($"[Send] Failed to create transaction: {err.Message}");
 
                 return (tx, "Failed to create transaction");
             }
@@ -174,7 +174,7 @@ namespace Liviano.CLI
             }
             catch (Exception err)
             {
-                Debug.WriteLine($"[Send] Failed to broadcast transcation: {err.Message}");
+                Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
 
                 return (tx, "Failed to broadcast transaction");
             }
