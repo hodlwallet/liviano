@@ -328,8 +328,7 @@ namespace Liviano
                     );
                 };
 
-            if (!ElectrumPool.Connected)
-                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+            if (!ElectrumPool.Connected) await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
         }
 
         /// <summary>
@@ -379,10 +378,10 @@ namespace Liviano
                 await ElectrumPool_OnConnectedToSync(ElectrumPool, ElectrumPool.CurrentServer, ct);
             else
                 ElectrumPool.OnConnected += async (o, server) => await ElectrumPool_OnConnectedToSync(
-                        ElectrumPool,
-                        server,
-                        ct
-                        );
+                    ElectrumPool,
+                    server,
+                    ct
+                );
 
             if (!ElectrumPool.Connected)
                 await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
