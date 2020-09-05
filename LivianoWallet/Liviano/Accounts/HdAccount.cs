@@ -177,6 +177,8 @@ namespace Liviano.Accounts
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
+        public List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
+        public List<IndexedTxOut> SpentTransactionOutputs { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);

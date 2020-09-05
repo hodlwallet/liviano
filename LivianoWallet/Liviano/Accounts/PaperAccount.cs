@@ -110,6 +110,8 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public int InternalAddressesIndex { get; set; }
         public int ExternalAddressesIndex { get; set; }
+        public TxOutList UnspentTransactionOutputs { get; set; }
+        public TxOutList SpentTransactionOutputs { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {

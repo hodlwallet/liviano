@@ -205,11 +205,16 @@ namespace Liviano.Accounts
             {
                 var transaction = Transaction.Parse(tx.Hex, Network);
 
-                foreach (var outCoin in transaction.Outputs.AsCoins())
+                foreach (var output in transaction.Outputs.AsIndexedOutputs())
                 {
+                    var outCoin = output.ToCoin();
+
                     var destinationAddress = outCoin.ScriptPubKey.GetDestinationAddress(Network);
 
-                    if (addresses.Contains(destinationAddress)) coins.Add(outCoin);
+                    if (addresses.Contains(destinationAddress) && UnspentTransactionOutputs.Contains(output))
+                    {
+                        coins.Add(outCoin);
+                    }
                 }
             }
 

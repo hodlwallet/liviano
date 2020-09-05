@@ -137,6 +137,18 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         List<Tx> Txs { get; set; }
 
+        /// <summary>
+        /// The UTXO list from the account
+        /// </summary>
+        [JsonPropertyAttribute(PropertyName = "unspentTransactionOutputs", NullValueHandling = NullValueHandling.Ignore)]
+        List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
+
+        /// <summary>
+        /// The spent transaction outputs
+        /// </summary>
+        [JsonPropertyAttribute(PropertyName = "spentTransactionOutputs", NullValueHandling = NullValueHandling.Ignore)]
+        List<IndexedTxOut> SpentTransactionOutputs { get; set; }
+
         [JsonProperty(PropertyName = "usedExternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
 
