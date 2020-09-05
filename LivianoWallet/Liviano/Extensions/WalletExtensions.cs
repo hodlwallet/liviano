@@ -312,14 +312,14 @@ namespace Liviano.Extensions
 
         public static Dictionary<string, object> ToDict(this object options)
         {
-            var kwargs = new Dictionary<string, object>();
+            var dict = new Dictionary<string, object>();
 
-            if (options is null) return kwargs;
+            if (options is null) return dict;
 
             foreach (var prop in options.GetType().GetProperties())
-                kwargs.Add(prop.Name, prop.GetValue(options, null));
+                dict.Add(prop.Name, prop.GetValue(options, null));
 
-            return kwargs;
+            return dict;
         }
 
         public static byte[] ToScriptHash(this BitcoinAddress address)
