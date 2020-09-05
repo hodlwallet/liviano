@@ -439,6 +439,16 @@ namespace Liviano
             Debug.WriteLine($"[ElectrumPool_OnNewTransaction] Found a tx! tx_id: {tx.Id}");
             Debug.WriteLine($"[ElectrumPool_OnNewTransaction]             addr:  {addr}");
 
+            var transaction = Transaction.Parse(tx.Hex, acc.Network);
+            var addresses = acc.GetAddressesToWatch();
+
+            foreach (var output in transaction.Outputs.AsIndexedOutputs())
+            {
+                var destinationAddress = output.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
+
+                if (addresses.Contains(destinationAddress)) acc.AddUtxo(output);
+            }
+
             Storage.Save();
 
             OnNewTransaction?.Invoke(this, txArgs);
@@ -454,6 +464,17 @@ namespace Liviano
 
             Debug.WriteLine($"[ElectrumPool_OnUpdateTransaction] Updating a tx! tx_id: {tx.Id}");
             Debug.WriteLine($"[ElectrumPool_OnUpdateTransaction]               addr:  {addr}");
+
+            // In case the updated transaction includes a new utxo for me
+            var transaction = Transaction.Parse(tx.Hex, acc.Network);
+            var addresses = acc.GetAddressesToWatch();
+
+            foreach (var output in transaction.Outputs.AsIndexedOutputs())
+            {
+                var destinationAddress = output.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
+
+                if (addresses.Contains(destinationAddress)) acc.AddUtxo(output);
+            }
 
             Storage.Save();
 

@@ -156,6 +156,16 @@ namespace Liviano.Interfaces
         List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         /// <summary>
+        /// Add UTXO
+        /// </summary>
+        void AddUtxo(IndexedTxOut output);
+
+        /// <summary>
+        /// Remove UTXO
+        /// </summary>
+        void RemoveUtxo(IndexedTxOut output);
+
+        /// <summary>
         /// Gets 1 receiving address
         /// </summary>
         /// <returns>A <see cref="BitcoinAddress"/></returns>
@@ -204,6 +214,11 @@ namespace Liviano.Interfaces
         /// Gets all change addresses to watch, start on 0 and get all until grap
         /// </summary>
         BitcoinAddress[] GetChangeAddressesToWatch();
+
+        /// <summary>
+        /// Gets all addresses to watch, first receive then change
+        /// </summary>
+        BitcoinAddress[] GetAddressesToWatch();
 
         /// <summary>
         /// Gets all spendable coins

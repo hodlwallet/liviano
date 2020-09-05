@@ -110,8 +110,8 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public int InternalAddressesIndex { get; set; }
         public int ExternalAddressesIndex { get; set; }
-        public TxOutList UnspentTransactionOutputs { get; set; }
-        public TxOutList SpentTransactionOutputs { get; set; }
+        public List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
+        public List<IndexedTxOut> SpentTransactionOutputs { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
@@ -332,6 +332,25 @@ namespace Liviano.Accounts
         public int GetInternalIndex(BitcoinAddress address)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
+        }
+
+        public void AddUtxo(IndexedTxOut output)
+        {
+            if (SpentTransactionOutputs.Contains(output)) return;
+            if (UnspentTransactionOutputs.Contains(output)) return;
+
+            UnspentTransactionOutputs.Add(output);
+        }
+
+        public void RemoveUtxo(IndexedTxOut output)
+        {
+            if (UnspentTransactionOutputs.Contains(output)) UnspentTransactionOutputs.Remove(output);
+            if (!SpentTransactionOutputs.Contains(output)) SpentTransactionOutputs.Add(output);
+        }
+
+        public BitcoinAddress[] GetAddressesToWatch()
+        {
+            return GetReceiveAddressesToWatch();
         }
     }
 }

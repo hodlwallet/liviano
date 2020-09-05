@@ -148,6 +148,16 @@ namespace Liviano.Accounts
             return addresses.ToArray();
         }
 
+        public override BitcoinAddress[] GetAddressesToWatch()
+        {
+            var addresses = new List<BitcoinAddress> {};
+
+            addresses.AddRange(GetReceiveAddressesToWatch());
+            addresses.AddRange(GetChangeAddressesToWatch());
+
+            return addresses.ToArray();
+        }
+
         public override void AddTx(Tx tx)
         {
             if (TxIds.Contains(tx.Id.ToString()))
@@ -195,30 +205,7 @@ namespace Liviano.Accounts
 
         public override Coin[] GetSpendableCoins()
         {
-            var addresses = new List<BitcoinAddress> {};
-            var coins = new List<Coin> {};
-
-            addresses.AddRange(UsedExternalAddresses);
-            addresses.AddRange(UsedInternalAddresses);
-
-            foreach (var tx in Txs)
-            {
-                var transaction = Transaction.Parse(tx.Hex, Network);
-
-                foreach (var output in transaction.Outputs.AsIndexedOutputs())
-                {
-                    var outCoin = output.ToCoin();
-
-                    var destinationAddress = outCoin.ScriptPubKey.GetDestinationAddress(Network);
-
-                    if (addresses.Contains(destinationAddress) && UnspentTransactionOutputs.Contains(output))
-                    {
-                        coins.Add(outCoin);
-                    }
-                }
-            }
-
-            return coins.ToArray();
+            return UnspentTransactionOutputs.Select(utxo => utxo.ToCoin()).ToArray();
         }
 
         /// <summary>

@@ -174,6 +174,7 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress GetChangeAddressAtIndex(int i);
         public abstract BitcoinAddress[] GetReceiveAddressesToWatch();
         public abstract BitcoinAddress[] GetChangeAddressesToWatch();
+        public abstract BitcoinAddress[] GetAddressesToWatch();
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
@@ -245,6 +246,20 @@ namespace Liviano.Accounts
             }
 
             throw new WalletException("Could not find internal address, are you sure it's internal?");
+        }
+
+        public void AddUtxo(IndexedTxOut output)
+        {
+            if (SpentTransactionOutputs.Contains(output)) return;
+            if (UnspentTransactionOutputs.Contains(output)) return;
+
+            UnspentTransactionOutputs.Add(output);
+        }
+
+        public void RemoveUtxo(IndexedTxOut output)
+        {
+            if (UnspentTransactionOutputs.Contains(output)) UnspentTransactionOutputs.Remove(output);
+            if (!SpentTransactionOutputs.Contains(output)) SpentTransactionOutputs.Add(output);
         }
     }
 }
