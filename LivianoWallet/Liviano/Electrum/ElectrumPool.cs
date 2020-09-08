@@ -415,22 +415,14 @@ namespace Liviano.Electrum
             {
                 // This is the default but we wanna be explicit
                 await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
-
-                return;
             }
-
-            if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
             {
                 await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
-
-                return;
             }
-
-            if (acc.GetInternalLastIndex() > changeAddressesIndex)
+            else if (acc.GetInternalLastIndex() > changeAddressesIndex)
             {
                 await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
-
-                return;
             }
         }
 
