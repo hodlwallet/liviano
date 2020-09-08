@@ -543,13 +543,6 @@ namespace Liviano
             }
         }
 
-        public Tx[] GetTranscations(int accountIndex = 0)
-        {
-            if (Accounts.Count() - 1 < accountIndex + 1) return new Tx[] {};
-
-            return Accounts[accountIndex].Txs.ToArray();
-        }
-
         public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "")
         {
             Transaction tx = null;
