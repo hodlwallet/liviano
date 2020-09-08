@@ -178,7 +178,7 @@ namespace Liviano.Electrum
 
         public List<Server> GetConnectedWithout(Server server)
         {
-            return ConnectedServers.Where(s => s.Domain == server.Domain).ToList();
+            return ConnectedServers.Where(s => s.Domain != server.Domain).ToList();
         }
 
         /// <summary>
