@@ -442,11 +442,11 @@ namespace Liviano
             var transaction = Transaction.Parse(tx.Hex, acc.Network);
             var addresses = acc.GetAddressesToWatch();
 
-            foreach (var output in transaction.Outputs.AsIndexedOutputs())
+            foreach (var coin in transaction.Outputs.AsCoins())
             {
-                var destinationAddress = output.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
+                var destinationAddress = coin.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
 
-                if (addresses.Contains(destinationAddress)) acc.AddUtxo(output);
+                if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
             }
 
             Storage.Save();
@@ -469,11 +469,11 @@ namespace Liviano
             var transaction = Transaction.Parse(tx.Hex, acc.Network);
             var addresses = acc.GetAddressesToWatch();
 
-            foreach (var output in transaction.Outputs.AsIndexedOutputs())
+            foreach (var coin in transaction.Outputs.AsCoins())
             {
-                var destinationAddress = output.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
+                var destinationAddress = coin.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
 
-                if (addresses.Contains(destinationAddress)) acc.AddUtxo(output);
+                if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
             }
 
             Storage.Save();

@@ -69,7 +69,7 @@ namespace Liviano.Extensions
         {
             // Get coins from coin selector that satisfy our amount.
             var coinSelector = new DefaultCoinSelector();
-            var coins = coinSelector.Select(account.GetSpendableCoins(), amount).ToArray();
+            var coins = coinSelector.Select(account.UnspentCoins, amount).ToArray();
 
             if (coins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
 

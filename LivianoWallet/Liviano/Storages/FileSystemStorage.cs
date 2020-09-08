@@ -30,6 +30,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 
 using NBitcoin;
+using NBitcoin.JsonConverters;
 
 using Newtonsoft.Json;
 
@@ -141,6 +142,7 @@ namespace Liviano.Storages
                 SaveAccounts();
                 SaveTxs();
             }
+            Console.WriteLine("saved!");
         }
 
         void MakeWalletBackup()
@@ -205,7 +207,7 @@ namespace Liviano.Storages
                 var content = File.ReadAllText(fileName);
 
                 var accountType = JsonConvert.DeserializeAnonymousType(
-                    content, new { accountType = " " }
+                    content, new { accountType = "" }
                 ).accountType;
 
                 switch (accountType)

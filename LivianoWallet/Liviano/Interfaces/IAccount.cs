@@ -30,6 +30,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 using NBitcoin;
+using NBitcoin.JsonConverters;
 
 using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
@@ -140,14 +141,14 @@ namespace Liviano.Interfaces
         /// <summary>
         /// The UTXO list from the account
         /// </summary>
-        [JsonPropertyAttribute(PropertyName = "unspentTransactionOutputs", NullValueHandling = NullValueHandling.Ignore)]
-        List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
+        //[JsonPropertyAttribute(PropertyName = "unspentCoins", NullValueHandling = NullValueHandling.Ignore, ItemConverterType = typeof(CoinJsonConverter))]
+        List<ICoin> UnspentCoins { get; set; }
 
         /// <summary>
         /// The spent transaction outputs
         /// </summary>
-        [JsonPropertyAttribute(PropertyName = "spentTransactionOutputs", NullValueHandling = NullValueHandling.Ignore)]
-        List<IndexedTxOut> SpentTransactionOutputs { get; set; }
+        //[JsonPropertyAttribute(PropertyName = "spentCoins", NullValueHandling = NullValueHandling.Ignore, ItemConverterType = typeof(CoinJsonConverter))]
+        List<ICoin> SpentCoins { get; set; }
 
         [JsonProperty(PropertyName = "usedExternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
@@ -158,12 +159,12 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Add UTXO
         /// </summary>
-        void AddUtxo(IndexedTxOut output);
+        void AddUtxo(ICoin coin);
 
         /// <summary>
         /// Remove UTXO
         /// </summary>
-        void RemoveUtxo(IndexedTxOut output);
+        void RemoveUtxo(ICoin coin);
 
         /// <summary>
         /// Gets 1 receiving address
@@ -219,11 +220,6 @@ namespace Liviano.Interfaces
         /// Gets all addresses to watch, first receive then change
         /// </summary>
         BitcoinAddress[] GetAddressesToWatch();
-
-        /// <summary>
-        /// Gets all spendable coins
-        /// </summary>
-        Coin[] GetSpendableCoins();
 
         /// <summary>
         /// Gets external address index

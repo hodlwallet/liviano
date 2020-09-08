@@ -55,6 +55,9 @@ namespace Liviano.Accounts
             UsedExternalAddresses ??= new List<BitcoinAddress>();
             UsedInternalAddresses ??= new List<BitcoinAddress>();
 
+            UnspentCoins ??= new List<ICoin>();
+            SpentCoins ??= new List<ICoin>();
+
             Index = index;
             HdPath = string.Format(HdPathFormat, Index);
         }
@@ -201,11 +204,6 @@ namespace Liviano.Accounts
                     break;
                 }
             }
-        }
-
-        public override Coin[] GetSpendableCoins()
-        {
-            return UnspentTransactionOutputs.Select(utxo => utxo.ToCoin()).ToArray();
         }
 
         /// <summary>

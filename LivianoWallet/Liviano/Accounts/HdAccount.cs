@@ -178,14 +178,12 @@ namespace Liviano.Accounts
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
-        public List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
-        public List<IndexedTxOut> SpentTransactionOutputs { get; set; }
+        public List<ICoin> UnspentCoins { get; set; }
+        public List<ICoin> SpentCoins { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
-
-        public abstract Coin[] GetSpendableCoins();
 
         public abstract Money GetBalance();
 
@@ -248,18 +246,20 @@ namespace Liviano.Accounts
             throw new WalletException("Could not find internal address, are you sure it's internal?");
         }
 
-        public void AddUtxo(IndexedTxOut output)
+        public void AddUtxo(ICoin coin)
         {
-            if (SpentTransactionOutputs.Contains(output)) return;
-            if (UnspentTransactionOutputs.Contains(output)) return;
+            if (SpentCoins.Contains(coin)) return;
+            if (UnspentCoins.Contains(coin)) return;
 
-            UnspentTransactionOutputs.Add(output);
+            UnspentCoins.Add(coin);
         }
 
-        public void RemoveUtxo(IndexedTxOut output)
+        public void RemoveUtxo(ICoin coin)
         {
-            if (UnspentTransactionOutputs.Contains(output)) UnspentTransactionOutputs.Remove(output);
-            if (!SpentTransactionOutputs.Contains(output)) SpentTransactionOutputs.Add(output);
+            if (SpentCoins.Contains(coin)) return;
+            if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);
+
+            SpentCoins.Add(coin);
         }
     }
 }

@@ -110,8 +110,8 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public int InternalAddressesIndex { get; set; }
         public int ExternalAddressesIndex { get; set; }
-        public List<IndexedTxOut> UnspentTransactionOutputs { get; set; }
-        public List<IndexedTxOut> SpentTransactionOutputs { get; set; }
+        public List<ICoin> UnspentCoins { get; set; }
+        public List<ICoin> SpentCoins { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
@@ -124,6 +124,9 @@ namespace Liviano.Accounts
 
             UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
             UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
+
+            SpentCoins = SpentCoins ?? new List<ICoin>();
+            UnspentCoins = SpentCoins ?? new List<ICoin>();
 
             Index = index;
 
@@ -334,23 +337,25 @@ namespace Liviano.Accounts
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public void AddUtxo(IndexedTxOut output)
-        {
-            if (SpentTransactionOutputs.Contains(output)) return;
-            if (UnspentTransactionOutputs.Contains(output)) return;
-
-            UnspentTransactionOutputs.Add(output);
-        }
-
-        public void RemoveUtxo(IndexedTxOut output)
-        {
-            if (UnspentTransactionOutputs.Contains(output)) UnspentTransactionOutputs.Remove(output);
-            if (!SpentTransactionOutputs.Contains(output)) SpentTransactionOutputs.Add(output);
-        }
-
         public BitcoinAddress[] GetAddressesToWatch()
         {
             return GetReceiveAddressesToWatch();
+        }
+
+        public void AddUtxo(ICoin coin)
+        {
+            if (SpentCoins.Contains(coin)) return;
+            if (UnspentCoins.Contains(coin)) return;
+
+            UnspentCoins.Add(coin);
+        }
+
+        public void RemoveUtxo(ICoin coin)
+        {
+            if (SpentCoins.Contains(coin)) return;
+            if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);
+
+            SpentCoins.Add(coin);
         }
     }
 }
