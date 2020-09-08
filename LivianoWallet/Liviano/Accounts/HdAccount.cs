@@ -194,7 +194,7 @@ namespace Liviano.Accounts
 
         public int GetExternalLastIndex()
         {
-            if (UsedExternalAddresses.Count == 0) return 0;
+            if (UsedExternalAddresses.Count() == 0) return 0;
 
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
@@ -206,7 +206,7 @@ namespace Liviano.Accounts
 
         public int GetInternalLastIndex()
         {
-            if (UsedInternalAddresses.Count == 0) return 0;
+            if (UsedInternalAddresses.Count() == 0) return 0;
 
             var acc = (HdAccount)Clone();
             acc.InternalAddressesCount = 0;
@@ -220,8 +220,9 @@ namespace Liviano.Accounts
         {
             var acc = (HdAccount)Clone();
             acc.ExternalAddressesCount = 0;
+            acc.ExternalAddressesIndex = 0;
 
-            for (int i = 0; i < ExternalAddressesIndex; i++)
+            for (int i = 0; i <= ExternalAddressesIndex; i++)
             {
                 var addr = acc.GetReceiveAddress();
 
@@ -234,9 +235,10 @@ namespace Liviano.Accounts
         public int GetInternalIndex(BitcoinAddress address)
         {
             var acc = (HdAccount)Clone();
-            acc.ExternalAddressesCount = 0;
+            acc.InternalAddressesCount = 0;
+            acc.InternalAddressesIndex = 0;
 
-            for (int i = 0; i < InternalAddressesIndex; i++)
+            for (int i = 0; i <= InternalAddressesIndex; i++)
             {
                 var addr = acc.GetChangeAddress();
 
