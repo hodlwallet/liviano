@@ -110,8 +110,8 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public int InternalAddressesIndex { get; set; }
         public int ExternalAddressesIndex { get; set; }
-        public List<ICoin> UnspentCoins { get; set; }
-        public List<ICoin> SpentCoins { get; set; }
+        public List<Coin> UnspentCoins { get; set; }
+        public List<Coin> SpentCoins { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
@@ -125,8 +125,8 @@ namespace Liviano.Accounts
             UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
             UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
 
-            SpentCoins = SpentCoins ?? new List<ICoin>();
-            UnspentCoins = SpentCoins ?? new List<ICoin>();
+            SpentCoins = SpentCoins ?? new List<Coin>();
+            UnspentCoins = SpentCoins ?? new List<Coin>();
 
             Index = index;
 
@@ -342,7 +342,7 @@ namespace Liviano.Accounts
             return GetReceiveAddressesToWatch();
         }
 
-        public void AddUtxo(ICoin coin)
+        public void AddUtxo(Coin coin)
         {
             if (SpentCoins.Contains(coin)) return;
             if (UnspentCoins.Contains(coin)) return;
@@ -350,7 +350,7 @@ namespace Liviano.Accounts
             UnspentCoins.Add(coin);
         }
 
-        public void RemoveUtxo(ICoin coin)
+        public void RemoveUtxo(Coin coin)
         {
             if (SpentCoins.Contains(coin)) return;
             if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);

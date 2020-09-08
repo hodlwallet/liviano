@@ -49,6 +49,7 @@ namespace Liviano.Storages
         public IWallet Wallet { get; set; }
         public string RootDirectory { get; set; }
         object @lock = new object();
+        JsonSerializerSettings serializerSettings;
 
         public FileSystemStorage(string id = null, Network network = null, string directory = "wallets")
         {
@@ -68,6 +69,13 @@ namespace Liviano.Storages
             Id = id;
             RootDirectory = directory;
             Network = network;
+
+            serializerSettings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented
+            };
+
+            Serializer.RegisterFrontConverters(serializerSettings, Network);
         }
 
         public IWallet Load()
@@ -82,7 +90,7 @@ namespace Liviano.Storages
 
             try
             {
-                Wallet = JsonConvert.DeserializeObject<Wallet>(contents);
+                Wallet = JsonConvert.DeserializeObject<Wallet>(contents, serializerSettings);
             }
             catch (Exception err)
             {
@@ -135,14 +143,13 @@ namespace Liviano.Storages
                 Network = Wallet.Network;
 
                 var filePath = GetWalletFilePath();
-                var contents = JsonConvert.SerializeObject(Wallet, Formatting.Indented);
+                var contents = JsonConvert.SerializeObject(Wallet, serializerSettings);
 
                 File.WriteAllText(filePath, contents);
 
                 SaveAccounts();
                 SaveTxs();
             }
-            Console.WriteLine("saved!");
         }
 
         void MakeWalletBackup()
@@ -150,7 +157,7 @@ namespace Liviano.Storages
             var filePath = GetWalletFilePath();
             var backupFilePath = GetWalletBackupFilePath();
 
-            File.Copy(filePath, backupFilePath, true);
+            if (File.Exists(filePath)) File.Copy(filePath, backupFilePath, true);
         }
 
         void RestoreFromBackup()
@@ -176,7 +183,7 @@ namespace Liviano.Storages
                 var txFilePath = $"{txsPath}{Path.DirectorySeparatorChar}{txId}.json";
 
                 var contents = File.ReadAllText(txFilePath);
-                var tx = JsonConvert.DeserializeObject<Tx>(contents);
+                var tx = JsonConvert.DeserializeObject<Tx>(contents, serializerSettings);
                 tx.Account = account;
 
                 txs.Add(tx);
@@ -207,43 +214,43 @@ namespace Liviano.Storages
                 var content = File.ReadAllText(fileName);
 
                 var accountType = JsonConvert.DeserializeAnonymousType(
-                    content, new { accountType = "" }
+                    content, new { accountType = "" }, serializerSettings
                 ).accountType;
 
                 switch (accountType)
                 {
                     case "bip44":
-                        var bip44Account = JsonConvert.DeserializeObject<Bip44Account>(content);
+                        var bip44Account = JsonConvert.DeserializeObject<Bip44Account>(content, serializerSettings);
                         bip44Account.Wallet = Wallet;
                         accounts.Add(bip44Account);
 
                         break;
                     case "bip49":
-                        var bip49Account = JsonConvert.DeserializeObject<Bip49Account>(content);
+                        var bip49Account = JsonConvert.DeserializeObject<Bip49Account>(content, serializerSettings);
                         bip49Account.Wallet = Wallet;
                         accounts.Add(bip49Account);
 
                         break;
                     case "bip84":
-                        var bip84Account = JsonConvert.DeserializeObject<Bip84Account>(content);
+                        var bip84Account = JsonConvert.DeserializeObject<Bip84Account>(content, serializerSettings);
                         bip84Account.Wallet = Wallet;
                         accounts.Add(bip84Account);
 
                         break;
                     case "bip141":
-                        var bip141Account = JsonConvert.DeserializeObject<Bip141Account>(content);
+                        var bip141Account = JsonConvert.DeserializeObject<Bip141Account>(content, serializerSettings);
                         bip141Account.Wallet = Wallet;
                         accounts.Add(bip141Account);
 
                         break;
                     case "paper":
-                        var paperAccount = JsonConvert.DeserializeObject<PaperAccount>(content);
+                        var paperAccount = JsonConvert.DeserializeObject<PaperAccount>(content, serializerSettings);
                         paperAccount.Wallet = Wallet;
                         accounts.Add(paperAccount);
 
                         break;
                     default:
-                        var defaultAccount = JsonConvert.DeserializeObject<Bip141Account>(content);
+                        var defaultAccount = JsonConvert.DeserializeObject<Bip141Account>(content, serializerSettings);
                         defaultAccount.Wallet = Wallet;
                         accounts.Add(defaultAccount);
 
@@ -267,7 +274,7 @@ namespace Liviano.Storages
             foreach (var account in Wallet.Accounts.ToList())
             {
                 var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{account.Id}.json";
-                var content = JsonConvert.SerializeObject(account, Formatting.Indented);
+                var content = JsonConvert.SerializeObject(account, serializerSettings);
 
                 File.WriteAllText(singleAccountPath, content);
             }
@@ -284,7 +291,7 @@ namespace Liviano.Storages
                 foreach (var tx in account.Txs.ToList())
                 {
                     var filePath = $"{txsPath}{Path.DirectorySeparatorChar}{tx.Id}.json";
-                    var contents = JsonConvert.SerializeObject(tx, Formatting.Indented);
+                    var contents = JsonConvert.SerializeObject(tx, serializerSettings);
 
                     File.WriteAllText(filePath, contents);
                 }

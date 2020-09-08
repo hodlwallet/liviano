@@ -46,7 +46,6 @@ namespace Liviano.Models
         /// Transaction id.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
-        [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 Id { get; set; }
 
         /// <summary>
@@ -62,35 +61,30 @@ namespace Liviano.Models
         /// The network this tx belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
-        [JsonConverter(typeof(NetworkConverter))]
         public Network Network { get; set; }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
         [JsonProperty(PropertyName = "amountReceived", DefaultValueHandling = (long)0)]
-        [JsonConverter(typeof(MoneyJsonConverter))]
         public Money AmountReceived { get; set; }
 
         /// <summary>
         /// The transaction amount.
         /// </summary>
         [JsonProperty(PropertyName = "amountSent", DefaultValueHandling = (long)0)]
-        [JsonConverter(typeof(MoneyJsonConverter))]
         public Money AmountSent { get; set; }
 
         /// <summary>
         /// The transaction total amount, sent and received by you.
         /// </summary>
         [JsonProperty(PropertyName = "totalAmount", DefaultValueHandling = (long)0)]
-        [JsonConverter(typeof(MoneyJsonConverter))]
         public Money TotalAmount { get; set; }
 
         /// <summary>
         /// The transaction total fees sent on this tx.
         /// </summary>
         [JsonProperty(PropertyName = "totalFees", DefaultValueHandling = (long)0)]
-        [JsonConverter(typeof(MoneyJsonConverter))]
         public Money TotalFees { get; set; }
 
         /// <summary>
@@ -124,21 +118,18 @@ namespace Liviano.Models
         /// The hash of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockhash", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(Utilities.JsonConverters.UInt256JsonConverter))]
         public uint256 Blockhash { get; set; }
 
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
         [JsonProperty(PropertyName = "creationTime")]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
         public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
         [JsonProperty(PropertyName = "scriptPubKey")]
-        [JsonConverter(typeof(ScriptJsonConverter))]
         public Script ScriptPubKey { get; set; }
 
         /// <summary>
@@ -151,7 +142,6 @@ namespace Liviano.Models
         /// The script pub key for the address we sent to
         /// </summary>
         [JsonProperty(PropertyName = "sentScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ScriptJsonConverter))]
         public Script SentScriptPubKey { get; set; }
 
         /// <summary>

@@ -32,7 +32,6 @@ using NBitcoin;
 
 using Newtonsoft.Json;
 
-using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
 using Liviano.Events;
 using Liviano.Electrum;
@@ -65,14 +64,12 @@ namespace Liviano.Interfaces
         /// The time this wallet was created.
         /// </summary>
         [JsonProperty(PropertyName = "createdAt", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(DateTimeOffsetConverter))]
         DateTimeOffset? CreatedAt { get; set; }
 
         /// <summary>
         /// The network this wallets belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
-        [JsonConverter(typeof(NetworkConverter))]
         Network Network { get; set; }
 
         /// <summary>
@@ -86,7 +83,6 @@ namespace Liviano.Interfaces
         /// The chain code.
         /// </summary>
         [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ByteArrayConverter))]
         byte[] ChainCode { get; set; }
 
         /// <summary>

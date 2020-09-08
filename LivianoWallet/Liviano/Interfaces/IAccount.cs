@@ -30,9 +30,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 using NBitcoin;
-using NBitcoin.JsonConverters;
 
-using Liviano.Utilities.JsonConverters;
 using Liviano.Models;
 
 namespace Liviano.Interfaces
@@ -93,7 +91,6 @@ namespace Liviano.Interfaces
         /// The network this wallets belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(NetworkConverter))]
         Network Network { get; set; }
 
         /// <summary>
@@ -141,30 +138,28 @@ namespace Liviano.Interfaces
         /// <summary>
         /// The UTXO list from the account
         /// </summary>
-        //[JsonPropertyAttribute(PropertyName = "unspentCoins", NullValueHandling = NullValueHandling.Ignore, ItemConverterType = typeof(CoinJsonConverter))]
-        List<ICoin> UnspentCoins { get; set; }
+        List<Coin> UnspentCoins { get; set; }
 
         /// <summary>
         /// The spent transaction outputs
         /// </summary>
-        //[JsonPropertyAttribute(PropertyName = "spentCoins", NullValueHandling = NullValueHandling.Ignore, ItemConverterType = typeof(CoinJsonConverter))]
-        List<ICoin> SpentCoins { get; set; }
+        List<Coin> SpentCoins { get; set; }
 
-        [JsonProperty(PropertyName = "usedExternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
+        //[JsonProperty(PropertyName = "usedExternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
 
-        [JsonProperty(PropertyName = "usedInternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
+        //[JsonProperty(PropertyName = "usedInternalAddresses", ItemConverterType = typeof(BitcoinAddressConverter))]
         List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         /// <summary>
         /// Add UTXO
         /// </summary>
-        void AddUtxo(ICoin coin);
+        void AddUtxo(Coin coin);
 
         /// <summary>
         /// Remove UTXO
         /// </summary>
-        void RemoveUtxo(ICoin coin);
+        void RemoveUtxo(Coin coin);
 
         /// <summary>
         /// Gets 1 receiving address

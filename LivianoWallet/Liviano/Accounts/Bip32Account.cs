@@ -24,7 +24,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -55,8 +54,8 @@ namespace Liviano.Accounts
             UsedExternalAddresses ??= new List<BitcoinAddress>();
             UsedInternalAddresses ??= new List<BitcoinAddress>();
 
-            UnspentCoins ??= new List<ICoin>();
-            SpentCoins ??= new List<ICoin>();
+            UnspentCoins ??= new List<Coin>();
+            SpentCoins ??= new List<Coin>();
 
             Index = index;
             HdPath = string.Format(HdPathFormat, Index);
