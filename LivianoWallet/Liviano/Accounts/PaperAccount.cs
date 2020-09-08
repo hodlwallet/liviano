@@ -221,7 +221,7 @@ namespace Liviano.Accounts
         {
             if (TxIds.Contains(tx.Id.ToString()))
             {
-                Debug.WriteLine($"Wallet already has a tx with id: {tx.Id}");
+                Debug.WriteLine($"[AddTx] Wallet already has a tx with id: {tx.Id}");
 
                 return;
             }
@@ -234,7 +234,7 @@ namespace Liviano.Accounts
         {
             if (!TxIds.Contains(tx.Id.ToString()))
             {
-                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+                Debug.WriteLine($"[RemoveTx] Wallet doesn't have tx with id: {tx.Id}");
 
                 return;
             }
@@ -247,7 +247,7 @@ namespace Liviano.Accounts
         {
             if (!TxIds.Contains(tx.Id.ToString()))
             {
-                Debug.WriteLine($"Wallet doesn't have tx with id: {tx.Id}");
+                Debug.WriteLine($"[UpdateTx] Wallet doesn't have tx with id: {tx.Id}");
 
                 return;
             }
