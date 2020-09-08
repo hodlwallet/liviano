@@ -165,8 +165,17 @@ namespace Liviano.Electrum
         public void SetNewConnectedServer()
         {
             var oldCurrentServer = CurrentServer;
+            var serversWithoutCurrent = GetNewConnectedServers().Shuffle();
 
-            CurrentServer = GetNewConnectedServers().Shuffle().First();
+            // We can't change server if it's the only one we have
+            if (serversWithoutCurrent.Count() == 0)
+            {
+                Debug.WriteLine("[SetNewConnectedServer] Cannot get new list of servers without current one since it's the only server we have");
+
+                return;
+            }
+
+            CurrentServer = serversWithoutCurrent.First();
 
             RemoveServer(oldCurrentServer);
         }
