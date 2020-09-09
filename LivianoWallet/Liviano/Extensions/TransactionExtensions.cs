@@ -82,14 +82,15 @@ namespace Liviano.Extensions
 
             var builder = account.Network.CreateTransactionBuilder();
 
-            // Create transaction buidler with change and signing keys.
-            var tx = builder
-                .AddCoins(coins)
-                .AddKeys(keys)
-                .Send(toDestination, amount)
-                .SetChange(changeDestination)
-                .SendEstimatedFees(new FeeRate(satsPerByte))
-                .BuildTransaction(sign: true);
+            // Build the tx
+            builder.AddCoins(coins);
+            builder.AddKeys(keys);
+            builder.Send(toDestination, amount);
+            builder.SetChange(changeDestination);
+            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+
+            // Create transaction builder
+            var tx = builder.BuildTransaction(sign: true);
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
 
