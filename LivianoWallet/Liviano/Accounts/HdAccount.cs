@@ -219,14 +219,13 @@ namespace Liviano.Accounts
         public int GetExternalIndex(BitcoinAddress address)
         {
             var acc = (HdAccount)Clone();
-            acc.ExternalAddressesCount = 0;
-            acc.ExternalAddressesIndex = 0;
+            var addresses = acc.GetReceiveAddressesToWatch();
 
-            for (int i = 0; i <= ExternalAddressesIndex; i++)
+            for (int i = 0; i < addresses.Count(); i++)
             {
-                var addr = acc.GetReceiveAddress();
+                var addr = addresses[i];
 
-                if (address.Equals(addr)) return acc.ExternalAddressesCount;
+                if (address.Equals(addr)) return i;
             }
 
             throw new WalletException("Could not find external address, are you sure it's external?");
@@ -235,17 +234,16 @@ namespace Liviano.Accounts
         public int GetInternalIndex(BitcoinAddress address)
         {
             var acc = (HdAccount)Clone();
-            acc.InternalAddressesCount = 0;
-            acc.InternalAddressesIndex = 0;
+            var addresses = acc.GetChangeAddressesToWatch();
 
-            for (int i = 0; i <= InternalAddressesIndex; i++)
+            for (int i = 0; i < addresses.Count(); i++)
             {
-                var addr = acc.GetChangeAddress();
+                var addr = addresses[i];
 
-                if (address.Equals(addr)) return acc.InternalAddressesCount;
+                if (address.Equals(addr)) return i;
             }
 
-            throw new WalletException("Could not find internal address, are you sure it's internal?");
+            throw new WalletException("Could not find external address, are you sure it's internal?");
         }
 
         public void AddUtxo(Coin coin)
