@@ -243,7 +243,7 @@ namespace Liviano.Accounts
                 if (address.Equals(addr)) return i;
             }
 
-            throw new WalletException("Could not find external address, are you sure it's internal?");
+            throw new WalletException("Could not find internal address, are you sure it's internal?");
         }
 
         public void AddUtxo(Coin coin)
