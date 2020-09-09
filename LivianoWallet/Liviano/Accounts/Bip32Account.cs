@@ -147,6 +147,7 @@ namespace Liviano.Accounts
 
                 addresses.Add(addr);
             }
+
             return addresses.ToArray();
         }
 
