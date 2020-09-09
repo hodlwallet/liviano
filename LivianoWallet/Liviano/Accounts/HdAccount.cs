@@ -248,16 +248,19 @@ namespace Liviano.Accounts
 
         public void AddUtxo(Coin coin)
         {
-            if (SpentCoins.Contains(coin)) return;
-            if (UnspentCoins.Contains(coin)) return;
+            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            if (UnspentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
             UnspentCoins.Add(coin);
         }
 
         public void RemoveUtxo(Coin coin)
         {
-            if (SpentCoins.Contains(coin)) return;
-            if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);
+            foreach (var c in UnspentCoins)
+                if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
+                    UnspentCoins.Remove(c);
+
+            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
             SpentCoins.Add(coin);
         }
