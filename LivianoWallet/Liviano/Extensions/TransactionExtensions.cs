@@ -50,7 +50,7 @@ namespace Liviano.Extensions
 
             int change = tx.IsSend ? 1 : 0;
             int index;
-            if (change == 1)
+            if (change == 0)
                 index = account.GetExternalIndex(addr);
             else
                 index = account.GetInternalIndex(addr);
