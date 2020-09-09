@@ -353,6 +353,9 @@ namespace Liviano
                     account.UsedExternalAddresses = new List<BitcoinAddress> {};
                     account.UsedInternalAddresses = new List<BitcoinAddress> {};
 
+                    account.UnspentCoins = new List<Coin> {};
+                    account.SpentCoins = new List<Coin> {};
+
                     account.TxIds = new List<string> { };
                     account.Txs = new List<Tx> { };
                 }

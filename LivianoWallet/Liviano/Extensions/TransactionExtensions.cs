@@ -78,7 +78,7 @@ namespace Liviano.Extensions
 
             var keys = GetCoinsKeys(coins, account);
 
-            Debug.WriteLine($"Coins: {string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString()))}");
+            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString()))}");
 
             var builder = account.Network.CreateTransactionBuilder();
 
