@@ -23,53 +23,85 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using NBitcoin;
-using Newtonsoft.Json;
-
-using Liviano.Utilities.JsonConverters;
-using Liviano.Extensions;
 using System.Collections.Generic;
+
+using NBitcoin;
+
+using Liviano.Extensions;
+using Liviano.Interfaces;
 
 namespace Liviano
 {
     public class Blockchain
     {
         /// <summary>
+        /// The height of the blockchain an int
+        /// </summary>
+        public int Height { get; set; }
+
+        /// <summary>
         /// The network the blockchain belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "network")]
         public Network Network { get; set; }
 
         /// <summary>
         /// Array of checkpoints to start syncing the headers
         /// </summary>
-        [JsonIgnore]
         public ChainedBlock[] Checkpoints { get; set; }
 
         /// <summary>
-        /// An array of ChainedBlocks representing the block headers
+        /// A list of ChainedBlocks representing the block headers
         /// </summary>
-        [JsonIgnore]
-        public ChainedBlock[] Headers { get; set; }
+        public List<ChainedBlock> Headers { get; set; }
+
+        /// <summary>
+        /// Responsible of saving and loading
+        /// </summary>
+        public IBlockchainStorage BlockchainStorage { get; set; }
 
         /// <summary>
         /// Initializer
         /// </summary>
         /// <param name="network">Network to get everything from</param>
-        public Blockchain(Network network)
+        public Blockchain(Network network, IBlockchainStorage storage)
         {
             Network ??= network;
-            Checkpoints ??= GetCheckpoints().ToArray();
+            BlockchainStorage = storage;
+
+            Checkpoints ??= Network.GetCheckpoints().ToArray();
+            Headers.Insert(0, new ChainedBlock(Network.GetGenesis().Header, 0));
+            Height = GetHeight();
+
+            BlockchainStorage.Blockchain = this;
         }
 
         /// <summary>
-        /// Gets the static checkpoints of a network
+        /// Saves block headers
         /// </summary>
-        /// <returns>A list of <see cref="ChainedBlock"/> of all the checkpoints</returns>
-        /// <remarks>See Workbooks/CheckpointsGenerator.workbook for an example of how to generate more checkpoints, checkpoints must be a static list and have a sequence, and should never change.</remarks>
-        List<ChainedBlock> GetCheckpoints()
+        public void Save()
         {
-            return Network.GetCheckpoints();
+            BlockchainStorage.Save();
+        }
+
+        /// <summary>
+        /// Loads the block headers
+        /// </summary>
+        public void Load()
+        {
+            Headers.Clear();
+            Height = -1;
+
+            Headers = BlockchainStorage.Load();
+            Height = GetHeight();
+        }
+
+        /// <summary>
+        /// Gets the current height
+        /// </summary>
+        /// <returns>A <see cref="int"> with the height</returns>
+        int GetHeight()
+        {
+            return Headers[Headers.Count - 1].Height;
         }
     }
 }
