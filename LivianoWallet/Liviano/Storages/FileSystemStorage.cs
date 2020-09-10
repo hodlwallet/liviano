@@ -62,7 +62,7 @@ namespace Liviano.Storages
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine($"[FileSystemStorage] Error: {ex.Message}");
                 }
             }
 

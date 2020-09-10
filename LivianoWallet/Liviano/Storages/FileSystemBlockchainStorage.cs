@@ -25,29 +25,88 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 using NBitcoin;
+using NBitcoin.DataEncoders;
 
 using Liviano.Interfaces;
+using Liviano.Utilities;
 
 namespace Liviano.Storages
 {
     public class FileSystemBlockchainStorage : IBlockchainStorage
     {
+        const int HEADER_SIZE = 80;
         public Blockchain Blockchain { get; set; }
+        public string RootDirectory { get; set; }
 
-        public FileSystemBlockchainStorage()
+        public FileSystemBlockchainStorage(string directory = "blockchain")
         {
+            directory = Path.GetFullPath(directory);
+
+            if (!Directory.Exists(directory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[FileSystemBlockchainStorage] Error: {ex.Message}");
+                }
+            }
+
+            RootDirectory = directory;
         }
 
         public List<ChainedBlock> Load()
         {
-            throw new NotImplementedException();
+            Guard.NotNull(Blockchain, nameof(Blockchain));
+            Guard.NotNull(RootDirectory, nameof(RootDirectory));
+
+            var headers = new List<ChainedBlock> ();
+            var fileName = GetFileName();
+
+            if (!File.Exists(fileName)) return headers;
+
+            var bytes = File.ReadAllBytes(fileName);
+
+            var height = 0;
+            for (int i = 0; i < bytes.Length; i += HEADER_SIZE)
+            {
+                var data = bytes.Skip(i).Take(HEADER_SIZE);
+                var hex = Encoders.Hex.EncodeData(data.ToArray());
+
+                var chainedBlock = new ChainedBlock(BlockHeader.Parse(hex, Blockchain.Network), height++);
+
+                headers.Add(chainedBlock);
+            }
+
+            return headers;
         }
 
         public void Save()
         {
-            throw new NotImplementedException();
+            Guard.NotNull(Blockchain, nameof(Blockchain));
+            Guard.NotNull(RootDirectory, nameof(RootDirectory));
+
+            var fileName = GetFileName();
+
+            foreach (var bytes in Blockchain.Headers.Select(cb => cb.Header.ToBytes()))
+            {
+                File.WriteAllBytes(fileName, bytes);
+            }
+        }
+
+        string GetFileName()
+        {
+            var slash = Path.DirectorySeparatorChar;
+            var network = Blockchain.Network.ToString().ToLower();
+
+            return $"{RootDirectory}{slash}{network}_blockchain_headers";
         }
     }
 }
