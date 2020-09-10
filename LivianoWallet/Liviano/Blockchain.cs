@@ -30,15 +30,14 @@ using Liviano.Utilities.JsonConverters;
 using Liviano.Extensions;
 using System.Collections.Generic;
 
-namespace Liviano.Models
+namespace Liviano
 {
     public class Blockchain
     {
         /// <summary>
-        /// The network this tx belongs to.
+        /// The network the blockchain belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
-        [JsonConverter(typeof(NetworkConverter))]
         public Network Network { get; set; }
 
         /// <summary>

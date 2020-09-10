@@ -136,7 +136,7 @@ namespace Liviano.CLI
         /// <summary>
         /// Main, uses the args and run the options
         /// </summary>
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
@@ -172,7 +172,7 @@ namespace Liviano.CLI
             {
                 InvalidArguments($"Error: {e.Message}");
 
-                return;
+                return 0;
             }
 
             // Check if help was sent
@@ -180,7 +180,7 @@ namespace Liviano.CLI
             {
                 ShowHelp(options);
 
-                return;
+                return 0;
             }
 
             // Load configs
@@ -212,7 +212,7 @@ namespace Liviano.CLI
 
                 Console.WriteLine(mnemonicRes);
 
-                return;
+                return 0;
             }
 
             if (getXPrv)
@@ -221,7 +221,7 @@ namespace Liviano.CLI
                 {
                     InvalidArguments();
 
-                    return;
+                    return 1;
                 }
 
                 var extKey = Hd.GetExtendedKey(mnemonic, passphrase);
@@ -229,7 +229,7 @@ namespace Liviano.CLI
 
                 Console.WriteLine(wifRes);
 
-                return;
+                return 0;
             }
 
             if (getXPub)
@@ -238,7 +238,7 @@ namespace Liviano.CLI
                 {
                     InvalidArguments();
 
-                    return;
+                    return 1;
                 }
 
                 var extPubKey = Hd.GetExtendedPublicKey(wif, hdPath, network.Name);
@@ -246,7 +246,7 @@ namespace Liviano.CLI
 
                 Console.WriteLine(extPubKeyWif);
 
-                return;
+                return 0;
             }
 
             if (getAddr)
@@ -255,7 +255,7 @@ namespace Liviano.CLI
                 {
                     InvalidArguments();
 
-                    return;
+                    return 1;
                 }
 
                 if (accountIndex == -1) accountIndex = 0;
@@ -272,13 +272,13 @@ namespace Liviano.CLI
                         {
                             InvalidArguments("Could not get address because wallet was not found");
 
-                            return;
+                            return 1;
                         }
 
 
                         Console.WriteLine(address.ToString());
 
-                        return;
+                        return 0;
                     }
 
                     var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
@@ -287,15 +287,16 @@ namespace Liviano.CLI
 
                     Console.WriteLine(data);
 
-                    return;
+                    return 0;
                 }
-                else {
+                else
+                {
                     InvalidArguments("Could not find wallet or wif was not provided");
 
-                    return;
+                    return 1;
                 }
 
-                return;
+                return 0;
             }
 
             if (getScriptPubKey)
@@ -304,12 +305,12 @@ namespace Liviano.CLI
                 {
                     InvalidArguments();
 
-                    return;
+                    return 1;
                 }
 
                 Console.WriteLine(Hd.GetScriptPubKey(address, network.Name));
 
-                return;
+                return 0;
             }
 
             if (newWallet)
@@ -331,55 +332,77 @@ namespace Liviano.CLI
 
                 Console.WriteLine($"{wallet.Id}");
 
-                return;
+                return 0;
             }
 
             if (newAcc)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
-                    throw new ArgumentException("New account needs a wallet id");
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
                 else
+                {
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
+                }
 
                 if (string.IsNullOrEmpty(newAccName) || string.IsNullOrEmpty(newAccType))
-                    throw new ArgumentException("New account needs a account type and account name");
+                {
+                    Console.WriteLine("New account needs a account type and account name");
+
+                    return 1;
+                }
 
                 var res = LightClient.AddAccount(config, newAccType, newAccName);
 
                 // Returns wif of account
                 Console.WriteLine($"{res}");
 
-                return;
+                return 0;
             }
 
             if (start)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
-                    throw new ArgumentException("New account needs a wallet id");
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.Start(config);
 
-                return;
+                return 0;
             }
 
             if (resync)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
-                    throw new ArgumentException("New account needs a wallet id");
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.ReSync(config);
 
-                return;
+                return 0;
             }
 
             if (send)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
-                    throw new ArgumentException("New account needs a wallet id");
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
@@ -401,18 +424,22 @@ namespace Liviano.CLI
                 {
                     Console.WriteLine($"Error sending transaction {error}");
 
-                    return;
+                    return 1;
                 }
 
                 Console.WriteLine("Successfully sent transaction!");
 
-                return;
+                return 0;
             }
 
             if (balance)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
-                    throw new ArgumentException("New account needs a wallet id");
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
                 else
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
@@ -422,7 +449,7 @@ namespace Liviano.CLI
 
                     Console.WriteLine($"{accountIndex} = {balance}");
 
-                    return;
+                    return 0;
                 }
 
                 var accountsWithBalance = LightClient.AllAccountsBalances(config);
@@ -430,11 +457,13 @@ namespace Liviano.CLI
                 foreach (var entry in accountsWithBalance)
                     Console.WriteLine($"{entry.Key.Index} = {entry.Value}");
 
-                return;
+                return 0;
             }
 
             // End... invalid options
             InvalidArguments();
+
+            return 1;
         }
 
         /// <summary>
