@@ -41,6 +41,7 @@ using Liviano.Interfaces;
 using Liviano.Extensions;
 using Liviano.Exceptions;
 using Liviano.Events;
+
 using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
@@ -840,6 +841,13 @@ namespace Liviano.Electrum
                     }, TaskCreationOptions.AttachedToParent);
                 }
             }, TaskCreationOptions.AttachedToParent).Wait();
+        }
+
+        public async Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
+        {
+            var res = await ElectrumClient.BlockchainBlockHeaders(fromHeight, toHeight);
+
+            return res.Result;
         }
     }
 }

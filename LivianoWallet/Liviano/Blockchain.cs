@@ -23,17 +23,23 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Diagnostics;
+using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
 
 using Liviano.Extensions;
 using Liviano.Interfaces;
+using Liviano.Electrum;
+using System.Threading.Tasks;
 
 namespace Liviano
 {
     public class Blockchain
     {
+        const int HEADER_SIZE = 80;
+
         /// <summary>
         /// The height of the blockchain an int
         /// </summary>
@@ -67,9 +73,10 @@ namespace Liviano
         {
             Network ??= network;
             BlockchainStorage = storage;
+            Headers ??= new List<ChainedBlock> ();
 
             Checkpoints ??= Network.GetCheckpoints().ToArray();
-            Headers.Insert(0, new ChainedBlock(Network.GetGenesis().Header, 0));
+            AddGenesisBlockHeader();
             Height = GetHeight();
 
             BlockchainStorage.Blockchain = this;
@@ -92,7 +99,65 @@ namespace Liviano
             Height = -1;
 
             Headers = BlockchainStorage.Load();
+
+            if (Headers.Count == 0) AddGenesisBlockHeader();
+
             Height = GetHeight();
+        }
+
+        public async Task DownloadHeaders(ElectrumPool pool)
+        {
+            int count = 0;
+            int max = 0;
+            string hex = "";
+
+            while (true)
+            {
+                var cp = GetNextCheckpoint(Height);
+
+                if (cp is null && count == 0) break;
+
+                int blockHeadersToRequest;
+
+                if (max != 0) blockHeadersToRequest = max;
+                else blockHeadersToRequest = cp.Height;
+
+                var res = await pool.DownloadHeaders(Height, blockHeadersToRequest);
+
+                count = res.Count;
+                hex = res.Hex;
+                max = res.Max;
+
+                for (int i = 0; i < hex.Length; i += (HEADER_SIZE * 2))
+                {
+                    var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());
+
+                    var chainedBlock = new ChainedBlock(
+                        BlockHeader.Parse(headerHex, Network),
+                        Height + 1
+                    );
+
+                    Headers.Insert(Height + 1, chainedBlock);
+                    Height = GetHeight();
+
+                    Debug.WriteLine($"[DownloadHeaders] Current Height: {Height}");
+                    Debug.WriteLine($"[DownloadHeaders] Headers Count: {Headers.Count}");
+                }
+
+                if (count == 0) break;
+            }
+        }
+
+        ChainedBlock GetNextCheckpoint(int height)
+        {
+            foreach (var checkpoint in Checkpoints)
+            {
+                if (checkpoint.Height < height) continue;
+
+                return checkpoint;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -102,6 +167,14 @@ namespace Liviano
         int GetHeight()
         {
             return Headers[Headers.Count - 1].Height;
+        }
+
+        /// <summary>
+        /// Adds the genesis block header use in case of empty
+        /// </summary>
+        void AddGenesisBlockHeader()
+        {
+            Headers.Insert(0, new ChainedBlock(Network.GetGenesis().Header, 0));
         }
     }
 }

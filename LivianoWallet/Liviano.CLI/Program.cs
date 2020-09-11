@@ -82,6 +82,9 @@ namespace Liviano.CLI
         static bool start = false;
         static bool resync = false;
 
+        // XXX Debug stuff
+        static bool blockchainTest = false;
+
         // Parse extra options arguments
         static List<string> extra;
 
@@ -110,6 +113,9 @@ namespace Liviano.CLI
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
+
+                // XXX Debug, remove
+                {"bk|blockchain-test", "DEBUG Blockchain headers test", v => blockchainTest = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -456,6 +462,14 @@ namespace Liviano.CLI
 
                 foreach (var entry in accountsWithBalance)
                     Console.WriteLine($"{entry.Key.Index} = {entry.Value}");
+
+                return 0;
+            }
+
+            // XXX Debug stuff
+            if (blockchainTest)
+            {
+                LightClient.BlockchainTest(config);
 
                 return 0;
             }

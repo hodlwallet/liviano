@@ -35,7 +35,6 @@ using Serilog;
 using Liviano.Exceptions;
 using Liviano.Models;
 using Liviano.Interfaces;
-using Liviano.Extensions;
 using Liviano.Bips;
 using Liviano.Storages;
 
@@ -430,6 +429,23 @@ namespace Liviano.CLI
             config.SaveChanges();
 
             return wallet.Accounts.Last().ExtendedPubKey;
+        }
+
+        // XXX Debug, remove
+        public static void BlockchainTest(Config config)
+        {
+            Load(config);
+
+            var storage = new FileSystemBlockchainStorage();
+            var blockchain = new Blockchain(wallet.Network, storage);
+
+            blockchain.Load();
+
+            blockchain.DownloadHeaders(wallet.ElectrumPool).Wait();
+
+            Console.WriteLine($"{blockchain.Headers[0].Header.GetHash().ToString()}");
+
+            blockchain.Save();
         }
 
         /// <summary>
