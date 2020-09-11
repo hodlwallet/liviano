@@ -441,9 +441,9 @@ namespace Liviano.CLI
 
             blockchain.Load();
 
-            blockchain.DownloadHeaders(wallet.ElectrumPool).Wait();
+            blockchain.DownloadHeadersPararel(wallet.ElectrumPool);
 
-            Console.WriteLine($"{blockchain.Headers[0].Header.GetHash().ToString()}");
+            Console.WriteLine($"{blockchain.Headers.Count}");
 
             blockchain.Save();
         }

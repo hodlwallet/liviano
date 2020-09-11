@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
@@ -73,7 +74,7 @@ namespace Liviano
         {
             Network ??= network;
             BlockchainStorage = storage;
-            Headers ??= new List<ChainedBlock> ();
+            Headers ??= new List<ChainedBlock>();
 
             Checkpoints ??= Network.GetCheckpoints().ToArray();
             AddGenesisBlockHeader();
@@ -103,6 +104,79 @@ namespace Liviano
             if (Headers.Count == 0) AddGenesisBlockHeader();
 
             Height = GetHeight();
+        }
+
+        public void DownloadHeadersPararel(ElectrumPool pool)
+        {
+            var unsortedHeaders = new List<ChainedBlock>();
+            Parallel.ForEach(Checkpoints, async cp =>
+            {
+                var headers = new List<ChainedBlock>();
+                var index = Array.IndexOf(Checkpoints, cp);
+
+                var start = index == 0 ? 0 : Checkpoints[index - 1].Height + 1;
+
+                if (start == 0)
+                {
+                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
+
+                    unsortedHeaders.Add(genesis);
+
+                    start++;
+                }
+
+                var count = cp.Height;
+                var current = start;
+                Console.WriteLine($"current: {current} count: {count}");
+                while (current < cp.Height)
+                {
+                    var res = await DownloadRequestUntilResult(pool, current, count);
+
+                    count = res.Count;
+                    var hex = res.Hex;
+                    var max = res.Max;
+
+                    var height = current;
+                    for (int i = 0; i < hex.Length; i += (HEADER_SIZE * 2))
+                    {
+                        var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());
+
+                        var chainedBlock = new ChainedBlock(
+                            BlockHeader.Parse(headerHex, Network),
+                            height++
+                        );
+
+                        unsortedHeaders.Add(chainedBlock);
+                        current = chainedBlock.Height;
+                    }
+                }
+            });
+
+            Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
+            Height = GetHeight();
+
+            Console.WriteLine(Headers.Count);
+            Console.WriteLine(Height);
+            Console.WriteLine("Finished???");
+        }
+
+        async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
+        {
+            try
+            {
+                Console.WriteLine("Trying request!!!!!!!!!!!!!");
+                return await pool.DownloadHeaders(current, count);
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine(err.Message);
+
+                await Task.Delay(1000);
+
+                Debug.WriteLine("Trying again");
+
+                return await DownloadRequestUntilResult(pool, current, count);
+            }
         }
 
         public async Task DownloadHeaders(ElectrumPool pool)
