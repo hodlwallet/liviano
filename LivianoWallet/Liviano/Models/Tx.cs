@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 using Newtonsoft.Json;
@@ -32,7 +33,6 @@ using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Exceptions;
-using System.Diagnostics;
 
 using static Liviano.Electrum.ElectrumClient;
 
