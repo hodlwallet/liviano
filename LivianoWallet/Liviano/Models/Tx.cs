@@ -29,9 +29,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 using NBitcoin;
-using NBitcoin.JsonConverters;
 
-using Liviano.Utilities.JsonConverters;
 using Liviano.Interfaces;
 using Liviano.Exceptions;
 using System.Diagnostics;

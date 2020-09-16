@@ -32,7 +32,6 @@ using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Utilities;
-using Liviano.Utilities.JsonConverters;
 using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
@@ -80,11 +79,9 @@ namespace Liviano.Accounts
         public ScriptPubKeyType ScriptPubKeyType { get; set; }
 
         [JsonProperty(PropertyName = "privateKey")]
-        [JsonConverter(typeof(PrivateKeyConverter))]
         public Key PrivateKey { get; set; }
 
         [JsonProperty(PropertyName = "publicKey")]
-        [JsonConverter(typeof(PublicKeyConverter))]
         public PubKey PublicKey { get; set; }
 
         public int InternalAddressesCount

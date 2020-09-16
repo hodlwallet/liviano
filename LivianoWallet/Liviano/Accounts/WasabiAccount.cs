@@ -29,7 +29,6 @@ using Newtonsoft.Json;
 using Liviano.Bips;
 using Liviano.Extensions;
 using Liviano.Utilities;
-using Liviano.Utilities.JsonConverters;
 
 namespace Liviano.Accounts
 {
