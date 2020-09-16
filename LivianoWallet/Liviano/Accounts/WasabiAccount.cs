@@ -54,7 +54,6 @@ namespace Liviano.Accounts
         /// The chain code.
         /// </summary>
         [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ByteArrayConverter))]
         public byte[] ChainCode { get; set; }
 
         public WasabiAccount(int index = 0) : base(index)
