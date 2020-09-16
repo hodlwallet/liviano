@@ -28,9 +28,8 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
-using System.Linq;
 using System.Reflection;
+using System.Linq;
 using System.IO;
 
 using NBitcoin;
@@ -123,14 +122,14 @@ namespace Liviano.Electrum
             ConnectedServers ??= new List<Server> { };
         }
 
-        public async Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null, Assembly assembly = null)
+        public async Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null)
         {
             await FindConnectedServers(cts);
 
             if (ConnectedServers.Count < MIN_NUMBER_OF_CONNECTED_SERVERS)
                 await FindConnectedServersUntilMinNumber(cts);
             else
-                Save(assembly);
+                Save();
         }
 
         public async Task FindConnectedServers(CancellationTokenSource cts = null)
@@ -194,22 +193,11 @@ namespace Liviano.Electrum
         /// <summary>
         /// Saves the recently connected servers to disk or resource?
         /// </summary>
-        public void Save(Assembly assembly = null)
+        public void Save()
         {
             var data = JsonConvert.SerializeObject(ConnectedServers);
 
             if (string.IsNullOrEmpty(data)) return;
-
-            if (assembly != null)
-            {
-                var resourceName = $"Resources.Electrum.servers.recent_{Network.Name.ToLower()}.json";
-                using var stream = assembly.GetManifestResourceStream(resourceName);
-
-                var @bytes = Encoding.GetEncoding("UTF-8").GetBytes(data);
-                stream.Write(@bytes, 0, @bytes.Length);
-
-                return;
-            }
 
             File.WriteAllText(GetRecentServersFileName(Network), data);
         }
@@ -652,7 +640,7 @@ namespace Liviano.Electrum
         /// </summary>
         /// <param name="network">a <see cref="Network"/> to load files from</param>
         /// <returns>A new <see cref="ElectrumPool"/></returns>
-        public static ElectrumPool Load(Network network = null, Assembly assembly = null)
+        public static ElectrumPool Load(Network network = null)
         {
             network ??= Network.Main;
 
@@ -667,48 +655,21 @@ namespace Liviano.Electrum
             string recentServersFileName;
             string json;
 
-            if (assembly != null)
+            allServersFileName = GetAllServersFileName(network);
+            json = File.ReadAllText(allServersFileName);
+            allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
+
+            recentServersFileName = GetRecentServersFileName(network);
+
+            if (File.Exists(recentServersFileName))
             {
-                allServersFileName = $"Resources.Electrum.servers.{network.Name.ToLower()}.json";
-                recentServersFileName = $"Resources.Electrum.servers.recent_{network.Name.ToLower()}.json";
-
-                using var allServersStream = assembly.GetManifestResourceStream(allServersFileName);
-                using var recentServersStream = assembly.GetManifestResourceStream(recentServersFileName);
-
-                using var allServersReader = new StreamReader(allServersStream);
-                json = allServersReader.ReadToEnd();
-                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
-
-                if (recentServersStream.Length > 0)
-                {
-                    using var recentServersReader = new StreamReader(recentServersStream);
-                    json = allServersReader.ReadToEnd();
-                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
-                }
-                else
-                {
-                    recentServers = new List<Server> { };
-                }
+                json = File.ReadAllText(recentServersFileName);
+                recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
             }
             else
             {
-                allServersFileName = GetAllServersFileName(network);
-                json = File.ReadAllText(allServersFileName);
-                allServersData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-                allServers = ElectrumServers.FromDictionary(allServersData).Servers.CompatibleServers();
-
-                recentServersFileName = GetRecentServersFileName(network);
-
-                if (File.Exists(recentServersFileName))
-                {
-                    json = File.ReadAllText(recentServersFileName);
-                    recentServers = JsonConvert.DeserializeObject<List<Server>>(json);
-                }
-                else
-                {
-                    recentServers = new List<Server> { };
-                }
+                recentServers = new List<Server> { };
             }
 
             pool = new ElectrumPool(allServers.ToArray().Shuffle(), network);

@@ -25,14 +25,12 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using NBitcoin;
 
 using Newtonsoft.Json;
 
-using Liviano.Models;
 using Liviano.Events;
 using Liviano.Electrum;
 
@@ -119,9 +117,6 @@ namespace Liviano.Interfaces
         [JsonIgnore]
         IStorage Storage { get; set; }
 
-        [JsonIgnore]
-        Assembly CurrentAssembly { get; set; }
-
         [JsonProperty(PropertyName = "server", DefaultValueHandling = DefaultValueHandling.Ignore)]
         string Server { get; set; }
 
@@ -132,7 +127,7 @@ namespace Liviano.Interfaces
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null);
+        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
 
         void InitElectrumPool();
 
@@ -182,7 +177,7 @@ namespace Liviano.Interfaces
         Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
 
         /// <summary>
-        /// Gets the electrum pool from the network and maybe the current assembly
+        /// Gets the electrum pool from the network
         /// </summary>
         ElectrumPool GetElectrumPool();
 

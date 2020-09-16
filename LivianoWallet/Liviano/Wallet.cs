@@ -71,8 +71,6 @@ namespace Liviano
 
         public string CurrentAccountId { get; set; }
 
-        public Assembly CurrentAssembly { get; set; }
-
         IAccount currentAccount;
         public IAccount CurrentAccount
         {
@@ -133,8 +131,7 @@ namespace Liviano
         /// <param name="network">A <see cref="Network"/></param>
         /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
         /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
-        /// <param name="assembly">A <see cref="Assembly"/> that the wallet is loaded from</param>
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null, Assembly assembly = null)
+        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -153,8 +150,6 @@ namespace Liviano
 
             CurrentAccountId ??= null;
             currentAccount ??= null;
-
-            CurrentAssembly ??= assembly;
 
             var mnemonicObj = Hd.MnemonicFromString(mnemonic);
             extKey = Hd.GetExtendedKey(mnemonicObj, password);
@@ -208,7 +203,7 @@ namespace Liviano
                 return ElectrumPool;
             }
 
-            return ElectrumPool.Load(Network, CurrentAssembly);
+            return ElectrumPool.Load(Network);
         }
 
         /// <summary>
