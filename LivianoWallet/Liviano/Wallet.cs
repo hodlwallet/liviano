@@ -27,7 +27,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -131,7 +130,7 @@ namespace Liviano
         /// <param name="network">A <see cref="Network"/></param>
         /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
         /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
-        public void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
+        public void Init(string mnemonic, string password = null, string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -212,7 +211,7 @@ namespace Liviano
         /// <remarks>If you pass no password it's a way to create accounts with no pass</remarks>
         /// <param name="password">A <see cref="string"/> of the password</param>
         /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
-        public void InitPrivateKey(string password = "", bool decrypt = false)
+        public void InitPrivateKey(string password = null, bool decrypt = false)
         {
             privateKey = GetPrivateKey(password, decrypt);
         }
@@ -223,7 +222,7 @@ namespace Liviano
         /// <param name="password">A <see cref="string"/> of the password</param>
         /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
         /// <returns>a private <see cref="Key"/></returns>
-        public Key GetPrivateKey(string password = "", bool decrypt = false)
+        public Key GetPrivateKey(string password = null, bool decrypt = false)
         {
             if (!(privateKey is null) && !decrypt) return privateKey;
 
@@ -236,7 +235,7 @@ namespace Liviano
         /// <param name="password"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string password = "", bool decrypt = false)
+        public ExtKey GetExtendedKey(string password = null, bool decrypt = false)
         {
             Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
@@ -541,7 +540,7 @@ namespace Liviano
             }
         }
 
-        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "")
+        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = null)
         {
             Transaction tx = null;
             string error = null;
