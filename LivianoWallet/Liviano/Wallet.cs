@@ -170,13 +170,15 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Init privete keys
+        /// Authenticate and init privete keys
         /// </summary>
+        /// <param name="passphrase">Passphrase</param>
         public bool Authenticate(string passphrase = null)
         {
+            // This private key isn't validated yet
             MasterExtKey = Hd.GetExtendedKey(Mnemonic, passphrase);
 
-            if (MasterExtPubKey is null)
+            if (MasterExtPubKey is null)  // Create
             {
                 MasterExtPubKey = MasterExtKey.Neuter();
 
@@ -184,7 +186,7 @@ namespace Liviano
                     "[Authenticate] Success! We're creating a wallet with new passphrase!"
                 );
             }
-            else if (!MasterExtKey.Neuter().Equals(MasterExtPubKey))
+            else if (!MasterExtKey.Neuter().Equals(MasterExtPubKey))  // Invalid passphrase, ext keys aren't the same
             {
                 Debug.WriteLine(
                     "[Authenticate] Fail! Invalid passphrase, MasterExtKey will be reset to null!"
@@ -194,6 +196,8 @@ namespace Liviano
 
                 return false;
             }
+
+            // Valid passphrase or creating
 
             Debug.WriteLine("[Authenticate] Success! Passphrase is correct!");
 
