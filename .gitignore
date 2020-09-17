@@ -345,6 +345,7 @@ LivianoWallet/Liviano.CLI/data/
 addrman.dat
 chain.dat
 liviano.json
+liviano.json.old
 
 NBitcoin
 
@@ -352,4 +353,5 @@ NBitcoin
 
 tmp
 wallets
+wallets.old
 blockchain

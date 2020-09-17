@@ -71,16 +71,33 @@ namespace Liviano.Interfaces
         Network Network { get; set; }
 
         /// <summary>
+        /// Mnemonic seed as a string
+        /// </summary>
+        [JsonProperty(PropertyName = "seed")]
+        string Seed { get; set; }
+
+        /// <summary>
+        /// Master Extended Pub Key
+        /// </summary>
+        [JsonProperty(PropertyName = "masterExtPubKey")]
+        ExtPubKey MasterExtPubKey { get; set; }
+
+        /// <summary>
+        /// Menmonic object cause why not
+        /// </summary>
+        [JsonIgnore]
+        Mnemonic Mnemonic { get; set; }
+
+        /// <summary>
         /// Encrypted seed usually from a mnemonic
         /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "encryptedSeed")]
+        [JsonIgnore]
         string EncryptedSeed { get; set; }
 
         /// <summary>
         /// The chain code.
         /// </summary>
-        [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore]
         byte[] ChainCode { get; set; }
 
         /// <summary>
@@ -127,16 +144,16 @@ namespace Liviano.Interfaces
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string password = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
+        void Init(string mnemonic, string passphrase = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
 
         void InitElectrumPool();
 
         /// <summary>
         /// Inits the priv key
         /// </summary>
-        /// <param name="password"></param>
+        /// <param name="passphrase"></param>
         /// <param name="decrypt"></param>
-        void InitPrivateKey(string password = "", bool decrypt = false);
+        void InitPrivateKey(string passphrase = "", bool decrypt = false);
 
         /// <summary>
         /// Starts all the indexes of all types of accounts tracked
@@ -171,10 +188,10 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Gets a private key this method also caches it on memory
         /// </summary>
-        /// <param name="password">Password to decript seed to, default ""</param>
-        /// <param name="forcePasswordVerification">Force the password verification, avoid cache! Default false</param>
+        /// <param name="passphrase">Passphrase to decrypt seed to, default ""</param>
+        /// <param name="decrypt">Force the passphrase verification, avoid cache! Default false</param>
         /// <returns></returns>
-        Key GetPrivateKey(string password = "", bool forcePasswordVerification = false);
+        Key GetPrivateKey(string passphrase = null, bool decrypt = false);
 
         /// <summary>
         /// Gets the electrum pool from the network
@@ -184,10 +201,10 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Gets a extended private key this method also caches it on memory
         /// </summary>
-        /// <param name="password"></param>
-        /// <param name="forcePasswordVerification"></param>
+        /// <param name="passphrase">A passphrase</param>
+        /// <param name="decrypt">A boolean to decrypt or not</param>
         /// <returns></returns>
-        ExtKey GetExtendedKey(string password = "", bool forcePasswordVerification = false);
+        ExtKey GetExtendedKey(string passphrase = null, bool decrypt = false);
 
         /// <summary>
         /// Adds an account to the wallet
@@ -201,7 +218,7 @@ namespace Liviano.Interfaces
         /// </param>
         void AddAccount(string type = "", string name = null, object options = null);
 
-        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = "");
+        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = "");
 
         Task<bool> BroadcastTransaction(Transaction tx);
 

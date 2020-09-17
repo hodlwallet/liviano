@@ -64,6 +64,12 @@ namespace Liviano
 
         public Network Network { get; set; }
 
+        public string Seed { get; set; }
+
+        public Mnemonic Mnemonic { get; set; }
+
+        public ExtPubKey MasterExtPubKey { get; set; }
+
         public string EncryptedSeed { get; set; }
 
         public byte[] ChainCode { get; set; }
@@ -125,14 +131,14 @@ namespace Liviano
         /// Inits the wallet with some defaults mostly empty fields
         /// </summary>
         /// <param name="mnemonic">A <see cref="string"/> with the mnemonic words</param>
-        /// <param name="password">A <see cref="string"/> with password</param>
+        /// <param name="passphrase">A <see cref="string"/> with passphrase</param>
         /// <param name="name">A <see cref="string"/> with name</param>
         /// <param name="network">A <see cref="Network"/></param>
         /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
         /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
         public void Init(
                 string mnemonic,
-                string password = null,
+                string passphrase = null,
                 string name = null,
                 Network network = null,
                 DateTimeOffset? createdAt = null,
@@ -156,13 +162,16 @@ namespace Liviano
             CurrentAccountId ??= null;
             currentAccount ??= null;
 
-            var mnemonicObj = Hd.MnemonicFromString(mnemonic);
-            extKey = Hd.GetExtendedKey(mnemonicObj, password);
+            Seed = mnemonic;
 
-            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
+            Mnemonic = Hd.MnemonicFromString(mnemonic);
+
+            extKey = Hd.GetExtendedKey(Mnemonic, passphrase);
+
+            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(passphrase, Network).ToWif();
             ChainCode = extKey.ChainCode;
 
-            privateKey ??= GetPrivateKey(password, decrypt: true);
+            privateKey ??= GetPrivateKey(passphrase, decrypt: true);
 
             InitElectrumPool();
             InitAccountsIndex();
@@ -214,40 +223,40 @@ namespace Liviano
         /// <summary>
         /// Inits the private key
         /// </summary>
-        /// <remarks>If you pass no password it's a way to create accounts with no pass</remarks>
-        /// <param name="password">A <see cref="string"/> of the password</param>
-        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
-        public void InitPrivateKey(string password = null, bool decrypt = false)
+        /// <remarks>If you pass no passphrase it's a way to create accounts with no pass</remarks>
+        /// <param name="passphrase">A <see cref="string"/> of the passphrase</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decrypt or not</param>
+        public void InitPrivateKey(string passphrase = null, bool decrypt = false)
         {
-            privateKey = GetPrivateKey(password, decrypt);
+            privateKey = GetPrivateKey(passphrase, decrypt);
         }
 
         /// <summary>
         /// Gets the private key, and puts it into <see cref="privateKey"/>
         /// </summary>
-        /// <param name="password">A <see cref="string"/> of the password</param>
-        /// <param name="decrypt">A <see cref="bool"/> to decript or not</param>
+        /// <param name="passphrase">A <see cref="string"/> of the passphrase</param>
+        /// <param name="decrypt">A <see cref="bool"/> to decrypt or not</param>
         /// <returns>a private <see cref="Key"/></returns>
-        public Key GetPrivateKey(string password = null, bool decrypt = false)
+        public Key GetPrivateKey(string passphrase = null, bool decrypt = false)
         {
             if (!(privateKey is null) && !decrypt) return privateKey;
 
-            return Hd.DecryptSeed(EncryptedSeed, Network, password);
+            return Hd.DecryptSeed(EncryptedSeed, Network, passphrase);
         }
 
         /// <summary>
         /// Gets the ext key and puts it into <see cref="extKey"/>
         /// </summary>
-        /// <param name="password"></param>
+        /// <param name="passphrase"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string password = null, bool decrypt = false)
+        public ExtKey GetExtendedKey(string passphrase = null, bool decrypt = false)
         {
             Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
             if (decrypt)
-                privateKey = GetPrivateKey(password, decrypt);
+                privateKey = GetPrivateKey(passphrase, decrypt);
 
             return new ExtKey(privateKey, ChainCode);
         }
@@ -548,7 +557,7 @@ namespace Liviano
             }
         }
 
-        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string password = null)
+        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = null)
         {
             Transaction tx = null;
             string error = null;
