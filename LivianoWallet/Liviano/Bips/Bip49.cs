@@ -1,5 +1,5 @@
 //
-// Bip84.cs
+// Bip49.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -31,68 +31,70 @@ using NBitcoin.DataEncoders;
 namespace Liviano.Bips
 {
     /// <summary>
-    /// Implements BIP84's utility functions to parse and convert BIP44's format prefixes (xpub and xprv) to BIP84's prefixes (zpub and zprv)
-    /// read details here: https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
+    /// Implements BIP49's utility functions to parse and convert BIP44's format prefixes (xpub and xprv) to BIP49's prefixes (ypub and yprv)
+    /// read details here: https://github.com/bitcoin/bips/blob/master/bip-0049.mediawiki
     /// </summary>
-    public static class Bip84
+    public static class Bip49
     {
-        public static ExtKey ParseZPrv(string zprv)
+        public static ExtKey ParseYPrv(string yprv)
         {
-            var network = GetNetwork(zprv);
+            var network = GetNetwork(yprv);
             var encoder = network.GetBase58CheckEncoder();
 
-            byte[] zPrvData = encoder.DecodeData(zprv);
+            byte[] yPrvData = encoder.DecodeData(yprv);
             byte[] newPrefix = Utils.ToBytes(network == Network.Main ? 0x0488ade4U : 0x04358394U, false);
 
             for (int i = 0; i < 4; i++)
-                zPrvData[i] = newPrefix[i];
+                yPrvData[i] = newPrefix[i];
 
-            return new BitcoinExtKey(encoder.EncodeData(zPrvData), network);
+            return new BitcoinExtKey(encoder.EncodeData(yPrvData), network);
         }
 
-        public static ExtPubKey ParseZPub(string zpub)
+        public static ExtPubKey ParseYPub(string ypub)
         {
-            var network = GetNetwork(zpub);
+            var network = GetNetwork(ypub);
             var encoder = network.GetBase58CheckEncoder();
 
-            byte[] zPubData = encoder.DecodeData(zpub);
+            byte[] yPubData = encoder.DecodeData(ypub);
             byte[] newPrefix = Utils.ToBytes(network == Network.Main ? 0x0488b21eU : 0x043587cfU, false);
 
             for (int i = 0; i < 4; i++)
-                zPubData[i] = newPrefix[i];
+                yPubData[i] = newPrefix[i];
 
-            return new BitcoinExtPubKey(encoder.EncodeData(zPubData), network);
+            return new BitcoinExtPubKey(encoder.EncodeData(yPubData), network);
         }
 
-        public static string ToZPrv(this ExtKey extKey, Network network)
+        public static string ToYPrv(this ExtKey extKey, Network network)
         {
             byte[] data = extKey.ToBytes();
-            byte[] version = Utils.ToBytes(network == Network.Main ? 0x04B2430CU : 0x045F18BCU, false);
+            byte[] version = Utils.ToBytes(network == Network.Main ? 0x049d7878U : 0x044a4e28U, false);
 
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
 
-        public static string ToZPub(this ExtPubKey extPubKey, Network network)
+        public static string ToYPub(this ExtPubKey extPubKey, Network network)
         {
             byte[] data = extPubKey.ToBytes();
-            byte[] version = Utils.ToBytes(network == Network.Main ? 0x04B24746U : 0x045F1CF6U, false);
+            byte[] version = Utils.ToBytes(network == Network.Main ? 0x049d7cb2U : 0x044a5262U, false);
 
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
 
-        public static string GetZPrv(ExtKey extKey, Network network)
+
+        public static string GetYPrv(ExtKey extKey, Network network)
         {
-            return extKey.ToZPrv(network);
+            return extKey.ToYPrv(network);
         }
 
-        public static string GetZPub(ExtPubKey extPubKey, Network network)
+        public static string GetYPub(ExtPubKey extPubKey, Network network)
         {
-            return extPubKey.ToZPub(network);
+            return extPubKey.ToYPub(network);
         }
 
         static Network GetNetwork(string str)
         {
-            return str.StartsWith("z") ? Network.Main : Network.TestNet;
+            return str.StartsWith("y") ? Network.Main : Network.TestNet;
         }
     }
 }
+
