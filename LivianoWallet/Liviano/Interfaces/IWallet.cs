@@ -77,6 +77,12 @@ namespace Liviano.Interfaces
         string Seed { get; set; }
 
         /// <summary>
+        /// Master Extended Private Key
+        /// </summary>
+        [JsonIgnore]
+        ExtKey MasterExtKey { get; set; }
+
+        /// <summary>
         /// Master Extended Pub Key
         /// </summary>
         [JsonProperty(PropertyName = "masterExtPubKey")]
@@ -156,9 +162,16 @@ namespace Liviano.Interfaces
         void InitPrivateKey(string passphrase = "", bool decrypt = false);
 
         /// <summary>
+        /// Authenticate the wallet with a psasphrase
+        /// </summary>
+        /// <param name="passphrase"></param>
+        /// <returns>True if it succeeded false if it doesn't</returns>
+        bool Authenticate(string passphrase = null);
+
+        /// <summary>
         /// Starts all the indexes of all types of accounts tracked
         /// </summary>
-        void InitAccountsIndex();
+        void CreateAccountIndexes();
 
         /// <summary>
         /// Syncing, used to start syncing from 0 and also to continue after booting

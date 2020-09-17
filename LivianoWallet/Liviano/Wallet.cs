@@ -52,8 +52,6 @@ namespace Liviano
 
         Key privateKey;
 
-        ExtKey extKey;
-
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
         public string Id { get; set; }
@@ -67,6 +65,8 @@ namespace Liviano
         public string Seed { get; set; }
 
         public Mnemonic Mnemonic { get; set; }
+
+        public ExtKey MasterExtKey { get; set; }
 
         public ExtPubKey MasterExtPubKey { get; set; }
 
@@ -163,18 +163,62 @@ namespace Liviano
             currentAccount ??= null;
 
             Seed = mnemonic;
+            Mnemonic = Hd.MnemonicFromString(Seed);
 
-            Mnemonic = Hd.MnemonicFromString(mnemonic);
+            CreateAccountIndexes();
+            Authenticate(passphrase);
+        }
 
-            extKey = Hd.GetExtendedKey(Mnemonic, passphrase);
+        /// <summary>
+        /// Init privete keys
+        /// </summary>
+        public bool Authenticate(string passphrase = null)
+        {
+            MasterExtKey = Hd.GetExtendedKey(Mnemonic, passphrase);
 
-            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(passphrase, Network).ToWif();
-            ChainCode = extKey.ChainCode;
+            if (MasterExtPubKey is null)
+            {
+                MasterExtPubKey = MasterExtKey.Neuter();
 
-            privateKey ??= GetPrivateKey(passphrase, decrypt: true);
+                Debug.WriteLine(
+                    "[Authenticate] Success! We're creating a wallet with new passphrase!"
+                );
+            }
+            else if (!MasterExtKey.Neuter().Equals(MasterExtPubKey))
+            {
+                Debug.WriteLine(
+                    "[Authenticate] Fail! Invalid passphrase, MasterExtKey will be reset to null!"
+                );
 
-            InitElectrumPool();
-            InitAccountsIndex();
+                MasterExtKey = null;
+
+                return false;
+            }
+
+            Debug.WriteLine("[Authenticate] Success! Passphrase is correct!");
+
+            EncryptedSeed = MasterExtKey.PrivateKey.GetEncryptedBitcoinSecret(
+                passphrase, Network
+            ).ToWif();
+            ChainCode = MasterExtKey.ChainCode;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Starts the possible accounts with indexes, these are {type_string: int_amount_of_accounts}
+        /// </summary>
+        public void CreateAccountIndexes()
+        {
+            if (!(AccountsIndex is null)) return;
+
+            AccountsIndex = new Dictionary<string, int>();
+            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
+
+            foreach (var t in types)
+            {
+                AccountsIndex.Add(t, -1);
+            }
         }
 
         /// <summary>
@@ -188,22 +232,6 @@ namespace Liviano
             // an method to be attached to, this is why HandleConnectedServers ended up being public
             if (ElectrumPool.Connected)
                 ElectrumPool.HandleConnectedServers(ElectrumPool.CurrentServer, null);
-        }
-
-        /// <summary>
-        /// Starts the possible accounts with indexes, these are {type_string: int_amount_of_accounts}
-        /// </summary>
-        public void InitAccountsIndex()
-        {
-            if (!(AccountsIndex is null)) return;
-
-            AccountsIndex = new Dictionary<string, int>();
-            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
-
-            foreach (var t in types)
-            {
-                AccountsIndex.Add(t, -1);
-            }
         }
 
         /// <summary>
