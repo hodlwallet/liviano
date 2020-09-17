@@ -130,7 +130,13 @@ namespace Liviano
         /// <param name="network">A <see cref="Network"/></param>
         /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
         /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
-        public void Init(string mnemonic, string password = null, string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null)
+        public void Init(
+                string mnemonic,
+                string password = null,
+                string name = null,
+                Network network = null,
+                DateTimeOffset? createdAt = null,
+                IStorage storage = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -314,7 +320,8 @@ namespace Liviano
             if (ElectrumPool.Connected)
                 await ElectrumPool_OnConnectedToWatch(ElectrumPool, ElectrumPool.CurrentServer, ct);
             else
-                ElectrumPool.OnConnected += async (o, server) => {
+                ElectrumPool.OnConnected += async (o, server) =>
+                {
                     await ElectrumPool_OnConnectedToWatch(
                         ElectrumPool,
                         server,
@@ -344,11 +351,11 @@ namespace Liviano
                     account.InternalAddressesIndex = 0;
                     account.ExternalAddressesIndex = 0;
 
-                    account.UsedExternalAddresses = new List<BitcoinAddress> {};
-                    account.UsedInternalAddresses = new List<BitcoinAddress> {};
+                    account.UsedExternalAddresses = new List<BitcoinAddress> { };
+                    account.UsedInternalAddresses = new List<BitcoinAddress> { };
 
-                    account.UnspentCoins = new List<Coin> {};
-                    account.SpentCoins = new List<Coin> {};
+                    account.UnspentCoins = new List<Coin> { };
+                    account.SpentCoins = new List<Coin> { };
 
                     account.TxIds = new List<string> { };
                     account.Txs = new List<Tx> { };
@@ -397,7 +404,8 @@ namespace Liviano
         {
             Console.WriteLine($"Now starts to watch wallet");
 
-            ElectrumPool.OnWatchAddressNotified += (o, args) => {
+            ElectrumPool.OnWatchAddressNotified += (o, args) =>
+            {
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 
