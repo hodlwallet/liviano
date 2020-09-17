@@ -155,14 +155,7 @@ namespace Liviano.Interfaces
         void InitElectrumPool();
 
         /// <summary>
-        /// Inits the priv key
-        /// </summary>
-        /// <param name="passphrase"></param>
-        /// <param name="decrypt"></param>
-        void InitPrivateKey(string passphrase = "", bool decrypt = false);
-
-        /// <summary>
-        /// Authenticate the wallet with a psasphrase
+        /// Authenticate the wallet with a passphrase
         /// </summary>
         /// <param name="passphrase"></param>
         /// <returns>True if it succeeded false if it doesn't</returns>
@@ -202,9 +195,8 @@ namespace Liviano.Interfaces
         /// Gets a private key this method also caches it on memory
         /// </summary>
         /// <param name="passphrase">Passphrase to decrypt seed to, default ""</param>
-        /// <param name="decrypt">Force the passphrase verification, avoid cache! Default false</param>
         /// <returns></returns>
-        Key GetPrivateKey(string passphrase = null, bool decrypt = false);
+        Key GetPrivateKey(string passphrase = null);
 
         /// <summary>
         /// Gets the electrum pool from the network
@@ -215,9 +207,8 @@ namespace Liviano.Interfaces
         /// Gets a extended private key this method also caches it on memory
         /// </summary>
         /// <param name="passphrase">A passphrase</param>
-        /// <param name="decrypt">A boolean to decrypt or not</param>
         /// <returns></returns>
-        ExtKey GetExtendedKey(string passphrase = null, bool decrypt = false);
+        ExtKey GetExtendedKey(string passphrase = null);
 
         /// <summary>
         /// Adds an account to the wallet

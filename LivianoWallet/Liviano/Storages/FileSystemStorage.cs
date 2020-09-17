@@ -120,8 +120,6 @@ namespace Liviano.Storages
                 Wallet.CurrentAccount = Wallet.Accounts[0];
             }
 
-            Wallet.InitPrivateKey();
-
             Wallet.InitElectrumPool();
 
             Wallet.Storage = this;

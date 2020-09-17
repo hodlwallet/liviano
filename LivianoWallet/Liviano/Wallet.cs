@@ -50,8 +50,6 @@ namespace Liviano
         const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
 
-        Key privateKey;
-
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
         public string Id { get; set; }
@@ -253,26 +251,12 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Inits the private key
-        /// </summary>
-        /// <remarks>If you pass no passphrase it's a way to create accounts with no pass</remarks>
-        /// <param name="passphrase">A <see cref="string"/> of the passphrase</param>
-        /// <param name="decrypt">A <see cref="bool"/> to decrypt or not</param>
-        public void InitPrivateKey(string passphrase = null, bool decrypt = false)
-        {
-            privateKey = GetPrivateKey(passphrase, decrypt);
-        }
-
-        /// <summary>
         /// Gets the private key, and puts it into <see cref="privateKey"/>
         /// </summary>
         /// <param name="passphrase">A <see cref="string"/> of the passphrase</param>
-        /// <param name="decrypt">A <see cref="bool"/> to decrypt or not</param>
         /// <returns>a private <see cref="Key"/></returns>
-        public Key GetPrivateKey(string passphrase = null, bool decrypt = false)
+        public Key GetPrivateKey(string passphrase = null)
         {
-            if (!(privateKey is null) && !decrypt) return privateKey;
-
             return Hd.DecryptSeed(EncryptedSeed, Network, passphrase);
         }
 
@@ -282,15 +266,11 @@ namespace Liviano
         /// <param name="passphrase"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string passphrase = null, bool decrypt = false)
+        public ExtKey GetExtendedKey(string passphrase = null)
         {
-            Guard.NotNull(privateKey, nameof(privateKey));
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
-            if (decrypt)
-                privateKey = GetPrivateKey(passphrase, decrypt);
-
-            return new ExtKey(privateKey, ChainCode);
+            return new ExtKey(GetPrivateKey(passphrase), ChainCode);
         }
 
         /// <summary>
