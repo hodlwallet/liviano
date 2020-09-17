@@ -111,13 +111,13 @@ namespace Liviano.Interfaces
         /// An extended priv key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPubKey")]
-        string ExtendedPubKey { get; set; }
+        string ExtPubKey { get; set; }
 
         /// <summary>
         /// An extended pub key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPrivKey")]
-        string ExtendedPrivKey { get; set; }
+        string ExtKey { get; set; }
 
         /// <summary>
         /// The account index, corresponding to e.g.: m/{0}'

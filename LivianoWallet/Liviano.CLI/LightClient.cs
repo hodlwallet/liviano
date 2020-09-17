@@ -428,7 +428,7 @@ namespace Liviano.CLI
 
             config.SaveChanges();
 
-            return wallet.Accounts.Last().ExtendedPubKey;
+            return wallet.Accounts.Last().ExtPubKey;
         }
 
         // XXX Debug, remove

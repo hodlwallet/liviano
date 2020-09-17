@@ -76,8 +76,8 @@ namespace Liviano.Accounts
                new KeyPath(HdPath)
             );
 
-            ExtendedPrivKey = _AccountExtKey.ToString(Network);
-            ExtendedPubKey = _AccountExtKey.Neuter().ToString(Network);
+            ExtKey = _AccountExtKey.ToString(Network);
+            ExtPubKey = _AccountExtKey.Neuter().ToString(Network);
         }
 
         public Key GetPrivateKey(string password = "", bool forcePasswordVerification = false)
