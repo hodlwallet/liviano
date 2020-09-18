@@ -50,6 +50,10 @@ namespace Liviano
         const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
 
+        ExtKey extKey;
+
+        ExtPubKey extPubKey;
+
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
         public string Id { get; set; }
@@ -64,9 +68,9 @@ namespace Liviano
 
         public Mnemonic Mnemonic { get; set; }
 
-        public ExtKey MasterExtKey { get; set; }
+        public string MasterExtKey { get; set; }
 
-        public ExtPubKey MasterExtPubKey { get; set; }
+        public string MasterExtPubKey { get; set; }
 
         public string EncryptedSeed { get; set; }
 
@@ -176,17 +180,20 @@ namespace Liviano
             if (passphrase is null) passphrase = "";
 
             // This private key isn't validated yet
-            MasterExtKey = Hd.GetExtendedKey(Mnemonic, passphrase);
+            extKey = Hd.GetExtendedKey(Mnemonic, passphrase);
+            extPubKey = extKey.Neuter();
+
+            MasterExtKey = extKey.GetWif(Network).ToWif();
 
             if (MasterExtPubKey is null)  // Create
             {
-                MasterExtPubKey = MasterExtKey.Neuter();
+                MasterExtPubKey = extPubKey.GetWif(Network).ToWif();
 
                 Debug.WriteLine(
                     "[Authenticate] Success! We're creating a wallet with new passphrase!"
                 );
             }
-            else if (!MasterExtKey.Neuter().Equals(MasterExtPubKey))  // Invalid passphrase, ext keys aren't the same
+            else if (!extPubKey.GetWif(Network).ToWif().Equals(MasterExtPubKey))  // Invalid passphrase, ext keys aren't the same
             {
                 Debug.WriteLine(
                     "[Authenticate] Fail! Invalid passphrase, MasterExtKey will be reset to null!"
@@ -201,10 +208,10 @@ namespace Liviano
 
             Debug.WriteLine("[Authenticate] Success! Passphrase is correct!");
 
-            EncryptedSeed = MasterExtKey.PrivateKey.GetEncryptedBitcoinSecret(
+            EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(
                 passphrase, Network
             ).ToWif();
-            ChainCode = MasterExtKey.ChainCode;
+            ChainCode = extKey.ChainCode;
 
             return true;
         }

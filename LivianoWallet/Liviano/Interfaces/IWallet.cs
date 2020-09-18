@@ -80,13 +80,13 @@ namespace Liviano.Interfaces
         /// Master Extended Private Key
         /// </summary>
         [JsonIgnore]
-        ExtKey MasterExtKey { get; set; }
+        string MasterExtKey { get; set; }
 
         /// <summary>
         /// Master Extended Pub Key
         /// </summary>
         [JsonProperty(PropertyName = "masterExtPubKey")]
-        ExtPubKey MasterExtPubKey { get; set; }
+        string MasterExtPubKey { get; set; }
 
         /// <summary>
         /// Menmonic object cause why not
