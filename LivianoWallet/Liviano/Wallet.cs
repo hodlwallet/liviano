@@ -173,6 +173,8 @@ namespace Liviano
         /// <param name="passphrase">Passphrase</param>
         public bool Authenticate(string passphrase = null)
         {
+            if (passphrase is null) passphrase = "";
+
             // This private key isn't validated yet
             MasterExtKey = Hd.GetExtendedKey(Mnemonic, passphrase);
 
@@ -257,6 +259,8 @@ namespace Liviano
         /// <returns>a private <see cref="Key"/></returns>
         public Key GetPrivateKey(string passphrase = null)
         {
+            if (passphrase is null) passphrase = "";
+
             return Hd.DecryptSeed(EncryptedSeed, Network, passphrase);
         }
 
