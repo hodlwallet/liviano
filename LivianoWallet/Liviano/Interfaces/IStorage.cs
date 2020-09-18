@@ -25,6 +25,8 @@
 // THE SOFTWARE.
 using NBitcoin;
 
+using Liviano.Exceptions;
+
 namespace Liviano.Interfaces
 {
     public interface IStorage
@@ -34,7 +36,7 @@ namespace Liviano.Interfaces
         IWallet Wallet { get; set; }
         Network Network { get; set; }
 
-        IWallet Load();
+        IWallet Load(string passphrase, out WalletException error);
         void Save();
         bool Exists();
         void Delete();

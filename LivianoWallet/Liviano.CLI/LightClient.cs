@@ -104,7 +104,7 @@ namespace Liviano.CLI
         /// Loads a wallet from a config
         /// </summary>
         /// <param name="config">a <see cref="Config"/> of the light wallet</param>
-        static void Load(Config config)
+        static void Load(Config config, string passphrase = null)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -117,7 +117,8 @@ namespace Liviano.CLI
                 throw new WalletException("Invalid wallet id");
             }
 
-            wallet = storage.Load();
+            WalletException error;
+            wallet = storage.Load(passphrase, out error);
         }
 
         public static async Task<(Transaction Transaction, string Error)> Send(
@@ -136,7 +137,8 @@ namespace Liviano.CLI
                 throw new WalletException("Invalid wallet id");
             }
 
-            wallet = storage.Load();
+            WalletException walletError;
+            wallet = storage.Load(password, out walletError); // TODO handle error on password
             Transaction tx = null;
             string error;
 
@@ -236,7 +238,7 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">Light client config</param>
         /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
-        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
+        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0, string passphrase = null)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -249,7 +251,8 @@ namespace Liviano.CLI
                 return null;
             }
 
-            wallet = storage.Load();
+            WalletException walletError;
+            wallet = storage.Load(passphrase, out walletError);
 
             IAccount account = wallet.Accounts[accountIndex];
 
@@ -267,7 +270,7 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">A <see cref="Config"/></param>
         /// <param name="addressAmount">Amount of addresses to generate</param>
-        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
+        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1, string passphrase = null)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -280,7 +283,8 @@ namespace Liviano.CLI
                 return null;
             }
 
-            wallet = storage.Load();
+            WalletException walletError;
+            wallet = storage.Load(passphrase, out walletError);
 
             IAccount account = wallet.Accounts[accountIndex];
 

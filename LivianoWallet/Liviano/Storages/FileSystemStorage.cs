@@ -78,7 +78,7 @@ namespace Liviano.Storages
             Serializer.RegisterFrontConverters(serializerSettings, Network);
         }
 
-        public IWallet Load()
+        public IWallet Load(string passphrase, out WalletException error)
         {
             Guard.NotNull(Id, nameof(Id));
             Guard.NotNull(Network, nameof(Network));
@@ -91,6 +91,13 @@ namespace Liviano.Storages
             try
             {
                 Wallet = JsonConvert.DeserializeObject<Wallet>(contents, serializerSettings);
+
+                if (!Wallet.Authenticate(passphrase))
+                {
+                    error = new WalletException($"Invalid passphrase {passphrase}");
+
+                    return null;
+                }
             }
             catch (Exception err)
             {
@@ -123,6 +130,8 @@ namespace Liviano.Storages
             Wallet.InitElectrumPool();
 
             Wallet.Storage = this;
+
+            error = null;
 
             return Wallet;
         }
