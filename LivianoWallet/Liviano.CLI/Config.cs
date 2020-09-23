@@ -115,7 +115,7 @@ namespace Liviano.CLI
 
             WalletId = walletId;
 
-            if (!HasWallet(walletId) && !string.IsNullOrWhiteSpace(WalletId)) Wallets.Add(walletId);
+            if (!HasWallet(walletId)) Wallets.Add(walletId);
         }
 
         /// <summary>

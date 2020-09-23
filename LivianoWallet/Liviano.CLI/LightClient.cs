@@ -78,11 +78,11 @@ namespace Liviano.CLI
         /// <summary>
         /// Creates a new wallet from a mnemonic <see cref="string"/> on a <see cref="Network"/>
         /// </summary>
-        public static Wallet NewWalletFromMnemonic(string mnemonic, Network network)
+        public static Wallet NewWalletFromMnemonic(string mnemonic, string passphrase, Network network)
         {
             var wallet = new Wallet();
 
-            wallet.Init(mnemonic: mnemonic, network: network);
+            wallet.Init(mnemonic: mnemonic, network: network, passphrase: passphrase);
 
             return wallet;
         }
@@ -93,18 +93,18 @@ namespace Liviano.CLI
         /// <param name="wordlist">The mnemonic separated by spaces</param>
         /// <param name="wordCount">The amount of words in the mnemonic</param>
         /// <param name="network">The <see cref="Network"/> it's from</param>
-        public static Wallet NewWallet(string wordlist, int wordCount, Network network)
+        public static Wallet NewWallet(string wordlist, int wordCount, string passphrase, Network network)
         {
             var mnemonic = Hd.NewMnemonic(wordlist, wordCount).ToString();
 
-            return NewWalletFromMnemonic(mnemonic, network);
+            return NewWalletFromMnemonic(mnemonic, passphrase, network);
         }
 
         /// <summary>
         /// Loads a wallet from a config
         /// </summary>
         /// <param name="config">a <see cref="Config"/> of the light wallet</param>
-        static void Load(Config config, string passphrase = null)
+        static void Load(Config config, string passphrase = null, bool skipAuth = false)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -118,7 +118,7 @@ namespace Liviano.CLI
             }
 
             WalletException error;
-            wallet = storage.Load(passphrase, out error);
+            wallet = storage.Load(passphrase, out error, skipAuth);
         }
 
         public static async Task<(Transaction Transaction, string Error)> Send(
@@ -192,7 +192,7 @@ namespace Liviano.CLI
         /// <param name="accountIndex">Index of the account, 0 for first</param>
         public static Money AccountBalance(Config config, string accountName = null, int accountIndex = -1)
         {
-            Load(config);
+            Load(config, skipAuth: true);
 
             IAccount account;
 
@@ -221,7 +221,7 @@ namespace Liviano.CLI
         /// <param name="config">Config of the light client<param>
         public static Dictionary<IAccount, Money> AllAccountsBalances(Config config)
         {
-            Load(config);
+            Load(config, skipAuth: true);
 
             var res = new Dictionary<IAccount, Money> ();
 
@@ -238,7 +238,7 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">Light client config</param>
         /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
-        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0, string passphrase = null)
+        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
         {
             network = Hd.GetNetwork(config.Network);
 
@@ -252,7 +252,7 @@ namespace Liviano.CLI
             }
 
             WalletException walletError;
-            wallet = storage.Load(passphrase, out walletError);
+            wallet = storage.Load(null, out walletError, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
@@ -301,9 +301,9 @@ namespace Liviano.CLI
         /// Resyncs a wallet from a config
         /// </summary>
         /// <param name="config">A <see cref="Config"/> for the client</param>
-        public static void ReSync(Config config)
+        public static void ReSync(Config config, string passphrase = null)
         {
-            Load(config);
+            Load(config, passphrase, skipAuth: true);
 
             wallet.OnSyncStarted += (s, e) =>
             {
@@ -356,7 +356,7 @@ namespace Liviano.CLI
         /// <param name="resync">A <see cref="bool"/> asking to resync or continue syncing</param>
         public static void Start(Config config, bool resync = false)
         {
-            Load(config);
+            Load(config, skipAuth: true);
 
             wallet.OnWatchStarted += (s, e) =>
             {
@@ -431,9 +431,9 @@ namespace Liviano.CLI
         /// <param name="type">Type of the account</param>
         /// <param name="name">Name of the account</param>
         /// <returns>An xpub of the account</returns>
-        public static string AddAccount(Config config, string type, string name)
+        public static string AddAccount(Config config, string type, string name, string passphrase = null)
         {
-            Load(config);
+            Load(config, passphrase);
 
             var network = wallet.Network;
             var id = wallet.Id;

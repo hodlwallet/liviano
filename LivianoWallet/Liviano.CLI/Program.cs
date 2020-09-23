@@ -323,9 +323,9 @@ namespace Liviano.CLI
             {
                 Wallet wallet;
                 if (string.IsNullOrEmpty(mnemonic))
-                    wallet = LightClient.NewWallet(wordlist, wordCount, network);
+                    wallet = LightClient.NewWallet(wordlist, wordCount, passphrase, network);
                 else
-                    wallet = LightClient.NewWalletFromMnemonic(mnemonic, network);
+                    wallet = LightClient.NewWalletFromMnemonic(mnemonic, passphrase, network);
 
                 if (!string.IsNullOrEmpty(newAccName) && !string.IsNullOrEmpty(newAccType))
                     wallet.AddAccount(newAccType, newAccName, new { Wallet = wallet, WalletId = wallet.Id, Network = network });

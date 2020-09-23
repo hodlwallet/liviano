@@ -36,7 +36,7 @@ namespace Liviano.Interfaces
         IWallet Wallet { get; set; }
         Network Network { get; set; }
 
-        IWallet Load(string passphrase, out WalletException error);
+        IWallet Load(string passphrase, out WalletException error, bool skipAuth = false);
         void Save();
         bool Exists();
         void Delete();

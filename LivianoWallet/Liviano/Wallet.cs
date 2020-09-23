@@ -578,7 +578,7 @@ namespace Liviano
                 case "paper":
                     return PaperAccount.Create(name, options);
                 default:
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip141", Index = index });
+                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip84", Index = index });
             }
         }
 
