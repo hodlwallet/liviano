@@ -56,7 +56,7 @@ namespace Liviano.Extensions
                 index = account.GetInternalIndex(addr);
 
             var keyPath = new KeyPath($"{change}/{index}");
-            var extKey = ExtKey.Parse(account.ExtKey, account.Network).Derive(keyPath);
+            var extKey = account.ExtKey.Derive(keyPath);
 
             return extKey.PrivateKey;
         }

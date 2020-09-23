@@ -35,9 +35,6 @@ using Liviano.Models;
 using Liviano.Extensions;
 using Liviano.Exceptions;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
 namespace Liviano.Electrum
 {
     public class JsonRpcClient

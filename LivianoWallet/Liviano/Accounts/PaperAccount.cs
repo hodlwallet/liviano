@@ -101,8 +101,8 @@ namespace Liviano.Accounts
         public IWallet Wallet { get; set; }
 
         public string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public string ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public string ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public int InternalAddressesIndex { get; set; }

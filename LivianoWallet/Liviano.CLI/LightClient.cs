@@ -432,7 +432,7 @@ namespace Liviano.CLI
 
             config.SaveChanges();
 
-            return wallet.Accounts.Last().ExtPubKey;
+            return wallet.Accounts.Last().ExtPubKey.ToString();
         }
 
         // XXX Debug, remove

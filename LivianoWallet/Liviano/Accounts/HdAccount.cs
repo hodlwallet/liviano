@@ -143,13 +143,13 @@ namespace Liviano.Accounts
         /// An extended priv key used to generate addresses.
         /// </summary>
         [JsonProperty(PropertyName = "extPubKey")]
-        public string ExtPubKey { get; set; }
+        public BitcoinExtPubKey ExtPubKey { get; set; }
 
         /// <summary>
         /// An extended private key used to generate addresses.
         /// </summary>
         [JsonIgnore]
-        public string ExtKey { get; set; }
+        public BitcoinExtKey ExtKey { get; set; }
 
         /// <summary>
         /// The account index, corresponding to e.g.: m/{0}'

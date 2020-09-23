@@ -50,10 +50,6 @@ namespace Liviano
         const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
 
-        ExtKey extKey;
-
-        ExtPubKey extPubKey;
-
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
         public string Id { get; set; }
@@ -68,9 +64,9 @@ namespace Liviano
 
         public Mnemonic Mnemonic { get; set; }
 
-        public string MasterExtKey { get; set; }
+        public BitcoinExtKey MasterExtKey { get; set; }
 
-        public string MasterExtPubKey { get; set; }
+        public BitcoinExtPubKey MasterExtPubKey { get; set; }
 
         public string EncryptedSeed { get; set; }
 
@@ -180,20 +176,20 @@ namespace Liviano
             if (passphrase is null) passphrase = "";
 
             // This private key isn't validated yet
-            extKey = Hd.GetExtendedKey(Mnemonic, passphrase);
-            extPubKey = extKey.Neuter();
+            var extKey = Hd.GetWif(Hd.GetExtendedKey(Mnemonic, passphrase), Network);
+            var extPubKey = extKey.Neuter();
 
-            MasterExtKey = extKey.GetWif(Network).ToWif();
+            MasterExtKey = extKey;
 
             if (MasterExtPubKey is null)  // Create
             {
-                MasterExtPubKey = extPubKey.GetWif(Network).ToWif();
+                MasterExtPubKey = extPubKey;
 
                 Debug.WriteLine(
                     "[Authenticate] Success! We're creating a wallet with new passphrase!"
                 );
             }
-            else if (!extPubKey.GetWif(Network).ToWif().Equals(MasterExtPubKey))  // Invalid passphrase, ext keys aren't the same
+            else if (!extPubKey.Equals(MasterExtPubKey))
             {
                 Debug.WriteLine(
                     "[Authenticate] Fail! Invalid passphrase, MasterExtKey will be reset to null!"
@@ -211,7 +207,7 @@ namespace Liviano
             EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret(
                 passphrase, Network
             ).ToWif();
-            ChainCode = extKey.ChainCode;
+            ChainCode = extKey.ExtKey.ChainCode;
 
             return true;
         }
@@ -224,7 +220,7 @@ namespace Liviano
             if (!(AccountsIndex is null)) return;
 
             AccountsIndex = new Dictionary<string, int>();
-            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "wasabi", "paper" };
+            var types = new string[] { "bip44", "bip49", "bip84", "bip141", "paper" };
 
             foreach (var t in types)
             {
@@ -277,11 +273,11 @@ namespace Liviano
         /// <param name="passphrase"></param>
         /// <param name="decrypt"></param>
         /// <returns></returns>
-        public ExtKey GetExtendedKey(string passphrase = null)
+        public BitcoinExtKey GetExtendedKey(string passphrase = null)
         {
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
-            if (extKey != null) return extKey;
+            if (MasterExtKey != null) return MasterExtKey;
 
             var pk = new ExtKey(GetPrivateKey(passphrase), ChainCode);
             var pubkeyWif = pk.Neuter().GetWif(Network).ToString();
@@ -289,7 +285,7 @@ namespace Liviano
             if (!string.Equals(pubkeyWif, MasterExtPubKey))
                 throw new WalletException("Not the right password chief.");
 
-            return pk;
+            return new BitcoinExtKey(pk, Network);
         }
 
         /// <summary>
@@ -579,8 +575,6 @@ namespace Liviano
                 case "bip84":
                 case "bip141":
                     return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
-                case "wasabi":
-                    return WasabiAccount.Create(name, options);
                 case "paper":
                     return PaperAccount.Create(name, options);
                 default:

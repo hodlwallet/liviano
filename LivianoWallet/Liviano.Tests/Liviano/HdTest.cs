@@ -257,13 +257,13 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs",
-                ExtPubKey.Parse(account.ExtPubKey, network).ToZPub(network)
+                account.ExtPubKey.ExtPubKey.ToZPub(network)
             );
 
             Assert.Equal
             (
                 "zprvAdG4iTXWBoARxkkzNpNh8r6Qag3irQB8PzEMkAFeTRXxHpbF9z4QgEvBRmfvqWvGp42t42nvgGpNgYSJA9iefm1yYNZKEm7z6qUWCroSQnE",
-                ExtKey.Parse(account.ExtKey, network).ToZPrv(network)
+                account.ExtKey.ExtKey.ToZPrv(network)
             );
         }
 
@@ -391,13 +391,13 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "zpub6s6e8jg36PqLxbsZuWBudDTimzJDPH8hbRsxz8YH5YtxwivCQcH33z8TFhMSy2UHZLeCQkm6nwr5SN7T3E3NtRQu54WZYvQ6i89eWB3BL5Y",
-                ExtPubKey.Parse(account.ExtPubKey, network).ToZPub(network)
+                account.ExtPubKey.ExtPubKey.ToZPub(network)
             );
 
             Assert.Equal
             (
                 "zprvAe7HjE99G2H3k7o6oUeuG5WzDxTiypQrECxNBk8fXDMz4vb3s4xnWBoyQPpgDAsPFPjtVZGU4PppBzBTw3AiyoYsy23MKeqvLTP2SPypLA9",
-                ExtKey.Parse(account.ExtKey, network).ToZPrv(network)
+                account.ExtKey.ExtKey.ToZPrv(network)
             );
         }
     }

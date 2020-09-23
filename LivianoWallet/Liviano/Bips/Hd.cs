@@ -64,9 +64,9 @@ namespace Liviano.Bips
 
             int change = isChange ? 1 : 0;
             var keyPath = new KeyPath($"{change}/{index}");
-            ExtPubKey extPubKey = new BitcoinExtPubKey(accountExtPubKey, network).Derive(keyPath);
+            var extPubKey = new BitcoinExtPubKey(accountExtPubKey, network).Derive(keyPath);
 
-            return extPubKey.PubKey;
+            return extPubKey.ExtPubKey.PubKey;
         }
 
         public static BitcoinAddress GetAddress(string extPubKeyWif, int index, bool isChange, string network, string addressType = null)

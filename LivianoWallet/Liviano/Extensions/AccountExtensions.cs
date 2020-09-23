@@ -50,8 +50,6 @@ namespace Liviano.Extensions
                     return (Bip84Account)account;
                 case "bip141":
                     return (Bip141Account)account;
-                case "wasabi":
-                    return (WasabiAccount)account;
                 case "paper":
                     return (PaperAccount)account;
                 default:

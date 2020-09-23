@@ -80,13 +80,13 @@ namespace Liviano.Interfaces
         /// Master Extended Private Key
         /// </summary>
         [JsonIgnore]
-        string MasterExtKey { get; set; }
+        BitcoinExtKey MasterExtKey { get; set; }
 
         /// <summary>
         /// Master Extended Pub Key
         /// </summary>
         [JsonProperty(PropertyName = "masterExtPubKey")]
-        string MasterExtPubKey { get; set; }
+        BitcoinExtPubKey MasterExtPubKey { get; set; }
 
         /// <summary>
         /// Menmonic object cause why not
@@ -208,7 +208,7 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="passphrase">A passphrase</param>
         /// <returns></returns>
-        ExtKey GetExtendedKey(string passphrase = null);
+        BitcoinExtKey GetExtendedKey(string passphrase = null);
 
         /// <summary>
         /// Adds an account to the wallet
