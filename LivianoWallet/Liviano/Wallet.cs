@@ -281,7 +281,15 @@ namespace Liviano
         {
             Guard.NotNull(ChainCode, nameof(ChainCode));
 
-            return new ExtKey(GetPrivateKey(passphrase), ChainCode);
+            if (extKey != null) return extKey;
+
+            var pk = new ExtKey(GetPrivateKey(passphrase), ChainCode);
+            var pubkeyWif = pk.Neuter().GetWif(Network).ToString();
+
+            if (!string.Equals(pubkeyWif, MasterExtPubKey))
+                throw new WalletException("Not the right password chief.");
+
+            return pk;
         }
 
         /// <summary>
