@@ -326,10 +326,19 @@ namespace Liviano.CLI
                 else
                     logger.Information("Transactions:");
 
-                foreach (var tx in txs)
-                    logger.Information(
-                        $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
-                    );
+                if (txs.Count() != 0)
+                {
+                    Money total = 0L;
+                    foreach (var tx in txs)
+                    {
+                        logger.Information(
+                            $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
+                        );
+                        total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
+                    }
+
+                    logger.Information($"Total: {total}");
+                }
 
                 Quit();
             };
@@ -395,8 +404,14 @@ namespace Liviano.CLI
                 {
                     logger.Information("Transactions:");
 
+                    Money total = 0L;
                     foreach (var tx in txs)
+                    {
                         logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}");
+                        total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
+                    }
+
+                    logger.Information($"Total: {total}");
                 }
 
                 wallet.Watch();
