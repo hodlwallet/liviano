@@ -1,5 +1,5 @@
 ﻿//
-// IStorage.cs
+// IWalletStorage.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -29,7 +29,7 @@ using Liviano.Exceptions;
 
 namespace Liviano.Interfaces
 {
-    public interface IStorage
+    public interface IWalletStorage
     {
         string Id { get; set; }
         string RootDirectory { get; set; }

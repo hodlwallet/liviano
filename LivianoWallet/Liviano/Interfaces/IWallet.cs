@@ -138,7 +138,7 @@ namespace Liviano.Interfaces
         Dictionary<string, int> AccountsIndex { get; set; }
 
         [JsonIgnore]
-        IStorage Storage { get; set; }
+        IWalletStorage Storage { get; set; }
 
         [JsonProperty(PropertyName = "server", DefaultValueHandling = DefaultValueHandling.Ignore)]
         string Server { get; set; }
@@ -150,7 +150,7 @@ namespace Liviano.Interfaces
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string passphrase = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IStorage storage = null);
+        void Init(string mnemonic, string passphrase = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IWalletStorage storage = null);
 
         void InitElectrumPool();
 

@@ -107,8 +107,8 @@ namespace Liviano
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
-        IStorage storage;
-        public IStorage Storage
+        IWalletStorage storage;
+        public IWalletStorage Storage
         {
             get => storage;
             set
@@ -133,14 +133,14 @@ namespace Liviano
         /// <param name="name">A <see cref="string"/> with name</param>
         /// <param name="network">A <see cref="Network"/></param>
         /// <param name="createdAt">A <see cref="DateTimeOffset"/> of the time it was created</param>
-        /// <param name="storage">A <see cref="IStorage"/> that will store the wallet</param>
+        /// <param name="storage">A <see cref="IWalletStorage"/> that will store the wallet</param>
         public void Init(
                 string mnemonic,
                 string passphrase = null,
                 string name = null,
                 Network network = null,
                 DateTimeOffset? createdAt = null,
-                IStorage storage = null)
+                IWalletStorage storage = null)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -152,7 +152,7 @@ namespace Liviano
 
             CreatedAt ??= createdAt ?? DateTimeOffset.UtcNow;
 
-            Storage ??= storage ?? new FileSystemStorage(Id, Network);
+            Storage ??= storage ?? new FileSystemWalletStorage(Id, Network);
 
             AccountIds ??= new List<string>();
             Accounts ??= new List<IAccount>();

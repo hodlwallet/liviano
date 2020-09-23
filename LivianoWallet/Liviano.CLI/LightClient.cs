@@ -108,7 +108,7 @@ namespace Liviano.CLI
         {
             network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, network);
+            var storage = new FileSystemWalletStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
@@ -128,7 +128,7 @@ namespace Liviano.CLI
         {
             network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, network);
+            var storage = new FileSystemWalletStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
@@ -242,7 +242,7 @@ namespace Liviano.CLI
         {
             network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, network);
+            var storage = new FileSystemWalletStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {
@@ -274,7 +274,7 @@ namespace Liviano.CLI
         {
             network = Hd.GetNetwork(config.Network);
 
-            var storage = new FileSystemStorage(config.WalletId, network);
+            var storage = new FileSystemWalletStorage(config.WalletId, network);
 
             if (!storage.Exists())
             {

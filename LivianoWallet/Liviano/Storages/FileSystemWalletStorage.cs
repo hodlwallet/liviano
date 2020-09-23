@@ -1,5 +1,5 @@
 ﻿//
-// FileSystemStorage.cs
+// FileSystemWalletStorage.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -42,7 +42,7 @@ using Liviano.Exceptions;
 
 namespace Liviano.Storages
 {
-    public class FileSystemStorage : IStorage
+    public class FileSystemWalletStorage : IWalletStorage
     {
         public string Id { get; set; }
         public Network Network { get; set; }
@@ -51,7 +51,7 @@ namespace Liviano.Storages
         object @lock = new object();
         JsonSerializerSettings serializerSettings;
 
-        public FileSystemStorage(string id = null, Network network = null, string directory = "wallets")
+        public FileSystemWalletStorage(string id = null, Network network = null, string directory = "wallets")
         {
             directory = Path.GetFullPath(directory);
             if (!Directory.Exists(directory))
