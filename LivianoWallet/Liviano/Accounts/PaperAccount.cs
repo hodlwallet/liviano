@@ -43,12 +43,12 @@ namespace Liviano.Accounts
     {
         public string AccountType => "paper";
 
-        int _GapLimit;
+        int gapLimit;
         public int GapLimit
         {
             get
             {
-                return _GapLimit;
+                return gapLimit;
             }
 
             set
@@ -56,7 +56,7 @@ namespace Liviano.Accounts
                 // Paper accounts have no Gap limit!
                 Guard.Assert(value == 0);
 
-                _GapLimit = value;
+                gapLimit = value;
             }
         }
 

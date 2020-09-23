@@ -41,7 +41,7 @@ namespace Liviano.Accounts
     {
         public abstract string HdPathFormat { get; }
 
-        protected Bip32Account(int index = 0)
+        protected Bip32Account(Network network, int index = 0)
         {
             Id = Guid.NewGuid().ToString();
 
@@ -57,8 +57,10 @@ namespace Liviano.Accounts
             UnspentCoins ??= new List<Coin>();
             SpentCoins ??= new List<Coin>();
 
+            Network = network;
+
             Index = index;
-            HdPath = string.Format(HdPathFormat, Index);
+            HdPath = GetHdPath();
         }
 
         public override BitcoinAddress GetReceiveAddress()
@@ -224,10 +226,10 @@ namespace Liviano.Accounts
 
             Bip32Account account = type switch
             {
-                "bip44" => new Bip44Account(index),
-                "bip49" => new Bip49Account(index),
-                "bip84" => new Bip84Account(index),
-                "bip141" => new Bip141Account(index),
+                "bip44" => new Bip44Account(network, index),
+                "bip49" => new Bip49Account(network, index),
+                "bip84" => new Bip84Account(network, index),
+                "bip141" => new Bip141Account(network, index),
                 _ => null,
             };
 
@@ -267,6 +269,13 @@ namespace Liviano.Accounts
             }
 
             return received - sent;
+        }
+
+        string GetHdPath()
+        {
+            if (HdPathFormat.Split('/').Length <= 2) return string.Format(HdPathFormat, Index);
+
+            return string.Format(HdPathFormat, Network.Equals(Network.Main) ? 0 : 1, Index);
         }
     }
 }
