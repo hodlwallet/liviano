@@ -72,12 +72,22 @@ namespace Liviano.Bips
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
         }
 
+        public static string ToZPrv(this BitcoinExtKey bExtKey)
+        {
+            return bExtKey.ExtKey.ToZPrv(bExtKey.Network);
+        }
+
         public static string ToZPub(this ExtPubKey extPubKey, Network network)
         {
             byte[] data = extPubKey.ToBytes();
             byte[] version = Utils.ToBytes(network == Network.Main ? 0x04B24746U : 0x045F1CF6U, false);
 
             return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+        }
+
+        public static string ToZPub(this BitcoinExtPubKey bExtPubKey)
+        {
+            return bExtPubKey.ExtPubKey.ToZPub(bExtPubKey.Network);
         }
 
         public static string GetZPrv(ExtKey extKey, Network network)
