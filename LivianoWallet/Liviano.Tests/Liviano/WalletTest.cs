@@ -26,6 +26,7 @@
 using Xunit;
 
 using NBitcoin;
+using NBitcoin.JsonConverters;
 
 using Newtonsoft.Json;
 
@@ -49,8 +50,11 @@ namespace Liviano.Tests.Liviano
             Assert.Equal("Testy Wallet", w.Name);
             Assert.NotNull(w.Id);
 
-            Assert.Contains($"\"id\":\"{w.Id}\"", JsonConvert.SerializeObject(w));
-            Assert.Contains($"\"accountTypes\":[{GetExpectedAccountTypesStr(w)}]", JsonConvert.SerializeObject(w));
+            var settings = new JsonSerializerSettings();
+            Serializer.RegisterFrontConverters(settings, Network.Main);
+
+            var json = JsonConvert.SerializeObject(w, settings: settings);
+            Assert.Contains($"\"id\":\"{w.Id}\"", json);
         }
 
         [Fact]
