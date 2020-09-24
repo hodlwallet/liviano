@@ -75,6 +75,48 @@ namespace Liviano.Tests.Liviano
         }
 
         [Fact]
+        public void TestAddBip84Account()
+        {
+            var w = new Wallet();
+
+            w.Init(MNEMONIC);
+
+            w.AddAccount("bip84", "New Segwit Account");
+
+            Assert.NotEmpty(w.Accounts);
+
+            var a = w.Accounts[0];
+
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
+
+            var addr = a.GetReceiveAddress();
+
+            Assert.Equal("bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu", addr.ToString());
+        }
+
+        [Fact]
+        public void TestAddBip84AccountTestnet()
+        {
+            var w = new Wallet();
+
+            w.Init(MNEMONIC, network: Network.TestNet);
+
+            w.AddAccount("bip84", "New Segwit Account");
+
+            Assert.NotEmpty(w.Accounts);
+
+            var a = w.Accounts[0];
+
+            Assert.NotNull(a);
+            Assert.NotEmpty(a.Id);
+
+            var addr = a.GetReceiveAddress();
+
+            Assert.Equal("tb1q6rz28mcfaxtmd6v789l9rrlrusdprr9pqcpvkl", addr.ToString());
+        }
+
+        [Fact]
         public void TestAddPaperAccount()
         {
             var w = new Wallet();

@@ -145,16 +145,10 @@ namespace Liviano.Tests.Liviano
             ExtKey extKey = Hd.GetExtendedKey(mnemonic);
 
             // Creates a new wallet
-            Wallet wallet = new Wallet
-            {
-                Name = "bip84wallet",
-                EncryptedSeed = extKey.PrivateKey.GetEncryptedBitcoinSecret("", network).ToWif(),
-                ChainCode = extKey.ChainCode,
-                CreatedAt = DateTimeOffset.Now,
-                Network = network,
-            };
+            Wallet wallet = new Wallet();
+            wallet.Init(mnemonic);
 
-            wallet.AddAccount("bip84");
+            wallet.AddAccount("bip84", options: new object {});
             var account = wallet.Accounts[0];
 
             BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20);
@@ -195,7 +189,7 @@ namespace Liviano.Tests.Liviano
             Assert.Equal
             (
                 "0330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c",
-                new HexEncoder().EncodeData(newReceivingAddresses[0].ScriptPubKey.ToCompressedBytes())
+                new HexEncoder().EncodeData(newReceivingAddresses[0].ScriptPubKey.WitHash.ScriptPubKey.ToCompressedBytes())
             );
 
             // Address 1 from account 0 test
