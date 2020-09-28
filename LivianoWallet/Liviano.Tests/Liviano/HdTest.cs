@@ -298,7 +298,24 @@ namespace Liviano.Tests.Liviano
             wallet.AddAccount("bip84");
             var account = wallet.Accounts[0];
 
+            var publicKeys = new List<string> {};
+            var extPubKey = account.ExtPubKey;
+
             BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20);
+
+            Assert.Equal
+            (
+                "zpub6s6e8jg36PqLxbsZuWBudDTimzJDPH8hbRsxz8YH5YtxwivCQcH33z8TFhMSy2UHZLeCQkm6nwr5SN7T3E3NtRQu54WZYvQ6i89eWB3BL5Y",
+                extPubKey.ToZPub()
+            );
+
+            // Get all public keys
+            for (int i = 0; i < 20; i++)
+            {
+                var pubKey = Hd.GeneratePublicKey(account.Network, extPubKey.ToString(), i, false);
+
+                publicKeys.Add(new HexEncoder().EncodeData(pubKey.ToBytes()));
+            }
 
             // Verify data with https://iancoleman.io/bip39/ if needed
             Assert.Equal
@@ -333,11 +350,11 @@ namespace Liviano.Tests.Liviano
             );
 
 
-            //Assert.Equal
-            //(
-                //"03d21ca564c77d4d750e29ac6c4b5d951790e1b49cbbdaed862a2525e480cb956f",
-                //new HexEncoder().EncodeData(newReceivingAddresses[0].ScriptPubKey.ToCompressedBytes())
-            //);
+            Assert.Equal
+            (
+                "03d21ca564c77d4d750e29ac6c4b5d951790e1b49cbbdaed862a2525e480cb956f",
+                publicKeys[0]
+            );
 
             // Address 1 from account 0 test
             Assert.Equal
@@ -347,11 +364,11 @@ namespace Liviano.Tests.Liviano
             );
 
 
-            //Assert.Equal
-            //(
-                //"03c31175ae2639e2158122f4793625696310b0c5ee5e9b7710b13b8a8f70c7793c",
-                //new HexEncoder().EncodeData(newReceivingAddresses[1].ScriptPubKey.ToCompressedBytes())
-            //);
+            Assert.Equal
+            (
+                "03c31175ae2639e2158122f4793625696310b0c5ee5e9b7710b13b8a8f70c7793c",
+                publicKeys[1]
+            );
 
             // Address 2 from account 0 test
             Assert.Equal
@@ -361,11 +378,11 @@ namespace Liviano.Tests.Liviano
             );
 
 
-            //Assert.Equal
-            //(
-                //"02111472e6f5fdf351023328f2257549a4a69ec4f69b09d5a26580b90cb98fa904",
-                //new HexEncoder().EncodeData(newReceivingAddresses[2].ScriptPubKey.ToCompressedBytes())
-            //);
+            Assert.Equal
+            (
+                "02111472e6f5fdf351023328f2257549a4a69ec4f69b09d5a26580b90cb98fa904",
+                publicKeys[2]
+            );
 
             // Address 18 from account 0 test
             Assert.Equal
@@ -375,11 +392,11 @@ namespace Liviano.Tests.Liviano
             );
 
 
-            //Assert.Equal
-            //(
-                //"0265614bd32781395605a0ce27cb364454c8f196dfa9c2d625446d4f492a892a8b",
-                //new HexEncoder().EncodeData(newReceivingAddresses[18].ScriptPubKey.ToCompressedBytes())
-            //);
+            Assert.Equal
+            (
+                "0280b51871150e6bc26d33fde82529f6f8eeee0e982e7b2852ded86ecb62dc4f73",
+                publicKeys[3]
+            );
 
             // Address 19 from account 0 test
             Assert.Equal
@@ -389,11 +406,11 @@ namespace Liviano.Tests.Liviano
             );
 
 
-            //Assert.Equal
-            //(
-                //"026e774007e56296024e99126b74e5bedbc9a963cfff12a104fd77f90658653e42",
-                //new HexEncoder().EncodeData(newReceivingAddresses[19].ScriptPubKey.ToCompressedBytes())
-            //);
+            Assert.Equal
+            (
+                "0373a2019496b63d56ce4c975dac016df65694b706ed477b810329a9e16d22167c",
+                publicKeys[4]
+            );
 
             Assert.Equal
             (
