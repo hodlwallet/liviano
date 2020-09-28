@@ -117,8 +117,7 @@ namespace Liviano.CLI
                 throw new WalletException("Invalid wallet id");
             }
 
-            WalletException error;
-            wallet = storage.Load(passphrase, out error, skipAuth);
+            wallet = storage.Load(passphrase, out WalletException error, skipAuth);
         }
 
         public static async Task<(Transaction Transaction, string Error)> Send(
