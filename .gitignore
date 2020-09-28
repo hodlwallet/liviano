@@ -334,14 +334,14 @@ ASALocalRun/
 .vscode/
 
 # Test coverage file
-LivianoWallet/Liviano.Tests/coverage.json
+Liviano.Tests/coverage.json
 
 # Binary I copy
 liviano-cli
 
 # Data directory where the wallet is stored on my tests
 data
-LivianoWallet/Liviano.CLI/data/
+Liviano.CLI/data/
 
 addrman.dat
 chain.dat
