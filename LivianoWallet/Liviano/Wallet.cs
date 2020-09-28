@@ -62,7 +62,9 @@ namespace Liviano
 
         public string Seed { get; set; }
 
-        public Mnemonic Mnemonic { get; set; }
+#nullable enable
+        public Mnemonic? Mnemonic { get; set; }
+#nullable disable
 
         public BitcoinExtKey MasterExtKey { get; set; }
 

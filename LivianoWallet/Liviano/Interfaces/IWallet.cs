@@ -92,7 +92,9 @@ namespace Liviano.Interfaces
         /// Menmonic object cause why not
         /// </summary>
         [JsonIgnore]
-        Mnemonic Mnemonic { get; set; }
+#nullable enable
+        Mnemonic? Mnemonic { get; set; }
+#nullable disable
 
         /// <summary>
         /// Encrypted seed usually from a mnemonic
