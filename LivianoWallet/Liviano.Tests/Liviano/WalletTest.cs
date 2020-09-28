@@ -113,7 +113,7 @@ namespace Liviano.Tests.Liviano
 
             var addr = a.GetReceiveAddress();
 
-            //Assert.Equal("tb1q6rz28mcfaxtmd6v789l9rrlrusdprr9pqcpvkl", addr.ToString());
+            Assert.Equal("tb1q6rz28mcfaxtmd6v789l9rrlrusdprr9pqcpvkl", addr.ToString());
         }
 
         [Fact]

@@ -241,6 +241,7 @@ namespace Liviano.Accounts
             account.WalletId = wallet.Id;
             account.Network = network;
             account.Index = index;
+            account.HdPath = account.GetHdPath();
 
             var extPrivKey = wallet.GetExtendedKey().Derive(new KeyPath(account.HdPath));
             var extPubKey = extPrivKey.Neuter();
@@ -273,7 +274,7 @@ namespace Liviano.Accounts
 
         string GetHdPath()
         {
-            if (HdPathFormat.Split('/').Length <= 2) return string.Format(HdPathFormat, Index);
+            if (HdPathFormat.Split('/').Length < 2) return string.Format(HdPathFormat, Index);
 
             return string.Format(HdPathFormat, Network.Equals(Network.Main) ? 0 : 1, Index);
         }

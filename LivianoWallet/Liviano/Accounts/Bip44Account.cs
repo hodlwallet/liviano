@@ -30,7 +30,7 @@ namespace Liviano.Accounts
     public class Bip44Account : Bip32Account
     {
         public override string AccountType => "bip44";
-        public override string HdPathFormat => "m/44'/{0}'/{0}'";
+        public override string HdPathFormat => "m/44'/{0}'/{1}'";
 
         ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Legacy;
         public override ScriptPubKeyType ScriptPubKeyType
