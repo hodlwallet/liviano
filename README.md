@@ -1,10 +1,10 @@
-# LivianoWallet
+# Liviano
 
-Liviano is a proof of concept light wallet framework for Bitcoin written in C# with NBitcoin. It includes a CLI and a Daemon. Liviano is ideal for running your own node to spin off your own mobile wallet!
+Liviano is a proof of concept light wallet framework for Bitcoin written in C# with NBitcoin. It includes a CLI and a Daemon. Liviano is ideal for running your own light client node to spin off your own wallet!
 
 ## Requirements
 
-- `.NET Core 2.1`: https://docs.microsoft.com/en-us/dotnet/core/
+- `.NET Core`: https://docs.microsoft.com/en-us/dotnet/core/
 
 ## Supported Platforms
 
@@ -12,25 +12,9 @@ We use Xamarin and NBitcoin and support .NET Standard 2.0 which makes this libra
 
 - Windows (.NET Framework)
 - Mac (Xamarin, Mono Mac)
-- Linux (.NET Core 2.0 or 2.1)
+- Linux (.NET Core)
 - iOS (Xamarin)
 - Android (Xamarin)
-
-## Pre-Install
-
-We need NBitcoin we use the latest on their `master` branch.
-
-For this you'd download NBitcoin on the root directory of this project.
-
-```
-git clone --depth=1 git@github.com:MetacoSA/NBitcoin.git
-```
-
-And run the following script to be able to build on Visual Studio for Mac:
-
-```
-./patch_nbitcoin_project.sh
-```
 
 ## Build Instructions
 
@@ -49,9 +33,9 @@ make test
 | Command | Description |
 | --- | --- |
 | `run` | run `Liviano.CLI` project, use `args="--version" make run` to run with argument `--version`  |
-| `build` | builds `LivianoWallet` solution |
+| `build` | builds `Liviano` solution |
 | `test` | runs the test project `Liviano.Tests` |
-| `publish[_debug,_release]` | build to publish `LivianoWallet` solution |
+| `publish[_debug,_release]` | build to publish `Liviano` solution |
 | `submodule[_init,_update]` | handles `NBitcoin` submodule |
 | `clean` | removes executables from `bin` |
 | `[ubuntu,osx]_debug_build` | creates a debug build for an specific OS installed in ./liviano-cli |
