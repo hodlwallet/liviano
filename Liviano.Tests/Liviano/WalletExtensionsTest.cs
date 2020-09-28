@@ -120,7 +120,7 @@ namespace Liviano.Tests.Liviano
         {
             string baseDirectory = Path.GetFullPath(
                 Path.Combine(
-                    System.IO.Directory.GetCurrentDirectory(), "../../../../../tmp"
+                    System.IO.Directory.GetCurrentDirectory(), "../../../../tmp"
                 )
             );
             string fileName = $"{baseDirectory}/{blockHeight}.{network.Name.ToLower()}.json";
