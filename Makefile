@@ -43,7 +43,15 @@ test.watch.helper:
 	(echo "\033[0;31mFailure!!! Please check your tests or linters\033[0m"; exit 1)
 
 test.watch:
-	ack --csharp -f | entr -s "make -s test.watch.helper"
+	@if [ "${test}${t}" = "" ]; then\
+		ack --csharp -f | entr -s "make -s test.watch.helper";\
+	fi
+	@if [ "${test}" != "" ]; then\
+		ack --csharp -f | entr -s "test=${test} make -s test";\
+	fi
+	@if [ "${t}" != "" ]; then\
+		ack --csharp -f | entr -s "test=${t} make -s test";\
+	fi
 
 publish.debug:
 	dotnet publish LivianoWallet --framework netcoreapp3.1 --configuration Debug
