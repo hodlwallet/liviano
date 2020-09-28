@@ -1,0 +1,78 @@
+---
+uti: com.xamarin.workbook
+id: ddda96e3-b82f-4b8d-902d-85974404d5b1
+title: CheckpointsGenerator
+platforms:
+- DotNetCore
+packages:
+- id: NBitcoin
+  version: 4.1.1.73
+- id: QBitNinja.Client
+  version: 1.0.3.47
+---
+
+```csharp
+#r "NBitcoin"
+```
+
+```csharp
+#r "QBitNinja.Client"
+```
+
+```csharp
+using System;
+```
+
+```csharp
+using NBitcoin;
+```
+
+```csharp
+using QBitNinja;
+```
+
+```csharp
+using QBitNinja.Client;
+```
+
+```csharp
+int increments = 100800;
+```
+
+```csharp
+int i = increments;
+```
+
+```csharp
+Network network = Network.TestNet;
+```
+
+```csharp
+var client = new QBitNinjaClient(network);
+```
+
+```csharp
+network = Network.Main;
+client = new QBitNinjaClient(network);
+increments = 20160;
+i = increments;
+
+while (true)
+{
+    try
+    {
+        var h = client.GetBlock(new QBitNinja.Client.Models.BlockFeature(i)).Result.Block.Header;
+        var hex = new NBitcoin.DataEncoders.HexEncoder().EncodeData(h.ToBytes());
+
+        Console.WriteLine("checkpoints.Add(");
+        Console.WriteLine($"new ChainedBlock(new BlockHeader(\"{hex}\", network), {i})");
+        Console.WriteLine(");");
+
+        i += increments;
+    }
+    catch (NullReferenceException e)
+    {
+        break;
+    }
+}
+```

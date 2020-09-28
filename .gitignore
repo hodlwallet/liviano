@@ -134,6 +134,7 @@ _TeamCity*
 
 # Visual Studio code coverage results
 *.coverage
+*coverage*.json
 *.coveragexml
 
 # NCrunch
@@ -328,3 +329,30 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Visual studio code
+.vscode/
+
+# Test coverage file
+LivianoWallet/Liviano.Tests/coverage.json
+
+# Binary I copy
+liviano-cli
+
+# Data directory where the wallet is stored on my tests
+data
+LivianoWallet/Liviano.CLI/data/
+
+addrman.dat
+chain.dat
+liviano.json
+liviano.json.old
+
+NBitcoin
+
+.DS_Store
+
+tmp
+wallets
+wallets.old
+blockchain
