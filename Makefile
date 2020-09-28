@@ -1,3 +1,5 @@
+.PHONY: build build.ubuntu run run.ubuntu run.ubuntu.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
+
 build:
 	dotnet build --framework netcoreapp3.1
 
