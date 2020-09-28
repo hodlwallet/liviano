@@ -35,6 +35,16 @@ test:
 test.with.coverage:
 	dotnet test LivianoWallet/Liviano.Tests --framework netcoreapp3.1 /p:CollectCoverage=true
 
+test.watch.helper:
+	echo "\e[7mRunning tests with coverage report\e[0m" && \
+	echo "\e[7m==================================\e[0m" && \
+	make -s test.with.coverage && \
+	echo "\033[0;32mSuccess!!! All checks for Liviano are good!\033[0m" || \
+	(echo "\033[0;31mFailure!!! Please check your tests or linters\033[0m"; exit 1)
+
+test.watch:
+	ack --csharp -f | entr -s "make -s test.watch.helper"
+
 publish.debug:
 	dotnet publish LivianoWallet --framework netcoreapp3.1 --configuration Debug
 	mkdir -p bin/debug
