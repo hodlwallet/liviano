@@ -138,7 +138,8 @@ namespace Liviano
                 string name = null,
                 Network network = null,
                 DateTimeOffset? createdAt = null,
-                IWalletStorage storage = null)
+                IWalletStorage storage = null,
+                bool authenticate = false)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
@@ -161,7 +162,7 @@ namespace Liviano
             Seed = mnemonic;
 
             CreateAccountIndexes();
-            Authenticate(passphrase);
+            if (authenticate) Authenticate(passphrase);
         }
 
         /// <summary>

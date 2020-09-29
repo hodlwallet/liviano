@@ -82,7 +82,12 @@ namespace Liviano.CLI
         {
             var wallet = new Wallet();
 
-            wallet.Init(mnemonic: mnemonic, network: network, passphrase: passphrase);
+            wallet.Init(
+                mnemonic: mnemonic,
+                network: network,
+                passphrase: passphrase,
+                authenticate: true
+            );
 
             return wallet;
         }

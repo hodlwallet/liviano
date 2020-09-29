@@ -144,7 +144,15 @@ namespace Liviano.Interfaces
         /// Init will create a new wallet initaliaing everything to their defaults,
         /// a new guid is created and the default for network is Main
         /// </summary>
-        void Init(string mnemonic, string passphrase = "", string name = null, Network network = null, DateTimeOffset? createdAt = null, IWalletStorage storage = null);
+        void Init(
+            string mnemonic,
+            string passphrase = "",
+            string name = null,
+            Network network = null,
+            DateTimeOffset? createdAt = null,
+            IWalletStorage storage = null,
+            bool authenticate = false
+        );
 
         void InitElectrumPool();
 
