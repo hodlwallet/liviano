@@ -81,6 +81,7 @@ namespace Liviano.CLI
         static bool newAcc = false;
         static bool start = false;
         static bool resync = false;
+        static bool version = false;
 
         // XXX Debug stuff
         static bool blockchainTest = false;
@@ -113,6 +114,7 @@ namespace Liviano.CLI
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
+                {"v|version", "Show the liviano version", v => version = !(v is null)},
 
                 // XXX Debug, remove
                 {"bk|blockchain-test", "DEBUG Blockchain headers test", v => blockchainTest = !(v is null)},
@@ -185,6 +187,13 @@ namespace Liviano.CLI
             if (showHelp)
             {
                 ShowHelp(options);
+
+                return 0;
+            }
+
+            if (version)
+            {
+                Console.WriteLine(Liviano.Version.ToString());
 
                 return 0;
             }
