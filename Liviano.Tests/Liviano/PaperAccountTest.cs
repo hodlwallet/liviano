@@ -36,7 +36,7 @@ namespace Liviano.Tests.Liviano.Accounts
     public class PaperAccountTest
     {
         const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-        Wallet _Wallet;
+        Wallet wallet;
 
         [Fact]
         public void TestDifferentPrivateKeysInWallet()
@@ -89,13 +89,13 @@ namespace Liviano.Tests.Liviano.Accounts
 
         Wallet GetWallet()
         {
-            if (_Wallet is null)
+            if (wallet is null)
             {
-                _Wallet = new Wallet();
-                _Wallet.Init(MNEMONIC);
+                wallet = new Wallet();
+                wallet.Init(MNEMONIC);
             }
 
-            return _Wallet;
+            return wallet;
         }
     }
 }
