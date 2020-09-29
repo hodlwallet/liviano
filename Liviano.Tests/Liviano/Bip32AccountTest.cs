@@ -85,7 +85,7 @@ namespace Liviano.Tests.Liviano.Accounts
         Wallet GetWallet()
         {
             var w = new Wallet();
-            w.Init(MNEMONIC);
+            w.Init(MNEMONIC, skipAuth: false);
 
             return w;
         }

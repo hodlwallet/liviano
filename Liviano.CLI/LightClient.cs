@@ -109,6 +109,8 @@ namespace Liviano.CLI
         /// Loads a wallet from a config
         /// </summary>
         /// <param name="config">a <see cref="Config"/> of the light wallet</param>
+        /// <param name="passphrase">a <see cref="string"/> passphrase of the wallet</param>
+        /// <param name="skipAuth">a <see cref="bool"/> to skip auth or not, useful for balance and getaddress</param>
         static void Load(Config config, string passphrase = null, bool skipAuth = false)
         {
             network = Hd.GetNetwork(config.Network);
@@ -128,20 +130,10 @@ namespace Liviano.CLI
         public static async Task<(Transaction Transaction, string Error)> Send(
                 Config config,
                 string destinationAddress, double amount, int feeSatsPerByte,
-                string accountName = null, int accountIndex = -1, string password = "")
+                string accountName = null, int accountIndex = -1, string passphrase = "")
         {
-            network = Hd.GetNetwork(config.Network);
+            Load(config, passphrase: passphrase, skipAuth: false);
 
-            var storage = new FileSystemWalletStorage(config.WalletId, network);
-
-            if (!storage.Exists())
-            {
-                Console.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
-
-                throw new WalletException("Invalid wallet id");
-            }
-
-            wallet = storage.Load(password, out WalletException walletError); // TODO handle error on password
             Transaction tx = null;
             string error;
 
@@ -156,12 +148,11 @@ namespace Liviano.CLI
 
             try
             {
-                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, password);
+                // TODO create transaction should not require a passphrase it should error,
+                // if no pk is found in the account in that case we need to authenticate
+                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, passphrase);
 
-                if (!string.IsNullOrEmpty(error))
-                {
-                    return (tx, error);
-                }
+                if (!string.IsNullOrEmpty(error)) return (tx, error);
             }
             catch (Exception err)
             {
@@ -243,18 +234,7 @@ namespace Liviano.CLI
         /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
         public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
         {
-            network = Hd.GetNetwork(config.Network);
-
-            var storage = new FileSystemWalletStorage(config.WalletId, network);
-
-            if (!storage.Exists())
-            {
-                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
-
-                return null;
-            }
-
-            wallet = storage.Load(null, out WalletException walletError, skipAuth: true);
+            Load(config, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
@@ -272,20 +252,9 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">A <see cref="Config"/></param>
         /// <param name="addressAmount">Amount of addresses to generate</param>
-        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1, string passphrase = null)
+        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
         {
-            network = Hd.GetNetwork(config.Network);
-
-            var storage = new FileSystemWalletStorage(config.WalletId, network);
-
-            if (!storage.Exists())
-            {
-                Console.WriteLine($"[GetAddress] Wallet {config.WalletId} doesn't exists.");
-
-                return null;
-            }
-
-            wallet = storage.Load(passphrase, out WalletException walletError);
+            Load(config, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
@@ -302,9 +271,9 @@ namespace Liviano.CLI
         /// Resyncs a wallet from a config
         /// </summary>
         /// <param name="config">A <see cref="Config"/> for the client</param>
-        public static void ReSync(Config config, string passphrase = null)
+        public static void ReSync(Config config)
         {
-            Load(config, passphrase, skipAuth: true);
+            Load(config, skipAuth: true);
 
             wallet.OnSyncStarted += (s, e) =>
             {
@@ -432,9 +401,9 @@ namespace Liviano.CLI
         /// <param name="type">Type of the account</param>
         /// <param name="name">Name of the account</param>
         /// <returns>An xpub of the account</returns>
-        public static string AddAccount(Config config, string type, string name, string passphrase = null)
+        public static string AddAccount(Config config, string type, string name)
         {
-            Load(config, passphrase);
+            Load(config, skipAuth: true);
 
             var network = wallet.Network;
             var id = wallet.Id;
@@ -454,7 +423,7 @@ namespace Liviano.CLI
         // XXX Debug, remove
         public static void BlockchainTest(Config config)
         {
-            Load(config);
+            Load(config, skipAuth: true);
 
             var storage = new FileSystemBlockchainStorage();
             var blockchain = new Blockchain(wallet.Network, storage);

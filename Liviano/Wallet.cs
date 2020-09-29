@@ -139,7 +139,7 @@ namespace Liviano
                 Network network = null,
                 DateTimeOffset? createdAt = null,
                 IWalletStorage storage = null,
-                bool skipAuth = true)
+                bool skipAuth = false)
         {
             Guard.NotNull(mnemonic, nameof(mnemonic));
             Guard.NotEmpty(mnemonic, nameof(mnemonic));

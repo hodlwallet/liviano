@@ -427,7 +427,7 @@ namespace Liviano.CLI
                     config,
                     address, amount, feeSatsPerByte,
                     accountName: null, accountIndex: accountIndex,
-                    password: passphrase
+                    passphrase: passphrase
                 );
 
                 res.Wait();
