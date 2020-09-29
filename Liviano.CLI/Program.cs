@@ -156,7 +156,7 @@ namespace Liviano.CLI
             options = GetOptions();
 
             // Variables that support input text from the terminal
-            if (hasInputText)
+            if (hasInputText && !string.IsNullOrEmpty(inputText))
             {
                 mnemonic = inputText;
                 address = inputText;
@@ -174,7 +174,7 @@ namespace Liviano.CLI
                 extra = options.Parse(args);
 
                 if (extra.Count > 0)
-                    logger.Information($"Extra arguments: {extra}");
+                    logger.Information($"Extra arguments: {string.Join(',', extra.ToArray())}");
             }
             catch (OptionException e)
             {
