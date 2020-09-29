@@ -73,9 +73,6 @@ namespace Liviano.Accounts
 
             if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress();
 
-            if (UsedExternalAddresses.Any(addr => string.Equals(addr.ToString(), address.ToString())))
-                return GetReceiveAddress();
-
             return address;
         }
 
@@ -94,9 +91,9 @@ namespace Liviano.Accounts
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesCount, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
 
-            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress();
-
             InternalAddressesCount++;
+
+            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress();
 
             return address;
         }
