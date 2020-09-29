@@ -151,7 +151,7 @@ namespace Liviano.Interfaces
             Network network = null,
             DateTimeOffset? createdAt = null,
             IWalletStorage storage = null,
-            bool authenticate = false
+            bool skipAuth = true
         );
 
         void InitElectrumPool();

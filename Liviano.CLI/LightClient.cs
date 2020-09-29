@@ -86,7 +86,7 @@ namespace Liviano.CLI
                 mnemonic: mnemonic,
                 network: network,
                 passphrase: passphrase,
-                authenticate: true
+                skipAuth: false
             );
 
             return wallet;
@@ -141,8 +141,7 @@ namespace Liviano.CLI
                 throw new WalletException("Invalid wallet id");
             }
 
-            WalletException walletError;
-            wallet = storage.Load(password, out walletError); // TODO handle error on password
+            wallet = storage.Load(password, out WalletException walletError); // TODO handle error on password
             Transaction tx = null;
             string error;
 
@@ -255,8 +254,7 @@ namespace Liviano.CLI
                 return null;
             }
 
-            WalletException walletError;
-            wallet = storage.Load(null, out walletError, skipAuth: true);
+            wallet = storage.Load(null, out WalletException walletError, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
@@ -287,8 +285,7 @@ namespace Liviano.CLI
                 return null;
             }
 
-            WalletException walletError;
-            wallet = storage.Load(passphrase, out walletError);
+            wallet = storage.Load(passphrase, out WalletException walletError);
 
             IAccount account = wallet.Accounts[accountIndex];
 
