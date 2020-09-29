@@ -62,10 +62,6 @@ namespace Liviano
 
         public string Seed { get; set; }
 
-#nullable enable
-        public Mnemonic? Mnemonic { get; set; }
-#nullable disable
-
         public BitcoinExtKey MasterExtKey { get; set; }
 
         public BitcoinExtPubKey MasterExtPubKey { get; set; }
@@ -163,7 +159,6 @@ namespace Liviano
             currentAccount ??= null;
 
             Seed = mnemonic;
-            Mnemonic = Hd.MnemonicFromString(Seed);
 
             CreateAccountIndexes();
             Authenticate(passphrase);
@@ -178,7 +173,8 @@ namespace Liviano
             if (passphrase is null) passphrase = "";
 
             // This private key isn't validated yet
-            var extKey = Hd.GetWif(Hd.GetExtendedKey(Mnemonic, passphrase), Network);
+            var mnemonic = Hd.MnemonicFromString(Seed);
+            var extKey = Hd.GetWif(Hd.GetExtendedKey(mnemonic, passphrase), Network);
             var extPubKey = extKey.Neuter();
 
             MasterExtKey = extKey;

@@ -89,14 +89,6 @@ namespace Liviano.Interfaces
         BitcoinExtPubKey MasterExtPubKey { get; set; }
 
         /// <summary>
-        /// Menmonic object cause why not
-        /// </summary>
-        [JsonIgnore]
-#nullable enable
-        Mnemonic? Mnemonic { get; set; }
-#nullable disable
-
-        /// <summary>
         /// Encrypted seed usually from a mnemonic
         /// </summary>
         [JsonIgnore]
