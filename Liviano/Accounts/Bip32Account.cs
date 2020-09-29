@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -70,6 +71,11 @@ namespace Liviano.Accounts
 
             ExternalAddressesCount++;
 
+            if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress();
+
+            if (UsedExternalAddresses.Any(addr => string.Equals(addr.ToString(), address.ToString())))
+                return GetReceiveAddress();
+
             return address;
         }
 
@@ -87,6 +93,8 @@ namespace Liviano.Accounts
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesCount, true);
             var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+
+            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress();
 
             InternalAddressesCount++;
 
@@ -155,7 +163,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress[] GetAddressesToWatch()
         {
-            var addresses = new List<BitcoinAddress> {};
+            var addresses = new List<BitcoinAddress> { };
 
             addresses.AddRange(GetReceiveAddressesToWatch());
             addresses.AddRange(GetChangeAddressesToWatch());
@@ -278,5 +286,12 @@ namespace Liviano.Accounts
 
             return string.Format(HdPathFormat, Network.Equals(Network.Main) ? 0 : 1, Index);
         }
+
+        bool IsAddressReuse(BitcoinAddress address, bool isChange = false)
+        {
+            if (isChange) return UsedInternalAddresses.Any(addr => string.Equals(addr.ToString(), address.ToString()));
+            else return UsedExternalAddresses.Any(addr => string.Equals(addr.ToString(), address.ToString()));
+        }
+
     }
 }
