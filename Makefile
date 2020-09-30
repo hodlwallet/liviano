@@ -1,14 +1,11 @@
 .PHONY: help build build.ubuntu run run.ubuntu run.ubuntu.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
 
 build:
-	dotnet build --framework netcoreapp3.1 -property:GenerateFullPaths=true
+	dotnet build --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true
 
-build.ubuntu:
-	dotnet build --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
-
-# Usage (run on debug): args="--configuration Debug" make run
+# Usage (run on debug): args="--help" make run and make run.debug
 run:
-	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true ${args}
+	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -- ${args}
 
 run.ubuntu:
 	make ubuntu.debug.build

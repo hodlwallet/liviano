@@ -1,0 +1,18 @@
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "launch - netcoredbg": {
+      "adapter": "netcoredbg",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/Liviano.CLI/bin/Debug/netcoreapp3.1/Liviano.CLI.dll",
+        "cwd": "${workspaceRoot}",
+        "env": {
+          "COMPlus_DebugWriteToStdErr": "1"
+        },
+        "args": ["--help"],
+        "stopAtEntry": false
+      }
+    }
+  }
+}
