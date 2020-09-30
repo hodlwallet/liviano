@@ -3,17 +3,20 @@
 build:
 	dotnet build --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true
 
+liviano:
+	make ubuntu.debug.build
+
 # Usage (run on debug): args="--help" make run and make run.debug
 run:
 	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -- ${args}
 
 run.ubuntu:
 	make ubuntu.debug.build
-	./liviano-cli ${args}
+	./liviano ${args}
 
 run.ubuntu.debug:
 	make ubuntu.debug.build
-	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+	COMPlus_DebugWriteToStdErr=1 ./liviano ${args}
 
 # Usage (all tests):        make test
 # Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
@@ -80,15 +83,15 @@ ubuntu.debug.build:
 	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm -rf ./liviano-cli
-	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
+	rm -rf ./liviano
+	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 osx.debug.build:
 	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/osx-x64/publish bin/osx_debug_build
-	rm -rf ./liviano-cli
-	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano-cli
+	rm -rf ./liviano
+	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano
 
 clean:
 	dotnet clean --framework netcoreapp3.1
@@ -106,7 +109,7 @@ clean:
 clean.local:
 	make clean
 	rm -rf wallets
-	rm -rf liviano-cli
+	rm -rf liviano
 	rm -rf liviano.json
 
 help:
