@@ -149,14 +149,15 @@ namespace Liviano.CLI
             logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
             // Set standard input
-            hasInputText = Console.IsInputRedirected;
-            if (hasInputText && !Debugger.IsAttached) inputText = Console.ReadLine().Trim();
+            hasInputText = Console.IsInputRedirected && !Debugger.IsAttached;
+            if (hasInputText) inputText = Console.ReadLine().Trim();
+            if (string.IsNullOrEmpty(inputText)) hasInputText = false;
 
             // Get the options
             options = GetOptions();
 
             // Variables that support input text from the terminal
-            if (hasInputText && !string.IsNullOrEmpty(inputText))
+            if (hasInputText)
             {
                 mnemonic = inputText;
                 address = inputText;
@@ -174,7 +175,7 @@ namespace Liviano.CLI
                 extra = options.Parse(args);
 
                 if (extra.Count > 0)
-                    logger.Information($"Extra arguments: {string.Join(',', extra.ToArray())}");
+                    logger.Information("Extra arguments: {0}", string.Join(", ", extra));
             }
             catch (OptionException e)
             {
