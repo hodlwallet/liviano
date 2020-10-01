@@ -111,10 +111,8 @@ namespace Liviano
             var unsortedHeaders = new List<ChainedBlock>();
             Parallel.ForEach(Checkpoints, async cp =>
             {
-                var headers = new List<ChainedBlock>();
-                var index = Array.IndexOf(Checkpoints, cp);
-
-                var start = index == 0 ? 0 : Checkpoints[index - 1].Height + 1;
+                var prevIndex = Array.IndexOf(Checkpoints, cp) - 1;
+                var start = prevIndex == 0 ? 0 : Checkpoints[prevIndex].Height + 1;
 
                 if (start == 0)
                 {
