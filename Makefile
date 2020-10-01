@@ -83,7 +83,7 @@ ubuntu.debug.build:
 	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm -rf ./liviano
+	rm ./liviano
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 osx.debug.build:
@@ -108,9 +108,9 @@ clean:
 
 clean.local:
 	make clean
+	rm liviano
+	rm liviano.json
 	rm -rf wallets
-	rm -rf liviano
-	rm -rf liviano.json
 
 help:
 	@echo "TOOD: Write makefile help."
