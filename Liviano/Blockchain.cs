@@ -183,6 +183,8 @@ namespace Liviano
             int max = 0;
             string hex = "";
 
+            Console.WriteLine($"Height: {Height}");
+
             while (true)
             {
                 var cp = GetNextCheckpoint(Height);
