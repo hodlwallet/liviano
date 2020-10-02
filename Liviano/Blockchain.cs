@@ -240,7 +240,7 @@ namespace Liviano
         /// <returns>A <see cref="int"> with the height</returns>
         int GetHeight()
         {
-            return Headers[Headers.Count - 1].Height;
+            return Headers.Last().Height;
         }
 
         /// <summary>
