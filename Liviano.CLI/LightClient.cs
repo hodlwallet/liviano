@@ -425,39 +425,15 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
-            if (!wallet.ElectrumPool.Connected)
-            {
-                wallet.ElectrumPool.OnConnected += (s, o) =>
-                {
-                    var storage = new FileSystemBlockchainStorage();
-                    var blockchain = new Blockchain(wallet.Network, storage);
+            var storage = new FileSystemBlockchainStorage();
+            var blockchain = new Blockchain(wallet.Network, storage);
 
-                    blockchain.Load();
+            blockchain.Load();
 
-                    //blockchain.DownloadHeadersPararel(wallet.ElectrumPool);
-                    blockchain.DownloadHeaders(wallet.ElectrumPool).Wait();
+            //blockchain.DownloadHeadersPararel(wallet.ElectrumPool); // Parallel
+            blockchain.DownloadHeaders(wallet.ElectrumPool).Wait(); // Sequencial
 
-                    Console.WriteLine($"{blockchain.Headers.Count}");
-
-                    blockchain.Save();
-                };
-
-                wallet.ElectrumPool.FindConnectedServersUntilMinNumber().Wait();
-            }
-            else
-            {
-                var storage = new FileSystemBlockchainStorage();
-                var blockchain = new Blockchain(wallet.Network, storage);
-
-                blockchain.Load();
-
-                //blockchain.DownloadHeadersPararel(wallet.ElectrumPool);
-                blockchain.DownloadHeaders(wallet.ElectrumPool).Wait();
-
-                Console.WriteLine($"{blockchain.Headers.Count}");
-
-                blockchain.Save();
-            }
+            Console.WriteLine($"{blockchain.Headers.Count}");
         }
 
         /// <summary>

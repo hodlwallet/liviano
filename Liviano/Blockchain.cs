@@ -135,7 +135,7 @@ namespace Liviano
                     var max = res.Max;
 
                     var height = current;
-                    for (int i = 0; i < hex.Length; i += (HEADER_SIZE * 2))
+                    for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
                     {
                         var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());
 
@@ -179,47 +179,56 @@ namespace Liviano
 
         public async Task DownloadHeaders(ElectrumPool pool)
         {
-            int count = 0;
-            int max = 0;
-            string hex = "";
+            var unsortedHeaders = new List<ChainedBlock>();
 
-            Console.WriteLine($"Height: {Height}");
-
-            while (true)
+            for (int i = 0; i <= Checkpoints.Length; i++)
             {
-                var cp = GetNextCheckpoint(Height);
+                var cp = Checkpoints[i];
+                var index = Array.IndexOf(Checkpoints, cp);
+                var start = index == 0 ? 0 : cp.Height + 1;
 
-                if (cp is null && count == 0) break;
-
-                int blockHeadersToRequest;
-
-                if (max != 0) blockHeadersToRequest = max;
-                else blockHeadersToRequest = cp.Height;
-
-                var res = await pool.DownloadHeaders(Height, blockHeadersToRequest);
-
-                count = res.Count;
-                hex = res.Hex;
-                max = res.Max;
-
-                for (int i = 0; i < hex.Length; i += (HEADER_SIZE * 2))
+                if (start == 0)
                 {
-                    var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());
+                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
 
-                    var chainedBlock = new ChainedBlock(
-                        BlockHeader.Parse(headerHex, Network),
-                        Height + 1
-                    );
+                    unsortedHeaders.Add(genesis);
 
-                    Headers.Insert(Height + 1, chainedBlock);
-                    Height = GetHeight();
-
-                    Debug.WriteLine($"[DownloadHeaders] Current Height: {Height}");
-                    Debug.WriteLine($"[DownloadHeaders] Headers Count: {Headers.Count}");
+                    start++;
                 }
 
-                if (count == 0) break;
+                var count = cp.Height;
+                var current = start;
+                Console.WriteLine($"current: {current} count: {count}");
+                while (current < cp.Height)
+                {
+                    var res = await DownloadRequestUntilResult(pool, current, count);
+
+                    count = res.Count;
+                    var hex = res.Hex;
+                    var max = res.Max;
+
+                    var height = current;
+                    for (int j = 0; j < hex.Length; j += (HEADER_SIZE * 2))
+                    {
+                        var headerHex = new string(hex.ToList().Skip(j).Take(HEADER_SIZE * 2).ToArray());
+
+                        var chainedBlock = new ChainedBlock(
+                            BlockHeader.Parse(headerHex, Network),
+                            height++
+                        );
+
+                        unsortedHeaders.Add(chainedBlock);
+                        current = chainedBlock.Height;
+                    }
+                }
             }
+
+            Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
+            Height = GetHeight();
+
+            Console.WriteLine(Headers.Count);
+            Console.WriteLine(Height);
+            Console.WriteLine("Finished???");
         }
 
         ChainedBlock GetNextCheckpoint(int height)
