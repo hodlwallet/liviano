@@ -1,14 +1,14 @@
 .PHONY: help build build.ubuntu run run.ubuntu run.ubuntu.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
 
 build:
-	dotnet build --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true
+	dotnet build --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary
 
 liviano:
 	make ubuntu.debug.build
 
 # Usage (run on debug): args="--help" make run and make run.debug
 run:
-	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -- ${args}
+	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary -- ${args}
 
 run.ubuntu:
 	make ubuntu.debug.build
@@ -56,7 +56,7 @@ test.watch:
 	fi
 
 publish.debug:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true
+	dotnet publish --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary
 	mkdir -p bin/debug
 	cp -R Liviano/bin/Debug/netcoreapp3.1/publish bin/debug/Liviano
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/publish bin/debug/LivianoCLI
@@ -80,14 +80,14 @@ publish.release:
 	cp -R Liviano.CLI/bin/Release/netcoreapp3.1/ubuntu-x64/publish bin/release/LivianoCLI/ubuntu-x64
 
 ubuntu.debug.build:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true -consoleloggerparameters=NoSummary
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
 	rm ./liviano
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 osx.debug.build:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true -consoleloggerparameters=NoSummary
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/osx-x64/publish bin/osx_debug_build
 	rm -rf ./liviano
@@ -113,4 +113,4 @@ clean.local:
 	rm -rf wallets
 
 help:
-	@echo "TOOD: Write makefile help."
+	@echo "TODO: Write makefile help."
