@@ -160,6 +160,13 @@ namespace Liviano
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
         {
+            if (pool.ElectrumClient is null)
+            {
+                Console.WriteLine("ElectrumClient is null fuck.");
+
+                pool.FindConnectedServersUntilMinNumber().Wait();
+            }
+
             try
             {
                 Console.WriteLine("Trying request!!!!!!!!!!!!!");

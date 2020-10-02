@@ -213,13 +213,13 @@ namespace Liviano.Electrum
             }
             catch (JsonSerializationException e)
             {
-                Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
+                //Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
 
                 return false;
             }
             catch (JsonReaderException e)
             {
-                Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
+                //Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
 
                 return false;
             }
