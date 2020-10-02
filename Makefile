@@ -8,7 +8,12 @@ liviano:
 
 # Usage (run on debug): args="--help" make run and make run.debug
 run:
-	dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary -- ${args}
+	@if [ "${args}" = "" ]; then\
+		dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary;\
+	fi
+	@if [ "${args}" != "" ]; then\
+		dotnet run --project=Liviano.CLI --framework netcoreapp3.1 -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary -- ${args};\
+	fi
 
 run.ubuntu:
 	make ubuntu.debug.build
@@ -80,18 +85,25 @@ publish.release:
 	cp -R Liviano.CLI/bin/Release/netcoreapp3.1/ubuntu-x64/publish bin/release/LivianoCLI/ubuntu-x64
 
 ubuntu.debug.build:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true -consoleloggerparameters=NoSummary
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
 	rm ./liviano
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 osx.debug.build:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true -consoleloggerparameters=NoSummary
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/osx-x64/publish bin/osx_debug_build
 	rm -rf ./liviano
 	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano
+
+win.debug.build:
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
+	mkdir -p bin/ubuntu_debug_build
+	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
+	rm ./liviano
+	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 clean:
 	dotnet clean --framework netcoreapp3.1
