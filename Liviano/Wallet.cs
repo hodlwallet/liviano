@@ -428,6 +428,8 @@ namespace Liviano
 
         private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
         {
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Sent from {sender}");
+
             Console.WriteLine($"Connected to {server.Domain}, recently connected server.");
             Console.WriteLine($"Now starts to sync wallet");
             Console.WriteLine();
@@ -437,6 +439,9 @@ namespace Liviano
 
         private async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
         {
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Sent from {sender}");
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Server {server.Domain}");
+
             Console.WriteLine($"Now starts to watch wallet");
 
             ElectrumPool.OnWatchAddressNotified += (o, args) =>

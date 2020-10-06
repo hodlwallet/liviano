@@ -211,16 +211,12 @@ namespace Liviano.Electrum
             {
                 JsonConvert.DeserializeObject(message);
             }
-            catch (JsonSerializationException e)
+            catch (JsonSerializationException)
             {
-                //Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
-
                 return false;
             }
-            catch (JsonReaderException e)
+            catch (JsonReaderException)
             {
-                //Debug.WriteLine($"[CanParseToJson] Cannot parse to json: {e.Message}.");
-
                 return false;
             }
 
