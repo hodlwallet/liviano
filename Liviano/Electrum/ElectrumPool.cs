@@ -263,7 +263,8 @@ namespace Liviano.Electrum
             {
                 await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                 {
-                    Debug.WriteLine($"[WatchAddress] Got status from BlockchainScriptHashSubscribe: {str}.");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe: {str}.");
                     string status;
                     try
                     {
@@ -330,6 +331,13 @@ namespace Liviano.Electrum
                         }
                     }
                 });
+
+                Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
+
+                // calling watch again after a 30 second timeout because it should never finish
+                await Task.Delay(30_000); // Wait a 30 seconds
+
+                await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
             }, TaskCreationOptions.AttachedToParent, ct);
         }
 
