@@ -230,18 +230,20 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            await Task.Factory.StartNew(async o =>
-            {
-                var changeAddresses = acc.GetChangeAddressesToWatch();
-                var receiveAddresses = acc.GetReceiveAddressesToWatch();
+            var changeAddresses = acc.GetChangeAddressesToWatch();
+            var receiveAddresses = acc.GetReceiveAddressesToWatch();
 
-                foreach (var addr in changeAddresses)
-                    await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+            var addresses = new List<BitcoinAddress> {};
 
-                foreach (var addr in receiveAddresses)
-                    await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+            addresses.AddRange(changeAddresses);
+            addresses.AddRange(receiveAddresses);
 
-            }, TaskCreationOptions.AttachedToParent, ct);
+            foreach (var addr in addresses)
+                await Task.Factory.StartNew(
+                    async o => await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct),
+                    TaskCreationOptions.AttachedToParent,
+                    ct
+                );
         }
 
         /// <summary>
