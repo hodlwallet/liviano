@@ -36,6 +36,5 @@ make test
 | `build` | builds `Liviano` solution |
 | `test` | runs the test project `Liviano.Tests` |
 | `publish[_debug,_release]` | build to publish `Liviano` solution |
-| `submodule[_init,_update]` | handles `NBitcoin` submodule |
 | `clean` | removes executables from `bin` |
 | `[ubuntu,osx]_debug_build` | creates a debug build for an specific OS installed in ./liviano-cli |
