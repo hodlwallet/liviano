@@ -446,6 +446,8 @@ namespace Liviano
 
             ElectrumPool.OnWatchAddressNotified += (o, args) =>
             {
+                Debug.WriteLine("[ElectrumPool_OnConnectedToWatch] Found a status!");
+
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 

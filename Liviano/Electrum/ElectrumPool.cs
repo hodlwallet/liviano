@@ -266,7 +266,7 @@ namespace Liviano.Electrum
                 await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
                 {
                     Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe: {str}.");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
                     string status;
                     try
                     {
@@ -279,7 +279,14 @@ namespace Liviano.Electrum
                         Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
                         var sStatus = Deserialize<ResultAsString>(str);
 
-                        if (string.IsNullOrEmpty(sStatus.Result)) return;
+                        if (string.IsNullOrEmpty(sStatus.Result))
+                        {
+                            Debug.WriteLine($"[WatchAddress] Result is null");
+
+                            return;
+                        }
+                        else
+                            Debug.WriteLine($"[WatchAddress] Result is not null");
 
                         status = sStatus.Result;
                     }
