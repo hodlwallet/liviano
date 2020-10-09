@@ -259,6 +259,8 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
             var scriptHashStr = addr.ToScriptHash().ToHex();
 
+            Debug.WriteLine($"[WatchAddress] Address: {addr} ScriptHash: {scriptHashStr}");
+
             await Task.Factory.StartNew(async o =>
             {
                 await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>

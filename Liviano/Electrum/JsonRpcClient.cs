@@ -69,9 +69,10 @@ namespace Liviano.Electrum
         {
             try
             {
-                var maybeTimedOutIpAddress = await ResolveAsync(hostName).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
-                if (maybeTimedOutIpAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{port}");
-                return maybeTimedOutIpAddress;
+                var ipAddress = await ResolveAsync(hostName);
+                if (ipAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{port}");
+
+                return ipAddress;
             }
             catch (Exception ex)
             {
