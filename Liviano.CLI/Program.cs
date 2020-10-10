@@ -58,13 +58,13 @@ namespace Liviano.CLI
         static string address = "";
         static string addressType = "p2wpkh";
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
-        static string server = "";
+        // static string server = "";
         static double amount = 0.00;
         static int feeSatsPerByte = 1;
         static int accountIndex = -1;
-        static string accountName = null;
+        // static string accountName = null;
         static string walletId = "";
-        static string walletName = DEFAULT_WALLET_NAME;
+        // static string walletName = DEFAULT_WALLET_NAME;
         static string newAccName = DEFAULT_ACCOUNT_NAME;
         static string newAccType = "bip84";
 
@@ -125,15 +125,15 @@ namespace Liviano.CLI
                 {"type|address-type=", "Set address type", (string v) => addressType = v},
                 {"hdpath|with-hd-path=", "Set hd path type", (string v) => hdPath = v},
                 {"pass|passphrase=", "Passphrase", (string v) => passphrase = v},
-                {"s|server=", "Server", (string v) => server = v},
+                // {"s|server=", "Server", (string v) => server = v},
                 {"amt|amount=", "Amount to send", (string v) => amount = double.Parse(v)},
                 {"fee|fee-sats-per-byte=", "Fees in satoshis per byte", (string v) => feeSatsPerByte = int.Parse(v)},
                 {"acci|account-index=", "Account to send from", (string v) => accountIndex = int.Parse(v)},
-                {"accn|account-name=", "Account to send from", (string v) => accountName = v},
+                // {"accn|account-name=", "Account to send from", (string v) => accountName = v},
                 {"naccname|new-account-name=", "New account name", (string v) => newAccName = v},
                 {"nacctype|new-account-type=", "New account type", (string v) => newAccType = v},
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
-                {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
+                // {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
 
                 // Default & help

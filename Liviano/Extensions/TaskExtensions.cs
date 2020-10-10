@@ -40,18 +40,16 @@ namespace Liviano.Extensions
         /// <returns></returns>
         public static async Task<TResult> WithTimeout<TResult>(this Task<TResult> task, TimeSpan timeout)
         {
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+            using var timeoutCancellationTokenSource = new CancellationTokenSource();
+            var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
+
+            if (completedTask == task)
             {
-                var completedTask = await Task.WhenAny(task, Task.Delay(timeout, timeoutCancellationTokenSource.Token));
-
-                if (completedTask == task)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    return await task;
-                }
-
-                throw new TimeoutException("The operation has timed out.");
+                timeoutCancellationTokenSource.Cancel();
+                return await task;
             }
+
+            throw new TimeoutException("The operation has timed out.");
         }
     }
 }

@@ -48,7 +48,8 @@ namespace Liviano.Storages
         public Network Network { get; set; }
         public IWallet Wallet { get; set; }
         public string RootDirectory { get; set; }
-        object @lock = new object();
+
+        readonly object @lock = new object();
         JsonSerializerSettings serializerSettings;
 
         public FileSystemWalletStorage(string id = null, Network network = null, string directory = "wallets")
