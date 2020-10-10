@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using Xunit;
 
+using Newtonsoft.Json;
+
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using System.IO;
@@ -17,56 +19,93 @@ namespace Liviano.Tests.Liviano
 {
     class BlockcypherBlock
     {
-        public string hash { get; set; }
-        public int height { get; set; }
-        public string chain { get; set; }
-        public long total { get; set; }
-        public int fees { get; set; }
-        public int size { get; set; }
-        public int ver { get; set; }
-        public DateTime time { get; set; }
-        public DateTime received_time { get; set; }
-        public string coinbase_addr { get; set; }
-        public string relayed_by { get; set; }
-        public int bits { get; set; }
-        public long nonce { get; set; } // TODO Why is this a `long`?
-        public int n_tx { get; set; }
-        public string prev_block { get; set; }
-        public string mrkl_root { get; set; }
-        public List<string> txids { get; set; }
-        public int depth { get; set; }
-        public string prev_block_url { get; set; }
-        public string tx_url { get; set; }
+        [JsonProperty(PropertyName = "hash")]
+        public string Hash { get; set; }
+
+        [JsonProperty(PropertyName = "height")]
+        public int Height { get; set; }
+
+        [JsonProperty(PropertyName = "chain")]
+        public string Chain { get; set; }
+
+        [JsonProperty(PropertyName = "total")]
+        public long Total { get; set; }
+
+        [JsonProperty(PropertyName = "fees")]
+        public int Fees { get; set; }
+
+        [JsonProperty(PropertyName = "size")]
+        public int Size { get; set; }
+
+        [JsonProperty(PropertyName = "ver")]
+        public int Ver { get; set; }
+
+        [JsonProperty(PropertyName = "time")]
+        public DateTime Time { get; set; }
+
+        [JsonProperty(PropertyName = "received_time")]
+        public DateTime ReceivedTime { get; set; }
+
+        [JsonProperty(PropertyName = "coinbase_addr")]
+        public string CoinbaseAddr { get; set; }
+
+        [JsonProperty(PropertyName = "relayed_by")]
+        public string RelayedBy { get; set; }
+
+        [JsonProperty(PropertyName = "bits")]
+        public int Bits { get; set; }
+
+        [JsonProperty(PropertyName = "nonce")]
+        public long Nonce { get; set; }
+
+        [JsonProperty(PropertyName = "n_tx")]
+        public int NTx { get; set; }
+
+        [JsonProperty(PropertyName = "prev_block")]
+        public string PrevBlock { get; set; }
+
+        [JsonProperty(PropertyName = "mrkl_root")]
+        public string MrklRoot { get; set; }
+
+        [JsonProperty(PropertyName = "txids")]
+        public List<string> TxIds { get; set; }
+
+        [JsonProperty(PropertyName = "depth")]
+        public int Depth { get; set; }
+
+        [JsonProperty(PropertyName = "prev_block_url")]
+        public string PrevBlockUrl { get; set; }
+
+        [JsonProperty(PropertyName = "tx_url")]
+        public string TxUrl { get; set; }
 
         public string GetBlockHeaderHex()
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                byte[] versionBytes = BitConverter.GetBytes(ver);
+                byte[] versionBytes = BitConverter.GetBytes(Ver);
 
                 ms.Write(versionBytes);
 
-                byte[] prevBlockBytes = new HexEncoder().DecodeData(prev_block);
+                byte[] prevBlockBytes = new HexEncoder().DecodeData(PrevBlock);
                 Array.Reverse(prevBlockBytes);
 
                 ms.Write(prevBlockBytes);
 
-                byte[] merkleRootBytes = new HexEncoder().DecodeData(mrkl_root);
+                byte[] merkleRootBytes = new HexEncoder().DecodeData(MrklRoot);
                 Array.Reverse(merkleRootBytes);
 
                 ms.Write(merkleRootBytes);
 
-                byte[] timestampBytes = BitConverter.GetBytes((int)new DateTimeOffset(time).ToUnixTimeSeconds());
+                byte[] timestampBytes = BitConverter.GetBytes((int)new DateTimeOffset(Time).ToUnixTimeSeconds());
 
                 ms.Write(timestampBytes);
 
-                byte[] bitsBytes = BitConverter.GetBytes(bits);
+                byte[] bitsBytes = BitConverter.GetBytes(Bits);
 
                 ms.Write(bitsBytes);
 
-                // FIXME What is this thing? A long or an int? We need 4 bytes not 8
-                byte[] nonceBytes = BitConverter.GetBytes(nonce).Take(4).ToArray();
-                // byte[] nonceBytes = BitConverter.GetBytes(nonce); // Thi should be the correct code...
+                byte[] nonceBytes = BitConverter.GetBytes(Nonce).Take(4).ToArray();
 
                 ms.Write(nonceBytes);
 
