@@ -106,7 +106,7 @@ namespace Liviano
             Height = GetHeight();
         }
 
-        public void DownloadHeadersPararel(ElectrumPool pool)
+        public void DownloadHeadersParallel(ElectrumPool pool)
         {
             var unsortedHeaders = new List<ChainedBlock>();
             Parallel.ForEach(Checkpoints, async cp =>
@@ -223,10 +223,6 @@ namespace Liviano
 
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
-
-            Console.WriteLine(Headers.Count);
-            Console.WriteLine(Height);
-            Console.WriteLine("Finished???");
         }
 
         /// <summary>

@@ -141,8 +141,6 @@ namespace Liviano.Electrum
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
 
-                sslStream.Flush();
-
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -181,8 +179,6 @@ namespace Liviano.Electrum
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
 
-                sslStream.Flush();
-
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -191,7 +187,7 @@ namespace Liviano.Electrum
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
 
-                // Check for EOF && if the message is complete json... Usually this works with electrum
+                // Check for EOF or \n
                 if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
                     messageData.ToString().IndexOf("\n", StringComparison.CurrentCulture) != -1)
                     break;
@@ -209,24 +205,25 @@ namespace Liviano.Electrum
             return message.Split('\n');
         }
 
-        public static bool CanParseToJson(string message)
-        {
-            if (string.IsNullOrEmpty(message)) return false;
+        // TODO Add this function, in case we need it, we probably wont
+        // public static bool CanParseToJson(string message)
+        // {
+        //     if (string.IsNullOrEmpty(message)) return false;
 
-            try
-            {
-                JsonConvert.DeserializeObject(message);
-            }
-            catch (JsonSerializationException)
-            {
-                return false;
-            }
-            catch (JsonReaderException)
-            {
-                return false;
-            }
+        //     try
+        //     {
+        //         JsonConvert.DeserializeObject(message);
+        //     }
+        //     catch (JsonSerializationException)
+        //     {
+        //         return false;
+        //     }
+        //     catch (JsonReaderException)
+        //     {
+        //         return false;
+        //     }
 
-            return true;
-        }
+        //     return true;
+        // }
     }
 }
