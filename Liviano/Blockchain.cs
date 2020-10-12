@@ -111,8 +111,8 @@ namespace Liviano
             var unsortedHeaders = new List<ChainedBlock>();
             Parallel.ForEach(Checkpoints, async cp =>
             {
-                var prevIndex = Array.IndexOf(Checkpoints, cp) - 1;
-                var start = prevIndex == 0 ? 0 : Checkpoints[prevIndex].Height + 1;
+                var index = Array.IndexOf(Checkpoints, cp);
+                var start = index == 0 ? 0 : cp.Height + 1;
 
                 if (start == 0)
                 {
@@ -152,24 +152,17 @@ namespace Liviano
 
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
-
-            Console.WriteLine(Headers.Count);
-            Console.WriteLine(Height);
-            Console.WriteLine("Finished???");
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
         {
             if (pool.ElectrumClient is null)
             {
-                Console.WriteLine("ElectrumClient is null fuck.");
-
                 pool.FindConnectedServersUntilMinNumber().Wait();
             }
 
             try
             {
-                Console.WriteLine("Trying request!!!!!!!!!!!!!");
                 return await pool.DownloadHeaders(current, count);
             }
             catch (Exception err)
@@ -177,8 +170,6 @@ namespace Liviano
                 Debug.WriteLine(err.Message);
 
                 await Task.Delay(1000);
-
-                Debug.WriteLine("Trying again");
 
                 return await DownloadRequestUntilResult(pool, current, count);
             }
