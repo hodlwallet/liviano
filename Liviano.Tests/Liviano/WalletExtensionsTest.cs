@@ -120,11 +120,11 @@ namespace Liviano.Tests.Liviano
 
         static readonly HttpClient HttpClient = new HttpClient();
 
-        readonly ITestOutputHelper Output;
+        readonly ITestOutputHelper output;
 
         public WalletExtensionsTest(ITestOutputHelper output)
         {
-            Output = output;
+            this.output = output;
         }
 
         [Fact]
@@ -167,7 +167,7 @@ namespace Liviano.Tests.Liviano
                 return await File.ReadAllTextAsync(fileName);
 
             // We now do the http request
-            Output.WriteLine($"File cache failed, calling url {url} to get data");
+            output.WriteLine($"File cache failed, calling url {url} to get data");
 
             // Blockcypher's api limits you to 200 req / hour, so count them...
             HttpResponseMessage response = await HttpClient.GetAsync(url);
@@ -176,7 +176,7 @@ namespace Liviano.Tests.Liviano
             if (response.StatusCode == HttpStatusCode.TooManyRequests || !response.IsSuccessStatusCode)
             {
                 // NOTE Incase this fails read this...
-                Output.WriteLine("I've noticed that sometimes the API will return a 404, just rerun until you have content if that happens");
+                output.WriteLine("I've noticed that sometimes the API will return a 404, just rerun until you have content if that happens");
 
                 throw new ArgumentException($"Invalid api call to {url}, Http error: {response.StatusCode}");
             }
