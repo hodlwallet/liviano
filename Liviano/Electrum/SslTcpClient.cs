@@ -141,6 +141,8 @@ namespace Liviano.Electrum
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
 
+                sslStream.Flush();
+
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -154,7 +156,8 @@ namespace Liviano.Electrum
 
                 foreach (var msg in msgs)
                 {
-                    if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(msg))
+                    if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
+                        msg.IndexOf("\n", StringComparison.CurrentCulture) != -1)
                         OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
                 }
             }
@@ -178,6 +181,8 @@ namespace Liviano.Electrum
             {
                 bytes = sslStream.Read(buffer, 0, buffer.Length);
 
+                sslStream.Flush();
+
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -187,7 +192,8 @@ namespace Liviano.Electrum
                 messageData.Append(chars);
 
                 // Check for EOF && if the message is complete json... Usually this works with electrum
-                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 || CanParseToJson(messageData.ToString()))
+                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
+                    messageData.ToString().IndexOf("\n", StringComparison.CurrentCulture) != -1)
                     break;
             }
 

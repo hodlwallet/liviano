@@ -39,8 +39,8 @@ namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        readonly int DEFAULT_NETWORK_TIMEOUT_INT = 5;
-        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(5.0);
+        readonly int DEFAULT_NETWORK_TIMEOUT_INT = 30;
+        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
 
         TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
 
@@ -165,8 +165,8 @@ namespace Liviano.Electrum
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.ReadTimeout = Timeout.Infinite;
+            stream.WriteTimeout = Timeout.Infinite;
 
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
@@ -184,8 +184,8 @@ namespace Liviano.Electrum
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-            stream.ReadTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
-            stream.WriteTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds);
+            stream.ReadTimeout = Timeout.Infinite;
+            stream.WriteTimeout = Timeout.Infinite;
 
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
@@ -209,7 +209,7 @@ namespace Liviano.Electrum
                     $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
                 );
 
-                var result = await Task.Run(() => RequestInternal(request, useSsl)).WithTimeout(DEFAULT_NETWORK_TIMEOUT);
+                var result = await Task.Run(() => RequestInternal(request, useSsl));
 
                 if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 

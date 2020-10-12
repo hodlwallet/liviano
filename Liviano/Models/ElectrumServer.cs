@@ -88,14 +88,6 @@ namespace Liviano.Models
         public ElectrumClient ElectrumClient { get; set; }
 
         /// <summary>
-        /// Downloads headers from this server, TODO store it somwhere
-        /// </summary>
-        public async Task DownloadHeaders()
-        {
-            await Task.Delay(10);
-        }
-
-        /// <summary>
         /// Connects by trying to get a version.
         /// </summary>
         /// <param name="retries">How many times we've retried</param>
