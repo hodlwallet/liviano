@@ -113,11 +113,10 @@ namespace Liviano.Electrum
 
         TcpClient Connect()
         {
-            var tcpClient = new TcpClient(ipAddress.AddressFamily)
+            using var tcpClient = new TcpClient(ipAddress.AddressFamily)
             {
                 SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
                 ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
-                ExclusiveAddressUse = true
             };
 
             var isConnected = tcpClient.ConnectAsync(ipAddress, port).Wait(DEFAULT_NETWORK_TIMEOUT);
