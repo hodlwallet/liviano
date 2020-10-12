@@ -238,17 +238,17 @@ namespace Liviano
             Console.WriteLine("Finished???");
         }
 
-        ChainedBlock GetNextCheckpoint(int height)
-        {
-            foreach (var checkpoint in Checkpoints)
-            {
-                if (checkpoint.Height < height) continue;
+        //ChainedBlock GetNextCheckpoint(int height)
+        //{
+            //foreach (var checkpoint in Checkpoints)
+            //{
+                //if (checkpoint.Height < height) continue;
 
-                return checkpoint;
-            }
+                //return checkpoint;
+            //}
 
-            return null;
-        }
+            //return null;
+        //}
 
         /// <summary>
         /// Gets the current height

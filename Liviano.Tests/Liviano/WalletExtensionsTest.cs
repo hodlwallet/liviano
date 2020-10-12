@@ -81,36 +81,34 @@ namespace Liviano.Tests.Liviano
 
         public string GetBlockHeaderHex()
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                byte[] versionBytes = BitConverter.GetBytes(Ver);
+            using MemoryStream ms = new MemoryStream();
+            byte[] versionBytes = BitConverter.GetBytes(Ver);
 
-                ms.Write(versionBytes);
+            ms.Write(versionBytes);
 
-                byte[] prevBlockBytes = new HexEncoder().DecodeData(PrevBlock);
-                Array.Reverse(prevBlockBytes);
+            byte[] prevBlockBytes = new HexEncoder().DecodeData(PrevBlock);
+            Array.Reverse(prevBlockBytes);
 
-                ms.Write(prevBlockBytes);
+            ms.Write(prevBlockBytes);
 
-                byte[] merkleRootBytes = new HexEncoder().DecodeData(MrklRoot);
-                Array.Reverse(merkleRootBytes);
+            byte[] merkleRootBytes = new HexEncoder().DecodeData(MrklRoot);
+            Array.Reverse(merkleRootBytes);
 
-                ms.Write(merkleRootBytes);
+            ms.Write(merkleRootBytes);
 
-                byte[] timestampBytes = BitConverter.GetBytes((int)new DateTimeOffset(Time).ToUnixTimeSeconds());
+            byte[] timestampBytes = BitConverter.GetBytes((int)new DateTimeOffset(Time).ToUnixTimeSeconds());
 
-                ms.Write(timestampBytes);
+            ms.Write(timestampBytes);
 
-                byte[] bitsBytes = BitConverter.GetBytes(Bits);
+            byte[] bitsBytes = BitConverter.GetBytes(Bits);
 
-                ms.Write(bitsBytes);
+            ms.Write(bitsBytes);
 
-                byte[] nonceBytes = BitConverter.GetBytes(Nonce).Take(4).ToArray();
+            byte[] nonceBytes = BitConverter.GetBytes(Nonce).Take(4).ToArray();
 
-                ms.Write(nonceBytes);
+            ms.Write(nonceBytes);
 
-                return new HexEncoder().EncodeData(ms.ToArray());
-            }
+            return new HexEncoder().EncodeData(ms.ToArray());
         }
     }
 
@@ -120,13 +118,13 @@ namespace Liviano.Tests.Liviano
 
         const string BLOCKCYPHER_TESTNET_BLOCK_API = "https://api.blockcypher.com/v1/btc/test3/blocks/{0}";
 
-        static HttpClient _HttpClient = new HttpClient();
+        static readonly HttpClient HttpClient = new HttpClient();
 
-        readonly ITestOutputHelper _Output;
+        readonly ITestOutputHelper Output;
 
         public WalletExtensionsTest(ITestOutputHelper output)
         {
-            _Output = output;
+            Output = output;
         }
 
         [Fact]
@@ -169,18 +167,18 @@ namespace Liviano.Tests.Liviano
                 return await File.ReadAllTextAsync(fileName);
 
             // We now do the http request
-            _Output.WriteLine($"File cache failed, calling url {url} to get data");
+            Output.WriteLine($"File cache failed, calling url {url} to get data");
 
             // Blockcypher's api limits you to 200 req / hour, so count them...
-            HttpResponseMessage response = await _HttpClient.GetAsync(url);
+            HttpResponseMessage response = await HttpClient.GetAsync(url);
             Thread.Sleep(1000); // And sleep for a second... first test run is slow but after is fast.
 
             if (response.StatusCode == HttpStatusCode.TooManyRequests || !response.IsSuccessStatusCode)
             {
                 // NOTE Incase this fails read this...
-                _Output.WriteLine("I've noticed that sometimes the API will return a 404, just rerun until you have content if that happens");
+                Output.WriteLine("I've noticed that sometimes the API will return a 404, just rerun until you have content if that happens");
 
-                throw new ArgumentException($"Invalid api call to {url}, Http error: {response.StatusCode.ToString()}");
+                throw new ArgumentException($"Invalid api call to {url}, Http error: {response.StatusCode}");
             }
 
             string content = await response.Content.ReadAsStringAsync();

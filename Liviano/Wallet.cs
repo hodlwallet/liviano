@@ -456,21 +456,21 @@ namespace Liviano
 
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
         {
-            Console.WriteLine($"Sync started at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Sync started at {DateTime.Now}");
 
             this.OnSyncStarted?.Invoke(this, null);
         }
 
         private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
         {
-            Console.WriteLine($"Watch started at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Watch started at {DateTime.Now}");
 
             this.OnWatchStarted?.Invoke(this, null);
         }
 
         private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
         {
-            Console.WriteLine($"Sync finished at {DateTime.Now.ToString()}");
+            Console.WriteLine($"Sync finished at {DateTime.Now}");
 
             this.OnSyncFinished?.Invoke(this, args);
         }

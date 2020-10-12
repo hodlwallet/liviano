@@ -116,14 +116,14 @@ namespace Liviano.Accounts
 
             var scriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
-            TxIds = TxIds ?? new List<string>();
-            Txs = Txs ?? new List<Tx>();
+            TxIds ??= new List<string>();
+            Txs ??= new List<Tx>();
 
-            UsedExternalAddresses = UsedExternalAddresses ?? new List<BitcoinAddress>();
-            UsedInternalAddresses = UsedInternalAddresses ?? new List<BitcoinAddress>();
+            UsedExternalAddresses ??= new List<BitcoinAddress>();
+            UsedInternalAddresses ??= new List<BitcoinAddress>();
 
-            SpentCoins = SpentCoins ?? new List<Coin>();
-            UnspentCoins = SpentCoins ?? new List<Coin>();
+            SpentCoins ??= new List<Coin>();
+            UnspentCoins ??= new List<Coin>();
 
             Index = index;
 
@@ -200,7 +200,7 @@ namespace Liviano.Accounts
             Id = Guid.NewGuid().ToString();
             Name = name;
             ScriptPubKeyType = scriptPubKeyType;
-            Network = Network ?? network ?? Network.Main;
+            Network ??= network ?? Network.Main;
 
             if (wif is null)
             {

@@ -55,8 +55,8 @@ namespace Liviano.Utilities
                 throw new ArgumentNullException(parameterName);
             }
 
-            // throw if the value is null
-            if (ReferenceEquals(value, null))
+            // throw if the value == null
+            if (value == null)
             {
                 throw new ArgumentNullException(parameterName);
             }

@@ -132,15 +132,5 @@ namespace Liviano.Tests.Liviano
             Assert.NotNull(a);
             Assert.NotEmpty(a.Id);
         }
-
-        string GetExpectedAccountTypesStr(Wallet wallet)
-        {
-            var expectedAccountTypes = string.Empty;
-            foreach (var at in wallet.AccountTypes)
-                expectedAccountTypes += $"\"{at}\",";
-            expectedAccountTypes = expectedAccountTypes.Remove(expectedAccountTypes.Length - 1);
-
-            return expectedAccountTypes;
-        }
     }
 }

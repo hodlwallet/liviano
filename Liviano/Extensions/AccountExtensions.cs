@@ -40,21 +40,15 @@ namespace Liviano.Extensions
         /// <returns></returns>
         public static IAccount CastToAccountType(this IAccount account)
         {
-            switch (account.AccountType)
+            return account.AccountType switch
             {
-                case "bip44":
-                    return (Bip44Account)account;
-                case "bip49":
-                    return (Bip49Account)account;
-                case "bip84":
-                    return (Bip84Account)account;
-                case "bip141":
-                    return (Bip141Account)account;
-                case "paper":
-                    return (PaperAccount)account;
-                default:
-                    throw new ArgumentException($"Invalid account type {account.AccountType}");
-            }
+                "bip44" => (Bip44Account)account,
+                "bip49" => (Bip49Account)account,
+                "bip84" => (Bip84Account)account,
+                "bip141" => (Bip141Account)account,
+                "paper" => (PaperAccount)account,
+                _ => throw new ArgumentException($"Invalid account type {account.AccountType}"),
+            };
         }
 
         public static object TryGetProperty(this IAccount account, string name)

@@ -73,17 +73,14 @@ namespace Liviano.Bips
         {
             PubKey pubKey = GeneratePublicKey(GetNetwork(network), extPubKeyWif, index, isChange);
 
-            switch (addressType)
+            return addressType switch
             {
-                case "p2pkh":
-                    return pubKey.Hash.GetAddress(GetNetwork(network));
-                case "p2sh-p2wpkh":
-                    return pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network));
-                case "p2wpkh":
-                    return pubKey.WitHash.GetAddress(GetNetwork(network));
-                default: // Default to bech32 (p2wpkh)
-                    return pubKey.WitHash.GetAddress(GetNetwork(network));
-            }
+                "p2pkh" => pubKey.Hash.GetAddress(GetNetwork(network)),
+                "p2sh-p2wpkh" => pubKey.WitHash.ScriptPubKey.Hash.GetAddress(GetNetwork(network)),
+                "p2wpkh" => pubKey.WitHash.GetAddress(GetNetwork(network)),
+                // Default to bech32 (p2wpkh)
+                _ => pubKey.WitHash.GetAddress(GetNetwork(network)),
+            };
         }
 
         public static Script GetScriptPubKey(string address, string network)
@@ -95,17 +92,13 @@ namespace Liviano.Bips
         {
             Guard.NotNull(network, nameof(network));
 
-            switch (network.ToLower())
+            return (network.ToLower()) switch
             {
-                case "main":
-                    return Network.Main;
-                case "testnet":
-                    return Network.TestNet;
-                case "regtest":
-                    return Network.RegTest;
-                default:
-                    throw new WalletException($"Invalid network {network}, valid networks are {string.Join(", ", AcceptedNetworks)}");
-            }
+                "main" => Network.Main,
+                "testnet" => Network.TestNet,
+                "regtest" => Network.RegTest,
+                _ => throw new WalletException($"Invalid network {network}, valid networks are {string.Join(", ", AcceptedNetworks)}"),
+            };
         }
 
         /// <summary>
@@ -291,8 +284,7 @@ namespace Liviano.Bips
             if (hdPathParts.Length < 5)
                 throw new WalletException($"Could not parse value from HdPath {hdPath}.");
 
-            int result = 0;
-            if (int.TryParse(hdPathParts[4], out result))
+            if (int.TryParse(hdPathParts[4], out int result))
             {
                 return result == 1;
             }
@@ -392,44 +384,30 @@ namespace Liviano.Bips
 
         public static Wordlist WordlistFromString(string wordlist = "english")
         {
-            switch (wordlist.ToLower())
+            return (wordlist.ToLower()) switch
             {
-                case "english":
-                    return Wordlist.English;
-                case "spanish":
-                    return Wordlist.Spanish;
-                case "chinese_simplified":
-                    return Wordlist.ChineseSimplified;
-                case "chinese_traditional":
-                    return Wordlist.ChineseTraditional;
-                case "french":
-                    return Wordlist.French;
-                case "japanese":
-                    return Wordlist.Japanese;
-                case "portuguese_brazil":
-                    return Wordlist.PortugueseBrazil;
-                default:
-                    throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", AcceptedMnemonicWordlists)}");
-            }
+                "english" => Wordlist.English,
+                "spanish" => Wordlist.Spanish,
+                "chinese_simplified" => Wordlist.ChineseSimplified,
+                "chinese_traditional" => Wordlist.ChineseTraditional,
+                "french" => Wordlist.French,
+                "japanese" => Wordlist.Japanese,
+                "portuguese_brazil" => Wordlist.PortugueseBrazil,
+                _ => throw new WalletException($"Invalid wordlist: {wordlist}.\nValid options:\n{String.Join(", ", AcceptedMnemonicWordlists)}"),
+            };
         }
 
         public static WordCount WordCountFromInt(int wordCount = 12)
         {
-            switch (wordCount)
+            return wordCount switch
             {
-                case 12:
-                    return WordCount.Twelve;
-                case 15:
-                    return WordCount.Fifteen;
-                case 18:
-                    return WordCount.Eighteen;
-                case 21:
-                    return WordCount.TwentyOne;
-                case 24:
-                    return WordCount.TwentyFour;
-                default:
-                    throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", AcceptedMnemonicWordCount)} are valid options.");
-            }
+                12 => WordCount.Twelve,
+                15 => WordCount.Fifteen,
+                18 => WordCount.Eighteen,
+                21 => WordCount.TwentyOne,
+                24 => WordCount.TwentyFour,
+                _ => throw new WalletException($"Invalid word count: {wordCount}. Only {String.Join(", ", AcceptedMnemonicWordCount)} are valid options."),
+            };
         }
 
         public static ConcurrentChain NewConcurrentChain()
@@ -447,8 +425,7 @@ namespace Liviano.Bips
         {
             Guard.NotEmpty(word, nameof(word));
             Guard.NotEmpty(wordlist, nameof(wordlist));
-
-            return WordlistFromString(wordlist).WordExists(word, out var unused);
+            return WordlistFromString(wordlist).WordExists(word, out _);
         }
 
         /// <summary>
@@ -504,7 +481,7 @@ namespace Liviano.Bips
                 WordCountFromInt(wordCount)
             );
 
-            Debug.WriteLine($"[NewMnemonic] New Mnemonic generated: \"{mnemonic.ToString()}\"");
+            Debug.WriteLine($"[NewMnemonic] New Mnemonic generated: \"{mnemonic}\"");
 
             return mnemonic;
         }
