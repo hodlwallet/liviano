@@ -125,7 +125,9 @@ namespace Liviano
 
                 var count = cp.Height;
                 var current = start;
-                Console.WriteLine($"current: {current} count: {count}");
+
+                Debug.WriteLine($"[DownloadHeadersPararel] Current: {current} Count: {count}");
+
                 while (current < cp.Height)
                 {
                     var res = await DownloadRequestUntilResult(pool, current, count);
@@ -153,23 +155,19 @@ namespace Liviano
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
 
-            Console.WriteLine(Headers.Count);
-            Console.WriteLine(Height);
-            Console.WriteLine("Finished???");
+            Console.WriteLine($"Final header counts: {Headers.Count}");
+            Console.WriteLine($"Final Height: {Height}");
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
         {
             if (pool.ElectrumClient is null)
             {
-                Console.WriteLine("ElectrumClient is null fuck.");
-
                 pool.FindConnectedServersUntilMinNumber().Wait();
             }
 
             try
             {
-                Console.WriteLine("Trying request!!!!!!!!!!!!!");
                 return await pool.DownloadHeaders(current, count);
             }
             catch (Exception err)
@@ -205,7 +203,9 @@ namespace Liviano
 
                 var count = cp.Height;
                 var current = start;
-                Console.WriteLine($"current: {current} count: {count}");
+
+                Debug.WriteLine($"[DownloadHeaders] Current: {current} Count: {count}");
+
                 while (current < cp.Height)
                 {
                     var res = await DownloadRequestUntilResult(pool, current, count);
@@ -233,9 +233,8 @@ namespace Liviano
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
 
-            Console.WriteLine(Headers.Count);
-            Console.WriteLine(Height);
-            Console.WriteLine("Finished???");
+            Console.WriteLine($"Final Header count: {Headers.Count}");
+            Console.WriteLine($"Final Height: {Height}");
         }
 
         /// <summary>
