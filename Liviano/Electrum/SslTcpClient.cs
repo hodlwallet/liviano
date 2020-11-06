@@ -31,8 +31,6 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-using Newtonsoft.Json;
-
 namespace Liviano.Electrum
 {
     public static class SslTcpClient

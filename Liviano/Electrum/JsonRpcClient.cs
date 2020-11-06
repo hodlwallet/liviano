@@ -41,7 +41,7 @@ namespace Liviano.Electrum
         readonly int DEFAULT_NETWORK_TIMEOUT_INT = 30;
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
 
-        TimeSpan DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN = TimeSpan.FromMilliseconds(500.0);
+        TimeSpan DEFAULT_TIMEOUT_DATA_AVAILABLE = TimeSpan.FromMilliseconds(500.0);
 
         TimeSpan DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS = TimeSpan.FromMilliseconds(1.0);
 
@@ -107,7 +107,7 @@ namespace Liviano.Electrum
                 return false;
             }
 
-            return DateTime.UtcNow > initTime + DEFAULT_TIMEOUT_FOR_SUBSEQUENT_DATA_AVAILABLE_SIGNAL_TO_HAPPEN;
+            return DateTime.UtcNow > initTime + DEFAULT_TIMEOUT_DATA_AVAILABLE;
         }
 
         TcpClient Connect()
@@ -158,8 +158,8 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-            using var tcpClient = Connect();
-            using var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+            var tcpClient = Connect();
+            var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
@@ -177,8 +177,8 @@ namespace Liviano.Electrum
 
         string RequestInternalNonSsl(string request)
         {
-            using var tcpClient = Connect();
-            using var stream = tcpClient.GetStream();
+            var tcpClient = Connect();
+            var stream = tcpClient.GetStream();
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
