@@ -32,7 +32,6 @@ using System.Net.Sockets;
 using System.Threading;
 
 using Liviano.Models;
-using Liviano.Extensions;
 using Liviano.Exceptions;
 
 namespace Liviano.Electrum
