@@ -112,7 +112,7 @@ namespace Liviano.Electrum
 
         TcpClient Connect()
         {
-            using var tcpClient = new TcpClient(ipAddress.AddressFamily)
+            var tcpClient = new TcpClient(ipAddress.AddressFamily)
             {
                 SendTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
                 ReceiveTimeout = Convert.ToInt32(DEFAULT_NETWORK_TIMEOUT.TotalMilliseconds),
