@@ -174,6 +174,7 @@ namespace Liviano
                 var count = cp.Height;
                 var current = start;
                 Console.WriteLine($"current: {current} count: {count}");
+                Console.WriteLine($"cp.height: {cp.Height}");
                 while (current < cp.Height)
                 {
                     var t = DownloadRequestUntilResult(pool, current, count);

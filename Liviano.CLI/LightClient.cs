@@ -433,7 +433,8 @@ namespace Liviano.CLI
             blockchain.DownloadHeadersParallel(wallet.ElectrumPool); // Parallel
             //blockchain.DownloadHeaders(wallet.ElectrumPool).Wait(); // Sequencial
 
-            Console.WriteLine($"{blockchain.Headers.Count}");
+            Console.WriteLine($"Headers: {blockchain.Headers.Count}");
+            Console.WriteLine($"Height: {blockchain.Height}");
         }
 
         /// <summary>
