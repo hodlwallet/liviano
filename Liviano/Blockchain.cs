@@ -160,7 +160,16 @@ namespace Liviano
             foreach (var cp in Checkpoints)
             {
                 var index = Array.IndexOf(Checkpoints, cp);
-                var start = index == 0 ? 0 : cp.Height + 1;
+
+                int start;
+                if (index == 0)
+                {
+                     start = 0;
+                }
+                else
+                {
+                    start = cp.Height;
+                }
 
                 if (start == 0)
                 {
@@ -171,11 +180,13 @@ namespace Liviano
                     start++;
                 }
 
+                if (start >= 1 && start > cp.Height) continue;
+
                 var count = cp.Height;
                 var current = start;
                 Console.WriteLine($"current: {current} count: {count}");
                 Console.WriteLine($"cp.height: {cp.Height}");
-                while (current < cp.Height)
+                while (current <= cp.Height)
                 {
                     var t = DownloadRequestUntilResult(pool, current, count);
                     t.Wait();
@@ -185,6 +196,8 @@ namespace Liviano
                     count = res.Count;
                     var hex = res.Hex;
                     var max = res.Max;
+
+                    Console.WriteLine($"hex.Length = {hex.Length}");
 
                     var height = current;
                     for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
