@@ -155,7 +155,10 @@ namespace Liviano
             /*Height = GetHeight();*/
         /*}*/
 
-        public List<ChainedBlock> GetHeadersBetween2Checkpoints(ChainedBlock cpStart, ChainedBlock cpEnd)
+        public List<ChainedBlock> GetHeadersBetween2Checkpoints(
+                ElectrumPool pool,
+                ChainedBlock cpStart,
+                ChainedBlock cpEnd)
         {
             var blocks = new List<ChainedBlock> {};
             var currentHeight = cpStart.Height;
@@ -186,7 +189,9 @@ namespace Liviano
 
                     currentHeight = chainedBlock.Height;
 
-                    if (currentHeight != cpEnd.Height) blocks.Add(chainedBlock);
+                    if (currentHeight == cpEnd.Height) break;
+
+                    blocks.Add(chainedBlock);
                 }
             }
 
@@ -203,7 +208,7 @@ namespace Liviano
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
             var unsortedHeaders = new List<ChainedBlock> {};
-            var cpCount = Checkpoints.Count;
+            int cpCount = Checkpoints.Count();
 
             // First get all the checkpoints and find
             // all blocks in the middle of them
@@ -211,8 +216,8 @@ namespace Liviano
             for (int i = 0; i < cpCount; i++)
             {
                 ChainedBlock currentCp = Checkpoints[i];
-                ChainedBlock previousCp;
-                ChainedBlock nextCp;
+                ChainedBlock previousCp = null;
+                ChainedBlock nextCp = null;
 
                 // Calculate previousCp: i - 1
                 if (i > 0)
@@ -241,100 +246,18 @@ namespace Liviano
                     currentHeight = previousCp.Height + 1;
                 }
 
-                var count = currentCp.Height;
-                while (currentHeight <= currentCp.Height)
-                {
-                    var t = DownloadRequestUntilResult(pool, currentHeight, count);
-                    t.Wait();
-                    var res = t.Result;
-
-                    count = res.Count;
-                    var hex = res.Hex;
-                    var max = res.Max;
-
-                    Console.WriteLine($"hex.Length = {hex.Length}");
-
-                    var height = currentHeight;
-                    for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
-                    {
-                        var headerChars = hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray();
-                        var headerHex = new string(headerChars);
-
-                        var chainedBlock = new ChainedBlock(
-                            BlockHeader.Parse(headerHex, Network),
-                            height++
-                        );
-
-                        unsortedHeaders.Add(chainedBlock);
-                        currentHeight = chainedBlock.Height;
-                    }
-                }
+                var blocks = GetHeadersBetween2Checkpoints(pool, previousCp, currentCp);
+                unsortedHeaders.AddRange(blocks);
             }
 
             // Now after the checkpoints we must
             // find the rest of the blocks
 
-
-            foreach (var cp in Checkpoints)
-            {
-                var index = Array.IndexOf(Checkpoints, cp);
-
-                int start;
-                if (index == 0)
-                {
-                     start = 0;
-                }
-                else
-                {
-                    start = cp.Height;
-                }
-
-                if (start == 0)
-                {
-                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
-
-                    unsortedHeaders.Add(genesis);
-
-                    start++;
-                }
-
-                if (start >= 1 && start > cp.Height) continue;
-
-                var count = cp.Height;
-                var current = start;
-                Console.WriteLine($"current: {current} count: {count}");
-                Console.WriteLine($"cp.height: {cp.Height}");
-                while (current <= cp.Height)
-                {
-                    var t = DownloadRequestUntilResult(pool, current, count);
-                    t.Wait();
-
-                    var res = t.Result;
-
-                    count = res.Count;
-                    var hex = res.Hex;
-                    var max = res.Max;
-
-                    Console.WriteLine($"hex.Length = {hex.Length}");
-
-                    var height = current;
-                    for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
-                    {
-                        var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());
-
-                        var chainedBlock = new ChainedBlock(
-                            BlockHeader.Parse(headerHex, Network),
-                            height++
-                        );
-
-                        unsortedHeaders.Add(chainedBlock);
-                        current = chainedBlock.Height;
-                    }
-                }
-            }
-
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
+
+            Console.WriteLine($"Headers.Count = {Headers.Count}");
+            Console.WriteLine($"Height = {Height}");
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
