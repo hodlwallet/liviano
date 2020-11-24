@@ -40,6 +40,7 @@ namespace Liviano
     public class Blockchain
     {
         const int HEADER_SIZE = 80;
+        const int ELECTRUM_COUNT = 2016;
 
         /// <summary>
         /// The height of the blockchain an int
@@ -155,6 +156,44 @@ namespace Liviano
         /*}*/
 
         public List<ChainedBlock> GetHeadersBetween2Checkpoints(ChainedBlock cpStart, ChainedBlock cpEnd)
+        {
+            var blocks = new List<ChainedBlock> {};
+            var currentHeight = cpStart.Height;
+            var count = ELECTRUM_COUNT;
+
+            while (currentHeight < cpEnd.Height)
+            {
+                var t = DownloadRequestUntilResult(pool, currentHeight, count);
+                t.Wait();
+                var res = t.Result;
+
+                count = res.Count;
+                var hex = res.Hex;
+                var max = res.Max;
+
+                Console.WriteLine($"hex.Length = {hex.Length}");
+
+                var height = currentHeight;
+                for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
+                {
+                    var headerChars = hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray();
+                    var headerHex = new string(headerChars);
+
+                    var chainedBlock = new ChainedBlock(
+                        BlockHeader.Parse(headerHex, Network),
+                        height++
+                    );
+
+                    currentHeight = chainedBlock.Height;
+
+                    if (currentHeight != cpEnd.Height) blocks.Add(chainedBlock);
+                }
+            }
+
+            return blocks;
+        }
+
+        public List<ChainedBlock> GetHeadersUntilTip(ChainedBlock cp)
         {
             var blocks = new List<ChainedBlock> {};
 
