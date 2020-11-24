@@ -154,6 +154,13 @@ namespace Liviano
             /*Height = GetHeight();*/
         /*}*/
 
+        public List<ChainedBlock> GetHeadersBetween2Checkpoints(ChainedBlock cpStart, ChainedBlock cpEnd)
+        {
+            var blocks = new List<ChainedBlock> {};
+
+            return blocks;
+        }
+
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
             var unsortedHeaders = new List<ChainedBlock> {};
