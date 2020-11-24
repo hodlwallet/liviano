@@ -156,7 +156,79 @@ namespace Liviano
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
-            var unsortedHeaders = new List<ChainedBlock>();
+            var unsortedHeaders = new List<ChainedBlock> {};
+            var cpCount = Checkpoints.Count;
+
+            // First get all the checkpoints and find
+            // all blocks in the middle of them
+            int currentHeight;
+            for (int i = 0; i < cpCount; i++)
+            {
+                ChainedBlock currentCp = Checkpoints[i];
+                ChainedBlock previousCp;
+                ChainedBlock nextCp;
+
+                // Calculate previousCp: i - 1
+                if (i > 0)
+                {
+                    previousCp = Checkpoints[i - 1];
+                }
+
+                // Calculate nextCp: i + 1
+                if (i < cpCount - 1)
+                {
+                    nextCp = Checkpoints[i + 1];
+                }
+
+                if (i == 0)
+                {
+                    currentHeight = 0;
+
+                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
+                    previousCp = genesis;
+
+                    unsortedHeaders.Add(genesis);
+                    currentHeight = 1;
+                }
+                else
+                {
+                    currentHeight = previousCp.Height + 1;
+                }
+
+                var count = currentCp.Height;
+                while (currentHeight <= currentCp.Height)
+                {
+                    var t = DownloadRequestUntilResult(pool, currentHeight, count);
+                    t.Wait();
+                    var res = t.Result;
+
+                    count = res.Count;
+                    var hex = res.Hex;
+                    var max = res.Max;
+
+                    Console.WriteLine($"hex.Length = {hex.Length}");
+
+                    var height = currentHeight;
+                    for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
+                    {
+                        var headerChars = hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray();
+                        var headerHex = new string(headerChars);
+
+                        var chainedBlock = new ChainedBlock(
+                            BlockHeader.Parse(headerHex, Network),
+                            height++
+                        );
+
+                        unsortedHeaders.Add(chainedBlock);
+                        currentHeight = chainedBlock.Height;
+                    }
+                }
+            }
+
+            // Now after the checkpoints we must
+            // find the rest of the blocks
+
+
             foreach (var cp in Checkpoints)
             {
                 var index = Array.IndexOf(Checkpoints, cp);
