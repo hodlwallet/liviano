@@ -215,20 +215,13 @@ namespace Liviano
             int currentHeight;
             for (int i = 0; i < cpCount; i++)
             {
-                ChainedBlock currentCp = Checkpoints[i];
-                ChainedBlock previousCp = null;
-                ChainedBlock nextCp = null;
+                ChainedBlock startCp = null;
+                ChainedBlock endCp = Checkpoints[i];
 
-                // Calculate previousCp: i - 1
+                // Calculate startCp: i - 1
                 if (i > 0)
                 {
-                    previousCp = Checkpoints[i - 1];
-                }
-
-                // Calculate nextCp: i + 1
-                if (i < cpCount - 1)
-                {
-                    nextCp = Checkpoints[i + 1];
+                    startCp = Checkpoints[i - 1];
                 }
 
                 if (i == 0)
@@ -236,17 +229,17 @@ namespace Liviano
                     currentHeight = 0;
 
                     var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
-                    previousCp = genesis;
+                    startCp = genesis;
 
                     unsortedHeaders.Add(genesis);
                     currentHeight = 1;
                 }
                 else
                 {
-                    currentHeight = previousCp.Height + 1;
+                    currentHeight = startCp.Height + 1;
                 }
 
-                var blocks = GetHeadersBetween2Checkpoints(pool, previousCp, currentCp);
+                var blocks = GetHeadersBetween2Checkpoints(pool, startCp, endCp);
                 unsortedHeaders.AddRange(blocks);
             }
 
