@@ -231,7 +231,6 @@ namespace Liviano
                     var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
                     startCp = genesis;
 
-                    unsortedHeaders.Add(genesis);
                     currentHeight = 1;
                 }
                 else
@@ -239,8 +238,13 @@ namespace Liviano
                     currentHeight = startCp.Height + 1;
                 }
 
-                var blocks = GetHeadersBetween2Checkpoints(pool, startCp, endCp);
-                unsortedHeaders.AddRange(blocks);
+                unsortedHeaders.Add(startCp);
+
+                unsortedHeaders.AddRange(
+                    GetHeadersBetween2Checkpoints(pool, startCp, endCp)
+                );
+
+                unsortedHeaders.Add(endCp);
             }
 
             // Now after the checkpoints we must
