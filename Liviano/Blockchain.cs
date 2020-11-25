@@ -231,14 +231,14 @@ namespace Liviano
                     var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
                     startCp = genesis;
 
+                    if (unsortedHeaders.Count == 0) unsortedHeaders.Add(startCp);
+
                     currentHeight = 1;
                 }
                 else
                 {
                     currentHeight = startCp.Height + 1;
                 }
-
-                unsortedHeaders.Add(startCp);
 
                 unsortedHeaders.AddRange(
                     GetHeadersBetween2Checkpoints(pool, startCp, endCp)
