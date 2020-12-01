@@ -88,7 +88,7 @@ ubuntu.debug.build:
 	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm ./liviano
+	rm -f ./liviano
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 osx.debug.build:
@@ -102,7 +102,7 @@ win.debug.build:
 	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm ./liviano
+	rm -f ./liviano
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
 
 clean:
