@@ -161,25 +161,24 @@ namespace Liviano
                 ChainedBlock cpEnd)
         {
             var blocks = new List<ChainedBlock> {};
-            var currentHeight = cpStart.Height;
+            var currentHeight = cpStart.Height + 1;
             var count = ELECTRUM_COUNT;
 
             while (currentHeight < cpEnd.Height)
             {
                 var t = DownloadRequestUntilResult(pool, currentHeight, count);
                 t.Wait();
+
                 var res = t.Result;
 
                 count = res.Count;
                 var hex = res.Hex;
                 var max = res.Max;
-
-                Console.WriteLine($"hex.Length = {hex.Length}");
-
                 var height = currentHeight;
-                for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)
+
+                for (int i = 0; i < count; i++)
                 {
-                    var headerChars = hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray();
+                    var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
                     var headerHex = new string(headerChars);
 
                     var chainedBlock = new ChainedBlock(
@@ -192,6 +191,8 @@ namespace Liviano
                     if (currentHeight == cpEnd.Height) break;
 
                     blocks.Add(chainedBlock);
+
+                    Debug.WriteLine($"[GetHeadersBetween2Checkpoints] Added block: {chainedBlock.Height} (to checkpoint: {cpEnd.Height})");
                 }
             }
 
@@ -215,36 +216,43 @@ namespace Liviano
             int currentHeight;
             for (int i = 0; i < cpCount; i++)
             {
-                ChainedBlock startCp = null;
-                ChainedBlock endCp = Checkpoints[i];
+                ChainedBlock cpStart = null;
+                ChainedBlock cpEnd = Checkpoints[i];
 
-                // Calculate startCp: i - 1
+                // Calculate cpStart: i - 1
                 if (i > 0)
                 {
-                    startCp = Checkpoints[i - 1];
+                    cpStart = Checkpoints[i - 1];
                 }
 
                 if (i == 0)
                 {
                     currentHeight = 0;
 
-                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
-                    startCp = genesis;
+                    var genesis = new ChainedBlock(Network.GetGenesis().Header, currentHeight);
+                    cpStart = genesis;
 
-                    if (unsortedHeaders.Count == 0) unsortedHeaders.Add(startCp);
+                    if (unsortedHeaders.Count == 0)
+                    {
+                        unsortedHeaders.Add(cpStart);
+
+                        Debug.WriteLine($"[DownloadHeadersParallel] Added block: {cpStart.Height} (to checkpoint: {cpEnd.Height})");
+                    }
 
                     currentHeight = 1;
                 }
                 else
                 {
-                    currentHeight = startCp.Height + 1;
+                    currentHeight = cpStart.Height + 1;
                 }
 
                 unsortedHeaders.AddRange(
-                    GetHeadersBetween2Checkpoints(pool, startCp, endCp)
+                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
                 );
 
-                unsortedHeaders.Add(endCp);
+                unsortedHeaders.Add(cpEnd);
+
+                Debug.WriteLine($"[DownloadHeadersParallel] Added block {cpEnd.Height} (to checkpoint: {cpEnd.Height})");
             }
 
             // Now after the checkpoints we must
@@ -280,52 +288,61 @@ namespace Liviano
 
         public async Task DownloadHeaders(ElectrumPool pool)
         {
-            var unsortedHeaders = new List<ChainedBlock>();
+            var unsortedHeaders = new List<ChainedBlock> {};
+            int cpCount = Checkpoints.Count();
 
-            for (int i = 0; i <= Checkpoints.Length; i++)
+            // First get all the checkpoints and find
+            // all blocks in the middle of them
+            int currentHeight;
+            for (int i = 0; i < cpCount; i++)
             {
-                var cp = Checkpoints[i];
-                var index = Array.IndexOf(Checkpoints, cp);
-                var start = index == 0 ? 0 : cp.Height + 1;
+                ChainedBlock cpStart = null;
+                ChainedBlock cpEnd = Checkpoints[i];
 
-                if (start == 0)
+                // Calculate cpStart: i - 1
+                if (i > 0)
                 {
-                    var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
-
-                    unsortedHeaders.Add(genesis);
-
-                    start++;
+                    cpStart = Checkpoints[i - 1];
                 }
 
-                var count = cp.Height;
-                var current = start;
-                Console.WriteLine($"current: {current} count: {count}");
-                while (current < cp.Height)
+                if (i == 0)
                 {
-                    var res = await DownloadRequestUntilResult(pool, current, count);
+                    currentHeight = 0;
 
-                    count = res.Count;
-                    var hex = res.Hex;
-                    var max = res.Max;
+                    var genesis = new ChainedBlock(Network.GetGenesis().Header, currentHeight);
+                    cpStart = genesis;
 
-                    var height = current;
-                    for (int j = 0; j < hex.Length; j += (HEADER_SIZE * 2))
+                    if (unsortedHeaders.Count == 0)
                     {
-                        var headerHex = new string(hex.ToList().Skip(j).Take(HEADER_SIZE * 2).ToArray());
+                        unsortedHeaders.Add(cpStart);
 
-                        var chainedBlock = new ChainedBlock(
-                            BlockHeader.Parse(headerHex, Network),
-                            height++
-                        );
-
-                        unsortedHeaders.Add(chainedBlock);
-                        current = chainedBlock.Height;
+                        Debug.WriteLine($"[DownloadHeadersParallel] Added block: {cpStart.Height} (to checkpoint: {cpEnd.Height})");
                     }
+
+                    currentHeight = 1;
                 }
+                else
+                {
+                    currentHeight = cpStart.Height + 1;
+                }
+
+                unsortedHeaders.AddRange(
+                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
+                );
+
+                unsortedHeaders.Add(cpEnd);
+
+                Debug.WriteLine($"[DownloadHeadersParallel] Added block {cpEnd.Height} (to checkpoint: {cpEnd.Height})");
             }
+
+            // Now after the checkpoints we must
+            // find the rest of the blocks
 
             Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
             Height = GetHeight();
+
+            Console.WriteLine($"Headers.Count = {Headers.Count}");
+            Console.WriteLine($"Height = {Height}");
         }
 
         /// <summary>
