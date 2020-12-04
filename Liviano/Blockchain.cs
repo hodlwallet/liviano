@@ -208,61 +208,6 @@ namespace Liviano
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
-            var unsortedHeaders = new List<ChainedBlock> {};
-            int cpCount = Checkpoints.Count();
-
-            // First get all the checkpoints and find
-            // all blocks in the middle of them
-            int currentHeight;
-            for (int i = 0; i < cpCount; i++)
-            {
-                ChainedBlock cpStart = null;
-                ChainedBlock cpEnd = Checkpoints[i];
-
-                // Calculate cpStart: i - 1
-                if (i > 0)
-                {
-                    cpStart = Checkpoints[i - 1];
-                }
-
-                if (i == 0)
-                {
-                    currentHeight = 0;
-
-                    var genesis = new ChainedBlock(Network.GetGenesis().Header, currentHeight);
-                    cpStart = genesis;
-
-                    if (unsortedHeaders.Count == 0)
-                    {
-                        unsortedHeaders.Add(cpStart);
-
-                        Debug.WriteLine($"[DownloadHeadersParallel] Added block: {cpStart.Height} (to checkpoint: {cpEnd.Height})");
-                    }
-
-                    currentHeight = 1;
-                }
-                else
-                {
-                    currentHeight = cpStart.Height + 1;
-                }
-
-                unsortedHeaders.AddRange(
-                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
-                );
-
-                unsortedHeaders.Add(cpEnd);
-
-                Debug.WriteLine($"[DownloadHeadersParallel] Added block {cpEnd.Height} (to checkpoint: {cpEnd.Height})");
-            }
-
-            // Now after the checkpoints we must
-            // find the rest of the blocks
-
-            Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
-            Height = GetHeight();
-
-            Console.WriteLine($"Headers.Count = {Headers.Count}");
-            Console.WriteLine($"Height = {Height}");
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
