@@ -202,12 +202,42 @@ namespace Liviano
         public List<ChainedBlock> GetHeadersUntilTip(ChainedBlock cp)
         {
             var blocks = new List<ChainedBlock> {};
+            
 
             return blocks;
         }
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
+            var unsortedHeaders = new List<ChainedBlock> {};
+
+            // Get genesis in
+            var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
+            unsortedHeaders.Add(genesis);
+
+            var start = 1;
+            var cpStart = genesis;
+            ChainedBlock cpPrev = null;
+            ChainedBlock cpEnd = null;
+            Parallel.ForEach(Checkpoints, async cp =>
+            {
+                if (cpPrev != null) cpStart = cpPrev;
+                cpEnd = cp;
+
+                unsortedHeaders.AddRange(
+                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
+                );
+
+                unsortedHeaders.Add(cpEnd);
+
+                cpPrev = cpEnd;
+            });
+
+            Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
+            Height = GetHeight();
+
+            Console.WriteLine($"Headers.Count = {Headers.Count}");
+            Console.WriteLine($"Height = {Height}");
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
