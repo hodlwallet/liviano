@@ -192,7 +192,7 @@ namespace Liviano
 
                     blocks.Add(chainedBlock);
 
-                    Debug.WriteLine($"[GetHeadersBetween2Checkpoints] Added block: {chainedBlock.Height} (to checkpoint: {cpEnd.Height})");
+                    //Debug.WriteLine($"[GetHeadersBetween2Checkpoints] Added block: {chainedBlock.Height} (to checkpoint: {cpEnd.Height})");
                 }
             }
 
