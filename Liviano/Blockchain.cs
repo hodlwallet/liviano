@@ -209,13 +209,14 @@ namespace Liviano
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
+            var @lock = new Object();
             var unsortedHeaders = new List<ChainedBlock> {};
 
             // Get genesis in
             var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
             unsortedHeaders.Add(genesis);
 
-            var start = 1;
+            // Pairs will be used to traverse the list of checkpoints
             var cpPairs = new List<(ChainedBlock cpStart, ChainedBlock cpEnd)> {};
 
             // Append all the pairs like [(cp1, cp2), (cp2, cp3), (cp3, cp4)]
@@ -227,11 +228,11 @@ namespace Liviano
             }
 
             // Now we go tru all the pairs one by one async in parallel
-            Parallel.ForEach(cpPairs, async cpPair =>
+            Parallel.ForEach(cpPairs, cpPair =>
             {
-                unsortedHeaders.AddRange(
-                    GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd)
-                );
+                var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
+
+                lock (@lock) unsortedHeaders.AddRange(res);
             });
 
             // We sort at the end
@@ -266,7 +267,7 @@ namespace Liviano
             }
         }
 
-        public async Task DownloadHeaders(ElectrumPool pool)
+        public void DownloadHeaders(ElectrumPool pool)
         {
             var unsortedHeaders = new List<ChainedBlock> {};
             int cpCount = Checkpoints.Count();
