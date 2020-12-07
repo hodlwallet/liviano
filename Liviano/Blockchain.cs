@@ -216,28 +216,33 @@ namespace Liviano
             unsortedHeaders.Add(genesis);
 
             var start = 1;
-            var cpStart = genesis;
-            ChainedBlock cpPrev = null;
-            ChainedBlock cpEnd = null;
-            Parallel.ForEach(Checkpoints, async cp =>
+            var cpPairs = new List<(ChainedBlock cpStart, ChainedBlock cpEnd)> {};
+
+            // Append all the pairs like [(cp1, cp2), (cp2, cp3), (cp3, cp4)]
+            // in order to collect them with a parallel job
+            cpPairs.Add((genesis, Checkpoints[0]));
+            for (int i = 1; i < Checkpoints.Count(); i++)
             {
-                if (cpPrev != null) cpStart = cpPrev;
-                cpEnd = cp;
+                cpPairs.Add((Checkpoints[i - 1], Checkpoints[i]));
+            }
 
+            // Now we go tru all the pairs one by one async in parallel
+            Parallel.ForEach(cpPairs, async cpPair =>
+            {
                 unsortedHeaders.AddRange(
-                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
+                    GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd)
                 );
-
-                unsortedHeaders.Add(cpEnd);
-
-                cpPrev = cpEnd;
             });
 
+            // We sort at the end
             Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
-            Height = GetHeight();
+            Height = GetHeight(); // Get the last height
 
             Console.WriteLine($"Headers.Count = {Headers.Count}");
             Console.WriteLine($"Height = {Height}");
+
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadLine();
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
