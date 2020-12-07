@@ -242,8 +242,9 @@ namespace Liviano
             Console.WriteLine($"Headers.Count = {Headers.Count}");
             Console.WriteLine($"Height = {Height}");
 
+            // TODO Download the rest until tip
             Console.WriteLine("Press any key to continue...");
-            Console.ReadLine();
+            Console.Read();
         }
 
         async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
