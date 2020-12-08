@@ -107,54 +107,6 @@ namespace Liviano
             Height = GetHeight();
         }
 
-        /*public void DownloadHeadersParallel(ElectrumPool pool)*/
-        /*{*/
-            /*var unsortedHeaders = new List<ChainedBlock>();*/
-            /*Parallel.ForEach(Checkpoints, async cp =>*/
-            /*{*/
-                /*var index = Array.IndexOf(Checkpoints, cp);*/
-                /*var start = index == 0 ? 0 : cp.Height + 1;*/
-
-                /*if (start == 0)*/
-                /*{*/
-                    /*var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);*/
-
-                    /*unsortedHeaders.Add(genesis);*/
-
-                    /*start++;*/
-                /*}*/
-
-                /*var count = cp.Height;*/
-                /*var current = start;*/
-                /*Console.WriteLine($"current: {current} count: {count}");*/
-                /*while (current < cp.Height)*/
-                /*{*/
-                    /*var res = await DownloadRequestUntilResult(pool, current, count);*/
-
-                    /*count = res.Count;*/
-                    /*var hex = res.Hex;*/
-                    /*var max = res.Max;*/
-
-                    /*var height = current;*/
-                    /*for (int i = 0; i < hex.Length; i += HEADER_SIZE * 2)*/
-                    /*{*/
-                        /*var headerHex = new string(hex.ToList().Skip(i).Take(HEADER_SIZE * 2).ToArray());*/
-
-                        /*var chainedBlock = new ChainedBlock(*/
-                            /*BlockHeader.Parse(headerHex, Network),*/
-                            /*height++*/
-                        /*);*/
-
-                        /*unsortedHeaders.Add(chainedBlock);*/
-                        /*current = chainedBlock.Height;*/
-                    /*}*/
-                /*}*/
-            /*});*/
-
-            /*Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();*/
-            /*Height = GetHeight();*/
-        /*}*/
-
         public List<ChainedBlock> GetHeadersBetween2Checkpoints(
                 ElectrumPool pool,
                 ChainedBlock cpStart,
