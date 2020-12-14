@@ -403,7 +403,7 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainBlockHeaderWithCheckpointHeightResult>(json);
         }
 
-        public async Task<BlockchainBlockHeadersResult> BlockchainBlockHeaders(int height, int count = 0)
+        public async Task<BlockchainBlockHeadersResult> BlockchainBlockHeaders(int height, int count = 2016)
         {
             var obj = new Request { Id = ++RequestId, Method = "blockchain.block.headers", Params = new List<int> { height, count, 0 } };
             var json = Serialize(obj);
