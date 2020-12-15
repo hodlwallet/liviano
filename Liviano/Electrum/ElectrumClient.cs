@@ -297,6 +297,14 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
+        public class BaseNotification { }	
+
+        public class BlockchainScriptHashSubscribeNotification : BaseNotification	
+        {	
+            public string Method { get; set; }	
+            public string[] Params { get; set; }	
+        }	
+
         public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
             this.jsonRpcClient = jsonRpcClient;
@@ -405,7 +413,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainHeadersSubscribeResult> BlockchainHeadersSubscribe()
         {
-            var obj = new Request { Id = ++RequestId, Method = "blockchain.headers.subscribe", Params = [] };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.headers.subscribe", Params = new List<string> { } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainHeadersSubscribeResult>(json);

@@ -151,13 +151,15 @@ namespace Liviano
             return blocks;
         }
 
-        public List<ChainedBlock> GetHeadersUntilTip(ChainedBlock cp)
-        {
-            var blocks = new List<ChainedBlock> {};
-            
+        //public ChainedBlock GetHeadersTip()
+        //{
+            //var blocks = new ChainedBlock();
 
-            return blocks;
-        }
+            //var t = pool.DownloadTipHeader();
+            //t.Wait();
+
+            //return blocks;
+        //}
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
