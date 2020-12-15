@@ -820,9 +820,9 @@ namespace Liviano.Electrum
             return res.Result;
         }
 
-        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToNewHeaders()
+        public async Task<BlockchainHeadersSubscribeInnerResult> DownloadTipHeader()
         {
-            var res = await ElectrumClient.BlockchainHeadersSubscribeInnerResult(fromHeight, toHeight);
+            var res = await ElectrumClient.BlockchainHeadersSubscribe();
 
             return res.Result;
         }
