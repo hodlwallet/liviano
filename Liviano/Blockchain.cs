@@ -151,15 +151,18 @@ namespace Liviano
             return blocks;
         }
 
-        //public ChainedBlock GetHeadersTip()
-        //{
-            //var blocks = new ChainedBlock();
+        public ChainedBlock DownloadBlockchainHeadersTip(ElectrumPool pool)
+        {
+            var t = pool.DownloadTipHeader();
+            t.Wait();
 
-            //var t = pool.DownloadTipHeader();
-            //t.Wait();
+            var chainedBlock = new ChainedBlock(
+                BlockHeader.Parse(t.Result.Hex, Network),
+                t.Result.Height
+            );
 
-            //return blocks;
-        //}
+            return chainedBlock;
+        }
 
         public void DownloadHeadersParallel(ElectrumPool pool)
         {
