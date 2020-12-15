@@ -815,9 +815,14 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
         {
-            if (ElectrumClient is null) Debug.WriteLine("[DownloadHeaders] ElectrumClient is null");
-
             var res = await ElectrumClient.BlockchainBlockHeaders(fromHeight, toHeight);
+
+            return res.Result;
+        }
+
+        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToNewHeaders()
+        {
+            var res = await ElectrumClient.BlockchainHeadersSubscribeInnerResult(fromHeight, toHeight);
 
             return res.Result;
         }
