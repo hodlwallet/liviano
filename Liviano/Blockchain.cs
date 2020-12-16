@@ -196,6 +196,21 @@ namespace Liviano
             Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
             Height = GetHeight(); // Get the last height
 
+            // Get the tip, and get headers to tip
+            cpPairs.Clear();
+            var tip = DownloadBlockchainHeadersTip(pool);
+            cpPairs.Add((Headers.Last(), tip));
+
+            Parallel.ForEach(cpPairs, cpPair =>
+            {
+                var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
+
+                lock (@lock) unsortedHeaders.AddRange(res);
+            });
+
+            Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
+            Height = GetHeight(); // Get the last height
+
             Console.WriteLine($"Headers.Count = {Headers.Count}");
             Console.WriteLine($"Height = {Height}");
 
