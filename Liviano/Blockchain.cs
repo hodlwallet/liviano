@@ -1,4 +1,4 @@
-﻿//
+//
 // Blockchain.cs
 //
 // Author:
