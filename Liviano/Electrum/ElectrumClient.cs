@@ -42,19 +42,7 @@ namespace Liviano.Electrum
 
         readonly JsonRpcClient jsonRpcClient;
 
-        DateTimeOffset? lastCalledAt = null;
-        public DateTimeOffset? LastCalledAt
-        {
-            get
-            {
-                return lastCalledAt;
-            }
-
-            set
-            {
-                lastCalledAt = value;
-            }
-        }
+        public DateTimeOffset? LastCalledAt { get; private set; }
 
         public class Request
         {
