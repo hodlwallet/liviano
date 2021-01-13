@@ -162,6 +162,28 @@ namespace Liviano.Models
             return ping == null;
         }
 
+        /// <summary>
+        /// Periodicly ping the server based on the last called time
+        /// </summary>
+        public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
+        {
+            var delay = 420_000;
+            if (ElectrumClient.LastCalledAt < (DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(delay)))
+            {
+                var ping = await ElectrumClient.ServerPing();
+
+                if (!(bool) ping.Result)
+                {
+                    pingFailedAtCallback(ElectrumClient.LastCalledAt);
+
+                    return;
+                }
+            }
+
+            await Task.Delay(delay);
+            await PeriodicPing(pingFailedAtCallback);
+        }
+
         public async Task<string> DonationAddress()
         {
             var donationAddress = await ElectrumClient.ServerDonationAddress();

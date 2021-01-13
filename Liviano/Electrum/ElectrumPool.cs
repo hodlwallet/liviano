@@ -141,12 +141,12 @@ namespace Liviano.Electrum
             {
                 foreach (var s in AllServers)
                 {
-                    Task.Factory.StartNew((o) =>
+                    Task.Factory.StartNew(async (o) =>
                     {
                         s.CancellationToken = cancellationToken;
                         s.OnConnectedEvent += HandleConnectedServers;
 
-                        s.ConnectAsync().Wait();
+                        await s.ConnectAsync();
                     }, cancellationToken, TaskCreationOptions.AttachedToParent);
                 }
             }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);

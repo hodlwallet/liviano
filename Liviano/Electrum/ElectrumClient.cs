@@ -39,7 +39,22 @@ namespace Liviano.Electrum
         public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
         public static System.Version REQUESTED_VERSION = new System.Version("1.4");
         public static int RequestId = -1;
+
         readonly JsonRpcClient jsonRpcClient;
+
+        DateTimeOffset? lastCalledAt = null;
+        public DateTimeOffset? LastCalledAt
+        {
+            get
+            {
+                return lastCalledAt;
+            }
+
+            set
+            {
+                lastCalledAt = value;
+            }
+        }
 
         public class Request
         {
@@ -342,6 +357,8 @@ namespace Liviano.Electrum
 
             try
             {
+                LastCalledAt = DateTimeOffset.UtcNow;
+
                 return Deserialize<T>(rawResponse);
             }
             catch (Exception ex)
