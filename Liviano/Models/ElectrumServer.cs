@@ -157,9 +157,9 @@ namespace Liviano.Models
 
         public async Task<bool> Ping()
         {
-            var ping = await ElectrumClient.ServerDonationAddress();
+            var ping = await ElectrumClient.ServerPing();
 
-            return ping == null;
+            return ping.Result == null;
         }
 
         /// <summary>
