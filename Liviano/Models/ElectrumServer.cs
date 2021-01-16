@@ -170,9 +170,11 @@ namespace Liviano.Models
             var delay = 420_000;
             if (ElectrumClient.LastCalledAt != null && ElectrumClient.LastCalledAt < (DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(delay)))
             {
-                var ping = await ElectrumClient.ServerPing();
-
-                if (!(bool) ping.Result)
+                try
+                {
+                    _ = await Ping();
+                }
+                catch
                 {
                     pingFailedAtCallback(ElectrumClient.LastCalledAt);
 
