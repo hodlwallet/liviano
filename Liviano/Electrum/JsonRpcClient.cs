@@ -235,6 +235,7 @@ namespace Liviano.Electrum
             var tcpClient = Connect();
 
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
             var stream = SslTcpClient.GetSslStream(tcpClient, Host);
 
