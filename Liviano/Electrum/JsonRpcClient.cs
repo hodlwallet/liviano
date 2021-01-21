@@ -51,6 +51,8 @@ namespace Liviano.Electrum
 
         int port;
 
+        SslStream sslStream = null;
+
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
@@ -158,8 +160,18 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
+            SslStream stream = null;
             var tcpClient = Connect();
-            var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+
+            if (sslStream != null)
+            {
+                stream = sslStream;
+            }
+            else
+            {
+                sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
+                stream = sslStream;
+            }
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
@@ -224,6 +236,8 @@ namespace Liviano.Electrum
 
         public SslStream GetSslStream()
         {
+            if (sslStream != null) return sslStream;
+
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
@@ -237,12 +251,12 @@ namespace Liviano.Electrum
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
-            var stream = SslTcpClient.GetSslStream(tcpClient, Host);
+            sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
-            stream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
-            stream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
+            sslStream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
+            sslStream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
 
-            return stream;
+            return sslStream;
         }
 
         public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource cts = null)
