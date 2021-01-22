@@ -52,6 +52,7 @@ namespace Liviano.Electrum
         int port;
 
         SslStream sslStream = null;
+        TcpClient tcpClient = null;
 
         public string Host { get; private set; }
 
@@ -97,7 +98,7 @@ namespace Liviano.Electrum
             return Convert.ToByte(num);
         }
 
-        bool TimesUp(NetworkStream _, List<byte> acc, DateTime initTime)
+        bool TimesUp(List<byte> acc, DateTime initTime)
         {
             if (acc == null || !acc.Any())
             {
@@ -134,7 +135,7 @@ namespace Liviano.Electrum
         {
             if (!stream.DataAvailable || !stream.CanRead)
             {
-                if (TimesUp(stream, acc, initTime)) return WrapResult(acc);
+                if (TimesUp(acc, initTime)) return WrapResult(acc);
 
                 Thread.Sleep(DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS);
                 return Read(stream, acc, initTime);

@@ -152,8 +152,7 @@ namespace Liviano.Electrum
 
                 foreach (var msg in msgs)
                 {
-                    if (msg.IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
-                        msg.IndexOf("\n", StringComparison.CurrentCulture) != -1)
+                    if (msg.IndexOf("\n", StringComparison.CurrentCulture) != -1)
                         OnSubscriptionMessageEvent?.Invoke(sslStream, msg);
                 }
             }
