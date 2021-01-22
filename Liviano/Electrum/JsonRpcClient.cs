@@ -161,36 +161,26 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-            SslStream stream = null;
-            var tcpClient = Connect();
+            tcpClient ??= Connect();
+            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
-            if (sslStream != null)
-            {
-                stream = sslStream;
-            }
-            else
-            {
-                sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
-                stream = sslStream;
-            }
+            if (!sslStream.CanTimeout) return null; // Handle exception outside of Request()
 
-            if (!stream.CanTimeout) return null; // Handle exception outside of Request()
-
-            stream.ReadTimeout = Timeout.Infinite;
-            stream.WriteTimeout = Timeout.Infinite;
+            sslStream.ReadTimeout = Timeout.Infinite;
+            sslStream.WriteTimeout = Timeout.Infinite;
 
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            stream.Write(bytes, 0, bytes.Length);
+            sslStream.Write(bytes, 0, bytes.Length);
 
-            stream.Flush();
+            sslStream.Flush();
 
-            return SslTcpClient.ReadMessage(stream);
+            return SslTcpClient.ReadMessage(sslStream);
         }
 
         string RequestInternalNonSsl(string request)
         {
-            var tcpClient = Connect();
+            tcpClient ??= Connect();
             var stream = tcpClient.GetStream();
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
@@ -280,9 +270,9 @@ namespace Liviano.Electrum
 
             SslTcpClient.OnSubscriptionMessageEvent += (o, msg) =>
             {
-                // Is this shit important?
-                if (stream.GetHashCode() == o.GetHashCode())
-                    callback(msg);
+                Console.WriteLine("This happens?");
+                // FIXME Is this shit important?
+                if (stream.GetHashCode() == o.GetHashCode()) callback(msg);
             };
 
             await Task.Factory.StartNew(

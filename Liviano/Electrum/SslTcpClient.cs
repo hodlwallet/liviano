@@ -104,11 +104,11 @@ namespace Liviano.Electrum
             }
             catch (AuthenticationException e)
             {
-                Debug.WriteLine("[GetSslStream] Exception: {0}", e.Message);
+                Debug.WriteLine($"[GetSslStream] Exception: {e.Message}");
 
                 if (e.InnerException != null)
                 {
-                    Debug.WriteLine("[GetSslStream] Inner exception: {0}", e.InnerException.Message);
+                    Debug.WriteLine($"[GetSslStream] Inner exception: {e.InnerException.Message}");
                 }
 
                 Debug.WriteLine("[GetSslStream] Authentication failed - Closing the connection.");
@@ -146,6 +146,7 @@ namespace Liviano.Electrum
 
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
+
 
                 // This API supports mutiple messages sent separated by \n
                 msgs = GetMessages(messageData.ToString().Trim());

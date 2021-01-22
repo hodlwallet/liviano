@@ -491,7 +491,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashListUnspentResult> BlockchainScriptHashListUnspent(string scriptHash)
         {
-            var obj = new Request { Id = RequestId, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.listunspent", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashListUnspentResult>(json);
@@ -499,7 +499,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainScriptHashGetHistoryResult> BlockchainScriptHashGetHistory(string scriptHash)
         {
-            var obj = new Request { Id = RequestId, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.get_history", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
