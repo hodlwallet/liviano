@@ -282,6 +282,8 @@ namespace Liviano.CLI
 
             wallet.OnSyncFinished += (s, e) =>
             {
+                Console.ReadLine();
+
                 logger.Information("Sync finished!");
 
                 // Print transactions

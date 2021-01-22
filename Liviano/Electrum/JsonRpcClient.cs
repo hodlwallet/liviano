@@ -54,6 +54,8 @@ namespace Liviano.Electrum
         SslStream sslStream = null;
         TcpClient tcpClient = null;
 
+        object @lock;
+
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
@@ -161,21 +163,24 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-            tcpClient ??= Connect();
-            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
-
-            if (!sslStream.CanTimeout) return null; // Handle exception outside of Request()
+            tcpClient = Connect();
+            sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
             sslStream.ReadTimeout = Timeout.Infinite;
             sslStream.WriteTimeout = Timeout.Infinite;
 
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            sslStream.Write(bytes, 0, bytes.Length);
+            //lock (@lock)
+            //{
+                sslStream.Write(bytes, 0, bytes.Length);
 
-            sslStream.Flush();
+                sslStream.Flush();
 
-            return SslTcpClient.ReadMessage(sslStream);
+                // TODO This is where the queue magic should happen
+
+                return SslTcpClient.ReadMessage(sslStream);
+            //}
         }
 
         string RequestInternalNonSsl(string request)
@@ -270,7 +275,6 @@ namespace Liviano.Electrum
 
             SslTcpClient.OnSubscriptionMessageEvent += (o, msg) =>
             {
-                Console.WriteLine("This happens?");
                 // FIXME Is this shit important?
                 if (stream.GetHashCode() == o.GetHashCode()) callback(msg);
             };

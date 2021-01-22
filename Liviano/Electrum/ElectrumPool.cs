@@ -261,93 +261,90 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ScriptHash: {scriptHashStr}");
 
-            await Task.Factory.StartNew(async o =>
+            await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
             {
-                await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+                Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
+                Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
+                string status;
+                try
                 {
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
-                    string status;
-                    try
+                    var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
+
+                    status = string.Join(", ", oStatus.Params);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
+                    var sStatus = Deserialize<ResultAsString>(str);
+
+                    if (string.IsNullOrEmpty(sStatus.Result))
                     {
-                        var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
+                        Debug.WriteLine($"[WatchAddress] Result is null");
 
-                        status = string.Join(", ", oStatus.Params);
+                        return;
                     }
-                    catch (Exception e)
+                    else
+                        Debug.WriteLine($"[WatchAddress] Result is not null");
+
+                    status = sStatus.Result;
+                }
+
+                OnWatchAddressNotified?.Invoke(
+                    this,
+                    new WatchAddressEventArgs(status, acc, addr)
+                );
+
+                var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                foreach (var unspentResult in unspent.Result)
+                {
+                    var txHash = unspentResult.TxHash;
+                    var height = unspentResult.Height;
+
+                    var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                    var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+
+                    var txHex = blkChainTxGet.Result;
+
+                    // Tx is new
+                    if (currentTx is null)
                     {
-                        Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
-                        var sStatus = Deserialize<ResultAsString>(str);
+                        var tx = Tx.CreateFromHex(
+                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            GetOutValueFromTxInputs
+                        );
 
-                        if (string.IsNullOrEmpty(sStatus.Result))
-                        {
-                            Debug.WriteLine($"[WatchAddress] Result is null");
+                        acc.AddTx(tx);
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
-                            return;
-                        }
-                        else
-                            Debug.WriteLine($"[WatchAddress] Result is not null");
-
-                        status = sStatus.Result;
+                        return;
                     }
 
-                    OnWatchAddressNotified?.Invoke(
-                        this,
-                        new WatchAddressEventArgs(status, acc, addr)
-                    );
-
-                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
-
-                    foreach (var unspentResult in unspent.Result)
+                    // A potential update if tx heights are different
+                    if (currentTx.BlockHeight != height)
                     {
-                        var txHash = unspentResult.TxHash;
-                        var height = unspentResult.Height;
+                        var tx = Tx.CreateFromHex(
+                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            GetOutValueFromTxInputs
+                        );
 
-                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+                        acc.UpdateTx(tx);
 
-                        var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
-                        var txHex = blkChainTxGet.Result;
-
-                        // Tx is new
-                        if (currentTx is null)
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, acc, Network, receiveAddresses, changeAddresses,
-                                GetOutValueFromTxInputs
-                            );
-
-                            acc.AddTx(tx);
-                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-
-                            return;
-                        }
-
-                        // A potential update if tx heights are different
-                        if (currentTx.BlockHeight != height)
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, acc, Network, receiveAddresses, changeAddresses,
-                                GetOutValueFromTxInputs
-                            );
-
-                            acc.UpdateTx(tx);
-
-                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-
-                            // Here for safety, at any time somebody can add code to this
-                            return;
-                        }
+                        // Here for safety, at any time somebody can add code to this
+                        return;
                     }
-                });
+                }
+            });
 
-                Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
+            Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
 
-                // calling watch again after a 30 second timeout because it should never finish
-                await Task.Delay(30_000); // Wait a 30 seconds
+            // calling watch again after a 30 second timeout because it should never finish
+            await Task.Delay(30_000); // Wait a 30 seconds
 
-                await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-            }, TaskCreationOptions.AttachedToParent, ct);
+            await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
         }
 
         /// <summary>
@@ -359,17 +356,14 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            await Task.Factory.StartNew(async o =>
+            OnSyncStarted?.Invoke(this, null);
+
+            foreach (var acc in wallet.Accounts)
             {
-                OnSyncStarted?.Invoke(this, null);
+                await SyncAccount(acc, ct);
+            }
 
-                foreach (var acc in wallet.Accounts)
-                {
-                    await SyncAccount(acc, ct);
-                }
-
-                OnSyncFinished?.Invoke(this, null);
-            }, TaskCreationOptions.LongRunning, ct);
+            OnSyncFinished?.Invoke(this, null);
         }
 
         /// <summary>
@@ -393,10 +387,11 @@ namespace Liviano.Electrum
                 {
                     if (ct.IsCancellationRequested) return;
 
-                    await Task.Factory.StartNew(async o =>
-                    {
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    }, TaskCreationOptions.AttachedToParent, ct);
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //await Task.Factory.StartNew(async o =>
+                    //{
+                        //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //}, TaskCreationOptions.AttachedToParent, ct);
                 }
 
                 acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
@@ -408,10 +403,10 @@ namespace Liviano.Electrum
                 {
                     if (ct.IsCancellationRequested) return;
 
-                    await Task.Factory.StartNew(async o =>
-                    {
+                    //await Task.Factory.StartNew(async o =>
+                    //{
                         await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    }, TaskCreationOptions.AttachedToParent, ct);
+                    //}, TaskCreationOptions.AttachedToParent, ct);
                 }
 
                 acc.InternalAddressesIndex = acc.GetInternalLastIndex();
@@ -787,23 +782,17 @@ namespace Liviano.Electrum
             lock (@lock) if (ConnectedServers.ContainsAllServers(t.Result)) return;
             if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
 
-            Task.Factory.StartNew(() =>
+            foreach (var s in t.Result)
             {
-                foreach (var s in t.Result)
-                {
-                    if (AllServers.ContainsServer(s)) continue;
-                    lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
+                if (AllServers.ContainsServer(s)) continue;
+                lock (@lock) if (ConnectedServers.ContainsServer(s)) continue;
 
-                    Task.Factory.StartNew(() =>
-                    {
-                        s.ConnectAsync().Wait();
+                s.ConnectAsync().Wait();
 
-                        lock (@lock) if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
+                lock (@lock) if (ConnectedServers.Count >= MAX_NUMBER_OF_CONNECTED_SERVERS) return;
 
-                        HandleConnectedServers(s, null);
-                    }, TaskCreationOptions.AttachedToParent);
-                }
-            }, TaskCreationOptions.AttachedToParent).Wait();
+                HandleConnectedServers(s, null);
+            }
         }
 
         public async Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
