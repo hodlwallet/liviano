@@ -340,7 +340,7 @@ namespace Liviano.Electrum
 
             if (string.IsNullOrEmpty(rawResponse))
             {
-                throw new ElectrumException(string.Format("Server '{0}' returned a null/empty JSON response to the request '{1}'", jsonRpcClient.Host, jsonRequest));
+                throw new ElectrumException($"Server '{jsonRpcClient.Host}' returned a null/empty JSON response to the request '{jsonRequest}'");
             }
 
             try
@@ -351,7 +351,7 @@ namespace Liviano.Electrum
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[RequestInternal] There's an error??? {ex.Message}");
+                Debug.WriteLine($"[RequestInternal] Dezerialization error: {ex.Message}");
 
                 throw new ElectrumException(ex.Message);
             }
