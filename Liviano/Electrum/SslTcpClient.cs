@@ -74,7 +74,7 @@ namespace Liviano.Electrum
             Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors);
 
             // Do not allow this client to communicate with unauthenticated servers.
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -100,6 +100,7 @@ namespace Liviano.Electrum
             // The server name must match the name on the server certificate.
             try
             {
+                // TODO move this somewhere else
                 sslStream.AuthenticateAsClient(serverName);
             }
             catch (AuthenticationException e)
