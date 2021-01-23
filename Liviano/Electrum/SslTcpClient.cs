@@ -204,6 +204,15 @@ namespace Liviano.Electrum
             return message.Split('\n');
         }
 
+        public static bool CanParseToJson(string message)
+        {
+            message = message.Replace("\n", String.Empty);
+            message = message.Replace("\r", String.Empty);
+            message = message.Replace("\t", String.Empty);
+
+            return (message.IndexOf("{", StringComparison.CurrentCulture) == 0 && message.IndexOf("}", StringComparison.CurrentCulture) == -1);
+        }
+
         // TODO Add this function, in case we need it, we probably wont
         // public static bool CanParseToJson(string message)
         // {
