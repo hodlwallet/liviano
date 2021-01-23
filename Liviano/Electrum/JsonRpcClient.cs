@@ -163,6 +163,7 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
+            // TODO here's where we reconnect all the time
             tcpClient = Connect();
             sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
@@ -185,7 +186,7 @@ namespace Liviano.Electrum
 
         string RequestInternalNonSsl(string request)
         {
-            tcpClient ??= Connect();
+            tcpClient = Connect();
             var stream = tcpClient.GetStream();
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
