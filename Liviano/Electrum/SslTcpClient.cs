@@ -187,8 +187,7 @@ namespace Liviano.Electrum
                 messageData.Append(chars);
 
                 // Check for EOF or \n
-                if (messageData.ToString().IndexOf("<EOF>", StringComparison.CurrentCulture) != -1 ||
-                    messageData.ToString().IndexOf("\n", StringComparison.CurrentCulture) != -1)
+                if (messageData.ToString().IndexOf("\n", StringComparison.CurrentCulture) != -1 && CanParseToJson(messageData.ToString()))
                     break;
             }
 
@@ -206,11 +205,15 @@ namespace Liviano.Electrum
 
         public static bool CanParseToJson(string message)
         {
-            message = message.Replace("\n", String.Empty);
-            message = message.Replace("\r", String.Empty);
-            message = message.Replace("\t", String.Empty);
+            message = message.Replace("\n", string.Empty);
+            message = message.Replace("\r", string.Empty);
+            message = message.Replace("\t", string.Empty);
 
-            return (message.IndexOf("{", StringComparison.CurrentCulture) == 0 && message.IndexOf("}", StringComparison.CurrentCulture) == -1);
+            var messageArray = message.ToCharArray();
+            Array.Reverse(messageArray);
+            var reverseMessage = new string(messageArray);
+
+            return message.IndexOf("{", StringComparison.CurrentCulture) == 0 && reverseMessage.IndexOf("}", StringComparison.CurrentCulture) == 0;
         }
 
         // TODO Add this function, in case we need it, we probably wont

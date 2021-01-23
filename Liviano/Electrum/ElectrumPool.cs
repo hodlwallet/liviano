@@ -213,12 +213,7 @@ namespace Liviano.Electrum
 
             OnWatchStarted?.Invoke(this, null);
 
-            foreach (var acc in wallet.Accounts)
-                await Task.Factory.StartNew(
-                    async o => await WatchAccount(acc, ct),
-                    TaskCreationOptions.LongRunning,
-                    ct
-                );
+            foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
         }
 
         /// <summary>

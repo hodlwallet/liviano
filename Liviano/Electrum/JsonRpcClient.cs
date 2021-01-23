@@ -242,12 +242,12 @@ namespace Liviano.Electrum
                 $"[GetSslStream] From: {Host}:{port} ({server.Version})"
             );
 
-            var tcpClient = Connect();
+            tcpClient ??= Connect();
 
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
-            sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
+            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
             sslStream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
             sslStream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
