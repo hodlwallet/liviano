@@ -54,8 +54,6 @@ namespace Liviano.Electrum
         SslStream sslStream = null;
         TcpClient tcpClient = null;
 
-        object @lock;
-
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
@@ -174,13 +172,13 @@ namespace Liviano.Electrum
 
             //lock (@lock)
             //{
-                sslStream.Write(bytes, 0, bytes.Length);
+            sslStream.Write(bytes, 0, bytes.Length);
 
-                sslStream.Flush();
+            sslStream.Flush();
 
-                // TODO This is where the queue magic should happen
+            // TODO This is where the queue magic should happen
 
-                return SslTcpClient.ReadMessage(sslStream);
+            return SslTcpClient.ReadMessage(sslStream);
             //}
         }
 
@@ -208,26 +206,26 @@ namespace Liviano.Electrum
             // TODO Handle exception somewhere else or here.
             //try
             //{
-                Host = server.Domain;
-                ipAddress = ResolveHost(server.Domain).Result;
-                port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
+            Host = server.Domain;
+            ipAddress = ResolveHost(server.Domain).Result;
+            port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
 
-                Debug.WriteLine(
-                    $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
-                );
+            Debug.WriteLine(
+                $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
+            );
 
-                var result = await Task.Run(() => RequestInternal(request, useSsl));
+            var result = await Task.Run(() => RequestInternal(request, useSsl));
 
-                if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
+            if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
-                return result;
+            return result;
             //}
             //catch (Exception ex)
             //{
-                //Debug.WriteLine($"[Request] Could not process request: {request}");
-                //Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
+            //Debug.WriteLine($"[Request] Could not process request: {request}");
+            //Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
 
-                //throw new ElectrumException($"{ex.Message}");
+            //throw new ElectrumException($"{ex.Message}");
             //}
         }
 
