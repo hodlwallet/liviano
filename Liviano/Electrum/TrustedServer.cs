@@ -24,10 +24,22 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using Liviano.Interfaces;
+using Liviano.Models;
 
 namespace Liviano.Electrum
 {
     public class TrustedServer : IElectrumPool
     {
+        string host;
+        int port;
+        bool isSsl;
+        Server server;
+
+        public TrustedServer(string host, int port, bool isSsl = true)
+        {
+            this.host = host;
+            this.port = port;
+            this.isSsl = isSsl;
+        }
     }
 }
