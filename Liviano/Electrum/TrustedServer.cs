@@ -96,5 +96,12 @@ namespace Liviano.Electrum
         {
             return new TrustedServer();
         }
+
+        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()
+        {
+            var res = await ElectrumClient.BlockchainHeadersSubscribe();
+
+            return res.Result;
+        }
     }
 }

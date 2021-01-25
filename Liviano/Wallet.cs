@@ -119,7 +119,7 @@ namespace Liviano
             }
         }
 
-        public ElectrumPool ElectrumPool { get; set; }
+        public IElectrumPool ElectrumPool { get; set; }
 
         public string Server { get; set; }
 
