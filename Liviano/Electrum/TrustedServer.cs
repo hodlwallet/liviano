@@ -53,6 +53,7 @@ namespace Liviano.Electrum
 
         public Server Server { get; set; }
         public ElectrumClient ElectrumClient { get; set; }
+        public bool Connected { get; private set; }
 
         public TrustedServer()
         {

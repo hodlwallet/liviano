@@ -25,7 +25,7 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Threading.Tasks;
-
+using Liviano.Models;
 using NBitcoin;
 
 using static Liviano.Electrum.ElectrumClient;
@@ -34,6 +34,9 @@ namespace Liviano.Interfaces
 {
     public interface IElectrumPool
     {
+        bool Connected { get; }
+        public Server CurrentServer { get; set; }
+
         /// <summary>
         /// Broadcast Bitcoin Transaction
         /// </summary>
@@ -45,6 +48,11 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name=""></param>
         Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders();
+
+        /// <summary>
+        /// Event handler when you get a connected server
+        /// </summary>
+        void HandleConnectedServers(object sender, EventArgs e);
 
         /// <summary>
         /// Loads the pool from the filesystem
