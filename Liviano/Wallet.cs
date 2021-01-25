@@ -244,7 +244,7 @@ namespace Liviano
         /// Get an electrum pool loaded from the assembly or files.
         /// </summary>
         /// <returns>a <see cref="ElectrumPool"/></returns>
-        public ElectrumPool GetElectrumPool()
+        public IElectrumPool GetElectrumPool()
         {
             if (!(ElectrumPool is null))
             {

@@ -138,7 +138,7 @@ namespace Liviano.Interfaces
         string Server { get; set; }
 
         [JsonIgnore]
-        ElectrumPool ElectrumPool { get; set; }
+        IElectrumPool ElectrumPool { get; set; }
 
         /// <summary>
         /// Init will create a new wallet initaliaing everything to their defaults,
@@ -203,7 +203,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Gets the electrum pool from the network
         /// </summary>
-        ElectrumPool GetElectrumPool();
+        IElectrumPool GetElectrumPool();
 
         /// <summary>
         /// Gets a extended private key this method also caches it on memory
