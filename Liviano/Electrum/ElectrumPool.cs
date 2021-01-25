@@ -45,7 +45,7 @@ using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
 {
-    public class ElectrumPool
+    public class ElectrumPool : IElectrumPool
     {
 #if DEBUG
         public const int MIN_NUMBER_OF_CONNECTED_SERVERS = 1;
