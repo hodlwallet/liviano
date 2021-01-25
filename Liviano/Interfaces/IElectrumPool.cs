@@ -23,10 +23,37 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+using System;
+using System.Threading.Tasks;
+
+using NBitcoin;
+
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Interfaces
 {
     public interface IElectrumPool
     {
+        /// <summary>
+        /// Broadcast Bitcoin Transaction
+        /// </summary>
+        /// <param name="transaction">A signed <see cref="Transaction"/> to be broadcasted</param>
+        Task<bool> BroadcastTransaction(Transaction transaction);
+
+        /// <summary>
+        /// Susbscribes to the headers until tip
+        /// </summary>
+        /// <param name=""></param>
+        Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders();
+
+        /// <summary>
+        /// Loads the pool from the filesystem
+        /// </summary>
+        /// <param name="network">a <see cref="Network"/> to load files from</param>
+        /// <returns>A new <see cref="ElectrumPool"/></returns>
+        public static IElectrumPool Load(Network network)
+        {
+            throw new NotImplementedException("Implement on your own way");
+        }
     }
 }

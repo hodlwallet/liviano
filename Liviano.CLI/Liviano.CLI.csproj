@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <FileVersion>0.0.0.1</FileVersion>
         <AssemblyVersion>0.0.0.1</AssemblyVersion>
         <LangVersion>8.0</LangVersion>

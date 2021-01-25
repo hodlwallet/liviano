@@ -23,8 +23,25 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-using Liviano.Interfaces;
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Reflection;
+using System.Linq;
+using System.IO;
+
+using NBitcoin;
+using Newtonsoft.Json;
+
 using Liviano.Models;
+using Liviano.Interfaces;
+using Liviano.Extensions;
+using Liviano.Exceptions;
+using Liviano.Events;
+
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Electrum
 {
@@ -33,13 +50,51 @@ namespace Liviano.Electrum
         string host;
         int port;
         bool isSsl;
-        Server server;
+
+        public Server Server { get; set; }
+        public ElectrumClient ElectrumClient { get; set; }
+
+        public TrustedServer()
+        {
+        }
+        
 
         public TrustedServer(string host, int port, bool isSsl = true)
         {
             this.host = host;
             this.port = port;
             this.isSsl = isSsl;
+        }
+
+        public async Task<bool> BroadcastTransaction(Transaction transaction)
+        {
+            var txHex = transaction.ToHex();
+
+            try
+            {
+                var broadcast = await ElectrumClient.BlockchainTransactionBroadcast(txHex);
+
+                if (broadcast.Result != transaction.GetHash().ToString())
+                {
+                    Debug.WriteLine("[BroadcastTransaction]  Error could not broadcast");
+
+                    return false;
+                }
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[BroadcastTransaction]  Error could not broadcast: {err.Message}");
+
+                return false;
+            }
+
+
+            return true;
+        }
+
+        public static IElectrumPool Load(Network network = null)
+        {
+            return new TrustedServer();
         }
     }
 }

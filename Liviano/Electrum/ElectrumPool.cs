@@ -481,10 +481,6 @@ namespace Liviano.Electrum
             }
         }
 
-        /// <summary>
-        /// Broadcast Bitcoin Transaction
-        /// </summary>
-        /// <param name="transaction">A signed<see cref="Transaction"/> to be broadcasted</param>
         public async Task<bool> BroadcastTransaction(Transaction transaction)
         {
             var txHex = transaction.ToHex();
@@ -627,12 +623,7 @@ namespace Liviano.Electrum
             return total;
         }
 
-        /// <summary>
-        /// Loads the pool from the filesystem
-        /// </summary>
-        /// <param name="network">a <see cref="Network"/> to load files from</param>
-        /// <returns>A new <see cref="ElectrumPool"/></returns>
-        public static ElectrumPool Load(Network network = null)
+        public static IElectrumPool Load(Network network = null)
         {
             network ??= Network.Main;
 
@@ -797,7 +788,7 @@ namespace Liviano.Electrum
             return res.Result;
         }
 
-        public async Task<BlockchainHeadersSubscribeInnerResult> DownloadTipHeader()
+        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()
         {
             var res = await ElectrumClient.BlockchainHeadersSubscribe();
 
