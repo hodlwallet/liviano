@@ -50,6 +50,7 @@ namespace Liviano.Electrum
         string host;
         int port;
         bool isSsl;
+        object @lock;
 
         public Server Server { get; set; }
         public ElectrumClient ElectrumClient { get; set; }
@@ -96,6 +97,10 @@ namespace Liviano.Electrum
         public static IElectrumPool Load(Network network = null)
         {
             return new TrustedServer();
+        }
+
+        public void HandleConnectedServers(object sender, EventArgs e)
+        {
         }
 
         public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()
