@@ -134,5 +134,12 @@ namespace Liviano.Electrum
 
             return res.Result;
         }
+
+        public async Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
+        {
+            var res = await ElectrumClient.BlockchainBlockHeaders(fromHeight, toHeight);
+
+            return res.Result;
+        }
     }
 }
