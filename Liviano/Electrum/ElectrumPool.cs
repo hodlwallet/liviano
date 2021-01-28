@@ -88,25 +88,15 @@ namespace Liviano.Electrum
         }
 
         public event EventHandler<Server> OnCurrentServerChangedEvent;
-
         public event EventHandler<Server> OnConnected;
-
         public event EventHandler<Server> OnDisconnectedEvent;
-
         public event EventHandler OnDoneFindingPeersEvent;
-
         public event EventHandler OnCancelFindingPeersEvent;
-
         public event EventHandler<TxEventArgs> OnNewTransaction;
-
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
-
         public event EventHandler OnSyncStarted;
-
         public event EventHandler OnSyncFinished;
-
         public event EventHandler OnWatchStarted;
-
         public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
         public Server[] AllServers { get; set; }

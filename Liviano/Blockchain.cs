@@ -108,7 +108,7 @@ namespace Liviano
         }
 
         public List<ChainedBlock> GetHeadersBetween2Checkpoints(
-                ElectrumPool pool,
+                IElectrumPool pool,
                 ChainedBlock cpStart,
                 ChainedBlock cpEnd)
         {
@@ -164,7 +164,7 @@ namespace Liviano
             return chainedBlock;
         }
 
-        public void DownloadHeadersParallel(ElectrumPool pool)
+        public void DownloadHeadersParallel(IElectrumPool pool)
         {
             var @lock = new Object();
             var unsortedHeaders = new List<ChainedBlock> {};
@@ -219,7 +219,7 @@ namespace Liviano
             Console.Read();
         }
 
-        async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(ElectrumPool pool, int current, int count)
+        async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(IElectrumPool pool, int current, int count)
         {
             if (pool.ElectrumClient is null)
             {

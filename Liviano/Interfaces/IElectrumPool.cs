@@ -24,9 +24,13 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Liviano.Models;
+
 using NBitcoin;
+
+using Liviano.Events;
+using Liviano.Models;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -35,7 +39,19 @@ namespace Liviano.Interfaces
     public interface IElectrumPool
     {
         bool Connected { get; }
-        public Server CurrentServer { get; set; }
+        Server CurrentServer { get; set; }
+
+        event EventHandler<Server> OnCurrentServerChangedEvent;
+        event EventHandler<Server> OnConnected;
+        event EventHandler<Server> OnDisconnectedEvent;
+        event EventHandler OnDoneFindingPeersEvent;
+        event EventHandler OnCancelFindingPeersEvent;
+        event EventHandler<TxEventArgs> OnNewTransaction;
+        event EventHandler<TxEventArgs> OnUpdateTransaction;
+        event EventHandler OnSyncStarted;
+        event EventHandler OnSyncFinished;
+        event EventHandler OnWatchStarted;
+        event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
         /// <summary>
         /// Broadcast Bitcoin Transaction
@@ -54,12 +70,16 @@ namespace Liviano.Interfaces
         /// </summary>
         void HandleConnectedServers(object sender, EventArgs e);
 
+        Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null);
+        Task SyncWallet(IWallet wallet, CancellationToken ct);
+        Task WatchWallet(IWallet wallet, CancellationToken ct);
+
         /// <summary>
         /// Loads the pool from the filesystem
         /// </summary>
         /// <param name="network">a <see cref="Network"/> to load files from</param>
         /// <returns>A new <see cref="ElectrumPool"/></returns>
-        public static IElectrumPool Load(Network network)
+        static IElectrumPool Load(Network network)
         {
             throw new NotImplementedException("Implement on your own way");
         }
