@@ -151,7 +151,7 @@ namespace Liviano
             return blocks;
         }
 
-        public ChainedBlock DownloadBlockchainHeadersTip(ElectrumPool pool)
+        public ChainedBlock DownloadBlockchainHeadersTip(IElectrumPool pool)
         {
             var t = pool.SubscribeToHeaders();
             t.Wait();

@@ -103,7 +103,7 @@ namespace Liviano.Electrum
 
         public List<Server> ConnectedServers { get; set; }
 
-        public ElectrumClient ElectrumClient { get; private set; }
+        public ElectrumClient ElectrumClient { get; set; }
 
         public ElectrumPool(Server[] servers, Network network = null)
         {

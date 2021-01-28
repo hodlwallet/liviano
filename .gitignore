@@ -357,3 +357,4 @@ wallets
 wallets.old
 blockchain
 .nvimlog
+nohup.out

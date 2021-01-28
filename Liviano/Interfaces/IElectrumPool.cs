@@ -31,6 +31,7 @@ using NBitcoin;
 
 using Liviano.Events;
 using Liviano.Models;
+using Liviano.Electrum;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -40,6 +41,7 @@ namespace Liviano.Interfaces
     {
         bool Connected { get; }
         Server CurrentServer { get; set; }
+        ElectrumClient ElectrumClient { get; set; }
 
         event EventHandler<Server> OnCurrentServerChangedEvent;
         event EventHandler<Server> OnConnected;
@@ -64,6 +66,8 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name=""></param>
         Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders();
+
+        Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight);
 
         /// <summary>
         /// Event handler when you get a connected server
