@@ -74,8 +74,24 @@ namespace Liviano.Interfaces
         /// </summary>
         void HandleConnectedServers(object sender, EventArgs e);
 
+        /// <summary>
+        /// Connect async
+        /// </summary>
+        /// <param name="cts">A cancellation tocken source</param>
         Task Connect(CancellationTokenSource cts = null);
+
+        /// <summary>
+        /// Sync wallet
+        /// </summary>
+        /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
+        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
         Task SyncWallet(IWallet wallet, CancellationToken ct);
+
+        /// <summary>
+        /// Watches a wallet for new transactions
+        /// </summary>
+        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
         Task WatchWallet(IWallet wallet, CancellationToken ct);
 
         /// <summary>

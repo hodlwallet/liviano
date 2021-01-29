@@ -388,7 +388,137 @@ namespace Liviano.Electrum
 
         public async Task WatchWallet(IWallet wallet, CancellationToken ct)
         {
-            await Task.Delay(1);
+            if (ct.IsCancellationRequested) return;
+
+            OnWatchStarted?.Invoke(this, null);
+
+            foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
+        }
+
+        /// <summary>
+        /// Watches an account for new transactions
+        /// </summary>
+        /// <param name="acc">An <see cref="IAccount"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAccount(IAccount acc, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            var changeAddresses = acc.GetChangeAddressesToWatch();
+            var receiveAddresses = acc.GetReceiveAddressesToWatch();
+
+            var addresses = new List<BitcoinAddress> {};
+
+            addresses.AddRange(changeAddresses);
+            addresses.AddRange(receiveAddresses);
+
+            foreach (var addr in addresses)
+                await Task.Factory.StartNew(
+                    async o => await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct),
+                    TaskCreationOptions.AttachedToParent,
+                    ct
+                );
+        }
+
+        /// <summary>
+        /// Watches an address
+        /// </summary>
+        public async Task WatchAddress(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+
+            Debug.WriteLine($"[WatchAddress] Address: {addr} ScriptHash: {scriptHashStr}");
+
+            await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
+            {
+                Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
+                Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
+                string status;
+                try
+                {
+                    var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
+
+                    status = string.Join(", ", oStatus.Params);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
+                    var sStatus = Deserialize<ResultAsString>(str);
+
+                    if (string.IsNullOrEmpty(sStatus.Result))
+                    {
+                        Debug.WriteLine($"[WatchAddress] Result is null");
+
+                        return;
+                    }
+                    else
+                        Debug.WriteLine($"[WatchAddress] Result is not null");
+
+                    status = sStatus.Result;
+                }
+
+                OnWatchAddressNotified?.Invoke(
+                    this,
+                    new WatchAddressEventArgs(status, acc, addr)
+                );
+
+                var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+
+                foreach (var unspentResult in unspent.Result)
+                {
+                    var txHash = unspentResult.TxHash;
+                    var height = unspentResult.Height;
+
+                    var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+
+                    var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+
+                    var txHex = blkChainTxGet.Result;
+
+                    // Tx is new
+                    if (currentTx is null)
+                    {
+                        var tx = Tx.CreateFromHex(
+                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            GetOutValueFromTxInputs
+                        );
+
+                        acc.AddTx(tx);
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                        return;
+                    }
+
+                    // A potential update if tx heights are different
+                    if (currentTx.BlockHeight != height)
+                    {
+                        var tx = Tx.CreateFromHex(
+                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            GetOutValueFromTxInputs
+                        );
+
+                        acc.UpdateTx(tx);
+
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+
+                        // Here for safety, at any time somebody can add code to this
+                        return;
+                    }
+                }
+            });
+
+            Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
+
+            // calling watch again after a 30 second timeout because it should never finish
+            await Task.Delay(30_000); // Wait a 30 seconds
+
+            await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
         }
 
         public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()

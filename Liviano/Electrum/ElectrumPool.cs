@@ -192,11 +192,6 @@ namespace Liviano.Electrum
             File.WriteAllText(GetRecentServersFileName(Network), data);
         }
 
-        /// <summary>
-        /// Watches a wallet for new transactions
-        /// </summary>
-        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
-        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
         public async Task WatchWallet(IWallet wallet, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
@@ -332,11 +327,6 @@ namespace Liviano.Electrum
             await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
         }
 
-        /// <summary>
-        /// Sync wallet
-        /// </summary>
-        /// <param name="wallet">a <see cref="IWallet"/> to sync</param>
-        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;

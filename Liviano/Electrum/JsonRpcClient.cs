@@ -54,6 +54,8 @@ namespace Liviano.Electrum
         SslStream sslStream = null;
         TcpClient tcpClient = null;
 
+        object @lock;
+
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
@@ -161,25 +163,19 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-            // TODO here's where we reconnect all the time
-            tcpClient = Connect();
-            sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
+                tcpClient = Connect();
+                sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
-            sslStream.ReadTimeout = Timeout.Infinite;
-            sslStream.WriteTimeout = Timeout.Infinite;
+                sslStream.ReadTimeout = Timeout.Infinite;
+                sslStream.WriteTimeout = Timeout.Infinite;
 
-            var bytes = Encoding.UTF8.GetBytes(request + "\n");
+                var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            //lock (@lock)
-            //{
-            sslStream.Write(bytes, 0, bytes.Length);
+                sslStream.Write(bytes, 0, bytes.Length);
 
-            sslStream.Flush();
+                sslStream.Flush();
 
-            // TODO This is where the queue magic should happen
-
-            return SslTcpClient.ReadMessage(sslStream);
-            //}
+                return SslTcpClient.ReadMessage(sslStream);
         }
 
         string RequestInternalNonSsl(string request)
