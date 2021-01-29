@@ -49,7 +49,34 @@ namespace Liviano.Electrum
     {
         public const int RECONNECT_DELAY = 1000; // ms
 
-        public Server CurrentServer { get; set; }
+        Server currentServer;
+        public Server CurrentServer
+        {
+            get => currentServer;
+
+            set
+            {
+                if (currentServer is null && !Connected)
+                {
+                    Connected = true;
+
+                    OnConnected?.Invoke(this, value);
+                }
+
+                if (value is null && !(currentServer is null))
+                {
+                    Connected = false;
+
+                    OnDisconnectedEvent?.Invoke(this, currentServer);
+                }
+
+                currentServer = value;
+                ElectrumClient = currentServer.ElectrumClient;
+
+                OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+            }
+        }
+
         public ElectrumClient ElectrumClient { get; set; }
         public bool Connected { get; private set; }
 
@@ -99,11 +126,16 @@ namespace Liviano.Electrum
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
             Debug.WriteLine("sync wallet homie");
+
             await Task.Delay(1);
         }
 
         public void HandleConnectedServers(object sender, EventArgs e)
         {
+            // TODO this should not happen, test without it
+            if (CurrentServer != null) return;
+
+            CurrentServer = (Server) sender;
         }
 
         public async Task Connect(CancellationTokenSource cts = null)
@@ -115,6 +147,9 @@ namespace Liviano.Electrum
             CurrentServer.OnConnectedEvent += HandleConnectedServers;
 
             await CurrentServer.ConnectAsync();
+
+            OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+            OnConnected?.Invoke(this, CurrentServer);
 
             // Periodic ping, every 450_000 ms
             await CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
