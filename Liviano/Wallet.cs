@@ -315,7 +315,7 @@ namespace Liviano
         /// </summary>
         public async Task Sync()
         {
-            Debug.WriteLine($"[Sync] Attempting to sync wallet with id: {Id}");
+            Debug.WriteLine($"[Sync] Syncing wallet with id: {Id}");
 
             try
             {
@@ -323,7 +323,7 @@ namespace Liviano
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"There was an error during sync: {ex.Message}");
+                Debug.WriteLine($"[Sync] There was an error during sync: {ex.Message}");
                 throw ex;
             }
         }
@@ -333,7 +333,7 @@ namespace Liviano
         /// </summary>
         public async Task Resync()
         {
-            Debug.WriteLine($"[Resync] Attempting to resync wallet with id: {Id}");
+            Debug.WriteLine($"[Resync] Resyncing wallet with id: {Id}");
 
             Cleanup();
 
@@ -430,8 +430,9 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Sent from {sender}");
 
-            Console.WriteLine($"Connected to {server.Domain}, recently connected server.");
-            Console.WriteLine($"Now starts to sync wallet");
+            Console.WriteLine($"[ElectrumPool_OnConnectedToSync] Connected to {server.Domain}, recently connected server.");
+            Console.WriteLine($"[ElectrumPool_OnConnectedToSync] Now starts to sync wallet");
+
             Console.WriteLine();
 
             await ElectrumPool.SyncWallet(this, ct);
