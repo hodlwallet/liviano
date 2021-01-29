@@ -173,7 +173,7 @@ namespace Liviano.Electrum
 
         public void HandleConnectedServers(object sender, EventArgs e)
         {
-            CurrentServer = (Server) sender;
+            CurrentServer = (Server)sender;
         }
 
         public async Task WatchWallet(IWallet wallet, CancellationToken ct)
@@ -210,6 +210,11 @@ namespace Liviano.Electrum
             return new TrustedServer(server, network);
         }
 
+        IElectrumPool IElectrumPool.Load(Network network = null)
+        {
+            return Load(network);
+        }
+
         static string GetServerFilename(Network network = null)
         {
             network ??= Network.Main;
@@ -238,7 +243,7 @@ namespace Liviano.Electrum
             var changeAddresses = acc.GetChangeAddressesToWatch();
             var receiveAddresses = acc.GetReceiveAddressesToWatch();
 
-            var addresses = new List<BitcoinAddress> {};
+            var addresses = new List<BitcoinAddress> { };
 
             addresses.AddRange(changeAddresses);
             addresses.AddRange(receiveAddresses);
