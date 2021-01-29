@@ -161,10 +161,6 @@ namespace Liviano.Electrum
                     if (ct.IsCancellationRequested) return;
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    //await Task.Factory.StartNew(async o =>
-                    //{
-                        //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    //}, TaskCreationOptions.AttachedToParent, ct);
                 }
 
                 acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
@@ -176,10 +172,7 @@ namespace Liviano.Electrum
                 {
                     if (ct.IsCancellationRequested) return;
 
-                    //await Task.Factory.StartNew(async o =>
-                    //{
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    //}, TaskCreationOptions.AttachedToParent, ct);
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
 
                 acc.InternalAddressesIndex = acc.GetInternalLastIndex();
