@@ -93,9 +93,10 @@ namespace Liviano.Electrum
         public event EventHandler OnWatchStarted;
         public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
-        public TrustedServer(Server server)
+        public TrustedServer(Server server, Network network)
         {
             CurrentServer = server;
+            Network = network;
         }
 
         public async Task<bool> Broadcast(Transaction transaction)
@@ -419,12 +420,7 @@ namespace Liviano.Electrum
             var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
             var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
 
-            var trustedServer = new TrustedServer(server)
-            {
-                Network = network
-            };
-
-            return trustedServer;
+            return new TrustedServer(server, network);
         }
 
         static string GetServerFilename(Network network = null)
