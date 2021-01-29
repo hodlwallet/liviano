@@ -226,7 +226,7 @@ namespace Liviano.Interfaces
 
         (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = "");
 
-        Task<bool> BroadcastTransaction(Transaction tx);
+        Task<bool> Broadcast(Transaction tx);
 
         /// <summary>
         /// Event handlers for syncing, start and end...

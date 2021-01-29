@@ -471,7 +471,7 @@ namespace Liviano.Electrum
             }
         }
 
-        public async Task<bool> BroadcastTransaction(Transaction transaction)
+        public async Task<bool> Broadcast(Transaction transaction)
         {
             var txHex = transaction.ToHex();
 
@@ -481,14 +481,14 @@ namespace Liviano.Electrum
 
                 if (broadcast.Result != transaction.GetHash().ToString())
                 {
-                    Debug.WriteLine("[BroadcastTransaction]  Error could not broadcast");
+                    Debug.WriteLine("[Broadcast] Error could not broadcast");
 
                     return false;
                 }
             }
             catch (Exception err)
             {
-                Debug.WriteLine($"[BroadcastTransaction]  Error could not broadcast: {err.Message}");
+                Debug.WriteLine($"[Broadcast] Error could not broadcast: {err.Message}");
 
                 return false;
             }

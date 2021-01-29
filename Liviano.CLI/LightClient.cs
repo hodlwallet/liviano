@@ -163,7 +163,7 @@ namespace Liviano.CLI
 
             try
             {
-                var res = await wallet.BroadcastTransaction(tx);
+                var res = await wallet.Broadcast(tx);
 
                 if (!res) return (tx, "Failed to broadcast transaction");
             }
