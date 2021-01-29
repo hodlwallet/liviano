@@ -113,12 +113,13 @@ namespace Liviano.Electrum
             CurrentServer.OnConnectedEvent += HandleConnectedServers;
 
             await CurrentServer.ConnectAsync();
-            await CurrentServer.PeriodicPing(async (dt) =>
+            await CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
             {
-                Console.WriteLine($"[Connect] Ping failed at {dt}... Reconnecting");
+                Console.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
                 // TODO check if this is needed
                 //CurrentServer.ElectrumClient = null;
+                CurrentServer.OnConnectedEvent = null;
 
                 await Task.Delay(1000);
                 await Connect(cts);
