@@ -47,10 +47,6 @@ namespace Liviano.Electrum
 {
     public class TrustedServer : IElectrumPool
     {
-        string host;
-        int port;
-        bool isSsl;
-
         public Server CurrentServer { get; set; }
         public ElectrumClient ElectrumClient { get; set; }
         public bool Connected { get; private set; }
@@ -67,15 +63,9 @@ namespace Liviano.Electrum
         public event EventHandler OnWatchStarted;
         public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
-        public TrustedServer()
+        public TrustedServer(Server server)
         {
-        }
-
-        public TrustedServer(string host, int port, bool isSsl = true)
-        {
-            this.host = host;
-            this.port = port;
-            this.isSsl = isSsl;
+            CurrentServer = server;
         }
 
         public async Task<bool> Broadcast(Transaction transaction)
@@ -106,7 +96,22 @@ namespace Liviano.Electrum
 
         public static IElectrumPool Load(Network network = null)
         {
-            return new TrustedServer();
+            network ??= Network.Main;
+            TrustedServer trustedServer;
+            string serverFilename;
+            string json;
+            Dictionary<string, Dictionary<string, string>> jsonData;
+            Server server;
+
+            serverFilename = GetServerFilename(network);
+            json = File.ReadAllText(serverFilename);
+
+            jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
+
+            trustedServer = new TrustedServer(server);
+
+            return trustedServer;
         }
 
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
@@ -135,11 +140,25 @@ namespace Liviano.Electrum
             return res.Result;
         }
 
-        public async Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
+        public Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
         {
-            var res = await ElectrumClient.BlockchainBlockHeaders(fromHeight, toHeight);
+            throw new NotImplementedException("[DownloadHeaders] Not needed for now, should be an async method");
+        }
 
-            return res.Result;
+        static string GetServerFilename(Network network = null)
+        {
+            network ??= Network.Main;
+
+            return GetLocalConfigFilePath("Electrum", "servers", $"hodlwallet_{network.Name.ToLower()}.json");
+        }
+
+        static string GetLocalConfigFilePath(params string[] fileNames)
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(
+                    Assembly.GetCallingAssembly().Location
+                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
+            );
         }
     }
 }
