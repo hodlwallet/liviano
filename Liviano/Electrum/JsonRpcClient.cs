@@ -49,6 +49,9 @@ namespace Liviano.Electrum
 
         IPAddress ipAddress;
 
+        TcpClient tcpClient;
+        SslStream sslStream;
+
         int port;
         public string Host { get; private set; }
 
@@ -157,8 +160,8 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-            var tcpClient = Connect();
-            var sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
+            tcpClient ??= Connect();
+            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
             sslStream.ReadTimeout = Timeout.Infinite;
             sslStream.WriteTimeout = Timeout.Infinite;
