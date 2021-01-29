@@ -99,9 +99,6 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="network">a <see cref="Network"/> to load files from</param>
         /// <returns>A new <see cref="ElectrumPool"/></returns>
-        static IElectrumPool Load(Network network)
-        {
-            throw new NotImplementedException("Implement on your own way");
-        }
+        IElectrumPool Load(Network network);
     }
 }

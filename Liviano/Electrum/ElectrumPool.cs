@@ -213,7 +213,7 @@ namespace Liviano.Electrum
             var changeAddresses = acc.GetChangeAddressesToWatch();
             var receiveAddresses = acc.GetReceiveAddressesToWatch();
 
-            var addresses = new List<BitcoinAddress> {};
+            var addresses = new List<BitcoinAddress> { };
 
             addresses.AddRange(changeAddresses);
             addresses.AddRange(receiveAddresses);
@@ -365,7 +365,7 @@ namespace Liviano.Electrum
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                     //await Task.Factory.StartNew(async o =>
                     //{
-                        //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                     //}, TaskCreationOptions.AttachedToParent, ct);
                 }
 
@@ -380,7 +380,7 @@ namespace Liviano.Electrum
 
                     //await Task.Factory.StartNew(async o =>
                     //{
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                     //}, TaskCreationOptions.AttachedToParent, ct);
                 }
 
@@ -601,6 +601,11 @@ namespace Liviano.Electrum
             }
 
             return total;
+        }
+
+        IElectrumPool IElectrumPool.Load(Network network = null)
+        {
+            return Load(network);
         }
 
         public static IElectrumPool Load(Network network = null)
