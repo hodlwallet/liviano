@@ -251,7 +251,7 @@ namespace Liviano
                 return ElectrumPool;
             }
 
-            return TrustedServer.Load(Network);
+            return Liviano.Electrum.ElectrumPool.Load(Network);
         }
 
         /// <summary>
