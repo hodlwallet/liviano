@@ -79,6 +79,7 @@ namespace Liviano.Electrum
 
         public ElectrumClient ElectrumClient { get; set; }
         public bool Connected { get; private set; }
+        public Network Network { get; private set; }
 
         public event EventHandler<Server> OnCurrentServerChangedEvent;
         public event EventHandler<Server> OnConnected;
@@ -125,9 +126,230 @@ namespace Liviano.Electrum
 
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
-            Debug.WriteLine("sync wallet homie");
+            if (ct.IsCancellationRequested) return;
 
-            await Task.Delay(1);
+            OnSyncStarted?.Invoke(this, null);
+
+            foreach (var acc in wallet.Accounts)
+            {
+                await SyncAccount(acc, ct);
+            }
+
+            OnSyncFinished?.Invoke(this, null);
+        }
+
+        /// <summary>
+        /// Syncs an account of the wallet
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> to sync/param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
+        /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
+        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        {
+            var receiveAddressesIndex = acc.GetExternalLastIndex();
+            var changeAddressesIndex = acc.GetInternalLastIndex();
+
+            var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
+            var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
+
+            if (syncExternal)
+            {
+                foreach (var addr in receiveAddresses)
+                {
+                    if (ct.IsCancellationRequested) return;
+
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //await Task.Factory.StartNew(async o =>
+                    //{
+                        //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //}, TaskCreationOptions.AttachedToParent, ct);
+                }
+
+                acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
+            }
+
+            if (syncInternal)
+            {
+                foreach (var addr in changeAddresses)
+                {
+                    if (ct.IsCancellationRequested) return;
+
+                    //await Task.Factory.StartNew(async o =>
+                    //{
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    //}, TaskCreationOptions.AttachedToParent, ct);
+                }
+
+                acc.InternalAddressesIndex = acc.GetInternalLastIndex();
+            }
+
+            // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
+            if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
+            {
+                // This is the default but we wanna be explicit
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
+            }
+            else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            {
+                await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
+            }
+            else if (acc.GetInternalLastIndex() > changeAddressesIndex)
+            {
+                await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
+            }
+        }
+
+        /// <summary>
+        /// Syncs an address as a children task from the main SyncWallet
+        /// </summary>
+        /// <param name="acc">The <see cref="IAccount"/> that address comes from</param>
+        /// <param name="addr">The <see cref="BitcoinAddress"/> to sync</param>
+        /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
+        /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
+        /// <param name="ct">A <see cref="CancellationToken"/></param>
+        public async Task SyncAddress(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            var isReceive = receiveAddresses.Contains(addr);
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+            var addrLabel = isReceive ? "External" : "Internal";
+
+            Debug.WriteLine(
+                $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
+            );
+
+            await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(async result =>
+            {
+                await InsertTransactionsFromHistory(
+                    acc,
+                    addr,
+                    receiveAddresses,
+                    changeAddresses,
+                    result.Result,
+                    ct
+                );
+            });
+        }
+
+        /// <summary>
+        /// Insert transactions from a result of the electrum network
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
+        /// <param name="address">a <see cref="BitcoinAddress"/> that found this tx</param>
+        /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
+        /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
+        /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
+        async Task InsertTransactionsFromHistory(
+                IAccount acc,
+                BitcoinAddress addr,
+                BitcoinAddress[] receiveAddresses,
+                BitcoinAddress[] changeAddresses,
+                BlockchainScriptHashGetHistoryResult
+                result,
+                CancellationToken ct)
+        {
+            foreach (var r in result.Result)
+            {
+                if (ct.IsCancellationRequested) return;
+
+                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}");
+
+                BlockchainTransactionGetResult txRes;
+                try
+                {
+                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                }
+                catch (ElectrumException e)
+                {
+                    Console.WriteLine($"[Sync] Error: {e.Message}");
+
+                    await InsertTransactionsFromHistory(acc, addr, receiveAddresses, changeAddresses, result, ct);
+                    return;
+                }
+
+                var tx = Tx.CreateFromHex(
+                    txRes.Result,
+                    acc,
+                    Network,
+                    receiveAddresses,
+                    changeAddresses,
+                    GetOutValueFromTxInputs
+                );
+
+                var txAddresses = Transaction.Parse(
+                    tx.Hex,
+                    Network
+                ).Outputs.Select(
+                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+                );
+
+                foreach (var txAddr in txAddresses)
+                {
+                    if (receiveAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedExternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedExternalAddresses.Add(txAddr);
+                    }
+
+                    if (changeAddresses.Contains(txAddr))
+                    {
+                        if (acc.UsedInternalAddresses.Contains(txAddr))
+                            continue;
+
+                        acc.UsedInternalAddresses.Add(txAddr);
+                    }
+                }
+
+                if (acc.TxIds.Contains(tx.Id.ToString()))
+                {
+                    acc.UpdateTx(tx);
+
+                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+                else
+                {
+                    acc.AddTx(tx);
+
+                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+            }
+        }
+
+        /// <summary>
+        /// This will get all the transactions out to the total to calculate fees
+        /// </summary>
+        /// <param name="inputs">A <see cref="TxInList"/> of the inputs from the tx</param>
+        /// <returns>A <see cref="Money"/> with the outs value from N</returns>
+        Money GetOutValueFromTxInputs(TxInList inputs)
+        {
+            Money total = 0L;
+
+            foreach (var input in inputs)
+            {
+                var outIndex = input.PrevOut.N;
+                var outHash = input.PrevOut.Hash.ToString();
+
+                // Get the transaction from the input
+                var task = ElectrumClient.BlockchainTransactionGet(outHash);
+                task.Wait();
+
+                var hex = task.Result.Result;
+                var transaction = Transaction.Parse(hex, Network);
+                var txOut = transaction.Outputs[outIndex];
+
+                total += txOut.Value;
+            }
+
+            return total;
         }
 
         public void HandleConnectedServers(object sender, EventArgs e)
@@ -197,7 +419,12 @@ namespace Liviano.Electrum
             var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
             var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
 
-            return new TrustedServer(server);
+            var trustedServer = new TrustedServer(server)
+            {
+                Network = network
+            };
+
+            return trustedServer;
         }
 
         static string GetServerFilename(Network network = null)
