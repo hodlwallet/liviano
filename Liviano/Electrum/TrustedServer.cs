@@ -97,21 +97,14 @@ namespace Liviano.Electrum
         public static IElectrumPool Load(Network network = null)
         {
             network ??= Network.Main;
-            TrustedServer trustedServer;
-            string serverFilename;
-            string json;
-            Dictionary<string, Dictionary<string, string>> jsonData;
-            Server server;
 
-            serverFilename = GetServerFilename(network);
-            json = File.ReadAllText(serverFilename);
+            var serverFilename = GetServerFilename(network);
+            var json = File.ReadAllText(serverFilename);
 
-            jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
+            var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
 
-            trustedServer = new TrustedServer(server);
-
-            return trustedServer;
+            return new TrustedServer(server);
         }
 
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
