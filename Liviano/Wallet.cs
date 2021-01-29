@@ -251,7 +251,7 @@ namespace Liviano
                 return ElectrumPool;
             }
 
-            return Liviano.Electrum.ElectrumPool.Load(Network);
+            return TrustedServer.Load(Network);
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace Liviano
                     );
                 };
 
-            if (!ElectrumPool.Connected) await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+            if (!ElectrumPool.Connected) await ElectrumPool.Connect(cts);
         }
 
         /// <summary>
@@ -423,7 +423,7 @@ namespace Liviano
                 );
 
             if (!ElectrumPool.Connected)
-                await ElectrumPool.FindConnectedServersUntilMinNumber(cts);
+                await ElectrumPool.Connect(cts);
         }
 
         private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)

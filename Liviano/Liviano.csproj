@@ -29,6 +29,12 @@
         <Folder Include="Storages\" />
     </ItemGroup>
     <ItemGroup>
+      <Content Include="Electrum\servers\hodlwallet_mainnet.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Electrum\servers\hodlwallet_testnet.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
       <Content Include="Electrum\servers\main.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>

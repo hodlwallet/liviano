@@ -74,7 +74,7 @@ namespace Liviano.Interfaces
         /// </summary>
         void HandleConnectedServers(object sender, EventArgs e);
 
-        Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null);
+        Task Connect(CancellationTokenSource cts = null);
         Task SyncWallet(IWallet wallet, CancellationToken ct);
         Task WatchWallet(IWallet wallet, CancellationToken ct);
 

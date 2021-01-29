@@ -223,7 +223,7 @@ namespace Liviano
         {
             if (pool.ElectrumClient is null)
             {
-                pool.FindConnectedServersUntilMinNumber().Wait();
+                pool.Connect().Wait();
             }
 
             try

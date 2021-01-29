@@ -94,21 +94,9 @@ namespace Liviano.Electrum
             return true;
         }
 
-        public static IElectrumPool Load(Network network = null)
-        {
-            network ??= Network.Main;
-
-            var serverFilename = GetServerFilename(network);
-            var json = File.ReadAllText(serverFilename);
-
-            var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
-            var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
-
-            return new TrustedServer(server);
-        }
-
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
         {
+            Debug.WriteLine("sync wallet homie");
             await Task.Delay(1);
         }
 
@@ -116,8 +104,9 @@ namespace Liviano.Electrum
         {
         }
 
-        public async Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null)
+        public async Task Connect(CancellationTokenSource cts = null)
         {
+            Debug.WriteLine("find connected hommie");
             await Task.Delay(1);
         }
 
@@ -136,6 +125,19 @@ namespace Liviano.Electrum
         public Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
         {
             throw new NotImplementedException("[DownloadHeaders] Not needed for now, should be an async method");
+        }
+
+        public static IElectrumPool Load(Network network = null)
+        {
+            network ??= Network.Main;
+
+            var serverFilename = GetServerFilename(network);
+            var json = File.ReadAllText(serverFilename);
+
+            var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
+
+            return new TrustedServer(server);
         }
 
         static string GetServerFilename(Network network = null)

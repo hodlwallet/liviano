@@ -112,12 +112,12 @@ namespace Liviano.Electrum
             ConnectedServers ??= new List<Server> { };
         }
 
-        public async Task FindConnectedServersUntilMinNumber(CancellationTokenSource cts = null)
+        public async Task Connect(CancellationTokenSource cts = null)
         {
             await FindConnectedServers(cts);
 
             if (ConnectedServers.Count < MIN_NUMBER_OF_CONNECTED_SERVERS)
-                await FindConnectedServersUntilMinNumber(cts);
+                await Connect(cts);
             else
                 Save();
         }
