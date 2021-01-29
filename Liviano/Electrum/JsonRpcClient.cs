@@ -193,9 +193,6 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request, bool useSsl = true)
         {
-            // TODO Handle exception somewhere else or here.
-            //try
-            //{
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
@@ -209,14 +206,6 @@ namespace Liviano.Electrum
             if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
             return result;
-            //}
-            //catch (Exception ex)
-            //{
-            //Debug.WriteLine($"[Request] Could not process request: {request}");
-            //Debug.WriteLine($"[Request] Failed for {server.Domain} at port {server.PrivatePort}: {ex.Message}");
-
-            //throw new ElectrumException($"{ex.Message}");
-            //}
         }
 
         public SslStream GetSslStream()
