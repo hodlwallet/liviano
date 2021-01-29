@@ -47,6 +47,8 @@ namespace Liviano.Electrum
 {
     public class TrustedServer : IElectrumPool
     {
+        public const int RECONNECT_DELAY = 1000; // ms
+
         public Server CurrentServer { get; set; }
         public ElectrumClient ElectrumClient { get; set; }
         public bool Connected { get; private set; }
@@ -113,6 +115,8 @@ namespace Liviano.Electrum
             CurrentServer.OnConnectedEvent += HandleConnectedServers;
 
             await CurrentServer.ConnectAsync();
+
+            // Periodic ping, every 450_000 ms
             await CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
             {
                 Console.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
@@ -121,7 +125,7 @@ namespace Liviano.Electrum
                 //CurrentServer.ElectrumClient = null;
                 CurrentServer.OnConnectedEvent = null;
 
-                await Task.Delay(1000);
+                await Task.Delay(RECONNECT_DELAY);
                 await Connect(cts);
             }).ConfigureAwait(false);
 

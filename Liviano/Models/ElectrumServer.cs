@@ -38,6 +38,7 @@ namespace Liviano.Models
     {
         public const int VERSION_REQUEST_RETRY_DELAY = 1500;
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
+        public const int PING_DELAY = 450_000;
 
         [JsonProperty("ip")]
         public string Ip { get; set; }
@@ -167,7 +168,6 @@ namespace Liviano.Models
         /// </summary>
         public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
         {
-            var delay = 420_000;
             try
             {
                 await Ping();
@@ -183,7 +183,7 @@ namespace Liviano.Models
                 return;
             }
 
-            await Task.Delay(delay);
+            await Task.Delay(PING_DELAY);
             await PeriodicPing(pingFailedAtCallback);
         }
 
