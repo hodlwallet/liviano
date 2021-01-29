@@ -168,18 +168,19 @@ namespace Liviano.Models
         public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
         {
             var delay = 420_000;
-            if (ElectrumClient.LastCalledAt != null && ElectrumClient.LastCalledAt < (DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(delay)))
+            try
             {
-                try
-                {
-                    _ = await Ping();
-                }
-                catch
-                {
-                    pingFailedAtCallback(ElectrumClient.LastCalledAt);
+                await Ping();
 
-                    return;
-                }
+                Debug.WriteLine($"[PeriodicPing] Ping successful!");
+            }
+            catch
+            {
+                Debug.WriteLine($"[PeriodicPing] Ping failed!");
+
+                pingFailedAtCallback(ElectrumClient.LastCalledAt);
+
+                return;
             }
 
             await Task.Delay(delay);

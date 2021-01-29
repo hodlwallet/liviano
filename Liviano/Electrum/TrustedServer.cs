@@ -106,8 +106,28 @@ namespace Liviano.Electrum
 
         public async Task Connect(CancellationTokenSource cts = null)
         {
-            Debug.WriteLine("find connected hommie");
-            await Task.Delay(1);
+            cts ??= new CancellationTokenSource();
+            var cancellationToken = cts.Token;
+
+            CurrentServer.CancellationToken = cancellationToken;
+            CurrentServer.OnConnectedEvent += HandleConnectedServers;
+
+            await CurrentServer.ConnectAsync();
+            await CurrentServer.PeriodicPing(async (dt) =>
+            {
+                Console.WriteLine($"[Connect] Ping failed at {dt}... Reconnecting");
+
+                // TODO check if this is needed
+                //CurrentServer.ElectrumClient = null;
+
+                await Task.Delay(1000);
+                await Connect(cts);
+            }).ConfigureAwait(false);
+
+            if (cancellationToken.IsCancellationRequested)
+                OnCancelFindingPeersEvent?.Invoke(this, null);
+            else
+                OnDoneFindingPeersEvent?.Invoke(this, null);
         }
 
         public async Task WatchWallet(IWallet wallet, CancellationToken ct)
