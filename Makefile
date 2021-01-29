@@ -61,15 +61,15 @@ test.watch:
 	fi
 
 publish.debug:
-	dotnet publish --configuration Debug -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary
+	dotnet publish --framework netcoreapp3.1 --configuration Debug -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary
 	mkdir -p bin/debug
 	cp -R Liviano/bin/Debug/netcoreapp3.1/publish bin/debug/Liviano
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/publish bin/debug/LivianoCLI
 
 publish.release:
-	dotnet publish --configuration Release --runtime ubuntu-x64
-	dotnet publish --configuration Release --runtime win-x64
-	dotnet publish --configuration Release --runtime osx-x64
+	dotnet publish --framework netcoreapp3.1 --configuration Release --runtime ubuntu-x64
+	dotnet publish --framework netcoreapp3.1 --configuration Release --runtime win-x64
+	dotnet publish --framework netcoreapp3.1 --configuration Release --runtime osx-x64
 	mkdir -p bin/release/Liviano/win-x64
 	mkdir -p bin/release/Liviano/osx-x64
 	mkdir -p bin/release/Liviano/ubuntu-x64
@@ -85,7 +85,7 @@ publish.release:
 	cp -R Liviano.CLI/bin/Release/netcoreapp3.1/ubuntu-x64/publish bin/release/LivianoCLI/ubuntu-x64
 
 ubuntu.debug.build:
-	dotnet publish --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
+	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
 	rm -f ./liviano
