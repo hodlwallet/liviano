@@ -50,12 +50,6 @@ namespace Liviano.Electrum
         IPAddress ipAddress;
 
         int port;
-
-        SslStream sslStream = null;
-        TcpClient tcpClient = null;
-
-        object @lock;
-
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
@@ -163,24 +157,24 @@ namespace Liviano.Electrum
 
         string RequestInternalSsl(string request)
         {
-                tcpClient = Connect();
-                sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
+            var tcpClient = Connect();
+            var sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
-                sslStream.ReadTimeout = Timeout.Infinite;
-                sslStream.WriteTimeout = Timeout.Infinite;
+            sslStream.ReadTimeout = Timeout.Infinite;
+            sslStream.WriteTimeout = Timeout.Infinite;
 
-                var bytes = Encoding.UTF8.GetBytes(request + "\n");
+            var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-                sslStream.Write(bytes, 0, bytes.Length);
+            sslStream.Write(bytes, 0, bytes.Length);
 
-                sslStream.Flush();
+            sslStream.Flush();
 
-                return SslTcpClient.ReadMessage(sslStream);
+            return SslTcpClient.ReadMessage(sslStream);
         }
 
         string RequestInternalNonSsl(string request)
         {
-            tcpClient = Connect();
+            var tcpClient = Connect();
             var stream = tcpClient.GetStream();
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
@@ -227,8 +221,6 @@ namespace Liviano.Electrum
 
         public SslStream GetSslStream()
         {
-            if (sslStream != null) return sslStream;
-
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
@@ -237,12 +229,12 @@ namespace Liviano.Electrum
                 $"[GetSslStream] From: {Host}:{port} ({server.Version})"
             );
 
-            tcpClient ??= Connect();
+            var tcpClient = Connect();
 
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
-            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
+            var sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
             sslStream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
             sslStream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
