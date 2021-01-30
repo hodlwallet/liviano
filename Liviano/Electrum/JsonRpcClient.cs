@@ -275,14 +275,11 @@ namespace Liviano.Electrum
             var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
             var ct = cts.Token;
 
-            using var stream = GetSslStream();
+            //using var stream = GetSslStream();
+            using var stream = sslStream;
 
-            // Subscribe requests don't have timeouts, we will get more responses from it
-            stream.WriteTimeout = Timeout.Infinite;
-            stream.ReadTimeout = Timeout.Infinite;
-
-            stream.Write(requestBytes, 0, requestBytes.Length);
-            stream.Flush();
+            await stream.WriteAsync(requestBytes, 0, requestBytes.Length);
+            await stream.FlushAsync();
 
             SslTcpClient.OnSubscriptionMessageEvent += (o, msg) =>
             {
