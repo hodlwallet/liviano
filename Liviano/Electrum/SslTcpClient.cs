@@ -199,8 +199,6 @@ namespace Liviano.Electrum
 
             var msg = messageData.ToString();
 
-            //Debug.WriteLine($"[ReadMessage] Read message {msg.Trim()}.");
-
             return msg;
         }
 
