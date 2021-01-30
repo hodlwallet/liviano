@@ -33,6 +33,9 @@ using System.Threading;
 
 using Liviano.Models;
 using Liviano.Exceptions;
+using System.Collections.Concurrent;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Liviano.Electrum
 {
@@ -52,12 +55,26 @@ namespace Liviano.Electrum
         TcpClient tcpClient;
         SslStream sslStream;
 
+        bool readingStream = false;
+        ConcurrentDictionary<int, string> results;
+
         int port;
         public string Host { get; private set; }
 
         public JsonRpcClient(Server server)
         {
             this.server = server;
+
+            InitResuls();
+        }
+
+        void InitResuls()
+        {
+            var initialCapacity = 101;
+            var numProcs = Environment.ProcessorCount;
+            var concurrencyLevel = numProcs * 2;
+
+            results = new ConcurrentDictionary<int, string>(initialCapacity, concurrencyLevel);
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -148,50 +165,65 @@ namespace Liviano.Electrum
             return Read(stream, acc, DateTime.UtcNow);
         }
 
-        string RequestInternal(string request, bool useSsl = true)
+        async Task<string> RequestInternal(string request, bool useSsl = true)
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
 
             if (!useSsl)
-                return RequestInternalNonSsl(request);
+                return await RequestInternalNonSsl(request);
 
-            return RequestInternalSsl(request);
+            return await RequestInternalSsl(request);
         }
 
-        string RequestInternalSsl(string request)
+        async Task<string> RequestInternalSsl(string request)
         {
             tcpClient ??= Connect();
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
-            sslStream.ReadTimeout = Timeout.Infinite;
-            sslStream.WriteTimeout = Timeout.Infinite;
-
+            var json = (JObject) JsonConvert.DeserializeObject(request);
+            var requestId = (int) json.GetValue("id");
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            sslStream.Write(bytes, 0, bytes.Length);
+            _ = ConsumeMessages(sslStream);
 
-            sslStream.Flush();
+            results[requestId] = null;
 
-            return SslTcpClient.ReadMessage(sslStream);
+            await sslStream.WriteAsync(bytes, 0, bytes.Length);
+
+            await sslStream.FlushAsync();
+
+            return await GetResult(requestId);
         }
 
-        string RequestInternalNonSsl(string request)
+        async Task<string> RequestInternalNonSsl(string request)
         {
             var tcpClient = Connect();
             var stream = tcpClient.GetStream();
 
             if (!stream.CanTimeout) return null; // Handle exception outside of Request()
 
-            stream.ReadTimeout = Timeout.Infinite;
-            stream.WriteTimeout = Timeout.Infinite;
-
             var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            stream.Write(bytes, 0, bytes.Length);
+            await stream.WriteAsync(bytes, 0, bytes.Length);
 
             stream.Flush();
 
             return Read(stream, new List<byte>(), DateTime.UtcNow);
+        }
+
+        async Task<string> GetResult(int requestId)
+        {
+            var delay = 100;
+
+            // Wait for new messages' responses
+            while (results[requestId] == null) { await Task.Delay(delay); }
+
+            // Now the result is ready
+            var res = results[requestId];
+
+            results.Remove(requestId, out _);
+
+            return res;
         }
 
         public async Task<string> Request(string request, bool useSsl = true)
@@ -204,7 +236,7 @@ namespace Liviano.Electrum
                 $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
             );
 
-            var result = await Task.Run(() => RequestInternal(request, useSsl));
+            var result = await RequestInternal(request, useSsl);
 
             if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
@@ -263,6 +295,36 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
+        }
+
+        public async Task ConsumeMessages(SslStream stream)
+        {
+            if (readingStream) return;
+
+            readingStream = true;
+
+            try
+            {
+                await SslTcpClient.ReadMessagesFrom(stream, (msgs) => {
+                    foreach (var msg in msgs.Split('\n'))
+                    {
+                        if (string.IsNullOrEmpty(msg)) continue;
+
+                        var json = (JObject) JsonConvert.DeserializeObject(msg);
+                        var requestId = (int) json.GetValue("id");
+
+                        results[requestId] = msg;
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[ConsumeMessages] Error: {e.StackTrace}");
+
+                readingStream = false;
+
+                await ConsumeMessages(sslStream);
+            }
         }
     }
 }

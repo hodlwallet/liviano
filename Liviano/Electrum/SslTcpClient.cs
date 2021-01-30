@@ -24,12 +24,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Liviano.Electrum
 {
@@ -87,7 +90,7 @@ namespace Liviano.Electrum
         {
             // Create an SSL stream that will close the client's stream.
 #pragma warning disable IDE0068 // Use recommended dispose pattern
-            SslStream sslStream = new SslStream(
+            var sslStream = new SslStream(
                  client.GetStream(),
                  true,
                  new RemoteCertificateValidationCallback(ValidateServerCertificate),
@@ -118,6 +121,9 @@ namespace Liviano.Electrum
 
                 return null;
             }
+
+            sslStream.ReadTimeout = Timeout.Infinite;
+            sslStream.WriteTimeout = Timeout.Infinite;
 
             return sslStream;
         }
@@ -214,6 +220,36 @@ namespace Liviano.Electrum
             var reverseMessage = new string(messageArray);
 
             return message.IndexOf("{", StringComparison.CurrentCulture) == 0 && reverseMessage.IndexOf("}", StringComparison.CurrentCulture) == 0;
+        }
+
+        public static async Task ReadMessagesFrom(SslStream stream, Action<string> messageCallback)
+        {
+            // Read the  message sent by the server.
+            // The end of the message is signaled using the
+            // "<EOF>" marker.
+            byte[] buffer = new byte[2048];
+            StringBuilder messageData = new StringBuilder();
+
+            int bytes = -1;
+            while (bytes != 0)
+            {
+                bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
+
+                // Use Decoder class to convert from bytes to UTF8
+                // in case a character spans two buffers.
+                Decoder decoder = Encoding.UTF8.GetDecoder();
+                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                messageData.Append(chars);
+
+                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                messageData.Append(chars);
+
+                // Check for EOF or \n
+                if (messageData.ToString().IndexOf("\n", StringComparison.CurrentCulture) != -1 && CanParseToJson(messageData.ToString()))
+                    messageCallback(messageData.ToString());
+            }
         }
 
         // TODO Add this function, in case we need it, we probably wont
