@@ -603,7 +603,7 @@ namespace Liviano.Electrum
             return total;
         }
 
-        IElectrumPool IElectrumPool.Load(Network network = null)
+        IElectrumPool IElectrumPool.Load(Network network)
         {
             return Load(network);
         }

@@ -210,8 +210,10 @@ namespace Liviano.Electrum
             return new TrustedServer(server, network);
         }
 
-        IElectrumPool IElectrumPool.Load(Network network = null)
+        IElectrumPool IElectrumPool.Load(Network network)
         {
+            network ??= Network.Main;
+
             return Load(network);
         }
 
