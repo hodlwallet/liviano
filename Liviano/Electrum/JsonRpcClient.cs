@@ -181,8 +181,11 @@ namespace Liviano.Electrum
             tcpClient ??= Connect();
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
-            var json = (JObject) JsonConvert.DeserializeObject(request);
+            var json = JObject.Parse(request);
             var requestId = (int) json.GetValue("id");
+
+            // TODO should use this right?
+            //var req = ElectrumClient.Deserialize<ElectrumClient.Request>(request);
 
             _ = ConsumeMessages();
 
