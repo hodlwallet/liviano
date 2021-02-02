@@ -152,6 +152,8 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
 
+            // TODO Usecured tcp streams support back
+
             return await RequestInternalSsl(request);
         }
 
@@ -173,21 +175,6 @@ namespace Liviano.Electrum
             _ = ConsumeQueue();
 
             return await GetResult(requestId);
-        }
-
-        async Task<string> GetResult(int requestId)
-        {
-            var delay = 100;
-
-            // Wait for new messages' responses
-            while (results[requestId] == null) { await Task.Delay(delay); }
-
-            // Now the result is ready
-            var res = results[requestId];
-
-            results.Remove(requestId, out _);
-
-            return res;
         }
 
         public async Task<string> Request(string request)
@@ -232,30 +219,53 @@ namespace Liviano.Electrum
 
         public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource cts = null)
         {
-            Debug.WriteLine($"[Subscribe] {request}");
+            Host = server.Domain;
+            ipAddress = ResolveHost(server.Domain).Result;
+            port = server.PrivatePort.Value;
+
+            tcpClient ??= Connect();
+            sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
             if (cts is null) cts = new CancellationTokenSource();
 
-            var requestBytes = Encoding.UTF8.GetBytes(request + "\n");
             var ct = cts.Token;
+            var json = JObject.Parse(request);
+            var requestId = (int) json.GetValue("id");
 
-            //using var stream = GetSslStream();
-            using var stream = sslStream;
+            // TODO should use this right?
+            //var req = ElectrumClient.Deserialize<ElectrumClient.Request>(request);
 
-            await stream.WriteAsync(requestBytes, 0, requestBytes.Length);
-            await stream.FlushAsync();
+            _ = ConsumeMessages();
 
-            SslTcpClient.OnSubscriptionMessageEvent += (o, msg) =>
-            {
-                // FIXME Is this shit important?
-                if (stream.GetHashCode() == o.GetHashCode()) callback(msg);
-            };
+            EnqueueMessage(requestId, request);
+
+            _ = ConsumeQueue();
 
             await Task.Factory.StartNew(
-                (o) => SslTcpClient.ReadSubscriptionMessages(stream),
+                o => CallbackOnResult(requestId, callback),
                 TaskCreationOptions.LongRunning,
                 ct
             );
+        }
+
+        async Task<string> GetResult(int requestId)
+        {
+            var delay = 100;
+
+            // Wait for new messages' responses
+            while (results[requestId] == null) { await Task.Delay(delay); }
+
+            // Now the result is ready
+            var res = results[requestId];
+
+            results.Remove(requestId, out _);
+
+            return res;
+        }
+
+        async Task CallbackOnResult(int requestId, Action<string> callback)
+        {
+            callback(await GetResult(requestId));
         }
 
         public async Task ConsumeQueue()
@@ -295,6 +305,12 @@ namespace Liviano.Electrum
             }
         }
 
+        void EnqueueMessage(int requestId, string request)
+        {
+            results[requestId] = null;
+            queue.Enqueue(request);
+        }
+
         async Task ConsumeMessages(SslStream newStream = null)
         {
             if (readingStream) return;
@@ -305,7 +321,8 @@ namespace Liviano.Electrum
 
             try
             {
-                await SslTcpClient.ReadMessagesFrom(stream, (msgs) => {
+                await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
+                {
                     foreach (var msg in msgs.Split('\n'))
                     {
                         if (string.IsNullOrEmpty(msg)) continue;
@@ -325,12 +342,6 @@ namespace Liviano.Electrum
 
                 await ConsumeMessages();
             }
-        }
-
-        void EnqueueMessage(int requestId, string request)
-        {
-            results[requestId] = null;
-            queue.Enqueue(request);
         }
     }
 }
