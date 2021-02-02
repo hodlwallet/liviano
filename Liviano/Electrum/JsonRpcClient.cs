@@ -148,30 +148,9 @@ namespace Liviano.Electrum
             return tcpClient;
         }
 
-        string Read(NetworkStream stream, List<byte> acc, DateTime initTime)
-        {
-            if (!stream.DataAvailable || !stream.CanRead)
-            {
-                if (TimesUp(acc, initTime)) return WrapResult(acc);
-
-                Thread.Sleep(DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS);
-                return Read(stream, acc, initTime);
-            }
-
-            var nullable = ReadByte(stream);
-            if (nullable == null) return WrapResult(acc);
-
-            byte curByte = nullable.Value;
-            acc.Add(curByte);
-            return Read(stream, acc, DateTime.UtcNow);
-        }
-
-        async Task<string> RequestInternal(string request, bool useSsl = true)
+        async Task<string> RequestInternal(string request)
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
-
-            if (!useSsl)
-                return await RequestInternalNonSsl(request);
 
             return await RequestInternalSsl(request);
         }
@@ -196,22 +175,6 @@ namespace Liviano.Electrum
             return await GetResult(requestId);
         }
 
-        async Task<string> RequestInternalNonSsl(string request)
-        {
-            var tcpClient = Connect();
-            var stream = tcpClient.GetStream();
-
-            if (!stream.CanTimeout) return null; // Handle exception outside of Request()
-
-            var bytes = Encoding.UTF8.GetBytes(request + "\n");
-
-            await stream.WriteAsync(bytes, 0, bytes.Length);
-
-            stream.Flush();
-
-            return Read(stream, new List<byte>(), DateTime.UtcNow);
-        }
-
         async Task<string> GetResult(int requestId)
         {
             var delay = 100;
@@ -227,17 +190,17 @@ namespace Liviano.Electrum
             return res;
         }
 
-        public async Task<string> Request(string request, bool useSsl = true)
+        public async Task<string> Request(string request)
         {
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
-            port = useSsl ? server.PrivatePort.Value : server.UnencryptedPort.Value;
+            port = server.PrivatePort.Value;
 
             Debug.WriteLine(
                 $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
             );
 
-            var result = await RequestInternal(request, useSsl);
+            var result = await RequestInternal(request);
 
             if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
