@@ -43,9 +43,7 @@ namespace Liviano.Electrum
     {
         readonly int DEFAULT_NETWORK_TIMEOUT_INT = 30;
         TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
-
         TimeSpan DEFAULT_TIMEOUT_DATA_AVAILABLE = TimeSpan.FromMilliseconds(500.0);
-
         TimeSpan DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS = TimeSpan.FromMilliseconds(1.0);
 
         readonly Server server;
@@ -56,7 +54,9 @@ namespace Liviano.Electrum
         SslStream sslStream;
 
         bool readingStream = false;
+        bool consumingQueue = false;
         ConcurrentDictionary<int, string> results;
+        ConcurrentQueue<string> queue;
 
         int port;
         public string Host { get; private set; }
@@ -65,16 +65,17 @@ namespace Liviano.Electrum
         {
             this.server = server;
 
-            InitResuls();
+            InitQueue();
         }
 
-        void InitResuls()
+        void InitQueue()
         {
             var initialCapacity = 101;
             var numProcs = Environment.ProcessorCount;
             var concurrencyLevel = numProcs * 2;
 
             results = new ConcurrentDictionary<int, string>(initialCapacity, concurrencyLevel);
+            queue = new ConcurrentQueue<string>();
         }
 
         async Task<IPAddress> ResolveAsync(string hostName)
@@ -182,15 +183,12 @@ namespace Liviano.Electrum
 
             var json = (JObject) JsonConvert.DeserializeObject(request);
             var requestId = (int) json.GetValue("id");
-            var bytes = Encoding.UTF8.GetBytes(request + "\n");
 
-            _ = ConsumeMessages(sslStream);
+            _ = ConsumeMessages();
 
-            results[requestId] = null;
+            EnqueueMessage(requestId, request);
 
-            await sslStream.WriteAsync(bytes, 0, bytes.Length);
-
-            await sslStream.FlushAsync();
+            _ = ConsumeQueue();
 
             return await GetResult(requestId);
         }
@@ -294,7 +292,44 @@ namespace Liviano.Electrum
             );
         }
 
-        public async Task ConsumeMessages(SslStream stream)
+        public async Task ConsumeQueue()
+        {
+            if (consumingQueue) return;
+
+            consumingQueue = true;
+
+            var loopDelay = 10;
+
+            try
+            {
+                while (true)
+                {
+                    while (!queue.IsEmpty)
+                    {
+                        queue.TryDequeue(out string req);
+
+                        var json = (JObject) JsonConvert.DeserializeObject(req);
+                        var requestId = (int) json.GetValue("id");
+                        var bytes = Encoding.UTF8.GetBytes(req + "\n");
+
+                        await sslStream.WriteAsync(bytes, 0, bytes.Length);
+                        await sslStream.FlushAsync();
+                    }
+
+                    await Task.Delay(loopDelay);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[ConsumeQueue] Error: {e.StackTrace}");
+
+                consumingQueue = false;
+
+                throw;
+            }
+        }
+
+        async Task ConsumeMessages()
         {
             if (readingStream) return;
 
@@ -302,7 +337,7 @@ namespace Liviano.Electrum
 
             try
             {
-                await SslTcpClient.ReadMessagesFrom(stream, (msgs) => {
+                await SslTcpClient.ReadMessagesFrom(sslStream, (msgs) => {
                     foreach (var msg in msgs.Split('\n'))
                     {
                         if (string.IsNullOrEmpty(msg)) continue;
@@ -320,8 +355,14 @@ namespace Liviano.Electrum
 
                 readingStream = false;
 
-                await ConsumeMessages(sslStream);
+                await ConsumeMessages();
             }
+        }
+
+        void EnqueueMessage(int requestId, string request)
+        {
+            results[requestId] = null;
+            queue.Enqueue(request);
         }
     }
 }
