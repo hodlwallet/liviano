@@ -332,15 +332,17 @@ namespace Liviano.Electrum
             }
         }
 
-        async Task ConsumeMessages()
+        async Task ConsumeMessages(SslStream newStream = null)
         {
             if (readingStream) return;
 
             readingStream = true;
 
+            var stream = newStream == null ? sslStream : newStream;
+
             try
             {
-                await SslTcpClient.ReadMessagesFrom(sslStream, (msgs) => {
+                await SslTcpClient.ReadMessagesFrom(stream, (msgs) => {
                     foreach (var msg in msgs.Split('\n'))
                     {
                         if (string.IsNullOrEmpty(msg)) continue;
