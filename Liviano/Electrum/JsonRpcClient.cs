@@ -284,7 +284,7 @@ namespace Liviano.Electrum
                     {
                         queue.TryDequeue(out string req);
 
-                        var json = (JObject) JsonConvert.DeserializeObject(req);
+                        var json = JsonConvert.DeserializeObject<JObject>(req);
                         var requestId = (int) json.GetValue("id");
                         var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
