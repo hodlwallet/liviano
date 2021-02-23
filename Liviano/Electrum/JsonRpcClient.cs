@@ -253,7 +253,8 @@ namespace Liviano.Electrum
             var delay = 100;
 
             // Wait for new messages' responses
-            while (results[requestId] == null) { await Task.Delay(delay); }
+            while (!results.ContainsKey(requestId) || results[requestId] == null)
+                await Task.Delay(delay);
 
             // Now the result is ready
             var res = results[requestId];

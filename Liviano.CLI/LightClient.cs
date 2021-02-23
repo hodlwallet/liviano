@@ -343,6 +343,16 @@ namespace Liviano.CLI
                 );
             };
 
+            wallet.ElectrumPool.OnNewTransaction += (s, txArgs) => 
+            {
+                logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+            };
+
+            wallet.ElectrumPool.OnUpdateTransaction += (s, txArgs) => 
+            {
+                logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+            };
+
             if (!resync)
             {
                 wallet.Watch();
@@ -500,7 +510,7 @@ namespace Liviano.CLI
                     logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
             }
 
-            logger.Information("Closing thread with pid: {pid}", process.Id);
+            logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds}", process.Id, process.UserProcessorTime.TotalSeconds);
             logger.Information("bye!");
 
             process.Close();
