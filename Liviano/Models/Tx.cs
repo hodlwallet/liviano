@@ -266,7 +266,7 @@ namespace Liviano.Models
             {
                 if (externalAddresses.Contains(addr))
                 {
-                    Debug.WriteLine($"[CreateFromHex] Address was found in external addresses (tx is receive), address: {addr}");
+                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in external addresses (tx is receive), address: {addr}");
 
                     tx.IsReceive = true;
                     tx.IsSend = false;
@@ -277,7 +277,7 @@ namespace Liviano.Models
 
                 if (internalAddresses.Contains(addr))
                 {
-                    Debug.WriteLine($"[CreateFromHex] Address was found in internal addresses (tx is send), address: {addr}");
+                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is send), address: {addr}");
 
                     tx.IsSend = true;
                     tx.IsReceive = false;
