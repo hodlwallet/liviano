@@ -259,7 +259,7 @@ namespace Liviano.Electrum
             // Now the result is ready
             var res = results[requestId];
 
-            results.Remove(requestId, out _);
+            results.TryRemove(requestId, out _);
 
             return res;
         }
