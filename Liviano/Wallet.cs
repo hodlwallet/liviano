@@ -70,6 +70,10 @@ namespace Liviano
 
         public byte[] ChainCode { get; set; }
 
+        public BlockHeader LastBlockHeader { get; set; }
+
+        public long Height { get; set; }
+
         public string CurrentAccountId { get; set; }
 
         IAccount currentAccount;

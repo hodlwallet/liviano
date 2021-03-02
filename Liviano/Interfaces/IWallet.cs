@@ -100,6 +100,18 @@ namespace Liviano.Interfaces
         byte[] ChainCode { get; set; }
 
         /// <summary>
+        /// The last block header
+        /// </summary>
+        [JsonProperty(PropertyName = "lastBlockHeader", NullValueHandling = NullValueHandling.Ignore)]
+        BlockHeader LastBlockHeader { get; set; }
+
+        /// <summary>
+        /// The block height
+        /// </summary>
+        [JsonProperty(PropertyName = "height", NullValueHandling = NullValueHandling.Ignore)]
+        long Height { get; set; }
+
+        /// <summary>
         /// Current account the wallet is on
         /// </summary>
         [JsonProperty(PropertyName = "currentAccountId", NullValueHandling = NullValueHandling.Ignore)]
