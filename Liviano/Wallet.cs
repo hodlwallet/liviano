@@ -109,6 +109,8 @@ namespace Liviano
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
+        public event EventHandler<NewHeaderEventArgs> OnNewHeader;
+
         IWalletStorage storage;
         public IWalletStorage Storage
         {
