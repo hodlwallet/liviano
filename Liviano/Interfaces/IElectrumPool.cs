@@ -46,14 +46,19 @@ namespace Liviano.Interfaces
         event EventHandler<Server> OnCurrentServerChangedEvent;
         event EventHandler<Server> OnConnected;
         event EventHandler<Server> OnDisconnectedEvent;
+
         event EventHandler OnDoneFindingPeersEvent;
         event EventHandler OnCancelFindingPeersEvent;
+
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
+
         event EventHandler OnSyncStarted;
         event EventHandler OnSyncFinished;
         event EventHandler OnWatchStarted;
+
         event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
+        event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
 
         /// <summary>
         /// Broadcast Bitcoin Transaction

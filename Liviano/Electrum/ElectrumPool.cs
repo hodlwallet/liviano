@@ -98,6 +98,7 @@ namespace Liviano.Electrum
         public event EventHandler OnSyncFinished;
         public event EventHandler OnWatchStarted;
         public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
+        public event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
 
         public Server[] AllServers { get; set; }
 

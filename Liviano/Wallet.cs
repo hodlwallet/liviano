@@ -104,12 +104,12 @@ namespace Liviano
         public event EventHandler OnSyncStarted;
         public event EventHandler OnSyncFinished;
         public event EventHandler OnWatchStarted;
-        public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
 
-        public event EventHandler<NewHeaderEventArgs> OnNewHeader;
+        public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
+        public event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
 
         IWalletStorage storage;
         public IWalletStorage Storage
@@ -376,7 +376,7 @@ namespace Liviano
         /// <summary>
         /// Subscribe to headers
         /// </summary>
-        public async Task SubsribeToHeaders()
+        public async Task SubscribeToHeaders()
         {
         }
 
