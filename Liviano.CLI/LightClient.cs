@@ -278,12 +278,12 @@ namespace Liviano.CLI
 
             wallet.OnNewTransaction += (s, e) =>
             {
-                logger.Information("Transaction found!");
+                logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
             };
 
             wallet.OnUpdateTransaction += (s, e) =>
             {
-                logger.Information("Updated transaction!");
+                logger.Information("Updated transaction at height: {height}!", e.Tx.BlockHeight);
             };
 
             wallet.OnSyncStarted += (s, e) =>
