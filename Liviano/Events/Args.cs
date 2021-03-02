@@ -58,4 +58,18 @@ namespace Liviano.Events
             Address = address;
         }
     }
+
+    public class NewHeaderEventArgs : EventArgs
+    {
+        public IWallet Wallet { get; set; }
+        public string Hex { get; set; }
+        public long Height { get; set; }
+
+        public NewHeaderEventArgs(IWallet wallet, string hex, long height)
+        {
+            Wallet = wallet;
+            Hex = hex;
+            Height = height;
+        }
+    }
 }

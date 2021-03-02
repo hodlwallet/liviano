@@ -248,5 +248,6 @@ namespace Liviano.Interfaces
         event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
+        event EventHandler<NewHeaderEventArgs> OnNewHeader;
     }
 }

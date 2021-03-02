@@ -372,6 +372,13 @@ namespace Liviano
         }
 
         /// <summary>
+        /// Subscribe to headers
+        /// </summary>
+        public async Task SubsribeToHeaders()
+        {
+        }
+
+        /// <summary>
         /// Cleanup wallet, set internal / external addr acocunts to 0
         /// </summary>
         public void Cleanup()
