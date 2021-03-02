@@ -32,7 +32,6 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Events;
-using Liviano.Electrum;
 
 namespace Liviano.Interfaces
 {
