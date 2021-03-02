@@ -162,13 +162,13 @@ namespace Liviano.Electrum
             public string TxHash { get; set; }
             public int TxPos { get; set; }
             public int Value { get; set; }
-            public int Height { get; set; }
+            public long Height { get; set; }
         }
 
         public class BlockchainScriptHashGetHistoryTxsResult : BaseResult
         {
             public string TxHash { get; set; }
-            public int Height { get; set; }
+            public long Height { get; set; }
             public int Fee { get; set; }
         }
 

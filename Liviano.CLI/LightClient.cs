@@ -37,6 +37,7 @@ using Liviano.Models;
 using Liviano.Interfaces;
 using Liviano.Bips;
 using Liviano.Storages;
+using System.Globalization;
 
 namespace Liviano.CLI
 {
@@ -275,14 +276,24 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
+            wallet.OnNewTransaction += (s, e) =>
+            {
+                logger.Information("Transaction found!");
+            };
+
+            wallet.OnUpdateTransaction += (s, e) =>
+            {
+                logger.Information("Updated transaction!");
+            };
+
             wallet.OnSyncStarted += (s, e) =>
             {
-                logger.Information("Sync started!");
+                logger.Information("Sync started at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
             };
 
             wallet.OnSyncFinished += (s, e) =>
             {
-                logger.Information("Sync finished!");
+                logger.Information("Sync finished at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
 
                 // Print transactions
                 List<Tx> txs = new List<Tx> { };
@@ -302,7 +313,7 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}"
+                            $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)} Height: {tx.BlockHeight} Confirmations: {tx.Confirmations}"
                         );
                         total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
                     }

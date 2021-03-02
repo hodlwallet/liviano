@@ -430,10 +430,10 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Sent from {sender}");
 
-            Console.WriteLine($"[ElectrumPool_OnConnectedToSync] Connected to {server.Domain}, recently connected server.");
-            Console.WriteLine($"[ElectrumPool_OnConnectedToSync] Now starts to sync wallet");
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Connected to {server.Domain}, recently connected server.");
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Now starts to sync wallet");
 
-            Console.WriteLine();
+            Debug.WriteLine("");
 
             await ElectrumPool.SyncWallet(this, ct);
         }
@@ -443,7 +443,7 @@ namespace Liviano
             Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Sent from {sender}");
             Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Server {server.Domain}");
 
-            Console.WriteLine($"Now starts to watch wallet");
+            Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Now starts to watch wallet");
 
             ElectrumPool.OnWatchAddressNotified += (o, args) =>
             {
@@ -457,21 +457,21 @@ namespace Liviano
 
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
         {
-            Console.WriteLine($"Sync started at {DateTime.Now}");
+            Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
             this.OnSyncStarted?.Invoke(this, null);
         }
 
         private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
         {
-            Console.WriteLine($"Watch started at {DateTime.Now}");
+            Debug.WriteLine($"[ElectrumPool_OnWatchStarted] Watch started at {DateTime.Now}");
 
             this.OnWatchStarted?.Invoke(this, null);
         }
 
         private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
         {
-            Console.WriteLine($"Sync finished at {DateTime.Now}");
+            Debug.WriteLine($"[ElectrumPool_OnSyncFinished] Sync finished at {DateTime.Now}");
 
             this.OnSyncFinished?.Invoke(this, args);
         }

@@ -291,7 +291,7 @@ namespace Liviano.Electrum
                     if (currentTx is null)
                     {
                         var tx = Tx.CreateFromHex(
-                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            txHex, height, acc, Network, receiveAddresses, changeAddresses,
                             GetOutValueFromTxInputs
                         );
 
@@ -305,7 +305,7 @@ namespace Liviano.Electrum
                     if (currentTx.BlockHeight != height)
                     {
                         var tx = Tx.CreateFromHex(
-                            txHex, acc, Network, receiveAddresses, changeAddresses,
+                            txHex, height, acc, Network, receiveAddresses, changeAddresses,
                             GetOutValueFromTxInputs
                         );
 
@@ -527,6 +527,7 @@ namespace Liviano.Electrum
 
                 var tx = Tx.CreateFromHex(
                     txRes.Result,
+                    r.Height,
                     acc,
                     Network,
                     receiveAddresses,

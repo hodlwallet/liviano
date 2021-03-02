@@ -233,6 +233,7 @@ namespace Liviano.Models
 
         public static Tx CreateFromHex(
                 string hex,
+                long? height,
                 IAccount account,
                 Network network,
                 BitcoinAddress[] externalAddresses,
@@ -256,7 +257,7 @@ namespace Liviano.Models
                 Hex = hex,
                 //Confirmations = confirmations,
                 IsRBF = transaction.RBF,
-                //BlockHeight = blockHeight
+                BlockHeight = height
             };
 
             // Decide if the tx is a send tx or a receive tx
