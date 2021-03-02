@@ -219,6 +219,7 @@ namespace Liviano.Electrum
 
         public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource cts = null)
         {
+            var loopDelay = 1000;
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
@@ -238,20 +239,25 @@ namespace Liviano.Electrum
 
             _ = ConsumeQueue();
 
-            await Task.Factory.StartNew(
-                o => CallbackOnResult(requestId, callback),
-                TaskCreationOptions.LongRunning,
-                ct
-            );
+            //while (true)
+            //{
+                await Task.Factory.StartNew(
+                    o => CallbackOnResult(requestId, callback),
+                    TaskCreationOptions.LongRunning,
+                    ct
+                );
+
+                await Task.Delay(loopDelay);
+            //}
         }
 
         async Task<string> GetResult(int requestId)
         {
-            var delay = 100;
+            var loopDelay = 100;
 
             // Wait for new messages' responses
             while (!results.ContainsKey(requestId) || results[requestId] == null)
-                await Task.Delay(delay);
+                await Task.Delay(loopDelay);
 
             // Now the result is ready
             var res = results[requestId];
