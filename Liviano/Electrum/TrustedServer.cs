@@ -190,11 +190,12 @@ namespace Liviano.Electrum
             foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
         }
 
-        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()
+        public async Task SubscribeToHeaders()
         {
-            var res = await ElectrumClient.BlockchainHeadersSubscribe();
-
-            return res.Result;
+            await ElectrumClient.BlockchainHeadersSubscribe(
+                (r) => { Debug.WriteLine(r); },
+                (r) => { Debug.WriteLine(r); }
+            );
         }
 
         public Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)

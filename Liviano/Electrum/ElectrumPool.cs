@@ -775,11 +775,12 @@ namespace Liviano.Electrum
             return res.Result;
         }
 
-        public async Task<BlockchainHeadersSubscribeInnerResult> SubscribeToHeaders()
+        public async Task SubscribeToHeaders()
         {
-            var res = await ElectrumClient.BlockchainHeadersSubscribe();
-
-            return res.Result;
+            await ElectrumClient.BlockchainHeadersSubscribe(
+                (r) => { Debug.WriteLine(r); },
+                (r) => { Debug.WriteLine(r); }
+            );
         }
     }
 }

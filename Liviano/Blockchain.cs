@@ -151,18 +151,18 @@ namespace Liviano
             return blocks;
         }
 
-        public ChainedBlock DownloadBlockchainHeadersTip(IElectrumPool pool)
-        {
-            var t = pool.SubscribeToHeaders();
-            t.Wait();
+        //public ChainedBlock DownloadBlockchainHeadersTip(IElectrumPool pool)
+        //{
+            //var t = pool.SubscribeToHeaders();
+            //t.Wait();
 
-            var chainedBlock = new ChainedBlock(
-                BlockHeader.Parse(t.Result.Hex, Network),
-                t.Result.Height
-            );
+            //var chainedBlock = new ChainedBlock(
+                //BlockHeader.Parse(t.Result.Hex, Network),
+                //t.Result.Height
+            //);
 
-            return chainedBlock;
-        }
+            //return chainedBlock;
+        //}
 
         public void DownloadHeadersParallel(IElectrumPool pool)
         {
@@ -198,8 +198,8 @@ namespace Liviano
 
             // Get the tip, and get headers to tip
             cpPairs.Clear();
-            var tip = DownloadBlockchainHeadersTip(pool);
-            cpPairs.Add((Headers.Last(), tip));
+            //var tip = DownloadBlockchainHeadersTip(pool);
+            //cpPairs.Add((Headers.Last(), tip));
 
             Parallel.ForEach(cpPairs, cpPair =>
             {
