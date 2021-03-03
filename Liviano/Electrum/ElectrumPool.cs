@@ -775,7 +775,7 @@ namespace Liviano.Electrum
             return res.Result;
         }
 
-        public async Task SubscribeToHeaders()
+        public async Task SubscribeToHeaders(IWallet wallet, CancellationToken ct)
         {
             await ElectrumClient.BlockchainHeadersSubscribe(
                 (r) => { Debug.WriteLine(r); },

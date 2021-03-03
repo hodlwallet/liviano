@@ -70,7 +70,7 @@ namespace Liviano.Interfaces
         /// Susbscribes to the headers until tip
         /// </summary>
         /// <param name=""></param>
-        Task SubscribeToHeaders();
+        Task SubscribeToHeaders(IWallet wallet, CancellationToken ct);
 
         Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight);
 

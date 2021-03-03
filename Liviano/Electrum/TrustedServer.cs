@@ -190,11 +190,13 @@ namespace Liviano.Electrum
             foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
         }
 
-        public async Task SubscribeToHeaders()
+        public async Task SubscribeToHeaders(IWallet wallet, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested) return;
+
             await ElectrumClient.BlockchainHeadersSubscribe(
-                (r) => { Debug.WriteLine(r); },
-                (r) => { Debug.WriteLine(r); }
+                lastHeaderCallback: (r) => { Debug.WriteLine(r); },
+                headerNotificationCallback: (r) => { Debug.WriteLine(r); }
             );
         }
 
