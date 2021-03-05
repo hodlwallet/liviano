@@ -195,8 +195,12 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
 
             await ElectrumClient.BlockchainHeadersSubscribe(
-                resultCallback: (r) => { Debug.WriteLine(r); },
-                notificationCallback: (r) => { Debug.WriteLine(r); }
+                resultCallback: (str) => {
+                    Debug.WriteLine($"[SubscribeToHeaders] {str}");
+                },
+                notificationCallback: (str) => {
+                    Debug.WriteLine($"[SubscribeToHeaders] {str}");
+                }
             );
         }
 
@@ -287,10 +291,10 @@ namespace Liviano.Electrum
                     Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
                     Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
 
-                    Console.WriteLine($"Status: '{str}'.");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Status: '{str}'.");
                 },
                 notificationCallback: (str) => {
-                    Console.WriteLine($"Notification: '{str}'.");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Notification: '{str}'.");
                 }
             );
                 //string status;
