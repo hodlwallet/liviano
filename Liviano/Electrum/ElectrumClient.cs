@@ -417,15 +417,17 @@ namespace Liviano.Electrum
         }
 
         public async Task BlockchainHeadersSubscribe(
-                Action<BlockchainHeadersSubscribeResult> lastHeaderCallback,
-                Action<string> headerNotificationCallback)
+                Action<string> resultCallback,
+                Action<string> notificationCallback)
         {
             var obj = new Request { Id = ++RequestId, Method = "blockchain.headers.subscribe", Params = new List<string> { } };
             var json = Serialize(obj);
 
-            lastHeaderCallback(await RequestInternal<BlockchainHeadersSubscribeResult>(json));
-
-            await jsonRpcClient.Subscribe(json, (res) => headerNotificationCallback(res));
+            await jsonRpcClient.Subscribe(
+                json,
+                (res) => resultCallback(res),
+                (res) => notificationCallback(res)
+            );
         }
 
         public async Task<BlockchainBlockHeadersWithCheckpointHeightResult> BlockchainBlockHeaders(int height, int count, int cpHeight)
@@ -509,12 +511,16 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainScriptHashGetHistoryResult>(json);
         }
 
-        public async Task BlockchainScriptHashSubscribe(string scriptHash, Action<string> notificationCallback)
+        public async Task BlockchainScriptHashSubscribe(string scriptHash, Action<string> resultCallback, Action<string> notificationCallback)
         {
             var obj = new Request { Id = ++RequestId, Method = "blockchain.scripthash.subscribe", Params = new List<string> { scriptHash } };
             var json = Serialize(obj);
 
-            await jsonRpcClient.Subscribe(json, (res) => notificationCallback(res));
+            await jsonRpcClient.Subscribe(
+                json,
+                (res) => resultCallback(res),
+                (res) => notificationCallback(res)
+            );
         }
 
         public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)

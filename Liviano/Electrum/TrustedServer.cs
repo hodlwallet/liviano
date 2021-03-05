@@ -195,8 +195,8 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
 
             await ElectrumClient.BlockchainHeadersSubscribe(
-                lastHeaderCallback: (r) => { Debug.WriteLine(r); },
-                headerNotificationCallback: (r) => { Debug.WriteLine(r); }
+                resultCallback: (r) => { Debug.WriteLine(r); },
+                notificationCallback: (r) => { Debug.WriteLine(r); }
             );
         }
 
@@ -281,90 +281,98 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ScriptHash: {scriptHashStr}");
 
-            await ElectrumClient.BlockchainScriptHashSubscribe(scriptHashStr, async (str) =>
-            {
-                Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
-                Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
-                string status;
-                try
-                {
-                    var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
+            await ElectrumClient.BlockchainScriptHashSubscribe(
+                scriptHashStr,
+                resultCallback: (str) => {
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
+                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
 
-                    status = string.Join(", ", oStatus.Params);
+                    Console.WriteLine($"Status: '{str}'.");
+                },
+                notificationCallback: (str) => {
+                    Console.WriteLine($"Notification: '{str}'.");
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
-                    var sStatus = Deserialize<ResultAsString>(str);
+            );
+                //string status;
+                //try
+                //{
+                    //var oStatus = Deserialize<BlockchainScriptHashSubscribeNotification>(str);
 
-                    if (string.IsNullOrEmpty(sStatus.Result))
-                    {
-                        Debug.WriteLine($"[WatchAddress] Result is null");
+                    //status = string.Join(", ", oStatus.Params);
+                //}
+                //catch (Exception e)
+                //{
+                    //Debug.WriteLine($"[WatchAddress] Cannot parse as a full result: {e.Message}... Trying with string result now");
+                    //var sStatus = Deserialize<ResultAsString>(str);
 
-                        return;
-                    }
-                    else
-                        Debug.WriteLine($"[WatchAddress] Result is not null");
+                    //if (string.IsNullOrEmpty(sStatus.Result))
+                    //{
+                        //Debug.WriteLine($"[WatchAddress] Result is null");
 
-                    status = sStatus.Result;
-                }
+                        //return;
+                    //}
+                    //else
+                        //Debug.WriteLine($"[WatchAddress] Result is not null");
 
-                OnWatchAddressNotified?.Invoke(
-                    this,
-                    new WatchAddressEventArgs(status, acc, addr)
-                );
+                    //status = sStatus.Result;
+                //}
 
-                var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+                //OnWatchAddressNotified?.Invoke(
+                    //this,
+                    //new WatchAddressEventArgs(status, acc, addr)
+                //);
 
-                foreach (var unspentResult in unspent.Result)
-                {
-                    var txHash = unspentResult.TxHash;
-                    var height = unspentResult.Height;
+                //var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
 
-                    var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+                //foreach (var unspentResult in unspent.Result)
+                //{
+                    //var txHash = unspentResult.TxHash;
+                    //var height = unspentResult.Height;
 
-                    var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                    //var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                    var txHex = blkChainTxGet.Result;
+                    //var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
 
-                    // Tx is new
-                    if (currentTx is null)
-                    {
-                        var tx = Tx.CreateFromHex(
-                            txHex, height, acc, Network, receiveAddresses, changeAddresses,
-                            GetOutValueFromTxInputs
-                        );
+                    //var txHex = blkChainTxGet.Result;
 
-                        acc.AddTx(tx);
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    //// Tx is new
+                    //if (currentTx is null)
+                    //{
+                        //var tx = Tx.CreateFromHex(
+                            //txHex, height, acc, Network, receiveAddresses, changeAddresses,
+                            //GetOutValueFromTxInputs
+                        //);
 
-                        return;
-                    }
+                        //acc.AddTx(tx);
+                        //OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
-                    // A potential update if tx heights are different
-                    if (currentTx.BlockHeight != height)
-                    {
-                        var tx = Tx.CreateFromHex(
-                            txHex, height, acc, Network, receiveAddresses, changeAddresses,
-                            GetOutValueFromTxInputs
-                        );
+                        //return;
+                    //}
 
-                        acc.UpdateTx(tx);
+                    //// A potential update if tx heights are different
+                    //if (currentTx.BlockHeight != height)
+                    //{
+                        //var tx = Tx.CreateFromHex(
+                            //txHex, height, acc, Network, receiveAddresses, changeAddresses,
+                            //GetOutValueFromTxInputs
+                        //);
 
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                        //acc.UpdateTx(tx);
 
-                        // Here for safety, at any time somebody can add code to this
-                        return;
-                    }
-                }
-            });
+                        //OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
 
-            Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
+                        //// Here for safety, at any time somebody can add code to this
+                        //return;
+                    //}
+                //}
+            //});
 
-            // calling watch again after a 30 second timeout because it should never finish
-            await Task.Delay(30_000); // Wait a 30 seconds
+            //Debug.WriteLine("[WatchAddress] Disconnected. Connect again in 30 seconds");
 
-            await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+            //// calling watch again after a 30 second timeout because it should never finish
+            //await Task.Delay(30_000); // Wait a 30 seconds
+
+            //await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct);
         }
 
         /// <summary>

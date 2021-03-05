@@ -510,9 +510,9 @@ namespace Liviano
                 if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
             }
 
-            Storage.Save();
-
             OnNewTransaction?.Invoke(this, txArgs);
+
+            Storage.Save();
         }
 
         private void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)
@@ -537,9 +537,9 @@ namespace Liviano
                 if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
             }
 
-            Storage.Save();
-
             OnUpdateTransaction?.Invoke(this, txArgs);
+
+            Storage.Save();
         }
 
         public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)

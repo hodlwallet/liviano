@@ -217,7 +217,7 @@ namespace Liviano.Electrum
             return sslStream;
         }
 
-        public async Task Subscribe(string request, Action<string> callback, CancellationTokenSource cts = null)
+        public async Task Subscribe(string request, Action<string> resultCallback, Action<string> notificationCallback, CancellationTokenSource cts = null)
         {
             var loopDelay = 1000;
             Host = server.Domain;
@@ -239,16 +239,15 @@ namespace Liviano.Electrum
 
             _ = ConsumeQueue();
 
-            //while (true)
-            //{
-                await Task.Factory.StartNew(
-                    o => CallbackOnResult(requestId, callback),
-                    TaskCreationOptions.LongRunning,
-                    ct
-                );
+            resultCallback(await GetResult(requestId));
 
-                await Task.Delay(loopDelay);
-            //}
+            await Task.Factory.StartNew(
+                o => CallbackOnResult(requestId, notificationCallback),
+                TaskCreationOptions.LongRunning,
+                ct
+            );
+
+            await Task.Delay(loopDelay);
         }
 
         async Task<string> GetResult(int requestId)
