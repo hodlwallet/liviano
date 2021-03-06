@@ -42,6 +42,7 @@ using Liviano.Exceptions;
 using Liviano.Events;
 
 using static Liviano.Electrum.ElectrumClient;
+using Newtonsoft.Json.Linq;
 
 namespace Liviano.Electrum
 {
@@ -281,20 +282,36 @@ namespace Liviano.Electrum
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
-            var scriptHashStr = addr.ToScriptHash().ToHex();
 
-            Debug.WriteLine($"[WatchAddress] Address: {addr} ScriptHash: {scriptHashStr}");
+            var scriptHashStr = addr.ToScriptHash().ToHex();
+            var isReceive = receiveAddresses.Contains(addr) ? "Receive" : "Send";
+
+            Debug.WriteLine($"[WatchAddress] Address: {addr} ({isReceive}) ScriptHash: {scriptHashStr}");
 
             await ElectrumClient.BlockchainScriptHashSubscribe(
                 scriptHashStr,
                 resultCallback: (str) => {
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Started!");
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
+                    Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
 
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Status: '{str}'.");
+                    Debug.WriteLine($"[WatchAddress][resultCallback] Status: '{str}'.");
+
+                    // TODO Status data structure description: https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-basics.html#status
+                    // I'm not sure what to do with it... What matters are the notifications and those are described bellow
                 },
                 notificationCallback: (str) => {
-                    Debug.WriteLine($"[WatchAddress][foundTxCallback] Notification: '{str}'.");
+                    Debug.WriteLine($"[WatchAddress][notificationCallback] Notification: '{str}'.");
+
+                    var json = Deserialize<JObject>(str);
+                    var status = (string) json.GetValue("result");
+
+                    if (string.IsNullOrEmpty(status))
+                    {
+                        Debug.WriteLine($"[WatchAddress][notificationCallback] Status is null or empty");
+
+                        return;
+                    }
+
+                    Debug.WriteLine($"[WatchAddress][notificationCallback] Status: '{status}'.");
                 }
             );
                 //string status;

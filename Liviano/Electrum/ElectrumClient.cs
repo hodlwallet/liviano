@@ -300,13 +300,13 @@ namespace Liviano.Electrum
             public ErrorInnerResult Error { get; set; }
         }
 
-        public class BaseNotification { }	
+        public class BaseNotification { }
 
-        public class BlockchainScriptHashSubscribeNotification : BaseNotification	
+        public class BlockchainScriptHashSubscribeNotification : BaseNotification
         {	
-            public string Method { get; set; }	
-            public string[] Params { get; set; }	
-        }	
+            public string Method { get; set; }
+            public string[] Params { get; set; }
+        }
 
         public ElectrumClient(JsonRpcClient jsonRpcClient)
         {

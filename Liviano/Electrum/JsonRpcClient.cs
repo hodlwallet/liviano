@@ -330,6 +330,8 @@ namespace Liviano.Electrum
                     {
                         if (string.IsNullOrEmpty(msg)) continue;
 
+                        Debug.WriteLine($"[ConsumeMessages] '{msg}'.");
+
                         var json = JsonConvert.DeserializeObject<JObject>(msg);
                         var requestId = (int) json.GetValue("id");
 
