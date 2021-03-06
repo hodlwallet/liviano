@@ -284,9 +284,9 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
 
             var scriptHashStr = addr.ToScriptHash().ToHex();
-            var isReceive = receiveAddresses.Contains(addr) ? "Receive" : "Send";
+            var receiveOrSend = receiveAddresses.Contains(addr) ? "Receive" : "Send";
 
-            Debug.WriteLine($"[WatchAddress] Address: {addr} ({isReceive}) ScriptHash: {scriptHashStr}");
+            Debug.WriteLine($"[WatchAddress] Address: {addr} ({receiveOrSend}) ScriptHash: {scriptHashStr}");
 
             await ElectrumClient.BlockchainScriptHashSubscribe(
                 scriptHashStr,

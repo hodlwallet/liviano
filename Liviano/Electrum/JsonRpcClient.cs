@@ -232,6 +232,13 @@ namespace Liviano.Electrum
             var ct = cts.Token;
             var json = JObject.Parse(request);
             var requestId = (int) json.GetValue("id");
+            var method = (string) json.GetValue("method");
+            var @params = (JArray) json.GetValue("params");
+
+            if (string.Equals(method, "blockchain.scripthash.subscribe"))
+            {
+                //results[str()@params[0]]
+            }
 
             _ = ConsumeMessages();
 
