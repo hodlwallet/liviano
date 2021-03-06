@@ -55,7 +55,7 @@ namespace Liviano.Electrum
 
         bool readingStream = false;
         bool consumingQueue = false;
-        ConcurrentDictionary<int, string> results;
+        ConcurrentDictionary<string, string> results;
         ConcurrentQueue<string> queue;
 
         int port;
@@ -74,7 +74,7 @@ namespace Liviano.Electrum
             var numProcs = Environment.ProcessorCount;
             var concurrencyLevel = numProcs * 2;
 
-            results = new ConcurrentDictionary<int, string>(initialCapacity, concurrencyLevel);
+            results = new ConcurrentDictionary<string, string>(initialCapacity, concurrencyLevel);
             queue = new ConcurrentQueue<string>();
         }
 
@@ -163,7 +163,7 @@ namespace Liviano.Electrum
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
             var json = JObject.Parse(request);
-            var requestId = (int) json.GetValue("id");
+            var requestId = (string) json.GetValue("id");
 
             // TODO should use this right?
             //var req = ElectrumClient.Deserialize<ElectrumClient.Request>(request);
@@ -231,13 +231,13 @@ namespace Liviano.Electrum
 
             var ct = cts.Token;
             var json = JObject.Parse(request);
-            var requestId = (int) json.GetValue("id");
+            var requestId = (string) json.GetValue("id");
             var method = (string) json.GetValue("method");
             var @params = (JArray) json.GetValue("params");
 
             if (string.Equals(method, "blockchain.scripthash.subscribe"))
             {
-                //results[str()@params[0]]
+                //results[()@params[0]]
             }
 
             _ = ConsumeMessages();
@@ -257,7 +257,7 @@ namespace Liviano.Electrum
             await Task.Delay(loopDelay);
         }
 
-        async Task<string> GetResult(int requestId)
+        async Task<string> GetResult(string requestId)
         {
             var loopDelay = 100;
 
@@ -273,7 +273,7 @@ namespace Liviano.Electrum
             return res;
         }
 
-        async Task CallbackOnResult(int requestId, Action<string> callback)
+        async Task CallbackOnResult(string requestId, Action<string> callback)
         {
             callback(await GetResult(requestId));
         }
@@ -315,7 +315,7 @@ namespace Liviano.Electrum
             }
         }
 
-        void EnqueueMessage(int requestId, string request)
+        void EnqueueMessage(string requestId, string request)
         {
             results[requestId] = null;
             queue.Enqueue(request);
@@ -340,7 +340,7 @@ namespace Liviano.Electrum
                         Debug.WriteLine($"[ConsumeMessages] '{msg}'.");
 
                         var json = JsonConvert.DeserializeObject<JObject>(msg);
-                        var requestId = (int) json.GetValue("id");
+                        var requestId = (string) json.GetValue("id");
 
                         results[requestId] = msg;
                     }
