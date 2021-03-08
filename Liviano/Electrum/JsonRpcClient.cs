@@ -219,7 +219,6 @@ namespace Liviano.Electrum
 
         public async Task Subscribe(string request, Action<string> resultCallback, Action<string> notificationCallback, CancellationTokenSource cts = null)
         {
-            var loopDelay = 1000;
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
@@ -233,12 +232,6 @@ namespace Liviano.Electrum
             var json = JObject.Parse(request);
             var requestId = (string) json.GetValue("id");
             var method = (string) json.GetValue("method");
-            var @params = (JArray) json.GetValue("params");
-
-            if (string.Equals(method, "blockchain.scripthash.subscribe"))
-            {
-                //results[()@params[0]]
-            }
 
             _ = ConsumeMessages();
 
@@ -248,13 +241,24 @@ namespace Liviano.Electrum
 
             resultCallback(await GetResult(requestId));
 
+            if (string.Equals(method, "blockchain.scripthash.subscribe"))
+            {
+                var @params = (JArray) json.GetValue("params");
+
+                results[(string) @params[0]] = null;
+                requestId = (string) @params[0];
+            }
+            else if (string.Equals(method, "blockchain.headers.subscribe"))
+            {
+                results["blockchain.headers.subscribe"] = null;
+                requestId = "blockchain.headers.subscribe";
+            }
+
             await Task.Factory.StartNew(
                 o => CallbackOnResult(requestId, notificationCallback),
                 TaskCreationOptions.LongRunning,
                 ct
             );
-
-            await Task.Delay(loopDelay);
         }
 
         async Task<string> GetResult(string requestId)
@@ -275,6 +279,8 @@ namespace Liviano.Electrum
 
         async Task CallbackOnResult(string requestId, Action<string> callback)
         {
+            Debug.WriteLine($"[CallbackOnResult] Callback for requestId: {requestId}");
+
             callback(await GetResult(requestId));
         }
 
@@ -321,7 +327,12 @@ namespace Liviano.Electrum
             queue.Enqueue(request);
         }
 
-        async Task ConsumeMessages(SslStream newStream = null)
+        /// <summary>
+        /// Consume messages from the stream
+        /// </summary>
+        /// <param name="newStream">Read from a new stream not the one we already have set</param>
+        /// <param name="scripthash">Subscribe to a scripthash</param>
+        async Task ConsumeMessages(SslStream newStream = null, string scripthash = null)
         {
             if (readingStream) return;
 
@@ -340,9 +351,40 @@ namespace Liviano.Electrum
                         Debug.WriteLine($"[ConsumeMessages] '{msg}'.");
 
                         var json = JsonConvert.DeserializeObject<JObject>(msg);
-                        var requestId = (string) json.GetValue("id");
 
-                        results[requestId] = msg;
+                        if (json.ContainsKey("method")) // A subscription notification
+                        {
+                            Debug.WriteLine("[ConsumeMessages] A response result for a notification");
+
+                            var @params = json.GetValue("params");
+                            var method = (string) json.GetValue("method");
+
+                            if (string.Equals(method, "blockchain.scripthash.subscribe"))
+                            {
+                                var scripthash = (string) @params[0];
+                                var status = (string) @params[1];
+
+                                Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
+
+                                results[scripthash] = status;
+                            }
+                            else if (string.Equals(method, "blockchain.headers.subscribe"))
+                            {
+                                var newHeader = (string) @params[0];
+                                Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
+
+                                results["blockchain.headers.subscribe"] = newHeader;
+                            }
+                        }
+                        else
+                        {
+                            var requestId = (string) json.GetValue("id");
+
+                            Debug.WriteLine($"[ConsumeMessages] A response result for id: {requestId}");
+
+                            results[requestId] = msg;
+                        }
+
                     }
                 });
             }
