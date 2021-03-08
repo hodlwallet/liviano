@@ -244,9 +244,10 @@ namespace Liviano.Electrum
             if (string.Equals(method, "blockchain.scripthash.subscribe"))
             {
                 var @params = (JArray) json.GetValue("params");
+                var scripthash = (string) @params[0];
 
-                results[(string) @params[0]] = null;
-                requestId = (string) @params[0];
+                results[scripthash] = null;
+                requestId = scripthash;
             }
             else if (string.Equals(method, "blockchain.headers.subscribe"))
             {
