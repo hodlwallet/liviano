@@ -301,21 +301,18 @@ namespace Liviano.Electrum
                 notificationCallback: async (str) => {
                     Debug.WriteLine($"[WatchAddress][notificationCallback] Notification: '{str}'.");
 
-                    var json = Deserialize<JObject>(str);
-                    var status = (string) json.GetValue("result");
-
-                    if (string.IsNullOrEmpty(status))
+                    if (string.IsNullOrEmpty(str))
                     {
                         Debug.WriteLine($"[WatchAddress][notificationCallback] Status is null or empty");
 
                         return;
                     }
 
-                    Debug.WriteLine($"[WatchAddress][notificationCallback] Status: '{status}'.");
+                    Debug.WriteLine($"[WatchAddress][notificationCallback] Status: '{str}'.");
 
                     OnWatchAddressNotified?.Invoke(
                         this,
-                        new WatchAddressEventArgs(status, acc, addr)
+                        new WatchAddressEventArgs(str, acc, addr)
                     );
 
                     // TODO the following code should not be implemented like this... but it is
