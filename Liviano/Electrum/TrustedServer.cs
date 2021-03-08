@@ -251,7 +251,7 @@ namespace Liviano.Electrum
         /// </summary>
         /// <param name="acc">An <see cref="IAccount"/> to watch</param>
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
-        async Task WatchAccount(IAccount acc, CancellationToken ct)
+        public async Task WatchAccount(IAccount acc, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
@@ -403,7 +403,7 @@ namespace Liviano.Electrum
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
         /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
         /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
-        async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
         {
             var receiveAddressesIndex = acc.GetExternalLastIndex();
             var changeAddressesIndex = acc.GetInternalLastIndex();

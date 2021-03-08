@@ -93,11 +93,27 @@ namespace Liviano.Interfaces
         Task SyncWallet(IWallet wallet, CancellationToken ct);
 
         /// <summary>
+        /// Sync a wallet account
+        /// </summary>
+        /// <param name="account">a <see cref="IAccount"/> to sync</param>
+        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
+        /// <param name="syncInternal">a <see cref="bool"/> to only sync internal (change)</param>
+        /// <param name="syncExternal">a <see cref="bool"/> to only sync external (receive)</param>
+        Task SyncAccount(IAccount account, CancellationToken ct, bool syncExternal, bool syncInternal);
+
+        /// <summary>
         /// Watches a wallet for new transactions
         /// </summary>
         /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
         /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
         Task WatchWallet(IWallet wallet, CancellationToken ct);
+
+        /// <summary>
+        /// Watches a wallet's account for new transactions
+        /// </summary>
+        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
+        Task WatchAccount(IAccount account, CancellationToken ct);
 
         /// <summary>
         /// Loads the pool from the filesystem
