@@ -260,7 +260,7 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"[DownloadHeaders] From height: {fromHeight}");
 
-            var res = (await ElectrumClient.BlockchainBlockHeaders(fromHeight)).Result;
+            var res = (await ElectrumClient.BlockchainBlockHeaders(fromHeight + 1)).Result;
 
             var count = res.Count;
             var hex = res.Hex;
