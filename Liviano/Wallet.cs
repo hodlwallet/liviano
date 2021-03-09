@@ -359,6 +359,7 @@ namespace Liviano
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
             ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
             ElectrumPool.OnWatchStarted += ElectrumPool_OnWatchStarted;
+            ElectrumPool.OnNewHeaderNotified += ElectrumPool_OnNewHeaderNotified;
 
             if (ElectrumPool.Connected)
                 await ElectrumPool_OnConnectedToWatch(ElectrumPool, ElectrumPool.CurrentServer, ct);
@@ -481,6 +482,13 @@ namespace Liviano
             Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
             this.OnSyncStarted?.Invoke(this, null);
+        }
+
+        private void ElectrumPool_OnNewHeaderNotified(object sender, NewHeaderEventArgs args)
+        {
+            Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
+
+            this.OnNewHeaderNotified?.Invoke(this, args);
         }
 
         private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
