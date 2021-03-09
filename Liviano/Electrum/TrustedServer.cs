@@ -213,10 +213,9 @@ namespace Liviano.Electrum
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
 
                     wallet.Storage.Save();
+                    Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
 
                     await DownloadHeaders(wallet, wallet.Height);
-
-                    Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
                 },
                 notificationCallback: async (str) => {
                     var json = JObject.Parse(str);
@@ -247,9 +246,14 @@ namespace Liviano.Electrum
                         Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
 
                         wallet.Storage.Save();
+                        Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
+
 
                         return;
                     }
+
+                    wallet.Storage.Save();
+                    Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
 
                     await DownloadHeaders(wallet, wallet.Height);
                 }
