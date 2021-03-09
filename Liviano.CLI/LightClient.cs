@@ -446,23 +446,6 @@ namespace Liviano.CLI
             return wallet.Accounts.Last().ExtPubKey.ToString();
         }
 
-        // XXX Debug, remove
-        public static void BlockchainTest(Config config)
-        {
-            //Load(config, skipAuth: true);
-
-            //var storage = new FileSystemBlockchainStorage();
-            //var blockchain = new Blockchain(wallet.Network, storage);
-
-            //blockchain.Load();
-
-            //blockchain.DownloadHeadersParallel(wallet.ElectrumPool); // Parallel
-            ////blockchain.DownloadHeaders(wallet.ElectrumPool).Wait(); // Sequencial
-
-            //Console.WriteLine($"Headers: {blockchain.Headers.Count}");
-            //Console.WriteLine($"Height: {blockchain.Height}");
-        }
-
         /// <summary>
         /// Waits until the user press esc
         /// </summary>
