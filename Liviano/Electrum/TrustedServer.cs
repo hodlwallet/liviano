@@ -198,17 +198,23 @@ namespace Liviano.Electrum
 
             await ElectrumClient.BlockchainHeadersSubscribe(
                 resultCallback: (str) => {
-                    Debug.WriteLine($"[SubscribeToHeaders] {str}");
+                    Debug.WriteLine($"[SubscribeToHeaders][resultCallback] {str}");
 
                     if (ct.IsCancellationRequested) return;
 
                     var json = JObject.Parse(str);
-                    var height = (long) json.GetValue("height");
-                    var hex = (string) json.GetValue("hex");
+                    var res = (JObject) json.GetValue("result");
+
+                    var height = (int) res.GetValue("height");
+                    var hex = (string) res.GetValue("hex");
 
                     wallet.LastBlockHeaderHex = hex;
                     wallet.Height = height;
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
+
+                    wallet.Storage.Save();
+
+                    Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
                 },
                 notificationCallback: async (str) => {
                     var lastHeaderHex = str;
@@ -251,6 +257,8 @@ namespace Liviano.Electrum
                     // TODO This is too trusty... we need to handle reorgs as well
 
                     wallet.Storage.Save();
+
+                    Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Saved wallet");
                 }
             );
         }
