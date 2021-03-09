@@ -488,6 +488,9 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
+            // TODO Here some code should be needed that calls each account and
+            // go tru each tx so it can update their confirmations, but invoking is great as well
+
             this.OnNewHeaderNotified?.Invoke(this, args);
         }
 
