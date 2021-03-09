@@ -49,6 +49,7 @@ namespace Liviano.Electrum
     public class TrustedServer : IElectrumPool
     {
         public const int RECONNECT_DELAY = 1000; // ms
+        public const int HEADER_SIZE = 80; // bytes
 
         Server currentServer;
         public Server CurrentServer
@@ -198,9 +199,39 @@ namespace Liviano.Electrum
             await ElectrumClient.BlockchainHeadersSubscribe(
                 resultCallback: (str) => {
                     Debug.WriteLine($"[SubscribeToHeaders] {str}");
+
+                    var json = JObject.Parse(str);
+                    var height = (long) json.GetValue("height");
+                    var hex = (string) json.GetValue("hex");
+
+                    wallet.LastBlockHeaderHex = hex;
+                    wallet.Height = height;
+                    wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
                 },
-                notificationCallback: (str) => {
-                    Debug.WriteLine($"[SubscribeToHeaders] {str}");
+                notificationCallback: async (str) => {
+                    var lastHeaderHex = str;
+
+                    if (string.Equals(lastHeaderHex, wallet.LastBlockHeaderHex))
+                        return;
+
+                    Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Got a new hader hex: \n'{lastHeaderHex}'.");
+
+                    var res = (await ElectrumClient.BlockchainBlockHeaders(wallet.Height)).Result;
+                    var count = res.Count;
+                    var hex = res.Hex;
+                    var max = res.Max;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
+                        var headerHex = new string(headerChars);
+
+                        wallet.Height = ++wallet.Height;
+                        wallet.LastBlockHeaderHex = headerHex;
+                        wallet.LastBlockHeader = BlockHeader.Parse(headerHex, wallet.Network);
+
+                        Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
+                    }
                 }
             );
         }

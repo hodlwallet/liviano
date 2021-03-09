@@ -72,6 +72,8 @@ namespace Liviano
 
         public BlockHeader LastBlockHeader { get; set; }
 
+        public string LastBlockHeaderHex { get; set; }
+
         public long Height { get; set; }
 
         public string CurrentAccountId { get; set; }

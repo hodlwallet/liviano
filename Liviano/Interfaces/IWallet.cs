@@ -106,6 +106,12 @@ namespace Liviano.Interfaces
         BlockHeader LastBlockHeader { get; set; }
 
         /// <summary>
+        /// The block header hex
+        /// </summary>
+        [JsonIgnore]
+        string LastBlockHeaderHex { get; set; }
+
+        /// <summary>
         /// The block height
         /// </summary>
         [JsonProperty(PropertyName = "height", NullValueHandling = NullValueHandling.Ignore)]
