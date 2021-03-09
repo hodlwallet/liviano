@@ -275,7 +275,7 @@ namespace Liviano.Electrum
                 wallet.LastBlockHeaderHex = headerHex;
                 wallet.LastBlockHeader = BlockHeader.Parse(headerHex, wallet.Network);
 
-                Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
+                Debug.WriteLine($"[DownloadHeaders] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
 
                 OnNewHeaderNotified?.Invoke(
                     this,
@@ -289,7 +289,7 @@ namespace Liviano.Electrum
 
             wallet.Storage.Save();
 
-            Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Saved wallet");
+            Debug.WriteLine($"[DownloadHeaders] Saved wallet");
         }
 
         public static IElectrumPool Load(Network network = null)
