@@ -226,7 +226,7 @@ namespace Liviano.Electrum
 
                     if (string.Equals(lastHeaderHex, wallet.LastBlockHeaderHex)) return;
 
-                    Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Got a new hader hex: \n'{lastHeaderHex}'.");
+                    Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Got a new header hex: \n'{lastHeaderHex}'.");
 
                     // No need to download headers later
                     if (lastHeaderHeight == wallet.Height + 1)
