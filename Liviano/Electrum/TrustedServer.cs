@@ -235,6 +235,13 @@ namespace Liviano.Electrum
                         wallet.LastBlockHeaderHex = lastHeaderHex;
                         wallet.LastBlockHeader = BlockHeader.Parse(lastHeaderHex, wallet.Network);
 
+                        OnNewHeaderNotified?.Invoke(
+                            this,
+                            new NewHeaderEventArgs(
+                                wallet, wallet.LastBlockHeaderHex, wallet.Height
+                            )
+                        );
+
                         Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
 
                         wallet.Storage.Save();
