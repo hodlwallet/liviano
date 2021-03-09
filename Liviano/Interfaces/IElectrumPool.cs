@@ -72,7 +72,7 @@ namespace Liviano.Interfaces
         /// <param name=""></param>
         Task SubscribeToHeaders(IWallet wallet, CancellationToken ct);
 
-        Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight);
+        Task DownloadHeaders(IWallet wallet, long fromHeight);
 
         /// <summary>
         /// Event handler when you get a connected server

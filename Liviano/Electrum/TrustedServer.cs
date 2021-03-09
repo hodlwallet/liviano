@@ -197,7 +197,7 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
 
             await ElectrumClient.BlockchainHeadersSubscribe(
-                resultCallback: (str) => {
+                resultCallback: async (str) => {
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] {str}");
 
                     if (ct.IsCancellationRequested) return;
@@ -213,6 +213,8 @@ namespace Liviano.Electrum
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
 
                     wallet.Storage.Save();
+
+                    await DownloadHeaders(wallet, wallet.Height);
 
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
                 },
@@ -249,43 +251,45 @@ namespace Liviano.Electrum
                         return;
                     }
 
-                    var res = (await ElectrumClient.BlockchainBlockHeaders(wallet.Height)).Result;
-
-                    var count = res.Count;
-                    var hex = res.Hex;
-                    var max = res.Max;
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
-                        var headerHex = new string(headerChars);
-
-                        wallet.Height = ++wallet.Height;
-                        wallet.LastBlockHeaderHex = headerHex;
-                        wallet.LastBlockHeader = BlockHeader.Parse(headerHex, wallet.Network);
-
-                        Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
-
-                        OnNewHeaderNotified?.Invoke(
-                            this,
-                            new NewHeaderEventArgs(
-                                wallet, wallet.LastBlockHeaderHex, wallet.Height
-                            )
-                        );
-                    }
-
-                    // TODO This is too trusty... we need to handle reorgs as well
-
-                    wallet.Storage.Save();
-
-                    Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Saved wallet");
+                    await DownloadHeaders(wallet, wallet.Height);
                 }
             );
         }
 
-        public Task<BlockchainBlockHeadersInnerResult> DownloadHeaders(int fromHeight, int toHeight)
+        public async Task DownloadHeaders(IWallet wallet, long fromHeight)
         {
-            throw new NotImplementedException("[DownloadHeaders] Not needed for now, should be an async method");
+            Debug.WriteLine($"[DownloadHeaders] From height: {fromHeight}");
+
+            var res = (await ElectrumClient.BlockchainBlockHeaders(fromHeight)).Result;
+
+            var count = res.Count;
+            var hex = res.Hex;
+            var max = res.Max;
+
+            for (int i = 0; i < count; i++)
+            {
+                var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
+                var headerHex = new string(headerChars);
+
+                wallet.Height = ++wallet.Height;
+                wallet.LastBlockHeaderHex = headerHex;
+                wallet.LastBlockHeader = BlockHeader.Parse(headerHex, wallet.Network);
+
+                Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
+
+                OnNewHeaderNotified?.Invoke(
+                    this,
+                    new NewHeaderEventArgs(
+                        wallet, wallet.LastBlockHeaderHex, wallet.Height
+                    )
+                );
+            }
+
+            // TODO This is too trusty... we need to handle reorgs as well
+
+            wallet.Storage.Save();
+
+            Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Saved wallet");
         }
 
         public static IElectrumPool Load(Network network = null)
