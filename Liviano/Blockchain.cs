@@ -23,297 +23,297 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Collections.Generic;
+//using System;
+//using System.Diagnostics;
+//using System.Linq;
+//using System.Collections.Generic;
 
-using NBitcoin;
+//using NBitcoin;
 
-using Liviano.Extensions;
-using Liviano.Interfaces;
-using Liviano.Electrum;
-using System.Threading.Tasks;
+//using Liviano.Extensions;
+//using Liviano.Interfaces;
+//using Liviano.Electrum;
+//using System.Threading.Tasks;
 
-namespace Liviano
-{
-    public class Blockchain
-    {
-        const int HEADER_SIZE = 80;
-        const int ELECTRUM_COUNT = 2016;
+//namespace Liviano
+//{
+    //public class Blockchain
+    //{
+        //const int HEADER_SIZE = 80;
+        //const int ELECTRUM_COUNT = 2016;
 
-        /// <summary>
-        /// The height of the blockchain an int
-        /// </summary>
-        public int Height { get; set; }
+        ///// <summary>
+        ///// The height of the blockchain an int
+        ///// </summary>
+        //public int Height { get; set; }
 
-        /// <summary>
-        /// The network the blockchain belongs to.
-        /// </summary>
-        public Network Network { get; set; }
+        ///// <summary>
+        ///// The network the blockchain belongs to.
+        ///// </summary>
+        //public Network Network { get; set; }
 
-        /// <summary>
-        /// Array of checkpoints to start syncing the headers
-        /// </summary>
-        public ChainedBlock[] Checkpoints { get; set; }
+        ///// <summary>
+        ///// Array of checkpoints to start syncing the headers
+        ///// </summary>
+        //public ChainedBlock[] Checkpoints { get; set; }
 
-        /// <summary>
-        /// A list of ChainedBlocks representing the block headers
-        /// </summary>
-        public List<ChainedBlock> Headers { get; set; }
+        ///// <summary>
+        ///// A list of ChainedBlocks representing the block headers
+        ///// </summary>
+        //public List<ChainedBlock> Headers { get; set; }
 
-        /// <summary>
-        /// Responsible of saving and loading
-        /// </summary>
-        public IBlockchainStorage BlockchainStorage { get; set; }
+        ///// <summary>
+        ///// Responsible of saving and loading
+        ///// </summary>
+        //public IBlockchainStorage BlockchainStorage { get; set; }
 
-        /// <summary>
-        /// Initializer
-        /// </summary>
-        /// <param name="network">Network to get everything from</param>
-        public Blockchain(Network network, IBlockchainStorage storage)
-        {
-            Network ??= network;
-            BlockchainStorage = storage;
-            Headers ??= new List<ChainedBlock>();
-
-            Checkpoints ??= Network.GetCheckpoints().ToArray();
-            AddGenesisBlockHeader();
-            Height = GetHeight();
-
-            BlockchainStorage.Blockchain = this;
-        }
-
-        /// <summary>
-        /// Saves block headers
-        /// </summary>
-        public void Save()
-        {
-            BlockchainStorage.Save();
-        }
-
-        /// <summary>
-        /// Loads the block headers
-        /// </summary>
-        public void Load()
-        {
-            Headers.Clear();
-            Height = -1;
-
-            Headers = BlockchainStorage.Load();
-
-            if (Headers.Count == 0) AddGenesisBlockHeader();
-
-            Height = GetHeight();
-        }
-
-        public List<ChainedBlock> GetHeadersBetween2Checkpoints(
-                IElectrumPool pool,
-                ChainedBlock cpStart,
-                ChainedBlock cpEnd)
-        {
-            var blocks = new List<ChainedBlock> {};
-            var currentHeight = cpStart.Height + 1;
-            var count = ELECTRUM_COUNT;
-
-            while (currentHeight < cpEnd.Height)
-            {
-                var t = DownloadRequestUntilResult(pool, currentHeight, count);
-                t.Wait();
-
-                var res = t.Result;
-
-                count = res.Count;
-                var hex = res.Hex;
-                var max = res.Max;
-                var height = currentHeight;
-
-                for (int i = 0; i < count; i++)
-                {
-                    var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
-                    var headerHex = new string(headerChars);
-
-                    var chainedBlock = new ChainedBlock(
-                        BlockHeader.Parse(headerHex, Network),
-                        height++
-                    );
-
-                    currentHeight = chainedBlock.Height;
-
-                    if (currentHeight == cpEnd.Height) break;
-
-                    blocks.Add(chainedBlock);
-
-                    //Debug.WriteLine($"[GetHeadersBetween2Checkpoints] Added block: {chainedBlock.Height} (to checkpoint: {cpEnd.Height})");
-                }
-            }
-
-            return blocks;
-        }
-
-        //public ChainedBlock DownloadBlockchainHeadersTip(IElectrumPool pool)
+        ///// <summary>
+        ///// Initializer
+        ///// </summary>
+        ///// <param name="network">Network to get everything from</param>
+        //public Blockchain(Network network, IBlockchainStorage storage)
         //{
-            //var t = pool.SubscribeToHeaders();
-            //t.Wait();
+            //Network ??= network;
+            //BlockchainStorage = storage;
+            //Headers ??= new List<ChainedBlock>();
 
-            //var chainedBlock = new ChainedBlock(
-                //BlockHeader.Parse(t.Result.Hex, Network),
-                //t.Result.Height
-            //);
+            //Checkpoints ??= Network.GetCheckpoints().ToArray();
+            //AddGenesisBlockHeader();
+            //Height = GetHeight();
 
-            //return chainedBlock;
+            //BlockchainStorage.Blockchain = this;
         //}
 
-        public void DownloadHeadersParallel(IElectrumPool pool)
-        {
-            var @lock = new Object();
-            var unsortedHeaders = new List<ChainedBlock> {};
+        ///// <summary>
+        ///// Saves block headers
+        ///// </summary>
+        //public void Save()
+        //{
+            //BlockchainStorage.Save();
+        //}
 
-            // Get genesis in
-            var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
-            unsortedHeaders.Add(genesis);
+        ///// <summary>
+        ///// Loads the block headers
+        ///// </summary>
+        //public void Load()
+        //{
+            //Headers.Clear();
+            //Height = -1;
 
-            // Pairs will be used to traverse the list of checkpoints
-            var cpPairs = new List<(ChainedBlock cpStart, ChainedBlock cpEnd)> {};
+            //Headers = BlockchainStorage.Load();
 
-            // Append all the pairs like [(cp1, cp2), (cp2, cp3), (cp3, cp4)]
-            // in order to collect them with a parallel job
-            cpPairs.Add((genesis, Checkpoints[0]));
-            for (int i = 1; i < Checkpoints.Count(); i++)
-            {
-                cpPairs.Add((Checkpoints[i - 1], Checkpoints[i]));
-            }
+            //if (Headers.Count == 0) AddGenesisBlockHeader();
 
-            // Now we go tru all the pairs one by one async in parallel
-            Parallel.ForEach(cpPairs, cpPair =>
-            {
-                var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
+            //Height = GetHeight();
+        //}
 
-                lock (@lock) unsortedHeaders.AddRange(res);
-            });
+        //public List<ChainedBlock> GetHeadersBetween2Checkpoints(
+                //IElectrumPool pool,
+                //ChainedBlock cpStart,
+                //ChainedBlock cpEnd)
+        //{
+            //var blocks = new List<ChainedBlock> {};
+            //var currentHeight = cpStart.Height + 1;
+            //var count = ELECTRUM_COUNT;
 
-            // We sort at the end
-            Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
-            Height = GetHeight(); // Get the last height
+            //while (currentHeight < cpEnd.Height)
+            //{
+                //var t = DownloadRequestUntilResult(pool, currentHeight, count);
+                //t.Wait();
 
-            // Get the tip, and get headers to tip
-            cpPairs.Clear();
-            //var tip = DownloadBlockchainHeadersTip(pool);
-            //cpPairs.Add((Headers.Last(), tip));
+                //var res = t.Result;
 
-            Parallel.ForEach(cpPairs, cpPair =>
-            {
-                var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
+                //count = res.Count;
+                //var hex = res.Hex;
+                //var max = res.Max;
+                //var height = currentHeight;
 
-                lock (@lock) unsortedHeaders.AddRange(res);
-            });
+                //for (int i = 0; i < count; i++)
+                //{
+                    //var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
+                    //var headerHex = new string(headerChars);
 
-            Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
-            Height = GetHeight(); // Get the last height
+                    //var chainedBlock = new ChainedBlock(
+                        //BlockHeader.Parse(headerHex, Network),
+                        //height++
+                    //);
 
-            Console.WriteLine($"Headers.Count = {Headers.Count}");
-            Console.WriteLine($"Height = {Height}");
+                    //currentHeight = chainedBlock.Height;
 
-            // TODO Download the rest until tip
-            Console.WriteLine("Press any key to continue...");
-            Console.Read();
-        }
+                    //if (currentHeight == cpEnd.Height) break;
 
-        async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(IElectrumPool pool, int current, int count)
-        {
-            if (pool.ElectrumClient is null)
-            {
-                pool.Connect().Wait();
-            }
+                    //blocks.Add(chainedBlock);
 
-            try
-            {
-                return await pool.DownloadHeaders(current, count);
-            }
-            catch (Exception err)
-            {
-                Debug.WriteLine(err.Message);
+                    ////Debug.WriteLine($"[GetHeadersBetween2Checkpoints] Added block: {chainedBlock.Height} (to checkpoint: {cpEnd.Height})");
+                //}
+            //}
 
-                await Task.Delay(1000);
+            //return blocks;
+        //}
 
-                return await DownloadRequestUntilResult(pool, current, count);
-            }
-        }
+        ////public ChainedBlock DownloadBlockchainHeadersTip(IElectrumPool pool)
+        ////{
+            ////var t = pool.SubscribeToHeaders();
+            ////t.Wait();
 
-        public void DownloadHeaders(ElectrumPool pool)
-        {
-            var unsortedHeaders = new List<ChainedBlock> {};
-            int cpCount = Checkpoints.Count();
+            ////var chainedBlock = new ChainedBlock(
+                ////BlockHeader.Parse(t.Result.Hex, Network),
+                ////t.Result.Height
+            ////);
 
-            // First get all the checkpoints and find
-            // all blocks in the middle of them
-            int currentHeight;
-            for (int i = 0; i < cpCount; i++)
-            {
-                ChainedBlock cpStart = null;
-                ChainedBlock cpEnd = Checkpoints[i];
+            ////return chainedBlock;
+        ////}
 
-                // Calculate cpStart: i - 1
-                if (i > 0)
-                {
-                    cpStart = Checkpoints[i - 1];
-                }
+        //public void DownloadHeadersParallel(IElectrumPool pool)
+        //{
+            //var @lock = new Object();
+            //var unsortedHeaders = new List<ChainedBlock> {};
 
-                if (i == 0)
-                {
-                    currentHeight = 0;
+            //// Get genesis in
+            //var genesis = new ChainedBlock(Network.GetGenesis().Header, 0);
+            //unsortedHeaders.Add(genesis);
 
-                    var genesis = new ChainedBlock(Network.GetGenesis().Header, currentHeight);
-                    cpStart = genesis;
+            //// Pairs will be used to traverse the list of checkpoints
+            //var cpPairs = new List<(ChainedBlock cpStart, ChainedBlock cpEnd)> {};
 
-                    if (unsortedHeaders.Count == 0)
-                    {
-                        unsortedHeaders.Add(cpStart);
+            //// Append all the pairs like [(cp1, cp2), (cp2, cp3), (cp3, cp4)]
+            //// in order to collect them with a parallel job
+            //cpPairs.Add((genesis, Checkpoints[0]));
+            //for (int i = 1; i < Checkpoints.Count(); i++)
+            //{
+                //cpPairs.Add((Checkpoints[i - 1], Checkpoints[i]));
+            //}
 
-                        Debug.WriteLine($"[DownloadHeadersParallel] Added block: {cpStart.Height} (to checkpoint: {cpEnd.Height})");
-                    }
+            //// Now we go tru all the pairs one by one async in parallel
+            //Parallel.ForEach(cpPairs, cpPair =>
+            //{
+                //var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
 
-                    currentHeight = 1;
-                }
-                else
-                {
-                    currentHeight = cpStart.Height + 1;
-                }
+                //lock (@lock) unsortedHeaders.AddRange(res);
+            //});
 
-                unsortedHeaders.AddRange(
-                    GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
-                );
+            //// We sort at the end
+            //Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
+            //Height = GetHeight(); // Get the last height
 
-                unsortedHeaders.Add(cpEnd);
+            //// Get the tip, and get headers to tip
+            //cpPairs.Clear();
+            ////var tip = DownloadBlockchainHeadersTip(pool);
+            ////cpPairs.Add((Headers.Last(), tip));
 
-                Debug.WriteLine($"[DownloadHeadersParallel] Added block {cpEnd.Height} (to checkpoint: {cpEnd.Height})");
-            }
+            //Parallel.ForEach(cpPairs, cpPair =>
+            //{
+                //var res = GetHeadersBetween2Checkpoints(pool, cpPair.cpStart, cpPair.cpEnd);
 
-            // Now after the checkpoints we must
-            // find the rest of the blocks
+                //lock (@lock) unsortedHeaders.AddRange(res);
+            //});
 
-            Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
-            Height = GetHeight();
+            //Headers = unsortedHeaders.Distinct().OrderBy(cb => cb.Height).ToList();
+            //Height = GetHeight(); // Get the last height
 
-            Console.WriteLine($"Headers.Count = {Headers.Count}");
-            Console.WriteLine($"Height = {Height}");
-        }
+            //Console.WriteLine($"Headers.Count = {Headers.Count}");
+            //Console.WriteLine($"Height = {Height}");
 
-        /// <summary>
-        /// Gets the current height
-        /// </summary>
-        /// <returns>A <see cref="int"> with the height</returns>
-        int GetHeight()
-        {
-            return Headers.Last().Height;
-        }
+            //// TODO Download the rest until tip
+            //Console.WriteLine("Press any key to continue...");
+            //Console.Read();
+        //}
 
-        /// <summary>
-        /// Adds the genesis block header use in case of empty
-        /// </summary>
-        void AddGenesisBlockHeader()
-        {
-            Headers.Insert(0, new ChainedBlock(Network.GetGenesis().Header, 0));
-        }
-    }
-}
+        //async Task<ElectrumClient.BlockchainBlockHeadersInnerResult> DownloadRequestUntilResult(IElectrumPool pool, int current, int count)
+        //{
+            //if (pool.ElectrumClient is null)
+            //{
+                //pool.Connect().Wait();
+            //}
+
+            //try
+            //{
+                //return await pool.DownloadHeaders(current, count);
+            //}
+            //catch (Exception err)
+            //{
+                //Debug.WriteLine(err.Message);
+
+                //await Task.Delay(1000);
+
+                //return await DownloadRequestUntilResult(pool, current, count);
+            //}
+        //}
+
+        //public void DownloadHeaders(ElectrumPool pool)
+        //{
+            //var unsortedHeaders = new List<ChainedBlock> {};
+            //int cpCount = Checkpoints.Count();
+
+            //// First get all the checkpoints and find
+            //// all blocks in the middle of them
+            //int currentHeight;
+            //for (int i = 0; i < cpCount; i++)
+            //{
+                //ChainedBlock cpStart = null;
+                //ChainedBlock cpEnd = Checkpoints[i];
+
+                //// Calculate cpStart: i - 1
+                //if (i > 0)
+                //{
+                    //cpStart = Checkpoints[i - 1];
+                //}
+
+                //if (i == 0)
+                //{
+                    //currentHeight = 0;
+
+                    //var genesis = new ChainedBlock(Network.GetGenesis().Header, currentHeight);
+                    //cpStart = genesis;
+
+                    //if (unsortedHeaders.Count == 0)
+                    //{
+                        //unsortedHeaders.Add(cpStart);
+
+                        //Debug.WriteLine($"[DownloadHeadersParallel] Added block: {cpStart.Height} (to checkpoint: {cpEnd.Height})");
+                    //}
+
+                    //currentHeight = 1;
+                //}
+                //else
+                //{
+                    //currentHeight = cpStart.Height + 1;
+                //}
+
+                //unsortedHeaders.AddRange(
+                    //GetHeadersBetween2Checkpoints(pool, cpStart, cpEnd)
+                //);
+
+                //unsortedHeaders.Add(cpEnd);
+
+                //Debug.WriteLine($"[DownloadHeadersParallel] Added block {cpEnd.Height} (to checkpoint: {cpEnd.Height})");
+            //}
+
+            //// Now after the checkpoints we must
+            //// find the rest of the blocks
+
+            //Headers = unsortedHeaders.OrderBy(cb => cb.Height).ToList();
+            //Height = GetHeight();
+
+            //Console.WriteLine($"Headers.Count = {Headers.Count}");
+            //Console.WriteLine($"Height = {Height}");
+        //}
+
+        ///// <summary>
+        ///// Gets the current height
+        ///// </summary>
+        ///// <returns>A <see cref="int"> with the height</returns>
+        //int GetHeight()
+        //{
+            //return Headers.Last().Height;
+        //}
+
+        ///// <summary>
+        ///// Adds the genesis block header use in case of empty
+        ///// </summary>
+        //void AddGenesisBlockHeader()
+        //{
+            //Headers.Insert(0, new ChainedBlock(Network.GetGenesis().Header, 0));
+        //}
+    //}
+//}

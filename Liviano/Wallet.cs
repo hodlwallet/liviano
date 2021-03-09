@@ -380,6 +380,10 @@ namespace Liviano
         /// </summary>
         public async Task SubscribeToHeaders()
         {
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+
+            await ElectrumPool.SubscribeToHeaders(this, ct);
         }
 
         /// <summary>
@@ -466,6 +470,8 @@ namespace Liviano
 
                 OnWatchAddressNotified?.Invoke(this, args);
             };
+
+            _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
             await ElectrumPool.WatchWallet(this, ct);
         }

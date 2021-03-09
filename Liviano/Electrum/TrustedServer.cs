@@ -200,6 +200,8 @@ namespace Liviano.Electrum
                 resultCallback: (str) => {
                     Debug.WriteLine($"[SubscribeToHeaders] {str}");
 
+                    if (ct.IsCancellationRequested) return;
+
                     var json = JObject.Parse(str);
                     var height = (long) json.GetValue("height");
                     var hex = (string) json.GetValue("hex");
@@ -211,12 +213,18 @@ namespace Liviano.Electrum
                 notificationCallback: async (str) => {
                     var lastHeaderHex = str;
 
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     if (string.Equals(lastHeaderHex, wallet.LastBlockHeaderHex))
                         return;
 
                     Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Got a new hader hex: \n'{lastHeaderHex}'.");
 
                     var res = (await ElectrumClient.BlockchainBlockHeaders(wallet.Height)).Result;
+
                     var count = res.Count;
                     var hex = res.Hex;
                     var max = res.Max;
@@ -231,7 +239,18 @@ namespace Liviano.Electrum
                         wallet.LastBlockHeader = BlockHeader.Parse(headerHex, wallet.Network);
 
                         Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
+
+                        OnNewHeaderNotified?.Invoke(
+                            this,
+                            new NewHeaderEventArgs(
+                                wallet, wallet.LastBlockHeaderHex, wallet.Height
+                            )
+                        );
                     }
+
+                    // TODO This is too trusty... we need to handle reorgs as well
+
+                    wallet.Storage.Save();
                 }
             );
         }

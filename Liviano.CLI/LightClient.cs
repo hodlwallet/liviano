@@ -364,6 +364,11 @@ namespace Liviano.CLI
                 logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
             };
 
+            wallet.OnNewHeaderNotified += (s, headerArgs) =>
+            {
+                logger.Information($"New header notified!, height: {headerArgs.Height}");
+            };
+
             if (!resync)
             {
                 wallet.Watch();
@@ -444,18 +449,18 @@ namespace Liviano.CLI
         // XXX Debug, remove
         public static void BlockchainTest(Config config)
         {
-            Load(config, skipAuth: true);
+            //Load(config, skipAuth: true);
 
-            var storage = new FileSystemBlockchainStorage();
-            var blockchain = new Blockchain(wallet.Network, storage);
+            //var storage = new FileSystemBlockchainStorage();
+            //var blockchain = new Blockchain(wallet.Network, storage);
 
-            blockchain.Load();
+            //blockchain.Load();
 
-            blockchain.DownloadHeadersParallel(wallet.ElectrumPool); // Parallel
-            //blockchain.DownloadHeaders(wallet.ElectrumPool).Wait(); // Sequencial
+            //blockchain.DownloadHeadersParallel(wallet.ElectrumPool); // Parallel
+            ////blockchain.DownloadHeaders(wallet.ElectrumPool).Wait(); // Sequencial
 
-            Console.WriteLine($"Headers: {blockchain.Headers.Count}");
-            Console.WriteLine($"Height: {blockchain.Height}");
+            //Console.WriteLine($"Headers: {blockchain.Headers.Count}");
+            //Console.WriteLine($"Height: {blockchain.Height}");
         }
 
         /// <summary>
