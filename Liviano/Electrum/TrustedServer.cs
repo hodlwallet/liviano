@@ -266,6 +266,14 @@ namespace Liviano.Electrum
             var hex = res.Hex;
             var max = res.Max;
 
+            // Nothing was returned
+            if (string.IsNullOrEmpty(hex))
+            {
+                Debug.WriteLine("[DownloadHeaders] No new block found");
+
+                return;
+            }
+
             for (int i = 0; i < count; i++)
             {
                 var headerChars = hex.Skip(i * HEADER_SIZE * 2).Take(HEADER_SIZE * 2).ToArray();
