@@ -217,17 +217,30 @@ namespace Liviano.Electrum
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
                 },
                 notificationCallback: async (str) => {
-                    var lastHeaderHex = str;
+                    var json = JObject.Parse(str);
 
-                    if (ct.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    var lastHeaderHex = (string) json.GetValue("hex");
+                    var lastHeaderHeight = (long) json.GetValue("height");
 
-                    if (string.Equals(lastHeaderHex, wallet.LastBlockHeaderHex))
-                        return;
+                    if (ct.IsCancellationRequested) return;
+
+                    if (string.Equals(lastHeaderHex, wallet.LastBlockHeaderHex)) return;
 
                     Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Got a new hader hex: \n'{lastHeaderHex}'.");
+
+                    // No need to download headers later
+                    if (lastHeaderHeight == wallet.Height + 1)
+                    {
+                        wallet.Height = lastHeaderHeight;
+                        wallet.LastBlockHeaderHex = lastHeaderHex;
+                        wallet.LastBlockHeader = BlockHeader.Parse(lastHeaderHex, wallet.Network);
+
+                        Debug.WriteLine($"[SubscribeToHeaders][notificationCallback] Set new height '{wallet.Height}' header hex: \n'{wallet.LastBlockHeaderHex}'");
+
+                        wallet.Storage.Save();
+
+                        return;
+                    }
 
                     var res = (await ElectrumClient.BlockchainBlockHeaders(wallet.Height)).Result;
 

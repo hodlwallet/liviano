@@ -371,10 +371,10 @@ namespace Liviano.Electrum
                             }
                             else if (string.Equals(method, "blockchain.headers.subscribe"))
                             {
-                                var newHeader = (string) @params[0];
+                                var newHeader = (JObject) @params[0];
                                 Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
-                                results["blockchain.headers.subscribe"] = newHeader;
+                                results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                             }
                         }
                         else
