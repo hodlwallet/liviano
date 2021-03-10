@@ -324,6 +324,11 @@ namespace Liviano.CLI
                 Quit();
             };
 
+            wallet.OnNewHeaderNotified += (s, e) =>
+            {
+                logger.Information("New header found!");
+            };
+
             wallet.Resync();
             _ = PeriodicSave();
 
