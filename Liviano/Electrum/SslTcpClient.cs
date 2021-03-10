@@ -249,26 +249,5 @@ namespace Liviano.Electrum
                     messageCallback(messageData.ToString());
             }
         }
-
-        // TODO Add this function, in case we need it, we probably wont
-        // public static bool CanParseToJson(string message)
-        // {
-        //     if (string.IsNullOrEmpty(message)) return false;
-
-        //     try
-        //     {
-        //         JsonConvert.DeserializeObject(message);
-        //     }
-        //     catch (JsonSerializationException)
-        //     {
-        //         return false;
-        //     }
-        //     catch (JsonReaderException)
-        //     {
-        //         return false;
-        //     }
-
-        //     return true;
-        // }
     }
 }
