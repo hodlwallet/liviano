@@ -155,24 +155,17 @@ namespace Liviano.Models
         public string Memo { get; set; }
 
         /// <summary>
-        /// Propagation state of this transaction.
-        /// </summary>
-        /// <remarks>Assume it's <c>true</c> if the field is <c>null</c>.</remarks>
-        [JsonProperty(PropertyName = "isPropagated", NullValueHandling = NullValueHandling.Ignore)]
-        public bool IsPropagated { get; set; }
-
-        /// <summary>
         /// Number of confirmations
         /// </summary>
         [JsonProperty(PropertyName = "confirmations", NullValueHandling = NullValueHandling.Ignore)]
-        public int Confirmations { get; set; }
+        public long Confirmations { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
         public bool IsConfirmed()
         {
-            return BlockHeight != null;
+            return Confirmations >= 1;
         }
 
         /// <summary>
@@ -218,7 +211,6 @@ namespace Liviano.Models
             Hex = copy.Hex;
             Id = copy.Id;
             Index = copy.Index;
-            IsPropagated = copy.IsPropagated;
             IsReceive = copy.IsReceive;
             IsSend = copy.IsSend;
             Memo = copy.Memo;
@@ -330,12 +322,6 @@ namespace Liviano.Models
             {
                 throw new WalletException("Could not decide if the tx is send or receive...");
             }
-
-            // TODO must bring the blockhash to tx somehow since it's not passed anymore...
-            //tx.Blockhash = uint256.Parse(blockhash);
-
-            // TODO Propagation could be get from electrum and their blockchain.scripthash.subscribe
-            tx.IsPropagated = true;
 
             if (GetTotalValueFromTxInputsCallback is null)
                 tx.TotalFees = Money.Zero;

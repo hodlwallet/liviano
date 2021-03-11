@@ -354,5 +354,18 @@ namespace Liviano.Accounts
 
             SpentCoins.Add(coin);
         }
+
+        public void UpdateConfirmations(long height)
+        {
+            foreach (var tx in Txs)
+            {
+                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
+
+                if (txBlockHeight <= 0) continue;
+                if (txBlockHeight >= height) continue;
+
+                tx.Confirmations = height - txBlockHeight;
+            }
+        }
     }
 }

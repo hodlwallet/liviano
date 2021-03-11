@@ -212,7 +212,10 @@ namespace Liviano.Electrum
                     wallet.Height = height;
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
 
+                    wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
+
                     wallet.Storage.Save();
+
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
 
                     await DownloadHeaders(wallet, wallet.Height);
@@ -251,6 +254,8 @@ namespace Liviano.Electrum
 
                         return;
                     }
+
+                    wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
 
                     wallet.Storage.Save();
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");

@@ -47,5 +47,11 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="tx">A <see cref="Tx"/> †o remove</param>
         void RemoveTx(Tx tx);
+
+        /// <summary>
+        /// Update transactions confirmations with height
+        /// </summary>
+        /// <param name="height">Height of the block</param>
+        void UpdateConfirmations(long height);
     }
 }
