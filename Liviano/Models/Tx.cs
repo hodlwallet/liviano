@@ -226,7 +226,8 @@ namespace Liviano.Models
 
         public static Tx CreateFromHex(
                 string hex,
-                long? height,
+                long height,
+                uint256 blockHash,
                 IAccount account,
                 Network network,
                 BitcoinAddress[] externalAddresses,
@@ -244,11 +245,9 @@ namespace Liviano.Models
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
-                //CreatedAt = DateTimeOffset.FromUnixTimeSeconds(time),
                 Network = network,
-                //Blockhash = uint256.Parse(blockhash),
+                Blockhash = blockHash,
                 Hex = hex,
-                //Confirmations = confirmations,
                 IsRBF = transaction.RBF,
                 BlockHeight = height
             };

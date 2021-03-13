@@ -426,15 +426,24 @@ namespace Liviano.Electrum
 
                         var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                        var blkChainTxGet = await ElectrumClient.BlockchainTransactionGet(txHash);
+                        var txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                        uint256 blockHash = null;
+                        if (height > 0)
+                        {
+                            var headerHex = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
+                            var header = BlockHeader.Parse(
+                                headerHex,
+                                acc.Network
+                            );
 
-                        var txHex = blkChainTxGet.Result;
+                            blockHash = header.GetHash();
+                        }
 
                         // Tx is new
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
@@ -448,7 +457,7 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
@@ -589,9 +598,22 @@ namespace Liviano.Electrum
                     return;
                 }
 
+                uint256 blockHash = null;
+                if (r.Height > 0)
+                {
+                    var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
+                    var header = BlockHeader.Parse(
+                        headerHex,
+                        acc.Network
+                    );
+
+                    blockHash = header.GetHash();
+                }
+
                 var tx = Tx.CreateFromHex(
                     txRes.Result,
                     r.Height,
+                    blockHash,
                     acc,
                     Network,
                     receiveAddresses,
