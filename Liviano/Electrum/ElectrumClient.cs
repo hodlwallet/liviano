@@ -89,11 +89,7 @@ namespace Liviano.Electrum
             public object Result { get; set; } = new object();
         }
 
-        public class BlockchainBlockHeaderResult : BaseResult
-        {
-            public int Id { get; set; }
-            public ResultAsString Result { get; set; }
-        }
+        public class BlockchainBlockHeaderResult : ResultAsString { }
 
         public class BlockchainBlockHeadersInnerResult : BaseResult
         {
@@ -392,9 +388,9 @@ namespace Liviano.Electrum
             return deserializedValue;
         }
 
-        public async Task<BlockchainBlockHeaderResult> BlockchainBlockHeader(int height)
+        public async Task<BlockchainBlockHeaderResult> BlockchainBlockHeader(long height)
         {
-            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.header", Params = new List<int> { height, 0 } };
+            var obj = new Request { Id = ++RequestId, Method = "blockchain.block.header", Params = new List<long> { height, 0 } };
             var json = Serialize(obj);
 
             return await RequestInternal<BlockchainBlockHeaderResult>(json);
