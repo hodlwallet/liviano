@@ -11,7 +11,7 @@ namespace Liviano.Tests.Liviano
         {
             var transaction = new Tx
             {
-                BlockHeight = 15
+                Confirmations = 10
             };
 
             Assert.True(transaction.IsConfirmed());
@@ -22,7 +22,7 @@ namespace Liviano.Tests.Liviano
         {
             var transaction = new Tx
             {
-                BlockHeight = null
+                Confirmations = 0
             };
 
             Assert.False(transaction.IsConfirmed());
