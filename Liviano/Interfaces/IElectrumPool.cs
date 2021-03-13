@@ -33,8 +33,6 @@ using Liviano.Events;
 using Liviano.Models;
 using Liviano.Electrum;
 
-using static Liviano.Electrum.ElectrumClient;
-
 namespace Liviano.Interfaces
 {
     public interface IElectrumPool

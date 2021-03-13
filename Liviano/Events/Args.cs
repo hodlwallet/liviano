@@ -72,4 +72,16 @@ namespace Liviano.Events
             Height = height;
         }
     }
+
+    public class UpdatedConfirmationsArgs : EventArgs
+    {
+        public Tx Tx { get; set; }
+        public long Confirmations { get; set; }
+
+        public UpdatedConfirmationsArgs(Tx tx, long configurations)
+        {
+            Tx = tx;
+            Confirmations = configurations;
+        }
+    }
 }

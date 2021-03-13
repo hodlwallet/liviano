@@ -25,17 +25,18 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Utilities;
-using Newtonsoft.Json.Converters;
 using Liviano.Extensions;
 using Liviano.Models;
-using System.Diagnostics;
+using Liviano.Events;
 
 namespace Liviano.Accounts
 {
@@ -109,6 +110,8 @@ namespace Liviano.Accounts
         public int ExternalAddressesIndex { get; set; }
         public List<Coin> UnspentCoins { get; set; }
         public List<Coin> SpentCoins { get; set; }
+
+        public event EventHandler<UpdatedConfirmationsArgs> OnUpdatedConfirmations;
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
@@ -365,6 +368,8 @@ namespace Liviano.Accounts
                 if (txBlockHeight >= height) continue;
 
                 tx.Confirmations = height - txBlockHeight;
+
+                OnUpdatedConfirmations?.Invoke(this, new UpdatedConfirmationsArgs(tx, tx.Confirmations));
             }
         }
     }

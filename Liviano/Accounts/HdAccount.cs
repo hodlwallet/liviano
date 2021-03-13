@@ -35,6 +35,7 @@ using Newtonsoft.Json.Converters;
 using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Exceptions;
+using Liviano.Events;
 
 namespace Liviano.Accounts
 {
@@ -187,6 +188,8 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
+        public event EventHandler<UpdatedConfirmationsArgs> OnUpdatedConfirmations;
+
         public object Clone()
         {
             return MemberwiseClone();
@@ -275,6 +278,8 @@ namespace Liviano.Accounts
                 if (txBlockHeight >= height) continue;
 
                 tx.Confirmations = height - txBlockHeight;
+
+                OnUpdatedConfirmations?.Invoke(this, new UpdatedConfirmationsArgs(tx, tx.Confirmations));
             }
         }
     }
