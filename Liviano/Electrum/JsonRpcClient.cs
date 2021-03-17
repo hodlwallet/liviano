@@ -53,7 +53,7 @@ namespace Liviano.Electrum
         TcpClient tcpClient;
         SslStream sslStream;
 
-        bool readingStream = false;
+        [ThreadStatic] bool readingStream = false;
         bool consumingQueue = false;
         ConcurrentDictionary<string, string> results;
         ConcurrentQueue<string> queue;
@@ -302,7 +302,7 @@ namespace Liviano.Electrum
                         queue.TryDequeue(out string req);
 
                         var json = JsonConvert.DeserializeObject<JObject>(req);
-                        var requestId = (int) json.GetValue("id");
+                        var requestId = (string) json.GetValue("id");
                         var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
                         await sslStream.WriteAsync(bytes, 0, bytes.Length);
@@ -343,7 +343,7 @@ namespace Liviano.Electrum
 
             try
             {
-                await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
+                await SslTcpClient.ReadMessagesFrom(stream, async (msgs) =>
                 {
                     foreach (var msg in msgs.Split('\n'))
                     {
@@ -367,12 +367,16 @@ namespace Liviano.Electrum
 
                                 Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
+                                await WaitForEmptyResult(scripthash);
+
                                 results[scripthash] = status;
                             }
                             else if (string.Equals(method, "blockchain.headers.subscribe"))
                             {
                                 var newHeader = (JObject) @params[0];
                                 Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
+
+                                await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                 results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                             }
@@ -382,6 +386,8 @@ namespace Liviano.Electrum
                             var requestId = (string) json.GetValue("id");
 
                             Debug.WriteLine($"[ConsumeMessages] A response result for id: {requestId}");
+
+                            await WaitForEmptyResult(requestId);
 
                             results[requestId] = msg;
                         }
@@ -397,6 +403,23 @@ namespace Liviano.Electrum
 
                 await ConsumeMessages();
             }
+        }
+
+        async Task WaitForEmptyResult(string requestId)
+        {
+            // Wait for results to be null
+            var loopDelay = 100;
+
+            while (HasResult(requestId)) await Task.Delay(loopDelay);
+        }
+
+        bool HasResult(string requestId)
+        {
+            if (!results.ContainsKey(requestId)) return false;
+
+            results.TryGetValue(requestId, out string val);
+
+            return !string.IsNullOrEmpty(val);
         }
     }
 }
