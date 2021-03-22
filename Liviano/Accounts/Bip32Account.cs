@@ -64,10 +64,10 @@ namespace Liviano.Accounts
             HdPath = GetHdPath();
         }
 
-        public override BitcoinAddress GetReceiveAddress()
+        public override BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesCount, false);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network); // TODO
 
             ExternalAddressesCount++;
 
@@ -76,12 +76,12 @@ namespace Liviano.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetReceiveAddress(int n)
+        public override BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0)
         {
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
-                addresses.Add(GetReceiveAddress());
+                addresses.Add(GetReceiveAddress(typeIndex));
 
             return addresses.ToArray();
         }
