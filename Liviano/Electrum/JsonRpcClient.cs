@@ -266,7 +266,7 @@ namespace Liviano.Electrum
 
         async Task<string> GetResult(string requestId)
         {
-            var loopDelay = 100;
+            var loopDelay = 10;
 
             // Wait for new messages' responses
             while (!results.ContainsKey(requestId) || results[requestId] == null)
@@ -412,7 +412,7 @@ namespace Liviano.Electrum
         async Task WaitForEmptyResult(string requestId)
         {
             // Wait for results to be null
-            var loopDelay = 100;
+            var loopDelay = 10;
 
             while (HasResult(requestId)) await Task.Delay(loopDelay);
         }
