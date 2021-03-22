@@ -351,8 +351,6 @@ namespace Liviano.Electrum
                     {
                         if (string.IsNullOrEmpty(msg)) continue;
 
-                        Debug.WriteLine($"[ConsumeMessages] '{msg}'.");
-
                         var json = JsonConvert.DeserializeObject<JObject>(msg);
 
                         if (json.ContainsKey("method")) // A subscription notification
@@ -388,7 +386,7 @@ namespace Liviano.Electrum
                         {
                             var requestId = (string) json.GetValue("id");
 
-                            Debug.WriteLine($"[ConsumeMessages] A response result for id: {requestId} (msg: {msg})");
+                            Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
 
                             // FIXME This is a bug, there should always be an empty result...
                             //await WaitForEmptyResult(requestId);
