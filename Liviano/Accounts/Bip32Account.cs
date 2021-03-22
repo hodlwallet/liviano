@@ -289,7 +289,19 @@ namespace Liviano.Accounts
         {
             if (HdPathFormat.Split('/').Length < 2) return string.Format(HdPathFormat, Index);
 
-            return string.Format(HdPathFormat, Network.Equals(Network.Main) ? 0 : 1, Index);
+            // FIXME this should work in another way
+            if (string.Equals(HdPathFormat, "m/{0}'"))
+            {
+                Debug.WriteLine($"[GetHdPath] Index: {Index}");
+
+                return $"m/{Index}'";
+            }
+
+            var path = string.Format(HdPathFormat, Network.Equals(Network.Main) ? 0 : 1, Index);
+
+            Debug.WriteLine($"[GetHdPath] path: {path}");
+
+            return path;
         }
 
         bool IsAddressReuse(BitcoinAddress address, bool isChange = false)

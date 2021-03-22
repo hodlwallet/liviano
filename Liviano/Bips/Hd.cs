@@ -66,6 +66,8 @@ namespace Liviano.Bips
             var keyPath = new KeyPath($"{change}/{index}");
             var extPubKey = new BitcoinExtPubKey(accountExtPubKey, network).Derive(keyPath);
 
+            Debug.WriteLine($"[GeneratePublicKey] keyPath: {keyPath} extPubKey: {extPubKey}");
+
             return extPubKey.ExtPubKey.PubKey;
         }
 
@@ -262,11 +264,16 @@ namespace Liviano.Bips
         public static string CreateHdPath(int coinType, int accountIndex, bool isChange, int addressIndex, string purpose = "84")
         {
             int change = isChange ? 1 : 0;
+            string hdPath;
 
             if (purpose == "141" || purpose == "32")
-                return $"m/{coinType}'/{change}/{addressIndex}";
+                hdPath = $"m/{coinType}'/{change}/{addressIndex}";
+            else
+                hdPath = $"m/{purpose}'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
 
-            return $"m/{purpose}'/{coinType}'/{accountIndex}'/{change}/{addressIndex}";
+            Debug.WriteLine($"[CreateHdPath] Generated hdPath = {hdPath}");
+
+            return hdPath;
         }
 
         /// <summary>
