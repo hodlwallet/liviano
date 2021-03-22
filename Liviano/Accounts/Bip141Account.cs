@@ -23,6 +23,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
+
 using NBitcoin;
 
 namespace Liviano.Accounts
@@ -32,25 +34,19 @@ namespace Liviano.Accounts
         public override string AccountType => "bip141"; // HODL 1.0 legacy
         public override string HdPathFormat => "m/{0}'";
 
-        ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit;
-        ScriptPubKeyType legacyScriptPubKeyType = ScriptPubKeyType.Legacy;
+        List<ScriptPubKeyType> scriptPubKeyTypes = new List<ScriptPubKeyType> ()
+        {
+            ScriptPubKeyType.Segwit,
+            ScriptPubKeyType.Legacy
+        };
 
         // TODO This account should support 2 different addresses, legacy and segwit
-        public override ScriptPubKeyType ScriptPubKeyType
+        public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
-            get => scriptPubKeyType;
+            get => scriptPubKeyTypes;
             set
             {
-                scriptPubKeyType = value;
-            }
-        }
-
-        public ScriptPubKeyType LegacyScriptPubKeyType
-        {
-            get => legacyScriptPubKeyType;
-            set
-            {
-                legacyScriptPubKeyType = value;
+                scriptPubKeyTypes = value;
             }
         }
 

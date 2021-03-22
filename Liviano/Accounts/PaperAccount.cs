@@ -75,9 +75,9 @@ namespace Liviano.Accounts
 
         public List<Tx> Txs { get; set; }
 
-        [JsonProperty(PropertyName = "scriptPubKeyType")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public ScriptPubKeyType ScriptPubKeyType { get; set; }
+        [JsonProperty(PropertyName = "scriptPubKeyTypes")]
+        [JsonConverter(typeof(List<StringEnumConverter>))]
+        public List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         [JsonProperty(PropertyName = "privateKey")]
         public Key PrivateKey { get; set; }
@@ -154,7 +154,7 @@ namespace Liviano.Accounts
         {
             Guard.NotNull(PublicKey, nameof(PublicKey));
 
-            return PublicKey.GetAddress(ScriptPubKeyType, Network);
+            return PublicKey.GetAddress(ScriptPubKeyTypes[0], Network);
         }
 
         public BitcoinAddress[] GetReceiveAddress(int n)
@@ -202,7 +202,7 @@ namespace Liviano.Accounts
 
             Id = Guid.NewGuid().ToString();
             Name = name;
-            ScriptPubKeyType = scriptPubKeyType;
+            ScriptPubKeyTypes = new List<ScriptPubKeyType>() { scriptPubKeyType };
             Network ??= network ?? Network.Main;
 
             if (wif is null)

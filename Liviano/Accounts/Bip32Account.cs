@@ -67,7 +67,7 @@ namespace Liviano.Accounts
         public override BitcoinAddress GetReceiveAddress()
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesCount, false);
-            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
             ExternalAddressesCount++;
 
@@ -89,7 +89,7 @@ namespace Liviano.Accounts
         public override BitcoinAddress GetChangeAddress()
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesCount, true);
-            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
             InternalAddressesCount++;
 
@@ -111,7 +111,7 @@ namespace Liviano.Accounts
         public override BitcoinAddress GetReceiveAddressAtIndex(int i)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
             return address;
         }
@@ -119,7 +119,7 @@ namespace Liviano.Accounts
         public override BitcoinAddress GetChangeAddressAtIndex(int i)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-            var address = pubKey.GetAddress(ScriptPubKeyType, Network);
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
             return address;
         }
@@ -133,7 +133,7 @@ namespace Liviano.Accounts
             for (int i = 0; i < externalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
+                var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
                 addresses.Add(addr);
             }
@@ -150,7 +150,7 @@ namespace Liviano.Accounts
             for (int i = 0; i < internalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-                var addr = pubKey.GetAddress(ScriptPubKeyType, Network);
+                var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
                 addresses.Add(addr);
             }

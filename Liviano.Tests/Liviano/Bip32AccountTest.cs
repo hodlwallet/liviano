@@ -23,6 +23,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
+
 using Xunit;
 
 using NBitcoin;
@@ -48,7 +50,7 @@ namespace Liviano.Tests.Liviano.Accounts
 
             // Reset account count to test legacy address generation
             account.ExternalAddressesCount = 0;
-            account.ScriptPubKeyType = ScriptPubKeyType.Legacy;
+            account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Legacy };
 
             address = account.GetReceiveAddress();
 
@@ -56,7 +58,7 @@ namespace Liviano.Tests.Liviano.Accounts
 
             Assert.Equal("17871ErDqdevLTLWBH6WzjUc1EKGDQzCMA", address.ToString());
 
-            account.ScriptPubKeyType = ScriptPubKeyType.Segwit;
+            account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Segwit };
 
             address = account.GetChangeAddress();
 
@@ -65,7 +67,7 @@ namespace Liviano.Tests.Liviano.Accounts
 
             // generate legacy change address for some reason... should never be called
             account.InternalAddressesCount = 0;
-            account.ScriptPubKeyType = ScriptPubKeyType.Legacy;
+            account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Legacy };
 
             address = account.GetChangeAddress();
 

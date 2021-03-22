@@ -158,9 +158,7 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "index")]
         public int Index { get; set; }
 
-        [JsonProperty(PropertyName = "scriptPubKeyType")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public abstract ScriptPubKeyType ScriptPubKeyType { get; set; }
+        public abstract List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         public Network Network { get; set; }
         public string Name { get; set; }

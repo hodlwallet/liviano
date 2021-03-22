@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
 using NBitcoin;
 
 namespace Liviano.Accounts
@@ -32,13 +33,13 @@ namespace Liviano.Accounts
         public override string AccountType => "bip49";
         public override string HdPathFormat => "m/49'/{0}'/{1}'";
 
-        ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.SegwitP2SH;
-        public override ScriptPubKeyType ScriptPubKeyType
+        List<ScriptPubKeyType> scriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.SegwitP2SH };
+        public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
-            get => scriptPubKeyType;
+            get => scriptPubKeyTypes;
             set
             {
-                scriptPubKeyType = value;
+                scriptPubKeyTypes = value;
             }
         }
 
