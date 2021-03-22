@@ -61,6 +61,8 @@ namespace Liviano.Electrum
         int port;
         public string Host { get; private set; }
 
+        object @lock = new object();
+
         public JsonRpcClient(Server server)
         {
             this.server = server;
@@ -367,7 +369,8 @@ namespace Liviano.Electrum
 
                                 Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
-                                await WaitForEmptyResult(scripthash);
+                                // See below's fixme
+                                //await WaitForEmptyResult(scripthash);
 
                                 results[scripthash] = status;
                             }
@@ -376,7 +379,7 @@ namespace Liviano.Electrum
                                 var newHeader = (JObject) @params[0];
                                 Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
-                                await WaitForEmptyResult("blockchain.headers.subscribe");
+                                //await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                 results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                             }
@@ -385,9 +388,10 @@ namespace Liviano.Electrum
                         {
                             var requestId = (string) json.GetValue("id");
 
-                            Debug.WriteLine($"[ConsumeMessages] A response result for id: {requestId}");
+                            Debug.WriteLine($"[ConsumeMessages] A response result for id: {requestId} (msg: {msg})");
 
-                            await WaitForEmptyResult(requestId);
+                            // FIXME This is a bug, there should always be an empty result...
+                            //await WaitForEmptyResult(requestId);
 
                             results[requestId] = msg;
                         }
@@ -415,11 +419,14 @@ namespace Liviano.Electrum
 
         bool HasResult(string requestId)
         {
-            if (!results.ContainsKey(requestId)) return false;
+            lock (@lock)
+            {
+                var containsKey = results.ContainsKey(requestId);
 
-            results.TryGetValue(requestId, out string val);
+                results.TryGetValue(requestId, out string val);
 
-            return !string.IsNullOrEmpty(val);
+                return containsKey && !string.IsNullOrEmpty(val);
+            }
         }
     }
 }
