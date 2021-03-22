@@ -17,11 +17,11 @@ run:
 
 run.ubuntu:
 	make ubuntu.debug.build
-	./liviano ${args}
+	./liviano-cli ${args}
 
 run.ubuntu.debug:
 	make ubuntu.debug.build
-	COMPlus_DebugWriteToStdErr=1 ./liviano ${args}
+	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
 
 # Usage (all tests):        make test
 # Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
@@ -85,25 +85,25 @@ publish.release:
 	cp -R Liviano.CLI/bin/Release/netcoreapp3.1/ubuntu-x64/publish bin/release/LivianoCLI/ubuntu-x64
 
 ubuntu.debug.build:
-	dotnet publish --framework netcoreapp3.1 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
+	dotnet publish --framework net5.0 --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
-	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm -f ./liviano
-	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
+	cp -R Liviano.CLI/bin/Debug/net5.0/ubuntu-x64/publish bin/ubuntu_debug_build
+	rm -f ./liviano-cli
+	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
 
 osx.debug.build:
 	dotnet publish --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/osx-x64/publish bin/osx_debug_build
-	rm -rf ./liviano
-	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano
+	rm -rf ./liviano-cli
+	ln -s bin/osx_debug_build/publish/Liviano.CLI liviano-cli
 
 win.debug.build:
 	dotnet publish --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/netcoreapp3.1/ubuntu-x64/publish bin/ubuntu_debug_build
-	rm -f ./liviano
-	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano
+	rm -f ./liviano-cli
+	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
 
 clean:
 	dotnet clean
@@ -120,7 +120,7 @@ clean:
 
 clean.local:
 	make clean
-	rm liviano
+	rm liviano-cli
 	rm liviano.json
 	rm -rf wallets
 
