@@ -76,7 +76,7 @@ namespace Liviano.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0)
+        public override BitcoinAddress[] GetReceiveAddress(int n, int typeIndex)
         {
             var addresses = new List<BitcoinAddress>();
 
@@ -98,7 +98,7 @@ namespace Liviano.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0)
+        public override BitcoinAddress[] GetChangeAddress(int n, int typeIndex)
         {
             var addresses = new List<BitcoinAddress>();
 
@@ -133,9 +133,13 @@ namespace Liviano.Accounts
             for (int i = 0; i < externalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-                var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
-                addresses.Add(addr);
+                for (int j = 0; j < ScriptPubKeyTypes.Count; j++)
+                {
+                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[j], Network);
+
+                    addresses.Add(addr);
+                }
             }
 
             return addresses.ToArray();
@@ -150,9 +154,13 @@ namespace Liviano.Accounts
             for (int i = 0; i < internalMaxIndex; i++)
             {
                 var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-                var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
 
-                addresses.Add(addr);
+                for (int j = 0; j < ScriptPubKeyTypes.Count; j++)
+                {
+                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+
+                    addresses.Add(addr);
+                }
             }
 
             return addresses.ToArray();
