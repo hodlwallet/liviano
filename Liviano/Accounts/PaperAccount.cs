@@ -140,34 +140,34 @@ namespace Liviano.Accounts
             Initialize(name, scriptPubKeyType, wif, network);
         }
 
-        public BitcoinAddress GetChangeAddress()
+        public BitcoinAddress GetChangeAddress(int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress[] GetChangeAddress(int n)
+        public BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress GetReceiveAddress()
+        public BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
             Guard.NotNull(PublicKey, nameof(PublicKey));
 
-            return PublicKey.GetAddress(ScriptPubKeyTypes[0], Network);
+            return PublicKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
         }
 
-        public BitcoinAddress[] GetReceiveAddress(int n)
+        public BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
-        public BitcoinAddress GetReceiveAddressAtIndex(int i)
+        public BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
         }
 
-        public BitcoinAddress GetChangeAddressAtIndex(int i)
+        public BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
         }

@@ -168,7 +168,7 @@ namespace Liviano.Tests.Liviano
             }
 
             // Get all addresses
-            BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20);
+            BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20, 0);
 
             // Verify data with https://iancoleman.io/bip39/ if needed
             Assert.Equal
@@ -299,7 +299,7 @@ namespace Liviano.Tests.Liviano
             var publicKeys = new List<string> {};
             var extPubKey = account.ExtPubKey;
 
-            BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20);
+            BitcoinAddress[] newReceivingAddresses = account.GetReceiveAddress(20, 0);
 
             Assert.Equal
             (

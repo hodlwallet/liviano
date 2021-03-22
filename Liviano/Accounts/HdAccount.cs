@@ -165,12 +165,12 @@ namespace Liviano.Accounts
         public List<string> TxIds { get; set; }
         public List<Tx> Txs { get; set; }
 
-        public abstract BitcoinAddress GetReceiveAddress();
-        public abstract BitcoinAddress[] GetReceiveAddress(int n);
-        public abstract BitcoinAddress GetChangeAddress();
-        public abstract BitcoinAddress[] GetChangeAddress(int n);
-        public abstract BitcoinAddress GetReceiveAddressAtIndex(int i);
-        public abstract BitcoinAddress GetChangeAddressAtIndex(int i);
+        public abstract BitcoinAddress GetReceiveAddress(int typeIndex = 0);
+        public abstract BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0);
+        public abstract BitcoinAddress GetChangeAddress(int typeIndex = 0);
+        public abstract BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0);
+        public abstract BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0);
+        public abstract BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0);
         public abstract BitcoinAddress[] GetReceiveAddressesToWatch();
         public abstract BitcoinAddress[] GetChangeAddressesToWatch();
         public abstract BitcoinAddress[] GetAddressesToWatch();

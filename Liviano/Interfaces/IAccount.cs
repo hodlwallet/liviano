@@ -163,7 +163,7 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>A <see cref="BitcoinAddress"/></returns>
-        BitcoinAddress GetReceiveAddress(int typeIndex);
+        BitcoinAddress GetReceiveAddress(int typeIndex = 0);
 
         /// <summary>
         /// Gets n receiving addresses
@@ -171,14 +171,14 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
-        BitcoinAddress[] GetReceiveAddress(int n, int typeIndex);
+        BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0);
 
         /// <summary>
         /// Gets 1 change address
         /// </summary>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>A <see cref="BitcoinAddress"/></returns>
-        BitcoinAddress GetChangeAddress(int typeIndex);
+        BitcoinAddress GetChangeAddress(int typeIndex = 0);
 
         /// <summary>
         /// Gets n change addresses
@@ -186,7 +186,7 @@ namespace Liviano.Interfaces
         /// <param name="n">A <see cref="int"/> of the amount of address to generate</param>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>An <see cref="Array"/> of <see cref="BitcoinAddresses"/> specificed by <see cref="int">n</see></returns>
-        BitcoinAddress[] GetChangeAddress(int n, int typeIndex);
+        BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0);
 
         /// <summary>
         /// Gets a receive address at an index without increasing the count
@@ -194,7 +194,7 @@ namespace Liviano.Interfaces
         /// <param name="i">A <see cref="int"/> index of the address to get</param>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>A <see cref="BitcoinAddress"/></returns>
-        BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex);
+        BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0);
 
         /// <summary>
         /// Gets a change address at an index without increasing the count
@@ -202,7 +202,7 @@ namespace Liviano.Interfaces
         /// <param name="i">A <see cref="int"/> index of the address to get</param>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
         /// <returns>A <see cref="BitcoinAddress"/></returns>
-        BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex);
+        BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0);
 
         /// <summary>
         /// Gets all receive addresses to watch, start on 0 and get all until grap

@@ -482,8 +482,8 @@ namespace Liviano.Electrum
             var receiveAddressesIndex = acc.GetExternalLastIndex();
             var changeAddressesIndex = acc.GetInternalLastIndex();
 
-            var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit);
-            var changeAddresses = acc.GetChangeAddress(acc.GapLimit);
+            var receiveAddresses = acc.GetReceiveAddress(acc.GapLimit, 0);
+            var changeAddresses = acc.GetChangeAddress(acc.GapLimit, 0);
 
             if (syncExternal)
             {

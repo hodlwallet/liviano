@@ -67,7 +67,7 @@ namespace Liviano.Accounts
         public override BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesCount, false);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network); // TODO
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
             ExternalAddressesCount++;
 
@@ -86,10 +86,10 @@ namespace Liviano.Accounts
             return addresses.ToArray();
         }
 
-        public override BitcoinAddress GetChangeAddress()
+        public override BitcoinAddress GetChangeAddress(int typeIndex = 0)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesCount, true);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
             InternalAddressesCount++;
 
@@ -98,28 +98,28 @@ namespace Liviano.Accounts
             return address;
         }
 
-        public override BitcoinAddress[] GetChangeAddress(int n)
+        public override BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0)
         {
             var addresses = new List<BitcoinAddress>();
 
             for (int i = 0; i < n; i++)
-                addresses.Add(GetChangeAddress());
+                addresses.Add(GetChangeAddress(typeIndex));
 
             return addresses.ToArray();
         }
 
-        public override BitcoinAddress GetReceiveAddressAtIndex(int i)
+        public override BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
             return address;
         }
 
-        public override BitcoinAddress GetChangeAddressAtIndex(int i)
+        public override BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0)
         {
             var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
             return address;
         }

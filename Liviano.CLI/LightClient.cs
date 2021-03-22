@@ -261,7 +261,7 @@ namespace Liviano.CLI
 
             if (account is null) return null;
 
-            var addrs = account.GetReceiveAddress(addressAmount);
+            var addrs = account.GetReceiveAddress(addressAmount, 0);
 
             wallet.Storage.Save();
 
