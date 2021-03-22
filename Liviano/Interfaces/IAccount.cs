@@ -126,7 +126,6 @@ namespace Liviano.Interfaces
         int Index { get; set; }
 
         [JsonProperty(PropertyName = "scriptPubKeyTypes")]
-        [JsonConverter(typeof(List<StringEnumConverter>))]
         List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
