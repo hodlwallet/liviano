@@ -157,7 +157,7 @@ namespace Liviano.Accounts
 
                 for (int j = 0; j < ScriptPubKeyTypes.Count; j++)
                 {
-                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[0], Network); // TODO
+                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[j], Network);
 
                     addresses.Add(addr);
                 }
