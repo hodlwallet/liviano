@@ -319,9 +319,9 @@ namespace Liviano.Electrum
                 Debug.WriteLine($"[ConsumeQueue] Error: {e.StackTrace}");
 
                 consumingQueue = false;
-
-                throw;
             }
+
+            await ConsumeQueue();
         }
 
         void EnqueueMessage(string requestId, string request)
