@@ -482,8 +482,8 @@ namespace Liviano.Electrum
             var receiveAddressesIndex = acc.GetExternalLastIndex();
             var changeAddressesIndex = acc.GetInternalLastIndex();
 
-            List<BitcoinAddress> receiveAddressesList = new List<BitcoinAddress> () {};
-            List<BitcoinAddress> changeAddressesList = new List<BitcoinAddress> () {};
+            var receiveAddressesList = new List<BitcoinAddress> () {};
+            var changeAddressesList = new List<BitcoinAddress> () {};
 
             for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
             {
