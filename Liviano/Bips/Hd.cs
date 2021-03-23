@@ -33,6 +33,7 @@ using NBitcoin;
 using Liviano.Utilities;
 using Liviano.Exceptions;
 using System.Diagnostics;
+using Liviano.Interfaces;
 
 namespace Liviano.Bips
 {
@@ -449,7 +450,7 @@ namespace Liviano.Bips
             return new Mnemonic(mnemonic, WordlistFromString(wordlist)).IsValidChecksum;
         }
 
-        public static bool IsMnemonicOfWallet(Mnemonic mnemonic, Wallet wallet, Network network = null, string password = null)
+        public static bool IsMnemonicOfWallet(Mnemonic mnemonic, IWallet wallet, Network network = null, string password = null)
         {
             if (wallet == null) return false;
 
@@ -461,7 +462,7 @@ namespace Liviano.Bips
             return extKeyFromMnemonic.PrivateKey.GetWif(network).ToString() == wallet.EncryptedSeed;
         }
 
-        public static bool IsMnemonicOfWallet(string mnemonic, Wallet wallet)
+        public static bool IsMnemonicOfWallet(string mnemonic, IWallet wallet)
         {
             var m = new Mnemonic(mnemonic);
 
