@@ -23,6 +23,22 @@ run.ubuntu.debug:
 	make ubuntu.debug.build
 	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
 
+run.osx:
+	make osx.debug.build
+	./liviano-cli ${args}
+
+run.osx.debug:
+	make osx.debug.build
+	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+
+run.win:
+	make win.debug.build
+	./liviano-cli ${args}
+
+run.win.debug:
+	make win.debug.build
+	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+
 # Usage (all tests):        make test
 # Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
 # Usage (method name):      test="Bip84CompatibilityTest" make test
