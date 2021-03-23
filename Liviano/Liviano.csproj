@@ -19,8 +19,6 @@
         <PackageReference Include="serilog" Version="2.10.0" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Electrum\" />
-        <Folder Include="Electrum\servers\" />
         <Folder Include="Extensions\" />
         <Folder Include="Interfaces\" />
         <Folder Include="Models\" />
@@ -29,7 +27,7 @@
         <Folder Include="Storages\" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="Electrum\servers\hodlwallet_mainnet.json">
+        <Content Include="Electrum\servers\hodlwallet_main.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Content Include="Electrum\servers\hodlwallet_testnet.json">
