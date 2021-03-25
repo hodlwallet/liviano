@@ -317,12 +317,13 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            $"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)} Height: {tx.BlockHeight} Confirmations: {tx.Confirmations}"
+                            "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations}",
+                            tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations
                         );
                         total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
                     }
 
-                    logger.Information($"Total: {total}");
+                    logger.Information("Total: {total}", total);
                 }
 
                 Quit();
