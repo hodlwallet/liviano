@@ -50,9 +50,9 @@ namespace Liviano.Tests.Liviano.Accounts
 
             // Reset account count to test legacy address generation
             account.ExternalAddressesCount = 0;
-            account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Legacy };
+            account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Segwit, ScriptPubKeyType.Legacy };
 
-            address = account.GetReceiveAddress();
+            address = account.GetReceiveAddress(typeIndex: 1);
 
             Assert.NotNull(address);
 
