@@ -372,5 +372,9 @@ namespace Liviano.Accounts
                 OnUpdatedConfirmations?.Invoke(this, new UpdatedConfirmationsArgs(tx, tx.Confirmations));
             }
         }
+
+        public void UpdateCreatedAtWithHeader(BlockHeader header)
+        {
+        }
     }
 }

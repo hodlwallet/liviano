@@ -27,6 +27,7 @@ using System;
 
 using Liviano.Models;
 using Liviano.Events;
+using NBitcoin;
 
 namespace Liviano.Interfaces
 {
@@ -61,5 +62,11 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="height">Height of the block</param>
         void UpdateConfirmations(long height);
+
+        /// <summary>
+        /// Update transactions CreatedAt attributes with the new header if needed
+        /// </summary>
+        /// <param name="header">BlockHeader</param>
+        void UpdateCreatedAtWithHeader(BlockHeader header);
     }
 }
