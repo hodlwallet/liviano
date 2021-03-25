@@ -303,7 +303,11 @@ namespace Liviano.CLI
                         txs.Add(tx);
 
                 if (txs.Count() == 0)
+                {
+                    logger.Information("No transactions found {sadFace}", ":(");
+
                     Quit();
+                }
                 else
                     logger.Information("Transactions:");
 
