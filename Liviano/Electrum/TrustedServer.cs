@@ -309,28 +309,40 @@ namespace Liviano.Electrum
             Debug.WriteLine($"[DownloadHeaders] Saved wallet");
         }
 
-        public static IElectrumPool Load(Network network = null)
+        public static IElectrumPool Load(Network network = null, string localDirectory = null)
         {
             network ??= Network.Main;
 
-            var assembly = typeof(TrustedServer).Assembly;
-            var stream = assembly.GetManifestResourceStream(GetServersManifestResourceName(network));
+            Server server;
+            var serversFilePath = Path.Combine(localDirectory, $"servers_{network.Name.ToLower()}.json");
+            string json;
+            Dictionary<string, Dictionary<string, string>> jsonData;
 
-            using var reader = new StreamReader(stream);
-            
-            var json = reader.ReadToEnd();
-            var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            if (File.Exists(serversFilePath))
+            {
+                json = File.ReadAllText(serversFilePath);
+            }
+            else
+            {
+                var assembly = typeof(TrustedServer).Assembly;
+                var stream = assembly.GetManifestResourceStream(GetServersManifestResourceName(network));
 
-            var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
+                using var reader = new StreamReader(stream);
+
+                json = reader.ReadToEnd();
+            }
+
+            jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+            server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
 
             return new TrustedServer(server, network);
         }
 
-        IElectrumPool IElectrumPool.Load(Network network)
+        IElectrumPool IElectrumPool.Load(Network network, string localDirectory)
         {
             network ??= Network.Main;
 
-            return Load(network);
+            return Load(network, localDirectory);
         }
 
         static string GetServersManifestResourceName(Network network = null)

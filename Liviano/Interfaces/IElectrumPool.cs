@@ -117,7 +117,8 @@ namespace Liviano.Interfaces
         /// Loads the pool from the filesystem
         /// </summary>
         /// <param name="network">a <see cref="Network"/> to load files from</param>
+        /// <param name="localDirectory">a <see cref="string"/> to servers file fromm (custom server)</param>
         /// <returns>A new <see cref="ElectrumPool"/></returns>
-        IElectrumPool Load(Network network);
+        IElectrumPool Load(Network network, string localDirectory);
     }
 }
