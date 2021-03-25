@@ -313,10 +313,14 @@ namespace Liviano.Electrum
         {
             network ??= Network.Main;
 
-            var serverFilename = GetServerFilename(network);
-            var json = File.ReadAllText(serverFilename);
+            var assembly = typeof(TrustedServer).Assembly;
+            var stream = assembly.GetManifestResourceStream(GetServersManifestResourceName(network));
 
+            using var reader = new StreamReader(stream);
+            
+            var json = reader.ReadToEnd();
             var jsonData = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json);
+
             var server = ElectrumServers.FromDictionary(jsonData).Servers.CompatibleServers()[0];
 
             return new TrustedServer(server, network);
@@ -329,20 +333,11 @@ namespace Liviano.Electrum
             return Load(network);
         }
 
-        static string GetServerFilename(Network network = null)
+        static string GetServersManifestResourceName(Network network = null)
         {
             network ??= Network.Main;
 
-            return GetLocalConfigFilePath("Electrum", "servers", $"hodlwallet_{network.Name.ToLower()}.json");
-        }
-
-        static string GetLocalConfigFilePath(params string[] fileNames)
-        {
-            return Path.Combine(
-                Path.GetDirectoryName(
-                    typeof(TrustedServer).Assembly.Location
-                ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
-            );
+            return $"Liviano.Electrum.servers.hodlwallet_{network.Name.ToLower()}.json";
         }
 
         /// <summary>

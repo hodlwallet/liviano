@@ -27,20 +27,20 @@
         <Folder Include="Storages\" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="Electrum\servers\hodlwallet_main.json">
+        <EmbeddedResource Include="Electrum\servers\hodlwallet_main.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Electrum\servers\hodlwallet_testnet.json">
+        </EmbeddedResource>
+        <EmbeddedResource Include="Electrum\servers\hodlwallet_testnet.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Electrum\servers\main.json">
+        </EmbeddedResource>
+        <EmbeddedResource Include="Electrum\servers\main.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Electrum\servers\regtest.json">
+        </EmbeddedResource>
+        <EmbeddedResource Include="Electrum\servers\regtest.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-        <Content Include="Electrum\servers\testnet.json">
+        </EmbeddedResource>
+        <EmbeddedResource Include="Electrum\servers\testnet.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        </EmbeddedResource>
     </ItemGroup>
 </Project>
