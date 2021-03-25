@@ -340,7 +340,7 @@ namespace Liviano.Electrum
         {
             return Path.Combine(
                 Path.GetDirectoryName(
-                    Assembly.GetCallingAssembly().Location
+                    typeof(TrustedServer).Assembly.Location
                 ), string.Join(Path.DirectorySeparatorChar.ToString(), fileNames.ToArray())
             );
         }
