@@ -288,7 +288,10 @@ namespace Liviano.Accounts
             {
                 var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
 
-                if (DateTimeOffset.Equals(tx.CreatedAt, default(DateTimeOffset))) continue;
+                if (
+                    DateTimeOffset.Equals(tx.CreatedAt, default(DateTimeOffset)) ||
+                    !tx.HasAproxCreatedAt
+                ) continue;
 
                 var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
 
@@ -298,12 +301,14 @@ namespace Liviano.Accounts
                 if (txBlockHeight == height)
                 {
                     tx.CreatedAt = header.BlockTime;
+                    tx.HasAproxCreatedAt = false;
 
                     OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
                     continue;
                 }
 
                 tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
+                tx.HasAproxCreatedAt = true;
 
                 OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
             }

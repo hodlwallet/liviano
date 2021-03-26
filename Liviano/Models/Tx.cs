@@ -162,6 +162,12 @@ namespace Liviano.Models
         public long Confirmations { get; set; }
 
         /// <summary>
+        /// Number of confirmations
+        /// </summary>
+        [JsonProperty(PropertyName = "hasAproxCreatedAt")]
+        public bool HasAproxCreatedAt { get; set; }
+
+        /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
         public bool IsConfirmed()
