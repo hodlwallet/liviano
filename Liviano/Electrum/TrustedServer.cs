@@ -553,12 +553,15 @@ namespace Liviano.Electrum
             {
                 for (int i = 0; i < addressesToCheck; i++)
                 {
-                    var addr = acc.GetReceiveAddress(0); // TODO this needs to happen to both scriptPubKeyType
+                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
+                    {
+                        var addr = acc.GetReceiveAddress(j);
 
-                    receiveAddressesList.Add(addr);
-                    receiveAddresses = receiveAddressesList.ToArray();
+                        receiveAddressesList.Add(addr);
+                        receiveAddresses = receiveAddressesList.ToArray();
 
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }
                 }
 
                 await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
@@ -567,11 +570,14 @@ namespace Liviano.Electrum
             {
                 for (int i = 0; i < addressesToCheck; i++)
                 {
-                    var addr = acc.GetChangeAddress(0); // TODO this needs to happen to both scriptPubKeyType
-                    changeAddressesList.Add(addr);
-                    changeAddresses = changeAddressesList.ToArray();
+                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
+                    {
+                        var addr = acc.GetChangeAddress(j);
+                        changeAddressesList.Add(addr);
+                        changeAddresses = changeAddressesList.ToArray();
 
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }
                 }
 
                 await SyncAccountUntilGapLimit(acc, ct, acc.UsedInternalAddresses.Count - usedInternalAddressesCount, false, receiveAddressesList, changeAddressesList);
