@@ -315,7 +315,7 @@ namespace Liviano.Accounts
             var blocksApart = currentBlockHeight - txBlockHeight;
             var minutes = blocksApart * 10;
 
-            return header.BlockTime + TimeSpan.FromMinutes(minutes);
+            return header.BlockTime - TimeSpan.FromMinutes(minutes);
         }
     }
 }
