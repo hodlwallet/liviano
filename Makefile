@@ -46,13 +46,13 @@ run.win.debug:
 # Usage (using 't'):        t="Bip84" make test
 test:
 	@if [ "${test}${t}" = "" ]; then\
-		dotnet test Liviano.Tests;\
+		dotnet test --framework=net5.0 Liviano.Tests;\
 	fi
 	@if [ "${test}" != "" ]; then\
-		dotnet test Liviano.Tests --filter "FullyQualifiedName~${test}";\
+		dotnet test --framework=net5.0 Liviano.Tests --filter "FullyQualifiedName~${test}";\
 	fi
 	@if [ "${t}" != "" ]; then\
-		dotnet test Liviano.Tests --filter "FullyQualifiedName~${t}";\
+		dotnet test --framework=net5.0 Liviano.Tests --filter "FullyQualifiedName~${t}";\
 	fi
 
 test.with.coverage:
