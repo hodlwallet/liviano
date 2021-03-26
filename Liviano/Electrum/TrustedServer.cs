@@ -535,8 +535,8 @@ namespace Liviano.Electrum
             var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
             var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
 
-            await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
-            await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
+            if (syncExternal) await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
+            if (syncInternal) await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
         }
 
         async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct, int addressesToCheck, bool isReceive, List<BitcoinAddress> receiveAddressesList, List<BitcoinAddress> changeAddressesList)
