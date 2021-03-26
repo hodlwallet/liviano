@@ -36,7 +36,12 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Trigger when confirmations are updated
         /// </summary>
-        event EventHandler<UpdatedConfirmationsArgs> OnUpdatedConfirmations;
+        event EventHandler<UpdatedTxConfirmationsArgs> OnUpdatedTxConfirmations;
+
+        /// <summary>
+        /// Trigger when transaction's CreatedAt is updated
+        /// </summary>
+        event EventHandler<UpdatedTxCreatedAtArgs> OnUpdatedTxCreatedAt;
 
         /// <summary>
         /// Adds transaction to this account
@@ -67,6 +72,7 @@ namespace Liviano.Interfaces
         /// Update transactions CreatedAt attributes with the new header if needed
         /// </summary>
         /// <param name="header">BlockHeader</param>
-        void UpdateCreatedAtWithHeader(BlockHeader header);
+        /// <param name="height">A <see cref="long"/> with the hight</param>
+        void UpdateCreatedAtWithHeader(BlockHeader header, long height);
     }
 }

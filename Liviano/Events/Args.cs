@@ -73,15 +73,27 @@ namespace Liviano.Events
         }
     }
 
-    public class UpdatedConfirmationsArgs : EventArgs
+    public class UpdatedTxConfirmationsArgs : EventArgs
     {
         public Tx Tx { get; set; }
         public long Confirmations { get; set; }
 
-        public UpdatedConfirmationsArgs(Tx tx, long configurations)
+        public UpdatedTxConfirmationsArgs(Tx tx, long configurations)
         {
             Tx = tx;
             Confirmations = configurations;
+        }
+    }
+
+    public class UpdatedTxCreatedAtArgs : EventArgs
+    {
+        public Tx Tx { get; set; }
+        public DateTimeOffset? CreatedAt { get; set; }
+
+        public UpdatedTxCreatedAtArgs(Tx tx, DateTimeOffset? createdAt)
+        {
+            Tx = tx;
+            CreatedAt = createdAt;
         }
     }
 }

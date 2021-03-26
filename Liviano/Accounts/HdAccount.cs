@@ -186,7 +186,8 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
-        public event EventHandler<UpdatedConfirmationsArgs> OnUpdatedConfirmations;
+        public event EventHandler<UpdatedTxConfirmationsArgs> OnUpdatedTxConfirmations;
+        public event EventHandler<UpdatedTxCreatedAtArgs> OnUpdatedTxCreatedAt;
 
         public object Clone()
         {
@@ -277,12 +278,44 @@ namespace Liviano.Accounts
 
                 tx.Confirmations = height - txBlockHeight;
 
-                OnUpdatedConfirmations?.Invoke(this, new UpdatedConfirmationsArgs(tx, tx.Confirmations));
+                OnUpdatedTxConfirmations?.Invoke(this, new UpdatedTxConfirmationsArgs(tx, tx.Confirmations));
             }
         }
 
-        public void UpdateCreatedAtWithHeader(BlockHeader header)
+        public void UpdateCreatedAtWithHeader(BlockHeader header, long height)
         {
+            foreach (var tx in Txs)
+            {
+                var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
+
+                if (DateTimeOffset.Equals(tx.CreatedAt, default(DateTimeOffset))) continue;
+
+                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
+
+                if (txBlockHeight <= 0) continue;
+                if (txBlockHeight > height) continue;
+
+                if (txBlockHeight == height)
+                {
+                    tx.CreatedAt = header.BlockTime;
+
+                    OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
+                    continue;
+                }
+
+                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
+
+                OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
+            }
+
+        }
+
+        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header, Tx tx)
+        {
+            var blocksApart = currentBlockHeight - txBlockHeight;
+            var minutes = blocksApart * 10;
+
+            return header.BlockTime + TimeSpan.FromMinutes(minutes);
         }
     }
 }
