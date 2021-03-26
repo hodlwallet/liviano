@@ -504,8 +504,8 @@ namespace Liviano.Electrum
             var receiveAddresses = receiveAddressesList.ToArray();
             var changeAddresses = changeAddressesList.ToArray();
 
-            int receiveAddressesChecked = 0;
-            int changeAddressesChecked = 0;
+            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
+            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
 
             if (syncExternal)
             {
@@ -514,7 +514,6 @@ namespace Liviano.Electrum
                     if (ct.IsCancellationRequested) return;
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    receiveAddressesChecked++;
                 }
 
                 acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
@@ -527,32 +526,58 @@ namespace Liviano.Electrum
                     if (ct.IsCancellationRequested) return;
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                    changeAddressesChecked++;
                 }
 
                 acc.InternalAddressesIndex = acc.GetInternalLastIndex();
             }
 
-            Console.WriteLine($"{acc.UsedExternalAddresses.Count}");
-            Console.WriteLine($"{acc.GetExternalLastIndex()}");
+            // After reaching the end, we check if we need to sync more addresses
+            var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
+            var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
 
-            Console.WriteLine($"!!!!!!!!!!!!!receiveAddressesChecked => {receiveAddressesChecked}");
-            Console.WriteLine($"!!!!!!!!!!!!!changeAddressesChecked => {changeAddressesChecked}");
+            await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
+            await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
+        }
 
-            // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
-            //if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
-            //{
-                //// This is the default but we wanna be explicit
-                //await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
-            //}
-            //else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
-            //{
-                //await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
-            //}
-            //else if (acc.GetInternalLastIndex() > changeAddressesIndex)
-            //{
-                //await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
-            //}
+        async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct, int addressesToCheck, bool isReceive, List<BitcoinAddress> receiveAddressesList, List<BitcoinAddress> changeAddressesList)
+        {
+            if (addressesToCheck == 0) return;
+
+            var receiveAddresses = receiveAddressesList.ToArray();
+            var changeAddresses = changeAddressesList.ToArray();
+
+            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
+            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
+            
+            if (isReceive)
+            {
+                for (int i = 0; i < addressesToCheck; i++)
+                {
+                    var addr = acc.GetReceiveAddress(0); // TODO this needs to happen to both scriptPubKeyType
+
+                    receiveAddressesList.Add(addr);
+                    receiveAddresses = receiveAddressesList.ToArray();
+
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < addressesToCheck; i++)
+                {
+                    var addr = acc.GetChangeAddress(0); // TODO this needs to happen to both scriptPubKeyType
+                    changeAddressesList.Add(addr);
+                    changeAddresses = changeAddressesList.ToArray();
+
+                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                }
+            }
+
+            if (isReceive && acc.UsedExternalAddresses.Count > usedExternalAddressesCount)
+                await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
+
+            if (!isReceive && acc.UsedInternalAddresses.Count > usedInternalAddressesCount)
+                await SyncAccountUntilGapLimit(acc, ct, acc.UsedInternalAddresses.Count - usedInternalAddressesCount, false, receiveAddressesList, changeAddressesList);
         }
 
         /// <summary>
