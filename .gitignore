@@ -354,6 +354,8 @@ NBitcoin
 
 tmp
 wallets
+servers
+servers.old
 wallets.old
 blockchain
 .nvimlog
