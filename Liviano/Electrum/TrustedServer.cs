@@ -504,6 +504,9 @@ namespace Liviano.Electrum
             var receiveAddresses = receiveAddressesList.ToArray();
             var changeAddresses = changeAddressesList.ToArray();
 
+            int receiveAddressesChecked = 0;
+            int changeAddressesChecked = 0;
+
             if (syncExternal)
             {
                 foreach (var addr in receiveAddresses)
@@ -511,6 +514,7 @@ namespace Liviano.Electrum
                     if (ct.IsCancellationRequested) return;
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    receiveAddressesChecked++;
                 }
 
                 acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
@@ -523,25 +527,32 @@ namespace Liviano.Electrum
                     if (ct.IsCancellationRequested) return;
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    changeAddressesChecked++;
                 }
 
                 acc.InternalAddressesIndex = acc.GetInternalLastIndex();
             }
 
+            Console.WriteLine($"{acc.UsedExternalAddresses.Count}");
+            Console.WriteLine($"{acc.GetExternalLastIndex()}");
+
+            Console.WriteLine($"!!!!!!!!!!!!!receiveAddressesChecked => {receiveAddressesChecked}");
+            Console.WriteLine($"!!!!!!!!!!!!!changeAddressesChecked => {changeAddressesChecked}");
+
             // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
-            if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
-            {
-                // This is the default but we wanna be explicit
-                await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
-            }
-            else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
-            {
-                await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
-            }
-            else if (acc.GetInternalLastIndex() > changeAddressesIndex)
-            {
-                await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
-            }
+            //if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
+            //{
+                //// This is the default but we wanna be explicit
+                //await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
+            //}
+            //else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            //{
+                //await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
+            //}
+            //else if (acc.GetInternalLastIndex() > changeAddressesIndex)
+            //{
+                //await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
+            //}
         }
 
         /// <summary>
