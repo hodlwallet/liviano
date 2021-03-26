@@ -317,8 +317,8 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations}",
-                            tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations
+                            "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                            tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                         );
                         total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
                     }

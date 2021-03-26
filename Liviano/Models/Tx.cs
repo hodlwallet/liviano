@@ -262,6 +262,15 @@ namespace Liviano.Models
             if (account.Wallet.Height > height)
             {
                 tx.Confirmations = account.Wallet.Height - height;
+
+                if (account.Wallet.LastBlockHeader != null)
+                {
+                    var blockDiff = account.Wallet.Height - height;
+                    var minutes = blockDiff * 10;
+
+                    tx.CreatedAt = account.Wallet.LastBlockHeader.BlockTime - TimeSpan.FromMinutes(minutes);
+                    tx.HasAproxCreatedAt = true;
+                }
             }
 
             // Decide if the tx is a send tx or a receive tx
