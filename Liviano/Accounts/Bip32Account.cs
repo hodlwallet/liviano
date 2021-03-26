@@ -71,7 +71,7 @@ namespace Liviano.Accounts
 
             ExternalAddressesCount++;
 
-            if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress();
+            if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress(typeIndex);
 
             return address;
         }
@@ -93,7 +93,7 @@ namespace Liviano.Accounts
 
             InternalAddressesCount++;
 
-            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress();
+            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress(typeIndex);
 
             return address;
         }
