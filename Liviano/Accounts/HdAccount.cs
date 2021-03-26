@@ -289,7 +289,7 @@ namespace Liviano.Accounts
                 var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
 
                 if (
-                    !DateTimeOffset.Equals(tx.CreatedAt, default(DateTimeOffset)) ||
+                    !DateTimeOffset.Equals(txCreatedAt, default(DateTimeOffset)) ||
                     !tx.HasAproxCreatedAt
                 ) continue;
 
