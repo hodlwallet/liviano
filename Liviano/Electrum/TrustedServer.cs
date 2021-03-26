@@ -543,6 +543,8 @@ namespace Liviano.Electrum
         {
             if (addressesToCheck == 0) return;
 
+            Debug.WriteLine($"[SyncAccountUntilGapLimit] Processing until gap limit, amount of addresses: {addressesToCheck}, is receive: {isReceive}");
+
             var receiveAddresses = receiveAddressesList.ToArray();
             var changeAddresses = changeAddressesList.ToArray();
 
