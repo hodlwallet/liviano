@@ -28,24 +28,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
-using Liviano.Interfaces;
 using Liviano.Utilities;
 using Liviano.Extensions;
 using Liviano.Models;
-using Liviano.Events;
 
 namespace Liviano.Accounts
 {
-    public class PaperAccount : IAccount
+    public class PaperAccount : BaseAccount
     {
-        public string AccountType => "paper";
+        public override string AccountType => "paper";
 
         int gapLimit;
-        public int GapLimit
+        public override int GapLimit
         {
             get
             {
@@ -63,21 +60,7 @@ namespace Liviano.Accounts
 
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
-        public string Id { get; set; }
-
-        public string WalletId { get; set; }
-
-        public Network Network { get; set; }
-
-        public string Name { get; set; }
-
-        public List<string> TxIds { get; set; }
-
-        public List<Tx> Txs { get; set; }
-
-        [JsonProperty(PropertyName = "scriptPubKeyTypes")]
-        [JsonConverter(typeof(List<StringEnumConverter>))]
-        public List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
+        public override List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         [JsonProperty(PropertyName = "privateKey")]
         public Key PrivateKey { get; set; }
@@ -85,34 +68,23 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "publicKey")]
         public PubKey PublicKey { get; set; }
 
-        public int InternalAddressesCount
+        public new int InternalAddressesCount
         {
             get => 0;
             set { }
         }
 
-        public int ExternalAddressesCount
+        public new int ExternalAddressesCount
         {
             get => 1;
             set { }
         }
 
-        public int Index { get; set; }
-
-        public IWallet Wallet { get; set; }
-
-        public string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public List<BitcoinAddress> UsedExternalAddresses { get; set; }
-        public List<BitcoinAddress> UsedInternalAddresses { get; set; }
-        public int InternalAddressesIndex { get; set; }
-        public int ExternalAddressesIndex { get; set; }
-        public List<Coin> UnspentCoins { get; set; }
-        public List<Coin> SpentCoins { get; set; }
-
-        public event EventHandler<UpdatedTxConfirmationsArgs> OnUpdatedTxConfirmations;
-        public event EventHandler<UpdatedTxCreatedAtArgs> OnUpdatedTxCreatedAt;
+        public new string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public new BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public new BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public new int InternalAddressesIndex { get; set; }
+        public new int ExternalAddressesIndex { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {
@@ -141,34 +113,34 @@ namespace Liviano.Accounts
             Initialize(name, scriptPubKeyType, wif, network);
         }
 
-        public BitcoinAddress GetChangeAddress(int typeIndex = 0)
+        public override BitcoinAddress GetChangeAddress(int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0)
+        public override BitcoinAddress[] GetChangeAddress(int n, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress GetReceiveAddress(int typeIndex = 0)
+        public override BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
             Guard.NotNull(PublicKey, nameof(PublicKey));
 
             return PublicKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
         }
 
-        public BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0)
+        public override BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address, use method without parameters");
         }
 
-        public BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0)
+        public override BitcoinAddress GetReceiveAddressAtIndex(int i, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
         }
 
-        public BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0)
+        public override BitcoinAddress GetChangeAddressAtIndex(int i, int typeIndex = 0)
         {
             throw new ArgumentException("Paper accounts cannot generate more than 1 address!");
         }
@@ -218,7 +190,7 @@ namespace Liviano.Accounts
             }
         }
 
-        public void AddTx(Tx tx)
+        public override void AddTx(Tx tx)
         {
             if (TxIds.Contains(tx.Id.ToString()))
             {
@@ -231,7 +203,7 @@ namespace Liviano.Accounts
             Txs.Add(tx);
         }
 
-        public void RemoveTx(Tx tx)
+        public override void RemoveTx(Tx tx)
         {
             if (!TxIds.Contains(tx.Id.ToString()))
             {
@@ -244,7 +216,7 @@ namespace Liviano.Accounts
             TxIds.Remove(tx.Id.ToString());
         }
 
-        public void UpdateTx(Tx tx)
+        public override void UpdateTx(Tx tx)
         {
             if (!TxIds.Contains(tx.Id.ToString()))
             {
@@ -263,7 +235,7 @@ namespace Liviano.Accounts
             }
         }
 
-        public Money GetBalance()
+        public override Money GetBalance()
         {
             var received = Money.Zero;
             var sent = Money.Zero;
@@ -283,27 +255,22 @@ namespace Liviano.Accounts
             return received - sent;
         }
 
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
-
-        public int GetExternalLastIndex()
+        public new int GetExternalLastIndex()
         {
             return 0;
         }
 
-        public int GetInternalLastIndex()
+        public new int GetInternalLastIndex()
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress[] GetReceiveAddressesToWatch()
+        public override BitcoinAddress[] GetReceiveAddressesToWatch()
         {
             return new BitcoinAddress[] { GetReceiveAddress() };
         }
 
-        public BitcoinAddress[] GetChangeAddressesToWatch()
+        public override BitcoinAddress[] GetChangeAddressesToWatch()
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
@@ -328,22 +295,22 @@ namespace Liviano.Accounts
             return coins.ToArray();
         }
 
-        public int GetExternalIndex(BitcoinAddress address)
+        public new int GetExternalIndex(BitcoinAddress address)
         {
             return 0;
         }
 
-        public int GetInternalIndex(BitcoinAddress address)
+        public new int GetInternalIndex(BitcoinAddress address)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
-        public BitcoinAddress[] GetAddressesToWatch()
+        public override BitcoinAddress[] GetAddressesToWatch()
         {
             return GetReceiveAddressesToWatch();
         }
 
-        public void AddUtxo(Coin coin)
+        public new void AddUtxo(Coin coin)
         {
             if (SpentCoins.Contains(coin)) return;
             if (UnspentCoins.Contains(coin)) return;
@@ -351,68 +318,12 @@ namespace Liviano.Accounts
             UnspentCoins.Add(coin);
         }
 
-        public void RemoveUtxo(Coin coin)
+        public new void RemoveUtxo(Coin coin)
         {
             if (SpentCoins.Contains(coin)) return;
             if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);
 
             SpentCoins.Add(coin);
-        }
-
-        public void UpdateConfirmations(long height)
-        {
-            foreach (var tx in Txs)
-            {
-                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
-
-                if (txBlockHeight <= 0) continue;
-                if (txBlockHeight >= height) continue;
-
-                tx.Confirmations = height - txBlockHeight;
-
-                OnUpdatedTxConfirmations?.Invoke(this, new UpdatedTxConfirmationsArgs(tx, tx.Confirmations));
-            }
-        }
-
-        public void UpdateCreatedAtWithHeader(BlockHeader header, long height)
-        {
-            foreach (var tx in Txs)
-            {
-                var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
-
-                if (
-                    DateTimeOffset.Equals(tx.CreatedAt, default(DateTimeOffset)) ||
-                    !tx.HasAproxCreatedAt
-                ) continue;
-
-                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
-
-                if (txBlockHeight <= 0) continue;
-                if (txBlockHeight > height) continue;
-
-                if (txBlockHeight == height)
-                {
-                    tx.CreatedAt = header.BlockTime;
-                    tx.HasAproxCreatedAt = false;
-
-                    OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
-                    continue;
-                }
-
-                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
-                tx.HasAproxCreatedAt = true;
-
-                OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
-            }
-
-        }
-
-        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header, Tx tx)
-        {
-            var blocksApart = currentBlockHeight - txBlockHeight;
-            var minutes = blocksApart * 10;
-
-            return header.BlockTime + TimeSpan.FromMinutes(minutes);
         }
     }
 }
