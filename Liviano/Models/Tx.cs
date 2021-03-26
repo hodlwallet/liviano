@@ -258,6 +258,12 @@ namespace Liviano.Models
                 BlockHeight = height
             };
 
+            // Add confirmations on creation
+            if (account.Wallet.Height > height)
+            {
+                tx.Confirmations = account.Wallet.Height - height;
+            }
+
             // Decide if the tx is a send tx or a receive tx
             var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
             BitcoinAddress currentAddress = null;
