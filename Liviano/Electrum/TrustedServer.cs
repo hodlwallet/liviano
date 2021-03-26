@@ -560,6 +560,8 @@ namespace Liviano.Electrum
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
+
+                await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
             }
             else
             {
@@ -571,13 +573,9 @@ namespace Liviano.Electrum
 
                     await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
                 }
-            }
 
-            if (isReceive && acc.UsedExternalAddresses.Count > usedExternalAddressesCount)
-                await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
-
-            if (!isReceive && acc.UsedInternalAddresses.Count > usedInternalAddressesCount)
                 await SyncAccountUntilGapLimit(acc, ct, acc.UsedInternalAddresses.Count - usedInternalAddressesCount, false, receiveAddressesList, changeAddressesList);
+            }
         }
 
         /// <summary>
