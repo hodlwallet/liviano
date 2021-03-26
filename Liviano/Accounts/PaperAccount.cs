@@ -68,13 +68,13 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "publicKey")]
         public PubKey PublicKey { get; set; }
 
-        public new int InternalAddressesCount
+        public override int InternalAddressesCount
         {
             get => 0;
             set { }
         }
 
-        public new int ExternalAddressesCount
+        public override int ExternalAddressesCount
         {
             get => 1;
             set { }
@@ -83,8 +83,8 @@ namespace Liviano.Accounts
         public new string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public new BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public new BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public new int InternalAddressesIndex { get; set; }
-        public new int ExternalAddressesIndex { get; set; }
+        public override int InternalAddressesIndex { get; set; }
+        public override int ExternalAddressesIndex { get; set; }
 
         public PaperAccount(string name, string wif = null, Network network = null, int index = 0)
         {

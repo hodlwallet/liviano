@@ -314,6 +314,7 @@ namespace Liviano.Electrum
         public static IElectrumPool Load(Network network = null, string localDirectory = null)
         {
             network ??= Network.Main;
+            localDirectory ??= "servers";
 
             Server server;
             var serversFilePath = Path.Combine(localDirectory, $"servers_{network.Name.ToLower()}.json");
