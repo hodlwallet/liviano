@@ -172,12 +172,7 @@ namespace Liviano.Accounts
             acc.ExternalAddressesCount = 0;
 
             var lastAddress = acc.UsedExternalAddresses.Last();
-
-            Console.WriteLine($"!!!!!!!!!Last external address {lastAddress.ToString()}");
-
             var index = GetExternalIndex(lastAddress);
-
-            Console.WriteLine($"!!!!!!!!!index {index}");
 
             return index;
         }
