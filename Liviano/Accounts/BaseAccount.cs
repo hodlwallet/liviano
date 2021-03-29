@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -166,21 +167,22 @@ namespace Liviano.Accounts
 
         public int GetExternalLastIndex()
         {
-            if (UsedExternalAddresses.Count() == 0) return 0;
+            if (UsedExternalAddresses.Count == 0) return 0;
 
-            var acc = (HdAccount)Clone();
+            var acc = (BaseAccount)Clone();
             acc.ExternalAddressesCount = 0;
 
             var lastAddress = acc.UsedExternalAddresses.Last();
+            var index = GetExternalIndex(lastAddress);
 
-            return GetExternalIndex(lastAddress);
+            return index;
         }
 
         public int GetInternalLastIndex()
         {
-            if (UsedInternalAddresses.Count() == 0) return 0;
+            if (UsedInternalAddresses.Count == 0) return 0;
 
-            var acc = (HdAccount)Clone();
+            var acc = (BaseAccount)Clone();
             acc.InternalAddressesCount = 0;
 
             var lastAddress = acc.UsedInternalAddresses.Last();
@@ -190,7 +192,7 @@ namespace Liviano.Accounts
 
         public int GetExternalIndex(BitcoinAddress address)
         {
-            var acc = (HdAccount)Clone();
+            var acc = (BaseAccount)Clone();
             var addresses = acc.GetReceiveAddressesToWatch();
 
             for (int i = 0; i < addresses.Count(); i++)
@@ -205,7 +207,7 @@ namespace Liviano.Accounts
 
         public int GetInternalIndex(BitcoinAddress address)
         {
-            var acc = (HdAccount)Clone();
+            var acc = (BaseAccount)Clone();
             var addresses = acc.GetChangeAddressesToWatch();
 
             for (int i = 0; i < addresses.Count(); i++)

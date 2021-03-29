@@ -437,11 +437,12 @@ namespace Liviano.Electrum
                         var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
                         var txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                        BlockHeader header = null;
                         uint256 blockHash = null;
                         if (height > 0)
                         {
                             var headerHex = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
-                            var header = BlockHeader.Parse(
+                            header = BlockHeader.Parse(
                                 headerHex,
                                 acc.Network
                             );
@@ -453,7 +454,7 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
@@ -467,12 +468,11 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
                             acc.UpdateTx(tx);
-
                             OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
                     }
@@ -504,6 +504,9 @@ namespace Liviano.Electrum
             var receiveAddresses = receiveAddressesList.ToArray();
             var changeAddresses = changeAddressesList.ToArray();
 
+            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
+            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
+
             if (syncExternal)
             {
                 foreach (var addr in receiveAddresses)
@@ -528,19 +531,58 @@ namespace Liviano.Electrum
                 acc.InternalAddressesIndex = acc.GetInternalLastIndex();
             }
 
-            // Call SyncAccount with a new [internal/external]AddressesCount + GapLimit
-            if ((acc.GetExternalLastIndex() > receiveAddressesIndex) && (acc.GetInternalLastIndex() > changeAddressesIndex))
+            // After reaching the end, we check if we need to sync more addresses
+            var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
+            var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
+
+            if (syncExternal) await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
+            if (syncInternal) await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
+        }
+
+        async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct, int addressesToCheck, bool isReceive, List<BitcoinAddress> receiveAddressesList, List<BitcoinAddress> changeAddressesList)
+        {
+            if (addressesToCheck == 0) return;
+
+            Debug.WriteLine($"[SyncAccountUntilGapLimit] Processing until gap limit, amount of addresses: {addressesToCheck}, is receive: {isReceive}");
+
+            var receiveAddresses = receiveAddressesList.ToArray();
+            var changeAddresses = changeAddressesList.ToArray();
+
+            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
+            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
+            
+            if (isReceive)
             {
-                // This is the default but we wanna be explicit
-                await SyncAccount(acc, ct, syncInternal: true, syncExternal: true);
+                for (int i = 0; i < addressesToCheck; i++)
+                {
+                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
+                    {
+                        var addr = acc.GetReceiveAddress(j);
+
+                        receiveAddressesList.Add(addr);
+                        receiveAddresses = receiveAddressesList.ToArray();
+
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }
+                }
+
+                await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
             }
-            else if (acc.GetExternalLastIndex() > receiveAddressesIndex)
+            else
             {
-                await SyncAccount(acc, ct, syncInternal: false, syncExternal: true);
-            }
-            else if (acc.GetInternalLastIndex() > changeAddressesIndex)
-            {
-                await SyncAccount(acc, ct, syncInternal: true, syncExternal: false);
+                for (int i = 0; i < addressesToCheck; i++)
+                {
+                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
+                    {
+                        var addr = acc.GetChangeAddress(j);
+                        changeAddressesList.Add(addr);
+                        changeAddresses = changeAddressesList.ToArray();
+
+                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                    }
+                }
+
+                await SyncAccountUntilGapLimit(acc, ct, acc.UsedInternalAddresses.Count - usedInternalAddressesCount, false, receiveAddressesList, changeAddressesList);
             }
         }
 
@@ -618,10 +660,11 @@ namespace Liviano.Electrum
                 }
 
                 uint256 blockHash = null;
+                BlockHeader header = null;
                 if (r.Height > 0)
                 {
                     var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
-                    var header = BlockHeader.Parse(
+                    header = BlockHeader.Parse(
                         headerHex,
                         acc.Network
                     );
@@ -632,7 +675,7 @@ namespace Liviano.Electrum
                 var tx = Tx.CreateFromHex(
                     txRes.Result,
                     r.Height,
-                    blockHash,
+                    header,
                     acc,
                     Network,
                     receiveAddresses,
