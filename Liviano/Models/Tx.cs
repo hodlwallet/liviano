@@ -233,7 +233,7 @@ namespace Liviano.Models
         public static Tx CreateFromHex(
                 string hex,
                 long height,
-                uint256 blockHash,
+                BlockHeader header,
                 IAccount account,
                 Network network,
                 BitcoinAddress[] externalAddresses,
@@ -245,33 +245,26 @@ namespace Liviano.Models
             // NBitcoin Transaction object
             var transaction = Transaction.Parse(hex, network);
 
-            // TODO Once chain is downloaded complete the transactions somehow
             var tx = new Tx
             {
                 Id = transaction.GetHash(),
                 Account = account,
                 AccountId = account.Id,
                 Network = network,
-                Blockhash = blockHash,
                 Hex = hex,
                 IsRBF = transaction.RBF,
                 BlockHeight = height
             };
 
-            // Add confirmations on creation
-            if (account.Wallet.Height > height)
+            if (height > 0 && !(header is null))
             {
-                tx.Confirmations = account.Wallet.Height - height;
-
-                if (account.Wallet.LastBlockHeader != null)
-                {
-                    var blockDiff = account.Wallet.Height - height;
-                    var minutes = blockDiff * 10;
-
-                    tx.CreatedAt = account.Wallet.LastBlockHeader.BlockTime - TimeSpan.FromMinutes(minutes);
-                    tx.HasAproxCreatedAt = true;
-                }
+                tx.Blockhash = header.GetHash();
+                tx.CreatedAt = header.BlockTime;
             }
+
+            // Add confirmations on creation
+            if (height > 0 && height < account.Wallet.Height)
+                tx.Confirmations = account.Wallet.Height - height;
 
             // Decide if the tx is a send tx or a receive tx
             var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));

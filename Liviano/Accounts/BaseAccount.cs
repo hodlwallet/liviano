@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -271,12 +272,16 @@ namespace Liviano.Accounts
 
                 if (txBlockHeight == height)
                 {
+                    Debug.WriteLine($"[UpdateCreatedAtWithHeader] Did not call aprox txBlockHeight: {txBlockHeight} height: {height}");
+
                     tx.CreatedAt = header.BlockTime;
                     tx.HasAproxCreatedAt = false;
 
                     OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
                     continue;
                 }
+
+                Debug.WriteLine($"[UpdateCreatedAtWithHeader] Called APROX txBlockHeight: {txBlockHeight} height: {height}");
 
                 tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
                 tx.HasAproxCreatedAt = true;

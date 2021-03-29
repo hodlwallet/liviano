@@ -213,7 +213,7 @@ namespace Liviano.Electrum
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
 
                     wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
-                    wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, height);
+                    //wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, height);
 
                     wallet.Storage.Save();
 
@@ -257,7 +257,7 @@ namespace Liviano.Electrum
                     }
 
                     wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
-                    wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, wallet.Height);
+                    //wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, wallet.Height);
 
                     wallet.Storage.Save();
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
@@ -437,11 +437,12 @@ namespace Liviano.Electrum
                         var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
 
                         var txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                        BlockHeader header = null;
                         uint256 blockHash = null;
                         if (height > 0)
                         {
                             var headerHex = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
-                            var header = BlockHeader.Parse(
+                            header = BlockHeader.Parse(
                                 headerHex,
                                 acc.Network
                             );
@@ -453,7 +454,7 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
@@ -467,12 +468,11 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, blockHash, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
                                 GetOutValueFromTxInputs
                             );
 
                             acc.UpdateTx(tx);
-
                             OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
                     }
@@ -660,10 +660,11 @@ namespace Liviano.Electrum
                 }
 
                 uint256 blockHash = null;
+                BlockHeader header = null;
                 if (r.Height > 0)
                 {
                     var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
-                    var header = BlockHeader.Parse(
+                    header = BlockHeader.Parse(
                         headerHex,
                         acc.Network
                     );
@@ -674,7 +675,7 @@ namespace Liviano.Electrum
                 var tx = Tx.CreateFromHex(
                     txRes.Result,
                     r.Height,
-                    blockHash,
+                    header,
                     acc,
                     Network,
                     receiveAddresses,
