@@ -1,4 +1,4 @@
-.PHONY: help build build.ubuntu run run.ubuntu run.ubuntu.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
+.PHONY: help build build.ubuntu liviano run run.ubuntu run.ubuntu.debug run.osx run.osx.debug run.win run.win.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
 
 # Set default goal to help target
 .DEFAULT_GOAL := help
@@ -37,18 +37,22 @@ run.ubuntu.debug:
 	make ubuntu.debug.build;
 	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
 
+## Publishes Liviano's client for the macOS platform and executes liviano using input arguments. Usage: args="--help" make run.osx
 run.osx:
 	make osx.debug.build
 	./liviano-cli ${args}
 
+## Publishes Liviano's client for the macOS platform and executes liviano logging its output to stderr. Usage: args="--help" make run.osx.debug
 run.osx.debug:
 	make osx.debug.build
 	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
 
+## Publishes Liviano's client for the Windows platform and executes liviano using input arguments. Usage: args="--help" make run.win
 run.win:
 	make win.debug.build
 	./liviano-cli ${args}
 
+## Publishes Liviano's client for the Windows platform and executes liviano logging its output to stderr. Usage: args="--help" make run.win.debug
 run.win.debug:
 	make win.debug.build
 	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
