@@ -272,16 +272,12 @@ namespace Liviano.Accounts
 
                 if (txBlockHeight == height)
                 {
-                    Debug.WriteLine($"[UpdateCreatedAtWithHeader] Did not call aprox txBlockHeight: {txBlockHeight} height: {height}");
-
                     tx.CreatedAt = header.BlockTime;
                     tx.HasAproxCreatedAt = false;
 
                     OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
                     continue;
                 }
-
-                Debug.WriteLine($"[UpdateCreatedAtWithHeader] Called APROX txBlockHeight: {txBlockHeight} height: {height}");
 
                 tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
                 tx.HasAproxCreatedAt = true;
