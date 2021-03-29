@@ -33,7 +33,6 @@ using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Exceptions;
-using Liviano.Events;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -122,7 +121,7 @@ namespace Liviano.Models
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
-        [JsonProperty(PropertyName = "creationTime")]
+        [JsonProperty(PropertyName = "createdAt")]
         public DateTimeOffset? CreatedAt { get; set; }
 
         /// <summary>
