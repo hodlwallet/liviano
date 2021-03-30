@@ -42,9 +42,7 @@ namespace Liviano.Electrum
     public class JsonRpcClient
     {
         readonly int DEFAULT_NETWORK_TIMEOUT_INT = 30;
-        TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
-        TimeSpan DEFAULT_TIMEOUT_DATA_AVAILABLE = TimeSpan.FromMilliseconds(500.0);
-        TimeSpan DEFAULT_TIME_TO_WAIT_BETWEEN_DATA_GAPS = TimeSpan.FromMilliseconds(1.0);
+        readonly TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
 
         readonly Server server;
 
@@ -60,8 +58,6 @@ namespace Liviano.Electrum
 
         int port;
         public string Host { get; private set; }
-
-        readonly object @lock = new();
 
         public JsonRpcClient(Server server)
         {
@@ -80,7 +76,7 @@ namespace Liviano.Electrum
             queue = new ConcurrentQueue<string>();
         }
 
-        async Task<IPAddress> ResolveAsync(string hostName)
+        static async Task<IPAddress> ResolveAsync(string hostName)
         {
             var hostEntry = await Dns.GetHostEntryAsync(hostName);
             return hostEntry.AddressList.ToArray().First();
@@ -101,35 +97,6 @@ namespace Liviano.Electrum
 
                 throw new ElectrumException($"DNS host entry lookup resulted in no records for {hostName}\n{ex.Message}");
             }
-        }
-
-        string WrapResult(List<byte> acc)
-        {
-            return Encoding.UTF8.GetString(acc.ToArray());
-        }
-
-        byte? ReadByte(NetworkStream stream)
-        {
-            int num = stream.ReadByte();
-
-            if (num == -1) return null;
-
-            return Convert.ToByte(num);
-        }
-
-        bool TimesUp(List<byte> acc, DateTime initTime)
-        {
-            if (acc == null || !acc.Any())
-            {
-                if (DateTime.UtcNow > initTime + DEFAULT_NETWORK_TIMEOUT)
-                {
-                    throw new ElectrumException("No response received after request.");
-                }
-
-                return false;
-            }
-
-            return DateTime.UtcNow > initTime + DEFAULT_TIMEOUT_DATA_AVAILABLE;
         }
 
         TcpClient Connect()
@@ -306,7 +273,7 @@ namespace Liviano.Electrum
                         var requestId = (string) json.GetValue("id");
                         var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
-                        await sslStream.WriteAsync(bytes, 0, bytes.Length);
+                        await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
                         await sslStream.FlushAsync();
                     }
 
@@ -334,7 +301,7 @@ namespace Liviano.Electrum
         /// </summary>
         /// <param name="newStream">Read from a new stream not the one we already have set</param>
         /// <param name="scripthash">Subscribe to a scripthash</param>
-        async Task ConsumeMessages(SslStream newStream = null, string scripthash = null)
+        async Task ConsumeMessages(SslStream newStream = null)
         {
             if (readingStream) return;
 
@@ -403,26 +370,6 @@ namespace Liviano.Electrum
                 readingStream = false;
 
                 await ConsumeMessages();
-            }
-        }
-
-        async Task WaitForEmptyResult(string requestId)
-        {
-            // Wait for results to be null
-            var loopDelay = 300;
-
-            while (HasResult(requestId)) await Task.Delay(loopDelay);
-        }
-
-        bool HasResult(string requestId)
-        {
-            lock (@lock)
-            {
-                var containsKey = results.ContainsKey(requestId);
-
-                results.TryGetValue(requestId, out string val);
-
-                return containsKey && !string.IsNullOrEmpty(val);
             }
         }
     }
