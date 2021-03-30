@@ -61,7 +61,7 @@ namespace Liviano.Electrum
         int port;
         public string Host { get; private set; }
 
-        object @lock = new object();
+        readonly object @lock = new();
 
         public JsonRpcClient(Server server)
         {
@@ -266,7 +266,7 @@ namespace Liviano.Electrum
 
         async Task<string> GetResult(string requestId)
         {
-            var loopDelay = 1;
+            var loopDelay = 3000;
 
             // Wait for new messages' responses
             while (!results.ContainsKey(requestId) || results[requestId] == null)
@@ -293,8 +293,7 @@ namespace Liviano.Electrum
 
             consumingQueue = true;
 
-            var loopDelay = 10;
-
+            var loopDelay = 3000;
             try
             {
                 while (true)
@@ -341,7 +340,7 @@ namespace Liviano.Electrum
 
             readingStream = true;
 
-            var stream = newStream == null ? sslStream : newStream;
+            using var stream = newStream ?? sslStream;
 
             try
             {
@@ -410,7 +409,7 @@ namespace Liviano.Electrum
         async Task WaitForEmptyResult(string requestId)
         {
             // Wait for results to be null
-            var loopDelay = 10;
+            var loopDelay = 300;
 
             while (HasResult(requestId)) await Task.Delay(loopDelay);
         }
