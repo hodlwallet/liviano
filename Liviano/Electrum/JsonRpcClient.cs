@@ -354,7 +354,7 @@ namespace Liviano.Electrum
 
                         if (json.ContainsKey("method")) // A subscription notification
                         {
-                            Debug.WriteLine("[ConsumeMessages] A response result for a notification");
+                            //Debug.WriteLine("[ConsumeMessages] A response result for a notification");
 
                             var @params = json.GetValue("params");
                             var method = (string) json.GetValue("method");
@@ -364,7 +364,7 @@ namespace Liviano.Electrum
                                 var scripthash = (string) @params[0];
                                 var status = (string) @params[1];
 
-                                Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
+                                //Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
                                 // See below's fixme
                                 //await WaitForEmptyResult(scripthash);
@@ -374,7 +374,7 @@ namespace Liviano.Electrum
                             else if (string.Equals(method, "blockchain.headers.subscribe"))
                             {
                                 var newHeader = (JObject) @params[0];
-                                Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
+                                //Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
                                 //await WaitForEmptyResult("blockchain.headers.subscribe");
 
@@ -385,7 +385,7 @@ namespace Liviano.Electrum
                         {
                             var requestId = (string) json.GetValue("id");
 
-                            Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
+                            //Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
 
                             // FIXME This is a bug, there should always be an empty result...
                             //await WaitForEmptyResult(requestId);
