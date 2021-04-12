@@ -1,7 +1,7 @@
 .PHONY: help build build.ubuntu liviano run run.ubuntu run.ubuntu.debug run.osx run.osx.debug run.win run.win.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
 
 # Set default goal to help target
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := build
 
 # Set Net framework version to use with dotnet
 # USING_NET_VERSION = --framework netappcore3.1
