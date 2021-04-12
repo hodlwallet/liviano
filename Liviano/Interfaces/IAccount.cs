@@ -144,6 +144,10 @@ namespace Liviano.Interfaces
         /// </summary>
         List<Coin> SpentCoins { get; set; }
 
+        Dictionary<ScriptPubKeyType, List<BitcoinAddress>> ExternalAddresses { get; set; }
+
+        Dictionary<ScriptPubKeyType, List<BitcoinAddress>> InternalAddresses { get; set; }
+
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
 
         List<BitcoinAddress> UsedInternalAddresses { get; set; }
