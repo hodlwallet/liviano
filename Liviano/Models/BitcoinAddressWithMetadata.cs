@@ -38,5 +38,22 @@ namespace Liviano.Models
         // TODO Potentially having the UTXOs (an array of them) here
         // would be a good 2nd reason why to intruduce this class,
         // but for now, it would be more consistent syncing and watching.
+
+        /// <summary>
+        /// ctor
+        /// <param name="address"></param>
+        /// <param name="type"></param>
+        /// <param name="pubKey"></param>
+        /// <param name="hdPath"></param>
+        /// <param name="index"></param>
+        /// </summary>
+        public BitcoinAddressWithMetadata(BitcoinAddress address, ScriptPubKeyType type, string pubKey, string hdPath, int index)
+        {
+            Address = address;
+            Type = type;
+            PubKey = pubKey;
+            HdPath = hdPath;
+            Index = index;
+        }
     }
 }

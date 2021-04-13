@@ -50,9 +50,6 @@ namespace Liviano.Accounts
             }
         }
 
-        public Bip141Account(Network network, int index = 0) : base(network, index)
-        {
-            Index = index;
-        }
+        public Bip141Account(Network network, int index = 0) : base(network, index) { }
     }
 }

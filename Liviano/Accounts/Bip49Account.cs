@@ -43,9 +43,6 @@ namespace Liviano.Accounts
             }
         }
 
-        public Bip49Account(Network network, int index = 0) : base(network, index)
-        {
-            Index = index;
-        }
+        public Bip49Account(Network network, int index = 0) : base(network, index) { }
     }
 }
