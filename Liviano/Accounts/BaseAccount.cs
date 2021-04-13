@@ -146,6 +146,9 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetChangeAddressesToWatch();
         public abstract BitcoinAddress[] GetAddressesToWatch();
 
+        public Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> ExternalAddresses { get; set; }
+        public Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> InternalAddresses { get; set; }
+
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public List<Coin> UnspentCoins { get; set; }
