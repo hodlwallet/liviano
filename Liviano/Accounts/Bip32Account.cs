@@ -314,6 +314,9 @@ namespace Liviano.Accounts
 
         void InitAddresses()
         {
+            ExternalAddresses = new Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>>();
+            InternalAddresses = new Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>>();
+
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
             {
                 ExternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> {};
@@ -328,7 +331,8 @@ namespace Liviano.Accounts
                     var externalAddress = externalPubKey.GetAddress(scriptPubKeyType, Network);
                     var externalHdPath = $"{HdPath}/0/{i}";
 
-                    ExternalAddresses[scriptPubKeyType].Append(
+                    ExternalAddresses[scriptPubKeyType].Insert(
+                        i,
                         new BitcoinAddressWithMetadata(externalAddress, scriptPubKeyType, externalPubKey.ToString(), externalHdPath, i)
                     );
 
@@ -336,7 +340,8 @@ namespace Liviano.Accounts
                     var internalAddress = internalPubKey.GetAddress(scriptPubKeyType, Network);
                     var internalHdPath = $"{HdPath}/1/{i}";
 
-                    InternalAddresses[scriptPubKeyType].Append(
+                    InternalAddresses[scriptPubKeyType].Insert(
+                        i,
                         new BitcoinAddressWithMetadata(internalAddress, scriptPubKeyType, internalPubKey.ToString(), internalHdPath, i)
                     );
                 }

@@ -144,8 +144,10 @@ namespace Liviano.Interfaces
         /// </summary>
         List<Coin> SpentCoins { get; set; }
 
+        [JsonProperty(PropertyName = "externalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> ExternalAddresses { get; set; }
 
+        [JsonProperty(PropertyName = "internalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> InternalAddresses { get; set; }
 
         List<BitcoinAddress> UsedExternalAddresses { get; set; }

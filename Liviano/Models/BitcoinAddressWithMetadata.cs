@@ -24,15 +24,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using NBitcoin;
+using Newtonsoft.Json;
 
 namespace Liviano.Models
 {
     public class BitcoinAddressWithMetadata
     {
+        [JsonProperty(PropertyName = "address", NullValueHandling = NullValueHandling.Ignore)]
         public BitcoinAddress Address { get; set; }
+
+        [JsonProperty(PropertyName = "type", NullValueHandling = NullValueHandling.Ignore)]
         public ScriptPubKeyType Type { get; set; }
+
+        [JsonProperty(PropertyName = "pubKey", NullValueHandling = NullValueHandling.Ignore)]
         public string PubKey { get; set; }
+
+        [JsonProperty(PropertyName = "hdPath", NullValueHandling = NullValueHandling.Ignore)]
         public string HdPath { get; set; }
+
+        [JsonProperty(PropertyName = "index", NullValueHandling = NullValueHandling.Ignore)]
         public int Index { get; set; }
 
         // TODO Potentially having the UTXOs (an array of them) here
