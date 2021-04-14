@@ -55,6 +55,9 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "accountType")]
         string AccountType { get; }
 
+        /// <summary>
+        /// An account belongs to a wallet, this is its id
+        /// </summary>
         [JsonProperty(PropertyName = "walletId")]
         string WalletId { get; set; }
 
