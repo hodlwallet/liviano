@@ -262,6 +262,8 @@ namespace Liviano.Accounts
             account.ExtKey = extPrivKey;
             account.ExtPubKey = extPubKey;
 
+            account.InitAddresses();
+
             return account;
         }
 
@@ -310,5 +312,35 @@ namespace Liviano.Accounts
             else return UsedExternalAddresses.Any(addr => string.Equals(addr.ToString(), address.ToString()));
         }
 
+        void InitAddresses()
+        {
+            foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+            {
+                ExternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> {};
+                InternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> {};
+            }
+
+            for (int i = 0; i < GapLimit; i++)
+            {
+                foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+                {
+                    var externalPubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
+                    var externalAddress = externalPubKey.GetAddress(scriptPubKeyType, Network);
+                    var externalHdPath = $"{HdPath}/0/{i}";
+
+                    ExternalAddresses[scriptPubKeyType].Append(
+                        new BitcoinAddressWithMetadata(externalAddress, scriptPubKeyType, externalPubKey.ToString(), externalHdPath, i)
+                    );
+
+                    var internalPubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
+                    var internalAddress = internalPubKey.GetAddress(scriptPubKeyType, Network);
+                    var internalHdPath = $"{HdPath}/1/{i}";
+
+                    InternalAddresses[scriptPubKeyType].Append(
+                        new BitcoinAddressWithMetadata(internalAddress, scriptPubKeyType, internalPubKey.ToString(), internalHdPath, i)
+                    );
+                }
+            }
+        }
     }
 }

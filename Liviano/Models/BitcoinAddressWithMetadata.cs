@@ -55,5 +55,10 @@ namespace Liviano.Models
             HdPath = hdPath;
             Index = index;
         }
+
+        public override string ToString()
+        {
+            return Address.ToString();
+        }
     }
 }
