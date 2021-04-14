@@ -27,7 +27,6 @@ using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
@@ -37,44 +36,58 @@ namespace Liviano.Interfaces
 {
     public interface IAccount : IHasTxs, ICloneable
     {
+        /// <summary>
+        /// Guid of the account
+        /// </summary>
         [JsonProperty(PropertyName = "id")]
         string Id { get; set; }
 
+        /// <summary>
+        /// Name of the account to be shown in the user dashboard potentially
+        /// </summary>
         [JsonProperty(PropertyName = "name")]
         string Name { get; set; }
 
+        /// <summary>
+        /// Account type as a string, bip32, bip44, bip84, bip141
+        /// all are possible values and are defined by concrete classes
+        /// </summary>
         [JsonProperty(PropertyName = "accountType")]
         string AccountType { get; }
 
         [JsonProperty(PropertyName = "walletId")]
         string WalletId { get; set; }
 
+        /// <summary>
+        /// Gap limit of unused addresses to pick addresses from
+        /// </summary>
         [JsonProperty(PropertyName = "gapLimit")]
         int GapLimit { get; set; }
 
         /// <summary>
-        /// Change addresses count
+        /// Where in the gap is the user currently,
+        /// if we have used address lindex 10 and the gap is 30,
+        /// and the user requested 3 accounts then this will be 2 (0 indexed)
+        /// Index in the gap the user requested external addresses
         /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "internalAddressesCount")]
-        int InternalAddressesCount { get; set; }
+        [JsonProperty(PropertyName = "externalAddressesGapIndex")]
+        int ExternalAddressesGapIndex { get; set; }
 
         /// <summary>
-        /// Change addresses index
+        /// Index in the gap the user requested internal addresses
+        /// </summary>
+        [JsonProperty(PropertyName = "internalAddressesGapIndex")]
+        int InternalAddressesGapIndex { get; set; }
+
+        /// <summary>
+        /// Change addresses index, last internal address used index
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "internalAddressesIndex")]
         int InternalAddressesIndex { get; set; }
 
         /// <summary>
-        /// Receive addresess count
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "externalAddressesCount")]
-        int ExternalAddressesCount { get; set; }
-
-        /// <summary>
-        /// Receive addresses index
+        /// Receive addresses index, last external address used index
         /// </summary>
         /// <value></value>
         [JsonProperty(PropertyName = "externalAddressesIndex")]
@@ -125,12 +138,21 @@ namespace Liviano.Interfaces
         [JsonProperty(PropertyName = "index")]
         int Index { get; set; }
 
+        /// <summary>
+        /// ScriptPubKeyTypes of the addresses that it generates
+        /// </summary>
         [JsonProperty(PropertyName = "scriptPubKeyTypes")]
         List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
+        /// <summary>
+        /// Transactions ids sent to this account
+        /// </summary>
         [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
         List<string> TxIds { get; set; }
 
+        /// <summary>
+        /// The transactions sent to this account
+        /// </summary>
         [JsonIgnore]
         List<Tx> Txs { get; set; }
 
@@ -144,14 +166,26 @@ namespace Liviano.Interfaces
         /// </summary>
         List<Coin> SpentCoins { get; set; }
 
+        /// <summary>
+        /// All external addresses generated
+        /// </summary>
         [JsonProperty(PropertyName = "externalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> ExternalAddresses { get; set; }
 
+        /// <summary>
+        /// All internal addresses generated
+        /// </summary>
         [JsonProperty(PropertyName = "internalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> InternalAddresses { get; set; }
 
+        /// <summary>
+        /// List of used external addresses
+        /// </summary>
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
 
+        /// <summary>
+        /// List of used internal addresses
+        /// </summary>
         List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         /// <summary>
