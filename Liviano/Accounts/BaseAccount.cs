@@ -29,8 +29,6 @@ using System.Collections.Generic;
 
 using NBitcoin;
 
-using Newtonsoft.Json;
-
 using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Exceptions;
@@ -41,91 +39,30 @@ namespace Liviano.Accounts
 {
     public abstract class BaseAccount : IAccount
     {
-        /// <summary>
-        /// Id of the account, usually a guid
-        /// </summary>
         public string Id { get; set; }
 
-        /// <summary>
-        /// Account type, a string e.g.: "bip141"
-        /// </summary>
         public abstract string AccountType { get; }
 
-        /// <summary>
-        /// The id of the wallet that this belongs to
-        /// </summary>
         public string WalletId { get; set; }
 
-        /// <summary>
-        /// This is the amount of address to generate
-        /// </summary>
         public abstract int GapLimit { get; set; }
 
-        /// <summary>
-        /// Change addresses count
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "internalAddressesCount")]
-        public abstract int InternalAddressesCount { get; set; }
+        int ExternalAddressesGapIndex { get; set; }
 
-        /// <summary>
-        /// Change addresess index
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "internalAddressesIndex")]
+        int InternalAddressesGapIndex { get; set; }
+
         public abstract int InternalAddressesIndex { get; set; }
 
-        /// <summary>
-        /// Receive addresess count
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "externalAddressesCount")]
-        public abstract int ExternalAddressesCount { get; set; }
-
-        /// <summary>
-        /// Receive addresess index
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "externalAddressesIndex")]
         public abstract int ExternalAddressesIndex { get; set; }
 
-        /// <summary>
-        /// Wallet the account belongs to
-        /// </summary>
-        /// <value></value>
-        [JsonIgnore]
         public IWallet Wallet { get; set; }
 
-        /// <summary>
-        /// Hd path, e.g. "m/0'", "m/84'/0'/0'"
-        /// these will be change to full paths, with addresses, e.g:
-        ///
-        /// "m/84'/0'/2'/0/1 => For the 2nd, receiving (0), address of account #3
-        ///                     rootPath => "m/84'/0'/2'"
-        ///
-        /// "m/0'/0/1        => For the 2nd, receiving (0), address of account #1 (and only)
-        ///                     rootPath => "m/0'"
-        /// </summary>
-        /// <value></value>
-        [JsonProperty(PropertyName = "hdPath")]
         public string HdPath { get; set; }
 
-        /// <summary>
-        /// An extended priv key used to generate addresses.
-        /// </summary>
-        [JsonProperty(PropertyName = "extPubKey")]
         public BitcoinExtPubKey ExtPubKey { get; set; }
 
-        /// <summary>
-        /// An extended private key used to generate addresses.
-        /// </summary>
-        [JsonIgnore]
         public BitcoinExtKey ExtKey { get; set; }
 
-        /// <summary>
-        /// The account index, corresponding to e.g.: m/{0}'
-        /// </summary>
-        [JsonProperty(PropertyName = "index")]
         public int Index { get; set; }
 
         public abstract List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
