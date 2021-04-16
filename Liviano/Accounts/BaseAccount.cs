@@ -33,7 +33,7 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Exceptions;
 using Liviano.Events;
-
+using Liviano.Extensions;
 
 namespace Liviano.Accounts
 {
@@ -113,20 +113,18 @@ namespace Liviano.Accounts
             {
                 foreach (var spkt in ScriptPubKeyTypes)
                 {
-                    var found = false;
+                    if (!usedAddress.IsScriptPubKeyType(spkt)) continue;
+
                     var addresses = ExternalAddresses[spkt];
 
                     for (int i = 0; i < addresses.Count; i++)
                     {
-                        if (string.Equals(usedAddress.ToString(), addresses[i].Address.ToString()))
+                        if (usedAddress == addresses[i].Address)
                         {
                             index = i;
-                            found = true;
                             break;
                         }
                     }
-
-                    if (found) break;
                 }
             }
 
@@ -142,21 +140,18 @@ namespace Liviano.Accounts
             {
                 foreach (var spkt in ScriptPubKeyTypes)
                 {
-                    //if (!usedAddress)
-                    var found = false;
+                    if (!usedAddress.IsScriptPubKeyType(spkt)) continue;
+
                     var addresses = InternalAddresses[spkt];
 
                     for (int i = 0; i < addresses.Count; i++)
                     {
-                        if (string.Equals(usedAddress.ToString(), addresses[i].Address.ToString()))
+                        if (usedAddress == addresses[i].Address)
                         {
                             index = i;
-                            found = true;
                             break;
                         }
                     }
-
-                    if (found) break;
                 }
             }
 

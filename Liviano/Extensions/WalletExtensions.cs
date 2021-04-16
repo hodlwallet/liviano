@@ -334,26 +334,17 @@ namespace Liviano.Extensions
 
         public static bool IsScriptPubKeyType(this BitcoinAddress address, ScriptPubKeyType spkType)
         {
-            ScriptType scriptType = ScriptType.P2PK;
-
-            if (spkType == ScriptPubKeyType.Legacy)
+            switch (spkType)
             {
-                scriptType = ScriptType.P2PKH;
+                case ScriptPubKeyType.Legacy:
+                    return address.ScriptPubKey.IsScriptType(ScriptType.P2PKH);
+                case ScriptPubKeyType.Segwit:
+                    return address.ScriptPubKey.IsScriptType(ScriptType.P2WPKH);
+                case ScriptPubKeyType.SegwitP2SH:
+                    return address.ScriptPubKey.IsScriptType(ScriptType.P2SH);
+                default:
+                    throw new ArgumentException("Invalid {0}", nameof(spkType));
             }
-            else if (spkType == ScriptPubKeyType.Segwit)
-            {
-                scriptType = ScriptType.P2WPKH;
-            }
-            else if (spkType == ScriptPubKeyType.SegwitP2SH)
-            {
-                scriptType = ScriptType.P2WSH;
-            }
-            else
-            {
-                throw new ArgumentException("Invalid {0}", nameof(spkType));
-            }
-
-            return address.ScriptPubKey.IsScriptType(scriptType);
         }
     }
 }
