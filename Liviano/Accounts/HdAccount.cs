@@ -45,17 +45,6 @@ namespace Liviano.Accounts
         }
 
         /// <summary>
-        /// Change addresses count
-        /// </summary>
-        /// <value></value>
-        int internalAddressesCount = 0;
-        public override int InternalAddressesCount
-        {
-            get => internalAddressesCount;
-            set => internalAddressesCount = value >= GapLimit + InternalAddressesIndex ? InternalAddressesIndex : value;
-        }
-
-        /// <summary>
         /// Change addresess index
         /// </summary>
         /// <value></value>
@@ -64,17 +53,6 @@ namespace Liviano.Accounts
         {
             get => internalAddressesIndex;
             set => internalAddressesIndex = value;
-        }
-
-        /// <summary>
-        /// Receive addresess count
-        /// </summary>
-        /// <value></value>
-        int externalAddressesCount = 0;
-        public override int ExternalAddressesCount
-        {
-            get => externalAddressesCount;
-            set => externalAddressesCount = value >= GapLimit + ExternalAddressesIndex ? ExternalAddressesIndex : value;
         }
 
         /// <summary>

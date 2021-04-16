@@ -400,8 +400,8 @@ namespace Liviano
             {
                 lock (@lock)
                 {
-                    account.InternalAddressesCount = 0;
-                    account.ExternalAddressesCount = 0;
+                    account.InternalAddressesGapIndex = 0;
+                    account.ExternalAddressesGapIndex = 0;
 
                     account.InternalAddressesIndex = 0;
                     account.ExternalAddressesIndex = 0;

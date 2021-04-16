@@ -49,7 +49,7 @@ namespace Liviano.Tests.Liviano.Accounts
             Assert.Equal("bc1qgv52mt89gpev6p56huggl970sppqkgftxakv7f", address.ToString());
 
             // Reset account count to test legacy address generation
-            account.ExternalAddressesCount = 0;
+            account.ExternalAddressesGapIndex = 0;
             account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Segwit, ScriptPubKeyType.Legacy };
 
             address = account.GetReceiveAddress(typeIndex: 1);
@@ -66,7 +66,7 @@ namespace Liviano.Tests.Liviano.Accounts
             Assert.Equal("bc1qunmfkdmckn76c8nmf3g22du699gne5q8c3xqhl", address.ToString());
 
             // generate legacy change address for some reason... should never be called
-            account.InternalAddressesCount = 0;
+            account.InternalAddressesGapIndex = 0;
             account.ScriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Legacy };
 
             address = account.GetChangeAddress();

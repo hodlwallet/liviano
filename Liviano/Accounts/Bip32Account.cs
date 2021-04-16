@@ -49,9 +49,6 @@ namespace Liviano.Accounts
             TxIds ??= new List<string>();
             Txs ??= new List<Tx>();
 
-            InternalAddressesCount = 0;
-            ExternalAddressesCount = 0;
-
             UsedExternalAddresses ??= new List<BitcoinAddress>();
             UsedInternalAddresses ??= new List<BitcoinAddress>();
 
@@ -66,10 +63,10 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
-            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesCount, false);
+            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesIndex + ExternalAddressesGapIndex, false);
             var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
-            ExternalAddressesCount++;
+            ExternalAddressesGapIndex++;
 
             if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress(typeIndex);
 
@@ -88,10 +85,11 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetChangeAddress(int typeIndex = 0)
         {
-            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesCount, true);
+            var lastIndex = GetInternalLastIndex();
+            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesIndex + InternalAddressesGapIndex, true);
             var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
 
-            InternalAddressesCount++;
+            InternalAddressesGapIndex++;
 
             if (IsAddressReuse(address, isChange: true)) return GetChangeAddress(typeIndex);
 
