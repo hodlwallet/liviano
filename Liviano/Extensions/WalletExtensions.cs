@@ -331,5 +331,29 @@ namespace Liviano.Extensions
         {
             return Encoders.Hex.EncodeData(bytes);
         }
+
+        public static bool IsScriptPubKeyType(this BitcoinAddress address, ScriptPubKeyType spkType)
+        {
+            ScriptType scriptType = ScriptType.P2PK;
+
+            if (spkType == ScriptPubKeyType.Legacy)
+            {
+                scriptType = ScriptType.P2PKH;
+            }
+            else if (spkType == ScriptPubKeyType.Segwit)
+            {
+                scriptType = ScriptType.P2WPKH;
+            }
+            else if (spkType == ScriptPubKeyType.SegwitP2SH)
+            {
+                scriptType = ScriptType.P2WSH;
+            }
+            else
+            {
+                throw new ArgumentException("Invalid {0}", nameof(spkType));
+            }
+
+            return address.ScriptPubKey.IsScriptType(scriptType);
+        }
     }
 }
