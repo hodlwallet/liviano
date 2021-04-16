@@ -44,6 +44,30 @@ namespace Liviano.Accounts
             }
         }
 
+        int externalAddressesGapIndex = 0;
+        public override int ExternalAddressesGapIndex
+        {
+            get => externalAddressesGapIndex;
+
+            set
+            {
+                if (value > GapLimit) externalAddressesGapIndex = 0;
+                else externalAddressesGapIndex = value;
+            }
+        }
+
+        int internalAddressesGapIndex = 0;
+        public override int InternalAddressesGapIndex
+        {
+            get => internalAddressesGapIndex;
+
+            set
+            {
+                if (value > GapLimit) internalAddressesGapIndex = 0;
+                else internalAddressesGapIndex = value;
+            }
+        }
+
         /// <summary>
         /// Change addresess index
         /// </summary>

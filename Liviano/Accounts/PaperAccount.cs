@@ -58,6 +58,10 @@ namespace Liviano.Accounts
             }
         }
 
+        public override int ExternalAddressesGapIndex { get => 0; set {} }
+
+        public override int InternalAddressesGapIndex { get => 0; set {} }
+
         public const ScriptPubKeyType DEFAULT_SCRIPT_PUB_KEY_TYPE = ScriptPubKeyType.Segwit;
 
         public override List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }

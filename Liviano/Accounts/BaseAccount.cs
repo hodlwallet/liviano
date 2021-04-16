@@ -47,9 +47,9 @@ namespace Liviano.Accounts
 
         public abstract int GapLimit { get; set; }
 
-        public int ExternalAddressesGapIndex { get; set; }
+        public abstract int ExternalAddressesGapIndex { get; set; }
 
-        public int InternalAddressesGapIndex { get; set; }
+        public abstract int InternalAddressesGapIndex { get; set; }
 
         public abstract int InternalAddressesIndex { get; set; }
 
