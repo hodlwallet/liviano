@@ -106,26 +106,13 @@ namespace Liviano.Accounts
 
         public int GetExternalLastIndex()
         {
-            if (UsedExternalAddresses.Count == 0) return 0;
-
             int index = 0;
+
             foreach (var usedAddress in UsedExternalAddresses)
             {
-                foreach (var spkt in ScriptPubKeyTypes)
-                {
-                    if (!usedAddress.IsScriptPubKeyType(spkt)) continue;
+                var addressIndex = GetExternalIndex(usedAddress);
 
-                    var addresses = ExternalAddresses[spkt];
-
-                    for (int i = 0; i < addresses.Count; i++)
-                    {
-                        if (usedAddress == addresses[i].Address)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
+                if (addressIndex > index) index = addressIndex;
             }
 
             return index;
@@ -133,26 +120,13 @@ namespace Liviano.Accounts
 
         public int GetInternalLastIndex()
         {
-            if (UsedInternalAddresses.Count == 0) return 0;
-
             int index = 0;
+
             foreach (var usedAddress in UsedInternalAddresses)
             {
-                foreach (var spkt in ScriptPubKeyTypes)
-                {
-                    if (!usedAddress.IsScriptPubKeyType(spkt)) continue;
+                var addressIndex = GetInternalIndex(usedAddress);
 
-                    var addresses = InternalAddresses[spkt];
-
-                    for (int i = 0; i < addresses.Count; i++)
-                    {
-                        if (usedAddress == addresses[i].Address)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                }
+                if (addressIndex > index) index = addressIndex;
             }
 
             return index;
@@ -160,14 +134,12 @@ namespace Liviano.Accounts
 
         public int GetExternalIndex(BitcoinAddress address)
         {
-            var acc = (BaseAccount)Clone();
-            var addresses = acc.GetReceiveAddressesToWatch();
-
-            for (int i = 0; i < addresses.Count(); i++)
+            foreach (var spkt in ScriptPubKeyTypes)
             {
-                var addr = addresses[i];
+                if (!address.IsScriptPubKeyType(spkt)) continue;
 
-                if (address.Equals(addr)) return i;
+                for (int i = 0; i < ExternalAddresses[spkt].Count; i++)
+                    if (ExternalAddresses[spkt][i].Address == address) return i;
             }
 
             throw new WalletException("Could not find external address, are you sure it's external?");
@@ -175,14 +147,12 @@ namespace Liviano.Accounts
 
         public int GetInternalIndex(BitcoinAddress address)
         {
-            var acc = (BaseAccount)Clone();
-            var addresses = acc.GetChangeAddressesToWatch();
-
-            for (int i = 0; i < addresses.Count(); i++)
+            foreach (var spkt in ScriptPubKeyTypes)
             {
-                var addr = addresses[i];
+                if (!address.IsScriptPubKeyType(spkt)) continue;
 
-                if (address.Equals(addr)) return i;
+                for (int i = 0; i < InternalAddresses[spkt].Count; i++)
+                    if (InternalAddresses[spkt][i].Address == address) return i;
             }
 
             throw new WalletException("Could not find internal address, are you sure it's internal?");
