@@ -337,9 +337,9 @@ namespace Liviano.Extensions
             switch (spkType)
             {
                 case ScriptPubKeyType.Legacy:
-                    return address.ScriptPubKey.IsScriptType(ScriptType.P2PKH) || address.ScriptPubKey.IsScriptType(ScriptType.P2SH);
+                    return address.ScriptPubKey.IsScriptType(ScriptType.P2PKH);
                 case ScriptPubKeyType.Segwit:
-                    return address.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) || address.ScriptPubKey.IsScriptType(ScriptType.P2SH);
+                    return address.ScriptPubKey.IsScriptType(ScriptType.P2WPKH);
                 case ScriptPubKeyType.SegwitP2SH:
                     return address.ScriptPubKey.IsScriptType(ScriptType.P2SH);
                 default:
