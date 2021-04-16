@@ -108,11 +108,27 @@ namespace Liviano.Accounts
         {
             if (UsedExternalAddresses.Count == 0) return 0;
 
-            var acc = (BaseAccount)Clone();
-            acc.ExternalAddressesCount = 0;
+            int index = 0;
+            foreach (var usedAddress in UsedExternalAddresses)
+            {
+                foreach (var spkt in ScriptPubKeyTypes)
+                {
+                    var found = false;
+                    var addresses = ExternalAddresses[spkt];
 
-            var lastAddress = acc.UsedExternalAddresses.Last();
-            var index = GetExternalIndex(lastAddress);
+                    for (int i = 0; i < addresses.Count; i++)
+                    {
+                        if (string.Equals(usedAddress.ToString(), addresses[i].Address.ToString()))
+                        {
+                            index = i;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) break;
+                }
+            }
 
             return index;
         }
@@ -121,12 +137,30 @@ namespace Liviano.Accounts
         {
             if (UsedInternalAddresses.Count == 0) return 0;
 
-            var acc = (BaseAccount)Clone();
-            acc.InternalAddressesCount = 0;
+            int index = 0;
+            foreach (var usedAddress in UsedInternalAddresses)
+            {
+                foreach (var spkt in ScriptPubKeyTypes)
+                {
+                    //if (!usedAddress)
+                    var found = false;
+                    var addresses = InternalAddresses[spkt];
 
-            var lastAddress = acc.UsedInternalAddresses.Last();
+                    for (int i = 0; i < addresses.Count; i++)
+                    {
+                        if (string.Equals(usedAddress.ToString(), addresses[i].Address.ToString()))
+                        {
+                            index = i;
+                            found = true;
+                            break;
+                        }
+                    }
 
-            return GetInternalIndex(lastAddress);
+                    if (found) break;
+                }
+            }
+
+            return index;
         }
 
         public int GetExternalIndex(BitcoinAddress address)
