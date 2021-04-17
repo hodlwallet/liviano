@@ -228,6 +228,53 @@ namespace Liviano.CLI
             return res;
         }
 
+        public static void AccountSummary(Config config, string accountName, int accountIndex)
+        {
+            Load(config, skipAuth: true);
+
+            IAccount account;
+
+            if (accountName != null)
+                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+            else if (accountIndex != -1)
+                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+            else
+                account = wallet.Accounts.First();
+
+            var txs = new List<Tx> { };
+            foreach (var tx in account.Txs)
+                txs.Add(tx);
+
+            if (txs.Count == 0) return;
+
+            logger.Information("Account: Name: '{name}' Index: '{index}'", account.Name, account.Index);
+            logger.Information("Balance: {balance} BTC", account.GetBalance());
+
+            Console.WriteLine("");
+
+            foreach (var tx in txs)
+            {
+                logger.Information(
+                    "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                    tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                );
+            }
+
+        }
+
+        public static void AllAccountsSummaries(Config config)
+        {
+            Load(config, skipAuth: true);
+
+            // Print transactions
+            foreach (var account in wallet.Accounts)
+            {
+                AccountSummary(config, account.Name, account.Index);
+
+                Console.WriteLine("");
+            }
+        }
+
         /// <summary>
         /// Gets an address from a <see cref="Config"/> and a index
         /// </summary>

@@ -78,6 +78,7 @@ namespace Liviano.CLI
         static bool getScriptPubKey = false;
         static bool send = false;
         static bool balance = false;
+        static bool summary = false;
         static bool newAcc = false;
         static bool start = false;
         static bool resync = false;
@@ -108,6 +109,7 @@ namespace Liviano.CLI
                 {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
                 {"send|send-to-address", "Send to address", v => send = !(v is null)},
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
+                {"s|summary", "Show wallet summary", v => summary = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
@@ -466,6 +468,29 @@ namespace Liviano.CLI
 
                 foreach (var entry in accountsWithBalance)
                     Console.WriteLine($"{entry.Key.Index} = {entry.Value}");
+
+                return 0;
+            }
+
+            if (summary)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                if (accountIndex != -1)
+                {
+                    LightClient.AccountSummary(config, null, accountIndex);
+
+                    return 0;
+                }
+
+                LightClient.AllAccountsSummaries(config);
 
                 return 0;
             }
