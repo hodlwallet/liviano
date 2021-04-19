@@ -322,6 +322,7 @@ namespace Liviano.CLI
         public static void ReSync(Config config)
         {
             Load(config, skipAuth: true);
+            var startTime = DateTimeOffset.UtcNow;
 
             wallet.OnNewTransaction += (s, e) =>
             {
@@ -335,12 +336,17 @@ namespace Liviano.CLI
 
             wallet.OnSyncStarted += (s, e) =>
             {
+                startTime = DateTimeOffset.UtcNow;
                 logger.Information("Sync started at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
             };
 
             wallet.OnSyncFinished += (s, e) =>
             {
-                logger.Information("Sync finished at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
+                logger.Information(
+                    "Sync finished at {time}. Total sync time: {totalTime:n} seconds!",
+                    DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture),
+                    (DateTimeOffset.UtcNow - startTime).TotalSeconds
+                );
 
                 // Print transactions
                 List<Tx> txs = new List<Tx> { };
