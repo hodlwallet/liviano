@@ -486,13 +486,17 @@ namespace Liviano.Electrum
             {
                 for (int j = 0; j < acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]].Count; j++)
                 {
-                    var address = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+                    var addr = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+
+                    await SyncAddress(acc, addr, ct);
                 }
 
-                //foreach (var address in acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]])
-                //{
-                    //address.Equals
-                //}
+                for (int j = 0; j < acc.InternalAddresses[acc.ScriptPubKeyTypes[i]].Count; j++)
+                {
+                    var addr = acc.InternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+
+                    await SyncAddress(acc, addr, ct);
+                }
             }
         }
 
