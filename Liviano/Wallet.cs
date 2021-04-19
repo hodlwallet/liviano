@@ -47,8 +47,8 @@ namespace Liviano
 {
     public class Wallet : IWallet
     {
-        const string DEFAULT_WALLET_NAME = "Bitcoin Wallet";
-        const string DEFAULT_ACCOUNT_NAME = "Bitcoin Account";
+        const string DEFAULT_WALLET_NAME = "Wallet";
+        const string DEFAULT_ACCOUNT_NAME = "Account";
 
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 

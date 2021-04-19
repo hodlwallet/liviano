@@ -454,7 +454,7 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network,
                                 GetOutValueFromTxInputs
                             );
 
@@ -468,7 +468,7 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network, receiveAddresses, changeAddresses,
+                                txHex, height, header, acc, Network,
                                 GetOutValueFromTxInputs
                             );
 
@@ -480,6 +480,22 @@ namespace Liviano.Electrum
             );
         }
 
+        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        {
+            for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
+            {
+                for (int j = 0; j < acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]].Count; j++)
+                {
+                    var address = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+                }
+
+                //foreach (var address in acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]])
+                //{
+                    //address.Equals
+                //}
+            }
+        }
+
         /// <summary>
         /// Syncs an account of the wallet
         /// </summary>
@@ -487,57 +503,57 @@ namespace Liviano.Electrum
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
         /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
         /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
-        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
-        {
-            var receiveAddressesIndex = acc.GetExternalLastIndex();
-            var changeAddressesIndex = acc.GetInternalLastIndex();
+        //public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        //{
+            //var receiveAddressesIndex = acc.GetExternalLastIndex();
+            //var changeAddressesIndex = acc.GetInternalLastIndex();
 
-            var receiveAddressesList = new List<BitcoinAddress> () {};
-            var changeAddressesList = new List<BitcoinAddress> () {};
+            //var receiveAddressesList = new List<BitcoinAddress> () {};
+            //var changeAddressesList = new List<BitcoinAddress> () {};
 
-            for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
-            {
-                receiveAddressesList.AddRange(acc.GetReceiveAddress(acc.GapLimit, i));
-                changeAddressesList.AddRange(acc.GetChangeAddress(acc.GapLimit, i));
-            }
+            //for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
+            //{
+                //receiveAddressesList.AddRange(acc.GetReceiveAddress(acc.GapLimit, i));
+                //changeAddressesList.AddRange(acc.GetChangeAddress(acc.GapLimit, i));
+            //}
 
-            var receiveAddresses = receiveAddressesList.ToArray();
-            var changeAddresses = changeAddressesList.ToArray();
+            //var receiveAddresses = receiveAddressesList.ToArray();
+            //var changeAddresses = changeAddressesList.ToArray();
 
-            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
-            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
+            //var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
+            //var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
 
-            if (syncExternal)
-            {
-                foreach (var addr in receiveAddresses)
-                {
-                    if (ct.IsCancellationRequested) return;
+            //if (syncExternal)
+            //{
+                //foreach (var addr in receiveAddresses)
+                //{
+                    //if (ct.IsCancellationRequested) return;
 
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                }
+                    //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                //}
 
-                acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
-            }
+                //acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
+            //}
 
-            if (syncInternal)
-            {
-                foreach (var addr in changeAddresses)
-                {
-                    if (ct.IsCancellationRequested) return;
+            //if (syncInternal)
+            //{
+                //foreach (var addr in changeAddresses)
+                //{
+                    //if (ct.IsCancellationRequested) return;
 
-                    await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                }
+                    //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                //}
 
-                acc.InternalAddressesIndex = acc.GetInternalLastIndex();
-            }
+                //acc.InternalAddressesIndex = acc.GetInternalLastIndex();
+            //}
 
-            // After reaching the end, we check if we need to sync more addresses
-            var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
-            var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
+            //// After reaching the end, we check if we need to sync more addresses
+            //var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
+            //var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
 
-            if (syncExternal) await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
-            if (syncInternal) await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
-        }
+            //if (syncExternal) await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
+            //if (syncInternal) await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
+        //}
 
         async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct, int addressesToCheck, bool isReceive, List<BitcoinAddress> receiveAddressesList, List<BitcoinAddress> changeAddressesList)
         {
@@ -562,7 +578,7 @@ namespace Liviano.Electrum
                         receiveAddressesList.Add(addr);
                         receiveAddresses = receiveAddressesList.ToArray();
 
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, ct);
                     }
                 }
 
@@ -578,7 +594,7 @@ namespace Liviano.Electrum
                         changeAddressesList.Add(addr);
                         changeAddresses = changeAddressesList.ToArray();
 
-                        await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
+                        await SyncAddress(acc, addr, ct);
                     }
                 }
 
@@ -591,19 +607,15 @@ namespace Liviano.Electrum
         /// </summary>
         /// <param name="acc">The <see cref="IAccount"/> that address comes from</param>
         /// <param name="addr">The <see cref="BitcoinAddress"/> to sync</param>
-        /// <param name="receiveAddresses">A list of <see cref="BitcoinAddress"/> of type receive</param>
-        /// <param name="changeAddresses">A list of <see cref="BitcoinAddress"/> of type change</param>
         /// <param name="ct">A <see cref="CancellationToken"/></param>
         async Task SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
-                BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] changeAddresses,
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
-            var isReceive = receiveAddresses.Contains(addr);
+            var isReceive = acc.IsReceive(addr);
             var scriptHashStr = addr.ToScriptHash().ToHex();
             var addrLabel = isReceive ? "External" : "Internal";
 
@@ -616,8 +628,6 @@ namespace Liviano.Electrum
                 await InsertTransactionsFromHistory(
                     acc,
                     addr,
-                    receiveAddresses,
-                    changeAddresses,
                     result.Result,
                     ct
                 );
@@ -635,8 +645,6 @@ namespace Liviano.Electrum
         async Task InsertTransactionsFromHistory(
                 IAccount acc,
                 BitcoinAddress addr,
-                BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] changeAddresses,
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
@@ -655,7 +663,7 @@ namespace Liviano.Electrum
                 {
                     Console.WriteLine($"[Sync] Error: {e.Message}");
 
-                    await InsertTransactionsFromHistory(acc, addr, receiveAddresses, changeAddresses, result, ct);
+                    await InsertTransactionsFromHistory(acc, addr, result, ct);
                     return;
                 }
 
@@ -678,8 +686,6 @@ namespace Liviano.Electrum
                     header,
                     acc,
                     Network,
-                    receiveAddresses,
-                    changeAddresses,
                     GetOutValueFromTxInputs
                 );
 
@@ -692,7 +698,7 @@ namespace Liviano.Electrum
 
                 foreach (var txAddr in txAddresses)
                 {
-                    if (receiveAddresses.Contains(txAddr))
+                    if (acc.IsReceive(txAddr))
                     {
                         if (acc.UsedExternalAddresses.Contains(txAddr))
                             continue;
@@ -700,7 +706,7 @@ namespace Liviano.Electrum
                         acc.UsedExternalAddresses.Add(txAddr);
                     }
 
-                    if (changeAddresses.Contains(txAddr))
+                    if (acc.IsChange(txAddr))
                     {
                         if (acc.UsedInternalAddresses.Contains(txAddr))
                             continue;

@@ -235,8 +235,6 @@ namespace Liviano.Models
                 BlockHeader header,
                 IAccount account,
                 Network network,
-                BitcoinAddress[] externalAddresses,
-                BitcoinAddress[] internalAddresses,
                 Func<TxInList, Money> GetTotalValueFromTxInputsCallback = null)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
@@ -270,7 +268,7 @@ namespace Liviano.Models
             BitcoinAddress currentAddress = null;
             foreach (var addr in addresses)
             {
-                if (externalAddresses.Contains(addr))
+                if (account.IsReceive(addr))
                 {
                     Debug.WriteLine($"[CreateFromHex] Tx's address was found in external addresses (tx is receive), address: {addr}");
 
@@ -281,7 +279,7 @@ namespace Liviano.Models
                     break;
                 }
 
-                if (internalAddresses.Contains(addr))
+                if (account.IsChange(addr))
                 {
                     Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is send), address: {addr}");
 
@@ -304,7 +302,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (externalAddresses.Contains(outAddr))
+                    if (account.IsReceive(outAddr))
                     {
                         tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
@@ -320,7 +318,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (!internalAddresses.Contains(outAddr))
+                    if (!account.IsChange(outAddr))
                     {
                         tx.SentScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;

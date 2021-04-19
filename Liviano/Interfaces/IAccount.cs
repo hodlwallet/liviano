@@ -287,5 +287,15 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <returns>A <see cref="Money"/> of the balance of the account</returns>
         Money GetBalance();
+
+        /// <summary>
+        /// True if the address is in ExternalAddresses on any scriptpubkey
+        /// </summary>
+        bool IsReceive(BitcoinAddress address);
+
+        /// <summary>
+        /// True if the address is in InternalAddresses on any scriptpubkey
+        /// </summary>
+        bool IsChange(BitcoinAddress address);
     }
 }
