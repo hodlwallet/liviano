@@ -484,19 +484,27 @@ namespace Liviano.Electrum
         {
             for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
             {
-                for (int j = 0; j < acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]].Count; j++)
+                var externalAddresses = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]];
+                var internalAddresses = acc.InternalAddresses[acc.ScriptPubKeyTypes[i]];
+
+                var externalUsedCount = acc.UsedExternalAddresses.Count;
+                var internalUsedCount = acc.UsedInternalAddresses.Count;
+
+                for (int j = 0; j < externalAddresses.Count; j++)
                 {
-                    var addr = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+                    var addr = externalAddresses[j].Address;
 
                     await SyncAddress(acc, addr, ct);
                 }
 
-                for (int j = 0; j < acc.InternalAddresses[acc.ScriptPubKeyTypes[i]].Count; j++)
+                for (int j = 0; j < internalAddresses.Count; j++)
                 {
-                    var addr = acc.InternalAddresses[acc.ScriptPubKeyTypes[i]][j].Address;
+                    var addr = internalAddresses[j].Address;
 
                     await SyncAddress(acc, addr, ct);
                 }
+
+                // TODO Get last used difference, if needed find more.
             }
         }
 
