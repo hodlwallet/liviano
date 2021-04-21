@@ -520,13 +520,12 @@ namespace Liviano
             Debug.WriteLine($"[ElectrumPool_OnNewTransaction]             addr:  {addr}");
 
             var transaction = Transaction.Parse(tx.Hex, acc.Network);
-            var addresses = acc.GetAddressesToWatch();
 
             foreach (var coin in transaction.Outputs.AsCoins())
             {
                 var destinationAddress = coin.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
 
-                if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
+                if (tx.Account.IsReceive(destinationAddress) || tx.Account.IsChange(destinationAddress)) acc.AddUtxo(coin);
             }
 
             OnNewTransaction?.Invoke(this, txArgs);
@@ -547,13 +546,12 @@ namespace Liviano
 
             // In case the updated transaction includes a new utxo for me
             var transaction = Transaction.Parse(tx.Hex, acc.Network);
-            var addresses = acc.GetAddressesToWatch();
 
             foreach (var coin in transaction.Outputs.AsCoins())
             {
                 var destinationAddress = coin.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
 
-                if (addresses.Contains(destinationAddress)) acc.AddUtxo(coin);
+                if (tx.Account.IsReceive(destinationAddress) || tx.Account.IsChange(destinationAddress)) acc.AddUtxo(coin);
             }
 
             OnUpdateTransaction?.Invoke(this, txArgs);
