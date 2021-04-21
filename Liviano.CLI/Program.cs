@@ -144,6 +144,8 @@ namespace Liviano.CLI
         {
             logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
+            logger.Information("test");
+
             // Set standard input
             hasInputText = Console.IsInputRedirected && !Debugger.IsAttached;
             if (hasInputText) inputText = Console.ReadLine().Trim();

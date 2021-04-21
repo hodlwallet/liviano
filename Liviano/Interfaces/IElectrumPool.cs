@@ -95,9 +95,7 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="account">a <see cref="IAccount"/> to sync</param>
         /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
-        /// <param name="syncInternal">a <see cref="bool"/> to only sync internal (change)</param>
-        /// <param name="syncExternal">a <see cref="bool"/> to only sync external (receive)</param>
-        Task SyncAccount(IAccount account, CancellationToken ct, bool syncExternal, bool syncInternal);
+        Task SyncAccount(IAccount account, CancellationToken ct);
 
         /// <summary>
         /// Watches a wallet for new transactions

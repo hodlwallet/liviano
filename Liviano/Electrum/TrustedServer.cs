@@ -480,15 +480,12 @@ namespace Liviano.Electrum
             );
         }
 
-        public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
+        public async Task SyncAccount(IAccount acc, CancellationToken ct)
         {
             for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
             {
                 var externalAddresses = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]];
                 var internalAddresses = acc.InternalAddresses[acc.ScriptPubKeyTypes[i]];
-
-                var externalUsedCount = acc.UsedExternalAddresses.Count;
-                var internalUsedCount = acc.UsedInternalAddresses.Count;
 
                 for (int j = 0; j < externalAddresses.Count; j++)
                 {
@@ -503,9 +500,9 @@ namespace Liviano.Electrum
 
                     await SyncAddress(acc, addr, ct);
                 }
-
-                // TODO Get last used difference, if needed find more.
             }
+
+            // TODO do code that will sync rest of accounts based on what they got from 
         }
 
         /// <summary>
