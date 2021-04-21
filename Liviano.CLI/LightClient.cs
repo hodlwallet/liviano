@@ -533,7 +533,7 @@ namespace Liviano.CLI
                 catch (InvalidOperationException e)
                 {
                     logger.Error("{error}", e.Message);
-                    logger.Information("Stop handled by IDE");
+                    logger.Information("Stop will be handled by IDE");
 
                     quitHandledByIDE = true;
                     quit = true;

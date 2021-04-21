@@ -63,8 +63,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetReceiveAddress(int typeIndex = 0)
         {
-            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), ExternalAddressesIndex + ExternalAddressesGapIndex, false);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
+            var address = ExternalAddresses[ScriptPubKeyTypes[typeIndex]][ExternalAddressesIndex + ExternalAddressesGapIndex].Address;
 
             ExternalAddressesGapIndex++;
 
@@ -85,9 +84,7 @@ namespace Liviano.Accounts
 
         public override BitcoinAddress GetChangeAddress(int typeIndex = 0)
         {
-            var lastIndex = GetInternalLastIndex();
-            var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), InternalAddressesIndex + InternalAddressesGapIndex, true);
-            var address = pubKey.GetAddress(ScriptPubKeyTypes[typeIndex], Network);
+            var address = InternalAddresses[ScriptPubKeyTypes[typeIndex]][InternalAddressesIndex + InternalAddressesGapIndex].Address;
 
             InternalAddressesGapIndex++;
 
@@ -126,19 +123,8 @@ namespace Liviano.Accounts
         {
             var addresses = new List<BitcoinAddress> { };
 
-            var externalMaxIndex = ExternalAddressesIndex + GapLimit;
-
-            for (int i = 0; i < externalMaxIndex; i++)
-            {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-
-                for (int j = 0; j < ScriptPubKeyTypes.Count; j++)
-                {
-                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[j], Network);
-
-                    addresses.Add(addr);
-                }
-            }
+            foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+                addresses.AddRange(ExternalAddresses[scriptPubKeyType].Select((addrData) => addrData.Address));
 
             return addresses.ToArray();
         }
@@ -147,19 +133,8 @@ namespace Liviano.Accounts
         {
             var addresses = new List<BitcoinAddress> { };
 
-            var internalMaxIndex = InternalAddressesIndex + GapLimit;
-
-            for (int i = 0; i < internalMaxIndex; i++)
-            {
-                var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-
-                for (int j = 0; j < ScriptPubKeyTypes.Count; j++)
-                {
-                    var addr = pubKey.GetAddress(ScriptPubKeyTypes[j], Network);
-
-                    addresses.Add(addr);
-                }
-            }
+            foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+                addresses.AddRange(InternalAddresses[scriptPubKeyType].Select((addrData) => addrData.Address));
 
             return addresses.ToArray();
         }
