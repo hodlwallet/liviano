@@ -482,24 +482,13 @@ namespace Liviano.Electrum
 
         public async Task SyncAccount(IAccount acc, CancellationToken ct)
         {
-            for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
+            foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
-                var externalAddresses = acc.ExternalAddresses[acc.ScriptPubKeyTypes[i]];
-                var internalAddresses = acc.InternalAddresses[acc.ScriptPubKeyTypes[i]];
+                foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType])
+                    await SyncAddress(acc, addressData.Address, ct);
 
-                for (int j = 0; j < externalAddresses.Count; j++)
-                {
-                    var addr = externalAddresses[j].Address;
-
-                    await SyncAddress(acc, addr, ct);
-                }
-
-                for (int j = 0; j < internalAddresses.Count; j++)
-                {
-                    var addr = internalAddresses[j].Address;
-
-                    await SyncAddress(acc, addr, ct);
-                }
+                foreach (var addressData in acc.InternalAddresses[scriptPubKeyType])
+                    await SyncAddress(acc, addressData.Address, ct);
             }
 
             // TODO do code that will sync rest of accounts based on what they got from 

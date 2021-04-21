@@ -26,13 +26,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 using NBitcoin;
 
 using Liviano.Utilities;
 using Liviano.Exceptions;
-using System.Diagnostics;
+
 using Liviano.Interfaces;
 
 namespace Liviano.Bips
