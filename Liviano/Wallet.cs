@@ -332,6 +332,7 @@ namespace Liviano
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Sync] There was an error during sync: {ex.Message}");
+                Debug.WriteLine($"[Sync] Stacktrace: '{ex.StackTrace}'");
                 throw;
             }
         }

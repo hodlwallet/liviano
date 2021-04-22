@@ -482,16 +482,42 @@ namespace Liviano.Electrum
 
         public async Task SyncAccount(IAccount acc, CancellationToken ct)
         {
+            // TODO For now the code be boring,
+            // but you see how there are attempts to make this
+            // run at the same time, the problem is that it
+            // finishes but the tasks are not done, another
+            // problem I had was using task.Start()
+            // it did run them in pararel but did not
+            // end the tasks...
+            //var addressSyncTasks = new List<Task> {};
+
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
                 foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType])
+                {
                     await SyncAddress(acc, addressData.Address, ct);
+                    //var t = SyncAddress(acc, addressData.Address, ct);
+                    //addressSyncTasks.Add(t);
+                }
 
                 foreach (var addressData in acc.InternalAddresses[scriptPubKeyType])
+                {
                     await SyncAddress(acc, addressData.Address, ct);
+                    //var t = SyncAddress(acc, addressData.Address, ct);
+                    //addressSyncTasks.Add(t);
+                }
             }
 
-            // TODO do code that will sync rest of accounts based on what they got from 
+            //foreach (var t in addressSyncTasks)
+            //{
+                //await t;
+            //}
+
+            //await Task.WhenAll(addressSyncTasks);
+
+            //await Task.Run(() => addressSyncTasks.ForEach(async t => await t));
+
+            //await Task.Factory.StartNew(() => addressSyncTasks.ForEach(async task => await task));
         }
 
         /// <summary>
