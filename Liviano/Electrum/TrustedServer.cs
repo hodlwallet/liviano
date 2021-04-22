@@ -508,16 +508,16 @@ namespace Liviano.Electrum
                 }
             }
 
+            // This code is here as an example
             //foreach (var t in addressSyncTasks)
             //{
                 //await t;
             //}
-
             //await Task.WhenAll(addressSyncTasks);
-
             //await Task.Run(() => addressSyncTasks.ForEach(async t => await t));
-
             //await Task.Factory.StartNew(() => addressSyncTasks.ForEach(async task => await task));
+            //
+            // TODO Find a way to do the rest of the gap if there's a need
         }
 
         /// <summary>
