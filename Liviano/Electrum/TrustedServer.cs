@@ -480,6 +480,11 @@ namespace Liviano.Electrum
             );
         }
 
+        /// <summary>
+        /// Syncs an account of the wallet
+        /// </summary>
+        /// <param name="acc">a <see cref="IAccount"/> to sync/param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
         public async Task SyncAccount(IAccount acc, CancellationToken ct)
         {
             // TODO For now the code be boring,
@@ -490,6 +495,11 @@ namespace Liviano.Electrum
             // it did run them in pararel but did not
             // end the tasks...
             //var addressSyncTasks = new List<Task> {};
+
+            var foundTxs = false;
+            OnNewTransaction += (s, args) => {
+                foundTxs = true;
+            };
 
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
@@ -518,111 +528,51 @@ namespace Liviano.Electrum
             //await Task.Factory.StartNew(() => addressSyncTasks.ForEach(async task => await task));
             //
             // TODO Find a way to do the rest of the gap if there's a need
+            //
+            if (foundTxs) await SyncAccountUntilGapLimit(acc, ct);
         }
 
         /// <summary>
-        /// Syncs an account of the wallet
+        /// Syncs an account until the gap limit is full of empty addresses
         /// </summary>
         /// <param name="acc">a <see cref="IAccount"/> to sync/param>
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
-        /// <param name="syncExternal">a <see cref="bool"/> to indicate to sync external addresses</param>
-        /// <param name="syncInternal">a <see cref="bool"/> to indicate to sync internal addresses</param>
-        //public async Task SyncAccount(IAccount acc, CancellationToken ct, bool syncExternal = true, bool syncInternal = true)
-        //{
-            //var receiveAddressesIndex = acc.GetExternalLastIndex();
-            //var changeAddressesIndex = acc.GetInternalLastIndex();
-
-            //var receiveAddressesList = new List<BitcoinAddress> () {};
-            //var changeAddressesList = new List<BitcoinAddress> () {};
-
-            //for (int i = 0; i < acc.ScriptPubKeyTypes.Count; i++)
-            //{
-                //receiveAddressesList.AddRange(acc.GetReceiveAddress(acc.GapLimit, i));
-                //changeAddressesList.AddRange(acc.GetChangeAddress(acc.GapLimit, i));
-            //}
-
-            //var receiveAddresses = receiveAddressesList.ToArray();
-            //var changeAddresses = changeAddressesList.ToArray();
-
-            //var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
-            //var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
-
-            //if (syncExternal)
-            //{
-                //foreach (var addr in receiveAddresses)
-                //{
-                    //if (ct.IsCancellationRequested) return;
-
-                    //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                //}
-
-                //acc.ExternalAddressesIndex = acc.GetExternalLastIndex();
-            //}
-
-            //if (syncInternal)
-            //{
-                //foreach (var addr in changeAddresses)
-                //{
-                    //if (ct.IsCancellationRequested) return;
-
-                    //await SyncAddress(acc, addr, receiveAddresses, changeAddresses, ct);
-                //}
-
-                //acc.InternalAddressesIndex = acc.GetInternalLastIndex();
-            //}
-
-            //// After reaching the end, we check if we need to sync more addresses
-            //var receiveAddressesToCheck = acc.UsedExternalAddresses.Count - usedExternalAddressesCount;
-            //var changeAddressesToCheck = acc.UsedInternalAddresses.Count - usedInternalAddressesCount;
-
-            //if (syncExternal) await SyncAccountUntilGapLimit(acc, ct, receiveAddressesToCheck, true, receiveAddressesList, changeAddressesList);
-            //if (syncInternal) await SyncAccountUntilGapLimit(acc, ct, changeAddressesToCheck, false, receiveAddressesList, changeAddressesList);
-        //}
-
-        async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct, int addressesToCheck, bool isReceive, List<BitcoinAddress> receiveAddressesList, List<BitcoinAddress> changeAddressesList)
+        async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct)
         {
-            if (addressesToCheck == 0) return;
+            Debug.WriteLine("[SyncAccountUntilGapLimit] Starting to sync until gap limit since we found txs");
 
-            Debug.WriteLine($"[SyncAccountUntilGapLimit] Processing until gap limit, amount of addresses: {addressesToCheck}, is receive: {isReceive}");
+            var externalStartIndex = acc.GetExternalLastIndex();
+            var internalStartIndex = acc.GetInternalLastIndex();
+            var foundTx = true;
 
-            var receiveAddresses = receiveAddressesList.ToArray();
-            var changeAddresses = changeAddressesList.ToArray();
+            // TODO Generate addresses needed from externalStartIndex to GapLimit
 
-            var usedExternalAddressesCount = acc.UsedExternalAddresses.Count;
-            var usedInternalAddressesCount = acc.UsedInternalAddresses.Count;
-            
-            if (isReceive)
+            OnNewTransaction += (s, args) => {
+                foundTx = true;
+
+                // TODO Generate addresses needed from externalStartIndex to GapLimit
+            };
+
+            while (foundTx)
             {
-                for (int i = 0; i < addressesToCheck; i++)
+                externalStartIndex = acc.GetExternalLastIndex();
+                internalStartIndex = acc.GetInternalLastIndex();
+                foundTx = false;
+
+                foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
                 {
-                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
+                    for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count; i++)
                     {
-                        var addr = acc.GetReceiveAddress(j);
+                        var addressData = acc.ExternalAddresses[scriptPubKeyType][i];
+                        await SyncAddress(acc, addressData.Address, ct);
+                    }
 
-                        receiveAddressesList.Add(addr);
-                        receiveAddresses = receiveAddressesList.ToArray();
-
-                        await SyncAddress(acc, addr, ct);
+                    for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count; i++)
+                    {
+                        var addressData = acc.InternalAddresses[scriptPubKeyType][i];
+                        await SyncAddress(acc, addressData.Address, ct);
                     }
                 }
-
-                await SyncAccountUntilGapLimit(acc, ct, acc.UsedExternalAddresses.Count - usedExternalAddressesCount, true, receiveAddressesList, changeAddressesList);
-            }
-            else
-            {
-                for (int i = 0; i < addressesToCheck; i++)
-                {
-                    for (int j = 0; j < acc.ScriptPubKeyTypes.Count; j++)
-                    {
-                        var addr = acc.GetChangeAddress(j);
-                        changeAddressesList.Add(addr);
-                        changeAddresses = changeAddressesList.ToArray();
-
-                        await SyncAddress(acc, addr, ct);
-                    }
-                }
-
-                await SyncAccountUntilGapLimit(acc, ct, acc.UsedInternalAddresses.Count - usedInternalAddressesCount, false, receiveAddressesList, changeAddressesList);
             }
         }
 
