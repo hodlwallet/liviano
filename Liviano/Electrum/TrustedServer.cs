@@ -548,9 +548,11 @@ namespace Liviano.Electrum
 
             // TODO Generate addresses needed from externalStartIndex to GapLimit
             var foundTx = true;
-            OnNewTransaction += (s, args) => {
+            Action<object, TxEventArgs> foundCallback = (s, args) =>
+            {
                 foundTx = true;
             };
+            OnNewTransaction += foundCallback.Invoke;
 
             while (foundTx)
             {
@@ -574,6 +576,8 @@ namespace Liviano.Electrum
                     }
                 }
             }
+
+            OnNewTransaction -= foundCallback.Invoke;
         }
 
         /// <summary>
