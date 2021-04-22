@@ -497,9 +497,12 @@ namespace Liviano.Electrum
             //var addressSyncTasks = new List<Task> {};
 
             var foundTxs = false;
-            OnNewTransaction += (s, args) => {
+            Action<object, TxEventArgs> foundCallback = (s, args) =>
+            {
                 foundTxs = true;
             };
+
+            OnNewTransaction += foundCallback.Invoke;
 
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
@@ -517,6 +520,8 @@ namespace Liviano.Electrum
                     //addressSyncTasks.Add(t);
                 }
             }
+
+            OnNewTransaction -= foundCallback.Invoke;
 
             // This code is here as an example
             //foreach (var t in addressSyncTasks)
@@ -541,36 +546,31 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine("[SyncAccountUntilGapLimit] Starting to sync until gap limit since we found txs");
 
-            var externalStartIndex = acc.GetExternalLastIndex();
-            var internalStartIndex = acc.GetInternalLastIndex();
-            var foundTx = true;
-
             // TODO Generate addresses needed from externalStartIndex to GapLimit
-
+            var foundTx = true;
             OnNewTransaction += (s, args) => {
                 foundTx = true;
-
-                // TODO Generate addresses needed from externalStartIndex to GapLimit
             };
 
             while (foundTx)
             {
-                externalStartIndex = acc.GetExternalLastIndex();
-                internalStartIndex = acc.GetInternalLastIndex();
+                var externalStartIndex = acc.GetExternalLastIndex() + 1;
+                var internalStartIndex = acc.GetInternalLastIndex() + 1;
                 foundTx = false;
+
+                // TODO Generate more addresses is needed
 
                 foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
                 {
                     for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count; i++)
                     {
                         var addressData = acc.ExternalAddresses[scriptPubKeyType][i];
-                        await SyncAddress(acc, addressData.Address, ct);
+                        await SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct);
                     }
 
                     for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count; i++)
                     {
-                        var addressData = acc.InternalAddresses[scriptPubKeyType][i];
-                        await SyncAddress(acc, addressData.Address, ct);
+                        await SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct);
                     }
                 }
             }
