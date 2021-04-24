@@ -168,7 +168,7 @@ namespace Liviano.Accounts
                 var lastInternalIndex = GetInternalLastIndex();
                 for (int i = InternalAddresses[scriptPubKeyType].Count; i < lastInternalIndex + GapLimit; i++)
                 {
-                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
+                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
                     var address = pubKey.GetAddress(scriptPubKeyType, Network);
                     var internalHdPath = $"{HdPath}/1/{i}";
 
