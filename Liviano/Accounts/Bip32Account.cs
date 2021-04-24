@@ -160,9 +160,9 @@ namespace Liviano.Accounts
                     var address = pubKey.GetAddress(scriptPubKeyType, Network);
                     var externalHdPath = $"{HdPath}/0/{i}";
 
-                    ExternalAddresses[scriptPubKeyType][i] = new BitcoinAddressWithMetadata(
+                    ExternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
                         address, scriptPubKeyType, pubKey.ToString(), externalHdPath, i
-                    );
+                    ));
                 }
 
                 var lastInternalIndex = GetInternalLastIndex();
@@ -172,9 +172,9 @@ namespace Liviano.Accounts
                     var address = pubKey.GetAddress(scriptPubKeyType, Network);
                     var internalHdPath = $"{HdPath}/1/{i}";
 
-                    InternalAddresses[scriptPubKeyType][i] = new BitcoinAddressWithMetadata(
+                    InternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
                         address, scriptPubKeyType, pubKey.ToString(), internalHdPath, i
-                    );
+                    ));
                 }
             }
         }
