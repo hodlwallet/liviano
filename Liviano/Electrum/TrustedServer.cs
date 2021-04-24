@@ -546,7 +546,8 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine("[SyncAccountUntilGapLimit] Starting to sync until gap limit since we found txs");
 
-            // TODO Generate addresses needed from externalStartIndex to GapLimit
+            acc.GenerateNewAddresses();
+
             var foundTx = true;
             Action<object, TxEventArgs> foundCallback = (s, args) =>
             {
@@ -560,7 +561,7 @@ namespace Liviano.Electrum
                 var internalStartIndex = acc.GetInternalLastIndex() + 1;
                 foundTx = false;
 
-                // TODO Generate more addresses is needed
+                acc.GenerateNewAddresses();
 
                 foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
                 {

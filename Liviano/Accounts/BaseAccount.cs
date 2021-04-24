@@ -81,6 +81,7 @@ namespace Liviano.Accounts
         public abstract BitcoinAddress[] GetReceiveAddressesToWatch();
         public abstract BitcoinAddress[] GetChangeAddressesToWatch();
         public abstract BitcoinAddress[] GetAddressesToWatch();
+        public abstract void GenerateNewAddresses();
 
         public Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> ExternalAddresses { get; set; }
         public Dictionary<ScriptPubKeyType, List<BitcoinAddressWithMetadata>> InternalAddresses { get; set; }

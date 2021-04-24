@@ -297,6 +297,11 @@ namespace Liviano.Accounts
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
 
+        public override void GenerateNewAddresses()
+        {
+            throw new NotImplementedException();
+        }
+
         public override BitcoinAddress[] GetAddressesToWatch()
         {
             return GetReceiveAddressesToWatch();

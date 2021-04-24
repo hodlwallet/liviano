@@ -149,6 +149,36 @@ namespace Liviano.Accounts
             return addresses.ToArray();
         }
 
+        public override void GenerateNewAddresses()
+        {
+            foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+            {
+                var lastExternalIndex = GetExternalLastIndex();
+                for (int i = ExternalAddresses[scriptPubKeyType].Count; i < lastExternalIndex + GapLimit; i++)
+                {
+                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
+                    var address = pubKey.GetAddress(scriptPubKeyType, Network);
+                    var externalHdPath = $"{HdPath}/0/{i}";
+
+                    ExternalAddresses[scriptPubKeyType][i] = new BitcoinAddressWithMetadata(
+                        address, scriptPubKeyType, pubKey.ToString(), externalHdPath, i
+                    );
+                }
+
+                var lastInternalIndex = GetInternalLastIndex();
+                for (int i = InternalAddresses[scriptPubKeyType].Count; i < lastInternalIndex + GapLimit; i++)
+                {
+                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
+                    var address = pubKey.GetAddress(scriptPubKeyType, Network);
+                    var internalHdPath = $"{HdPath}/1/{i}";
+
+                    InternalAddresses[scriptPubKeyType][i] = new BitcoinAddressWithMetadata(
+                        address, scriptPubKeyType, pubKey.ToString(), internalHdPath, i
+                    );
+                }
+            }
+        }
+
         public override void AddTx(Tx tx)
         {
             if (TxIds.Contains(tx.Id.ToString()))

@@ -283,6 +283,11 @@ namespace Liviano.Interfaces
         int GetInternalLastIndex();
 
         /// <summary>
+        /// Generates new addresses until filling up the gap
+        /// </summary>
+        void GenerateNewAddresses();
+
+        /// <summary>
         /// Gets the balance of the account
         /// </summary>
         /// <returns>A <see cref="Money"/> of the balance of the account</returns>
