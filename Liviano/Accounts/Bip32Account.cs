@@ -151,6 +151,8 @@ namespace Liviano.Accounts
 
         public override void GenerateNewAddresses()
         {
+            Debug.WriteLine("[GenerateNewAddresses] Creating new addresses if theyre needed");
+
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
             {
                 var lastExternalIndex = GetExternalLastIndex();
