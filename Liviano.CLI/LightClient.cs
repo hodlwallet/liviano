@@ -366,14 +366,15 @@ namespace Liviano.CLI
 
                 if (txs.Count() != 0)
                 {
-                    Money total = 0L;
+                    var total = Money.Zero;
                     foreach (var tx in txs)
                     {
                         logger.Information(
                             "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
                             tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                         );
-                        total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
+
+                        total += tx.IsReceive ? tx.AmountReceived : -tx.AmountSent;
                     }
 
                     logger.Information("Total: {total}", total);
@@ -463,11 +464,11 @@ namespace Liviano.CLI
                 {
                     logger.Information("Transactions:");
 
-                    Money total = 0L;
+                    var total = Money.Zero;
                     foreach (var tx in txs)
                     {
                         logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}");
-                        total += tx.IsReceive ? tx.AmountReceived : tx.AmountSent;
+                        total += tx.IsReceive ? tx.AmountReceived : -tx.AmountSent;
                     }
 
                     logger.Information($"Total: {total}");
