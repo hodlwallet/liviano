@@ -456,6 +456,8 @@ namespace Liviano
 
             Debug.WriteLine("");
 
+            _ = ElectrumPool.SubscribeToHeaders(this, ct);
+
             await ElectrumPool.SyncWallet(this, ct);
         }
 
