@@ -34,6 +34,11 @@ using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.RPC;
 
+using Liviano.Interfaces;
+using Liviano.Exceptions;
+using Liviano.Models;
+using Liviano.Bips;
+
 namespace Liviano.Extensions
 {
     public static class WalletExtensions
@@ -345,6 +350,35 @@ namespace Liviano.Extensions
                 default:
                     throw new ArgumentException("Invalid {0}", nameof(spkType));
             }
+        }
+
+        public static BitcoinAddressWithMetadata ToAddressWithMetadata(this BitcoinAddress address, IAccount account)
+        {
+            int index = -1;
+            ScriptPubKeyType scriptPubKeyType = account.ScriptPubKeyTypes[0];
+            PubKey pubKey = null;
+            string hdPath = String.Empty;
+
+            if (account.IsReceive(address))
+            {
+                index = account.GetExternalIndex(address);
+                pubKey = Hd.GeneratePublicKey(account.Network, account.ExtPubKey.ToString(), index, false);
+                hdPath = $"{account.HdPath}/0/{index}";
+            }
+            else
+            {
+                index = account.GetInternalIndex(address);
+                pubKey = Hd.GeneratePublicKey(account.Network, account.ExtPubKey.ToString(), index, true);
+                hdPath = $"{account.HdPath}/1/{index}";
+            }
+
+            foreach (var spkt in account.ScriptPubKeyTypes)
+                if (address.IsScriptPubKeyType(spkt)) scriptPubKeyType = spkt;
+
+            if (pubKey is null)
+                throw new WalletException("[ToAddressWithMetadata] Error, could not find address");
+
+            return new BitcoinAddressWithMetadata(address, scriptPubKeyType, pubKey.ToHex(), hdPath, index);
         }
     }
 }
