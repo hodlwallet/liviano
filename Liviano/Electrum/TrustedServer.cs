@@ -495,6 +495,7 @@ namespace Liviano.Electrum
             // it did run them in pararel but did not
             // end the tasks...
             //var addressSyncTasks = new List<Task> {};
+            OnSyncStarted?.Invoke(this, null);
 
             var foundTxs = false;
             Action<object, TxEventArgs> foundCallback = (s, args) =>
@@ -535,6 +536,8 @@ namespace Liviano.Electrum
             // TODO Find a way to do the rest of the gap if there's a need
             //
             if (foundTxs) await SyncAccountUntilGapLimit(acc, ct);
+
+            OnSyncFinished?.Invoke(this, null);
         }
 
         /// <summary>

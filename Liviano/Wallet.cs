@@ -319,11 +319,12 @@ namespace Liviano
         }
 
         /// <summary>
-        /// Sync wallet
+        /// Sync current account
         /// </summary>
         public async Task Sync()
         {
-            Debug.WriteLine($"[Sync] Syncing wallet with id: {Id}");
+            Debug.WriteLine($"[Sync] Wallet id: {Id}");
+            Debug.WriteLine($"[Sync] CurrentAccount id: {CurrentAccount.Id}");
 
             try
             {
@@ -458,7 +459,7 @@ namespace Liviano
 
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
-            await ElectrumPool.SyncWallet(this, ct);
+            await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
 
         private async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
