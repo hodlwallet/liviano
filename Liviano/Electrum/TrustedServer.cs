@@ -26,7 +26,6 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -489,7 +488,6 @@ namespace Liviano.Electrum
         {
             OnSyncStarted?.Invoke(this, null);
 
-            var bag = new ConcurrentBag<string> ();
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
