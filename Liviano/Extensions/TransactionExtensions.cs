@@ -87,6 +87,7 @@ namespace Liviano.Extensions
             builder.AddKeys(keys);
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
+            builder.SetOptInRBF(true);
             builder.SendEstimatedFees(new FeeRate(satsPerByte));
 
             // Create transaction builder
