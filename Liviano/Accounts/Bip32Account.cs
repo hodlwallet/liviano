@@ -218,6 +218,8 @@ namespace Liviano.Accounts
 
             for (int i = 0, count = Txs.Count; i < count; i++)
             {
+                if (tx.Equals(Txs[i])) break;
+
                 if (Txs[i].Id == tx.Id)
                 {
                     Txs[i] = tx;

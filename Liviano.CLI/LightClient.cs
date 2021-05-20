@@ -351,9 +351,8 @@ namespace Liviano.CLI
                 // Print transactions
                 List<Tx> txs = new List<Tx> { };
 
-                foreach (var account in wallet.Accounts)
-                    foreach (var tx in account.Txs)
-                        txs.Add(tx);
+                foreach (var tx in wallet.CurrentAccount.Txs.OrderByDescending(tx => tx.CreatedAt))
+                    txs.Add(tx);
 
                 if (txs.Count() == 0)
                 {
@@ -456,9 +455,8 @@ namespace Liviano.CLI
                 // Print transactions
                 List<Tx> txs = new List<Tx> { };
 
-                foreach (var account in wallet.Accounts)
-                    foreach (var tx in account.Txs)
-                        txs.Add(tx);
+                foreach (var tx in wallet.CurrentAccount.Txs.OrderByDescending(tx => tx.CreatedAt))
+                    txs.Add(tx);
 
                 if (txs.Count() > 0)
                 {

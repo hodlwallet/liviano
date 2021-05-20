@@ -487,24 +487,9 @@ namespace Liviano.Electrum
         /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
         public async Task SyncAccount(IAccount acc, CancellationToken ct)
         {
-            // TODO For now the code be boring,
-            // but you see how there are attempts to make this
-            // run at the same time, the problem is that it
-            // finishes but the tasks are not done, another
-            // problem I had was using task.Start()
-            // it did run them in pararel but did not
-            // end the tasks...
-            //var addressSyncTasks = new List<Task> {};
             OnSyncStarted?.Invoke(this, null);
 
             var bag = new ConcurrentBag<string> ();
-            Action<object, TxEventArgs> foundCallback = (s, args) =>
-            {
-                bag.Add(args.Tx.Id.ToString());
-            };
-
-            OnNewTransaction += foundCallback.Invoke;
-
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
@@ -517,38 +502,8 @@ namespace Liviano.Electrum
 
             Task.WaitAll(addressSyncTasks.ToArray(), ct);
 
-            // FIXME This 10 seconds delay is set here so we wait for the IO
-            // but it shouldn't be here, all the tasks should be awaited and end...
-            //await Task.Delay(20_000);
-
-            while (true)
-            {
-                Debug.WriteLine($"bag.Count = {bag.Count} acc.TxIds.Count = {acc.TxIds.Count}");
-
-                if (acc.TxIds.Count < bag.Count) await Task.Delay(100);
-                else break;
-            }
-
-            //while (bag.Count <= acc.Txs.Count) await Task.Delay(100);
-
-            OnNewTransaction -= foundCallback.Invoke;
-
-            // This code is here as an example
-            //foreach (var t in addressSyncTasks)
-            //{
-                //await t;
-            //}
-            //await Task.WhenAll(addressSyncTasks);
-            //await Task.Run(() => addressSyncTasks.ForEach(async t => await t));
-            //await Task.Factory.StartNew(() => addressSyncTasks.ForEach(async task => await task));
-            //
-            // TODO Find a way to do the rest of the gap if there's a need
-            //
-            //if (foundTxs) await SyncAccountUntilGapLimit(acc, ct);
-
-            //Console.WriteLine("press any key to stop");
-            //Console.ReadLine();
-            //await Task.Delay(20_000);
+            // TODO fix this, we need to sync until gap but that code isn't updated yet
+            //await SyncAccountUntilGapLimit(acc, ct);
 
             OnSyncFinished?.Invoke(this, null);
         }
@@ -567,6 +522,7 @@ namespace Liviano.Electrum
             var foundTx = true;
             Action<object, TxEventArgs> foundCallback = (s, args) =>
             {
+                Console.WriteLine("Found tx");
                 foundTx = true;
             };
             OnNewTransaction += foundCallback.Invoke;
@@ -618,15 +574,12 @@ namespace Liviano.Electrum
                 $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
             );
 
-            await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr).ContinueWith(async result =>
-            {
-                await InsertTransactionsFromHistory(
-                    acc,
-                    addr,
-                    result.Result,
-                    ct
-                );
-            });
+            await InsertTransactionsFromHistory(
+                acc,
+                addr,
+                await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr),
+                ct
+            );
         }
 
         /// <summary>
