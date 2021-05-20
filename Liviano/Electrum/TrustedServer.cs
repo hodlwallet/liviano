@@ -26,14 +26,15 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using System.Linq;
 using System.IO;
 
 using NBitcoin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using Liviano.Models;
 using Liviano.Interfaces;
@@ -42,7 +43,6 @@ using Liviano.Exceptions;
 using Liviano.Events;
 
 using static Liviano.Electrum.ElectrumClient;
-using Newtonsoft.Json.Linq;
 
 namespace Liviano.Electrum
 {
@@ -497,30 +497,39 @@ namespace Liviano.Electrum
             //var addressSyncTasks = new List<Task> {};
             OnSyncStarted?.Invoke(this, null);
 
-            var foundTxs = false;
+            var bag = new ConcurrentBag<string> ();
             Action<object, TxEventArgs> foundCallback = (s, args) =>
             {
-                foundTxs = true;
+                bag.Add(args.Tx.Id.ToString());
             };
 
             OnNewTransaction += foundCallback.Invoke;
 
+            var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
                 foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType])
-                {
-                    await SyncAddress(acc, addressData.Address, ct);
-                    //var t = SyncAddress(acc, addressData.Address, ct);
-                    //addressSyncTasks.Add(t);
-                }
+                    addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
 
                 foreach (var addressData in acc.InternalAddresses[scriptPubKeyType])
-                {
-                    await SyncAddress(acc, addressData.Address, ct);
-                    //var t = SyncAddress(acc, addressData.Address, ct);
-                    //addressSyncTasks.Add(t);
-                }
+                    addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
+
+            Task.WaitAll(addressSyncTasks.ToArray(), ct);
+
+            // FIXME This 10 seconds delay is set here so we wait for the IO
+            // but it shouldn't be here, all the tasks should be awaited and end...
+            //await Task.Delay(20_000);
+
+            while (true)
+            {
+                Debug.WriteLine($"bag.Count = {bag.Count} acc.TxIds.Count = {acc.TxIds.Count}");
+
+                if (acc.TxIds.Count < bag.Count) await Task.Delay(100);
+                else break;
+            }
+
+            //while (bag.Count <= acc.Txs.Count) await Task.Delay(100);
 
             OnNewTransaction -= foundCallback.Invoke;
 
@@ -535,7 +544,11 @@ namespace Liviano.Electrum
             //
             // TODO Find a way to do the rest of the gap if there's a need
             //
-            if (foundTxs) await SyncAccountUntilGapLimit(acc, ct);
+            //if (foundTxs) await SyncAccountUntilGapLimit(acc, ct);
+
+            //Console.WriteLine("press any key to stop");
+            //Console.ReadLine();
+            //await Task.Delay(20_000);
 
             OnSyncFinished?.Invoke(this, null);
         }

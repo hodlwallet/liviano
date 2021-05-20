@@ -457,7 +457,7 @@ namespace Liviano
 
             Debug.WriteLine("");
 
-            _ = ElectrumPool.SubscribeToHeaders(this, ct);
+            _ = ElectrumPool.SubscribeToHeaders(this, ct).ConfigureAwait(false);
 
             await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
