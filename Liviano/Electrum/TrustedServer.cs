@@ -488,6 +488,8 @@ namespace Liviano.Electrum
         {
             OnSyncStarted?.Invoke(this, null);
 
+            var currentTxCount = acc.Txs.Count;
+
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
@@ -500,8 +502,10 @@ namespace Liviano.Electrum
 
             Task.WaitAll(addressSyncTasks.ToArray(), ct);
 
-            // TODO fix this, we need to sync until gap but that code isn't updated yet
-            //await SyncAccountUntilGapLimit(acc, ct);
+            var endTxCount = acc.Txs.Count;
+
+            if (currentTxCount < endTxCount)
+                await SyncAccountUntilGapLimit(acc, ct);
 
             OnSyncFinished?.Invoke(this, null);
         }
