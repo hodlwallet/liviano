@@ -518,41 +518,33 @@ namespace Liviano.Electrum
         async Task SyncAccountUntilGapLimit(IAccount acc, CancellationToken ct)
         {
             Debug.WriteLine("[SyncAccountUntilGapLimit] Starting to sync until gap limit since we found txs");
+            var currentTxCount = acc.Txs.Count;
 
             acc.GenerateNewAddresses();
 
-            var foundTx = true;
-            Action<object, TxEventArgs> foundCallback = (s, args) =>
+            var externalStartIndex = acc.GetExternalLastIndex() + 1;
+            var internalStartIndex = acc.GetInternalLastIndex() + 1;
+
+            var addressSyncTasks = new List<Task>();
+            foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
-                Console.WriteLine("Found tx");
-                foundTx = true;
-            };
-            OnNewTransaction += foundCallback.Invoke;
+                for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count; i++)
+                    addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
 
-            while (foundTx)
-            {
-                var externalStartIndex = acc.GetExternalLastIndex() + 1;
-                var internalStartIndex = acc.GetInternalLastIndex() + 1;
-                foundTx = false;
-
-                acc.GenerateNewAddresses();
-
-                foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
-                {
-                    for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count; i++)
-                    {
-                        var addressData = acc.ExternalAddresses[scriptPubKeyType][i];
-                        await SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct);
-                    }
-
-                    for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count; i++)
-                    {
-                        await SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct);
-                    }
-                }
+                for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count; i++)
+                    addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            OnNewTransaction -= foundCallback.Invoke;
+            Task.WaitAll(addressSyncTasks.ToArray(), ct);
+
+            var endTxCount = acc.Txs.Count;
+
+            if (currentTxCount < endTxCount)
+            {
+                Debug.WriteLine("[SyncAccountUntilGapLimit] Found more transactions in the gap, try again");
+
+                await SyncAccountUntilGapLimit(acc, ct);
+            }
         }
 
         /// <summary>
