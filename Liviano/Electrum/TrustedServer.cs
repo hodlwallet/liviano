@@ -528,10 +528,10 @@ namespace Liviano.Electrum
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
-                for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count; i++)
+                for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count - 1; i++)
                     addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
 
-                for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count; i++)
+                for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count - 1; i++)
                     addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
