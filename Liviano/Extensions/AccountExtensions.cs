@@ -27,6 +27,7 @@ using System;
 using System.Diagnostics;
 
 using Liviano.Accounts;
+using Liviano.Bips;
 using Liviano.Interfaces;
 
 namespace Liviano.Extensions
@@ -75,6 +76,26 @@ namespace Liviano.Extensions
                 Debug.WriteLine($"[TrySetProperty] Unable to set property of {name} on account, incorrect value {value}");
                 Debug.WriteLine($"[TrySetProperty] Error: {ex.Message}");
             }
+        }
+
+        public static string GetZPrv(this IAccount acc)
+        {
+            return acc.ExtKey.ToZPrv();
+        }
+
+        public static string GetZPub(this IAccount acc)
+        {
+            return acc.ExtPubKey.ToZPub();
+        }
+
+        public static string GetYPrv(this IAccount acc)
+        {
+            return acc.ExtKey.ToYPrv();
+        }
+
+        public static string GetYPub(this IAccount acc)
+        {
+            return acc.ExtPubKey.ToYPub();
         }
     }
 }
