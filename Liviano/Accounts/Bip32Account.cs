@@ -156,7 +156,7 @@ namespace Liviano.Accounts
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
             {
                 var lastExternalIndex = GetExternalLastIndex();
-                for (int i = ExternalAddresses[scriptPubKeyType].Count; i < lastExternalIndex + GapLimit; i++)
+                for (int i = ExternalAddresses[scriptPubKeyType].Count; i < lastExternalIndex + GapLimit + 1; i++)
                 {
                     var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
                     var address = pubKey.GetAddress(scriptPubKeyType, Network);
@@ -168,7 +168,7 @@ namespace Liviano.Accounts
                 }
 
                 var lastInternalIndex = GetInternalLastIndex();
-                for (int i = InternalAddresses[scriptPubKeyType].Count; i < lastInternalIndex + GapLimit; i++)
+                for (int i = InternalAddresses[scriptPubKeyType].Count; i < lastInternalIndex + GapLimit + 1; i++)
                 {
                     var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
                     var address = pubKey.GetAddress(scriptPubKeyType, Network);
