@@ -212,10 +212,11 @@ namespace Liviano.Electrum
             foreach (var addr in addresses)
                 addressWatchTasks.Add(WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct));
 
-            // This will wait forever...
-            Task.WaitAll(addressWatchTasks.ToArray(), ct);
-
-            await Task.Delay(1);
+            await Task.Factory.StartNew(
+                o => Task.WaitAll(addressWatchTasks.ToArray(), ct),
+                TaskCreationOptions.AttachedToParent,
+                ct
+            );
         }
 
         public async Task SubscribeToHeaders(IWallet wallet, CancellationToken ct)
@@ -537,7 +538,11 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            Task.WaitAll(addressSyncTasks.ToArray(), ct);
+            await Task.Factory.StartNew(
+                o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
+                TaskCreationOptions.AttachedToParent,
+                ct
+            );
 
             var endTxCount = acc.Txs.Count;
 
