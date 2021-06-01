@@ -568,10 +568,10 @@ namespace Liviano.CLI
                 thread.Dispose();
 
                 if (thread.ThreadState == System.Diagnostics.ThreadState.Terminated)
-                    logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds} seconds", thread.Id, thread.UserProcessorTime.TotalSeconds);
+                    logger.Information("Closing thread with pid: {pid}", thread.Id);
             }
 
-            logger.Information("Closing thread with pid: {pid}, opened for: {timeInSeconds}", process.Id, process.UserProcessorTime.TotalSeconds);
+            logger.Information("Closing process with pid: {pid}", process.Id);
             logger.Information("bye!");
 
             process.Close();
