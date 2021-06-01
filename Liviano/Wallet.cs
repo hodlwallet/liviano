@@ -478,7 +478,7 @@ namespace Liviano
 
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
-            await ElectrumPool.WatchWallet(this, ct);
+            await ElectrumPool.WatchAccount(CurrentAccount, ct);
         }
 
         private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)

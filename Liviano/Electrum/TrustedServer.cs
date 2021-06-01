@@ -191,6 +191,33 @@ namespace Liviano.Electrum
             foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
         }
 
+        /// <summary>
+        /// Watches an account for new transactions
+        /// </summary>
+        /// <param name="acc">An <see cref="IAccount"/> to watch</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
+        public async Task WatchAccount(IAccount acc, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            var changeAddresses = acc.GetChangeAddressesToWatch();
+            var receiveAddresses = acc.GetReceiveAddressesToWatch();
+
+            var addresses = new List<BitcoinAddress> { };
+
+            addresses.AddRange(changeAddresses);
+            addresses.AddRange(receiveAddresses);
+
+            var addressWatchTasks = new List<Task>();
+            foreach (var addr in addresses)
+                addressWatchTasks.Add(WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct));
+
+            // This will wait forever...
+            Task.WaitAll(addressWatchTasks.ToArray(), ct);
+
+            await Task.Delay(1);
+        }
+
         public async Task SubscribeToHeaders(IWallet wallet, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
@@ -303,7 +330,7 @@ namespace Liviano.Electrum
                 );
             }
 
-            // TODO This is too trusty... we need to handle reorgs as well
+            // TODO We need to handle reorgs as well
 
             wallet.Storage.Save();
 
@@ -352,31 +379,6 @@ namespace Liviano.Electrum
             network ??= Network.Main;
 
             return $"Liviano.Electrum.servers.hodlwallet_{network.Name.ToLower()}.json";
-        }
-
-        /// <summary>
-        /// Watches an account for new transactions
-        /// </summary>
-        /// <param name="acc">An <see cref="IAccount"/> to watch</param>
-        /// <param name="ct">a <see cref="CancellationToken"/> to stop this</param>
-        public async Task WatchAccount(IAccount acc, CancellationToken ct)
-        {
-            if (ct.IsCancellationRequested) return;
-
-            var changeAddresses = acc.GetChangeAddressesToWatch();
-            var receiveAddresses = acc.GetReceiveAddressesToWatch();
-
-            var addresses = new List<BitcoinAddress> { };
-
-            addresses.AddRange(changeAddresses);
-            addresses.AddRange(receiveAddresses);
-
-            foreach (var addr in addresses)
-                await Task.Factory.StartNew(
-                    async o => await WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct),
-                    TaskCreationOptions.AttachedToParent,
-                    ct
-                );
         }
 
         /// <summary>
