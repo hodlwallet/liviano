@@ -214,7 +214,7 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressWatchTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
         }
@@ -505,7 +505,7 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
 
@@ -544,7 +544,7 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
 
