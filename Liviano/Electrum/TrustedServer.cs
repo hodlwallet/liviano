@@ -503,7 +503,11 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
-            Task.WaitAll(addressSyncTasks.ToArray(), ct);
+            await Task.Factory.StartNew(
+                o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
+                TaskCreationOptions.AttachedToParent,
+                ct
+            );
 
             var endTxCount = acc.Txs.Count;
 
