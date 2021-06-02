@@ -32,6 +32,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Events;
+using System.Threading;
 
 namespace Liviano.Interfaces
 {
@@ -150,6 +151,9 @@ namespace Liviano.Interfaces
 
         [JsonIgnore]
         IWalletStorage Storage { get; set; }
+
+        [JsonIgnore]
+        CancellationTokenSource Cts { get; set; }
 
         [JsonProperty(PropertyName = "server", DefaultValueHandling = DefaultValueHandling.Ignore)]
         string Server { get; set; }

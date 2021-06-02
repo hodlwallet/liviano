@@ -127,6 +127,8 @@ namespace Liviano
             }
         }
 
+        public CancellationTokenSource Cts { get; set; }
+
         public IElectrumPool ElectrumPool { get; set; }
 
         public string Server { get; set; }
@@ -166,6 +168,8 @@ namespace Liviano
 
             CurrentAccountId ??= null;
             currentAccount ??= null;
+
+            Cts ??= new CancellationTokenSource();
 
             Seed = mnemonic;
 
@@ -355,8 +359,7 @@ namespace Liviano
         {
             Debug.WriteLine("[Watch] Watch started...");
 
-            var cts = new CancellationTokenSource();
-            var ct = cts.Token;
+            var ct = Cts.Token;
 
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
             ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
@@ -375,7 +378,7 @@ namespace Liviano
                     );
                 };
 
-            if (!ElectrumPool.Connected) await ElectrumPool.Connect(cts);
+            if (!ElectrumPool.Connected) await ElectrumPool.Connect(Cts);
         }
 
         /// <summary>
@@ -383,8 +386,7 @@ namespace Liviano
         /// </summary>
         public async Task SubscribeToHeaders()
         {
-            var cts = new CancellationTokenSource();
-            var ct = cts.Token;
+            var ct = Cts.Token;
 
             await ElectrumPool.SubscribeToHeaders(this, ct);
         }
