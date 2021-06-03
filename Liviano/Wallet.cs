@@ -429,8 +429,7 @@ namespace Liviano
         {
             Debug.WriteLine("[Sync] Syncing...");
 
-            var cts = new CancellationTokenSource();
-            var ct = cts.Token;
+            var ct = Cts.Token;
 
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
             ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
