@@ -446,7 +446,7 @@ namespace Liviano
                 );
 
             if (!ElectrumPool.Connected)
-                await ElectrumPool.Connect(cts);
+                await ElectrumPool.Connect(Cts);
         }
 
         private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
