@@ -39,6 +39,7 @@ using Liviano.Utilities;
 using Liviano.Models;
 using Liviano.Accounts;
 using Liviano.Exceptions;
+using System.Threading;
 
 namespace Liviano.Storages
 {
@@ -131,6 +132,8 @@ namespace Liviano.Storages
             Wallet.InitElectrumPool();
 
             Wallet.Storage = this;
+
+            if (Wallet.Cts is null) Wallet.Cts = new CancellationTokenSource();
 
             error = null;
 
