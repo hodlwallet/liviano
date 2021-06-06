@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
@@ -144,7 +145,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// ScriptPubKeyTypes of the addresses that it generates
         /// </summary>
-        [JsonProperty(PropertyName = "scriptPubKeyTypes")]
+        [JsonProperty(PropertyName = "scriptPubKeyTypes", ItemConverterType = typeof(StringEnumConverter))]
         List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         /// <summary>
