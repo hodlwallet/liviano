@@ -38,10 +38,7 @@ namespace Liviano.Accounts
         public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
             get => scriptPubKeyTypes;
-            set
-            {
-                scriptPubKeyTypes = value;
-            }
+            set => scriptPubKeyTypes = value;
         }
 
         public Bip44Account(Network network, int index = 0) : base(network, index) { }

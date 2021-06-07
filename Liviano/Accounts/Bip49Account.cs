@@ -33,14 +33,11 @@ namespace Liviano.Accounts
         public override string AccountType => "bip49";
         public override string HdPathFormat => "m/49'/{0}'/{1}'";
 
-        List<ScriptPubKeyType> scriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.SegwitP2SH };
+        List<ScriptPubKeyType> scriptPubKeyTypes = new() { ScriptPubKeyType.SegwitP2SH };
         public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
             get => scriptPubKeyTypes;
-            set
-            {
-                scriptPubKeyTypes = value;
-            }
+            set => scriptPubKeyTypes = value;
         }
 
         public Bip49Account(Network network, int index = 0) : base(network, index) { }

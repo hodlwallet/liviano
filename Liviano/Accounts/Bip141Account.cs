@@ -34,20 +34,16 @@ namespace Liviano.Accounts
         public override string AccountType => "bip141"; // HODL 1.0 legacy
         public override string HdPathFormat => "m/{0}'";
 
-        List<ScriptPubKeyType> scriptPubKeyTypes = new List<ScriptPubKeyType> ()
+        List<ScriptPubKeyType> scriptPubKeyTypes = new()
         {
             ScriptPubKeyType.Segwit,
             ScriptPubKeyType.Legacy
         };
 
-        // TODO This account should support 2 different addresses, legacy and segwit
         public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
             get => scriptPubKeyTypes;
-            set
-            {
-                scriptPubKeyTypes = value;
-            }
+            set => scriptPubKeyTypes = value;
         }
 
         public Bip141Account(Network network, int index = 0) : base(network, index) { }
