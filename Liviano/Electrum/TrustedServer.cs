@@ -605,7 +605,7 @@ namespace Liviano.Electrum
             {
                 if (ct.IsCancellationRequested) return;
 
-                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
 
                 BlockchainTransactionGetResult txRes;
                 try
@@ -614,7 +614,7 @@ namespace Liviano.Electrum
                 }
                 catch (ElectrumException e)
                 {
-                    Console.WriteLine($"[Sync] Error: {e.Message}");
+                    Console.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
                     await InsertTransactionsFromHistory(acc, addr, result, ct);
                     return;
@@ -642,16 +642,28 @@ namespace Liviano.Electrum
                     GetOutValueFromTxInputs
                 );
 
-                var txAddresses = Transaction.Parse(
-                    tx.Hex,
-                    Network
-                ).Outputs.Select(
-                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                );
+                var transaction = Transaction.Parse(tx.Hex, Network);
 
                 // Here we should see if the UsedExternalAddresses was there at
                 // first, if so, maybe find in the TX itself what tx or coin is this
                 // new trasaction is sending.
+
+                var spentTxIds = transaction.Inputs.Select(
+                    (o) => o.PrevOut.Hash
+                );
+
+                // TODO this code should be improved, moved to Accounts is an idea
+                // Loop over the tx ids from the intputs of the transaction
+                foreach (var txId in spentTxIds)
+                    // We check them with each outpoint of the transaction that's on the spent coins
+                    foreach (var unspentCoin in acc.UnspentCoins)
+                        // if found, we remove that UTXO from being used
+                        if (unspentCoin.Outpoint.Hash == txId)
+                            acc.RemoveUtxo(unspentCoin);
+
+                var txAddresses = transaction.Outputs.Select(
+                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+                );
 
                 foreach (var txAddr in txAddresses)
                 {
