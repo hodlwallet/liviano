@@ -649,6 +649,10 @@ namespace Liviano.Electrum
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
                 );
 
+                // Here we should see if the UsedExternalAddresses was there at
+                // first, if so, maybe find in the TX itself what tx or coin is this
+                // new trasaction is sending.
+
                 foreach (var txAddr in txAddresses)
                 {
                     if (acc.IsReceive(txAddr))
