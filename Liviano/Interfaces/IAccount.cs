@@ -203,6 +203,11 @@ namespace Liviano.Interfaces
         void RemoveUtxo(Coin coin);
 
         /// <summary>
+        /// Update UTXO list with the data from a transaction
+        /// </summary>
+        void UpdateUtxoListWithTransaction(Transaction transaction);
+
+        /// <summary>
         /// Gets 1 receiving address
         /// </summary>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>

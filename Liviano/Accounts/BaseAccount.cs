@@ -178,6 +178,21 @@ namespace Liviano.Accounts
             SpentCoins.Add(coin);
         }
 
+        public void UpdateUtxoListWithTransaction(Transaction transaction)
+        {
+            var spentTxIds = transaction.Inputs.Select(
+                (o) => o.PrevOut.Hash
+            );
+
+            // Loop over the tx ids from the intputs of the transaction
+            foreach (var txId in spentTxIds)
+                // We check them with each outpoint of the transaction that's on the spent coins
+                foreach (var unspentCoin in UnspentCoins.ToArray())
+                    // if found, we remove that UTXO from being used
+                    if (unspentCoin.Outpoint.Hash == txId)
+                        RemoveUtxo(unspentCoin);
+        }
+
         public void UpdateConfirmations(long height)
         {
             foreach (var tx in Txs)

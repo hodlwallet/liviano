@@ -477,6 +477,10 @@ namespace Liviano.Electrum
                             acc.UpdateTx(tx);
                             OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
+
+                        // Update list of UTXOs based on the transaction
+                        var transaction = Transaction.Parse(txHex, acc.Network);
+                        acc.UpdateUtxoListWithTransaction(transaction);
                     }
                 }
             );
@@ -644,22 +648,7 @@ namespace Liviano.Electrum
 
                 var transaction = Transaction.Parse(tx.Hex, Network);
 
-                // Here we should see if the UsedExternalAddresses was there at
-                // first, if so, maybe find in the TX itself what tx or coin is this
-                // new trasaction is sending.
-
-                var spentTxIds = transaction.Inputs.Select(
-                    (o) => o.PrevOut.Hash
-                );
-
-                // TODO this code should be improved, moved to Accounts is an idea
-                // Loop over the tx ids from the intputs of the transaction
-                foreach (var txId in spentTxIds)
-                    // We check them with each outpoint of the transaction that's on the spent coins
-                    foreach (var unspentCoin in acc.UnspentCoins.ToArray())
-                        // if found, we remove that UTXO from being used
-                        if (unspentCoin.Outpoint.Hash == txId)
-                            acc.RemoveUtxo(unspentCoin);
+                acc.UpdateUtxoListWithTransaction(transaction);
 
                 var txAddresses = transaction.Outputs.Select(
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
