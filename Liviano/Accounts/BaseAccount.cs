@@ -169,7 +169,7 @@ namespace Liviano.Accounts
 
         public void RemoveUtxo(Coin coin)
         {
-            foreach (var c in UnspentCoins)
+            foreach (var c in UnspentCoins.ToArray())
                 if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
                     UnspentCoins.Remove(c);
 
