@@ -394,6 +394,63 @@ namespace Liviano.CLI
         }
 
         /// <summary>
+        /// Freeze Coin
+        /// </summary>
+        public static void FreezeCoin(Config config, string coinTxId)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+        }
+
+        /// <summary>
+        /// Unfreeze Coin
+        /// </summary>
+        public static void UnfreezeCoin(Config config, string coinTxId)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+        }
+
+        /// <summary>
+        /// Show Coin
+        /// </summary>
+        public static void ShowCoins(Config config)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+
+            var acc = wallet.CurrentAccount;
+            var total = Money.Zero; // Reusable for totals
+
+            Console.WriteLine("Unspent Coins:");
+            Console.WriteLine("==============\n");
+            foreach (var unspentCoin in acc.UnspentCoins.ToList())
+            {
+                Console.WriteLine($"Id: {unspentCoin.Outpoint.Hash} Amount: {unspentCoin.Amount}");
+                total += unspentCoin.Amount;
+            }
+
+            Console.WriteLine($"Total: {total}\n");
+
+            Console.WriteLine("Spent Coins:");
+            Console.WriteLine("============\n");
+            total = Money.Zero;
+            foreach (var spentCoin in acc.SpentCoins.ToList())
+            {
+                Console.WriteLine($"Id: {spentCoin.Outpoint.Hash} Amount: {spentCoin.Amount}");
+                total += spentCoin.Amount;
+            }
+            Console.WriteLine($"Total: {total}\n");
+
+            total = Money.Zero;
+            Console.WriteLine("Frozen Coins:");
+            Console.WriteLine("=============\n");
+
+            Console.WriteLine("TODO");
+            Console.WriteLine($"Total: {total}");
+        }
+
+        /// Freeze Coin
+        /// </summary>
+
+        /// <summary>
         /// Starts a wallet and waits for new txs
         /// </summary>
         /// <param name="config">A <see cref="Config"/> for the light client</param>
