@@ -141,9 +141,9 @@ namespace Liviano.CLI
             IAccount account;
 
             if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
             else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
             else
                 account = wallet.Accounts.First();
 
@@ -192,11 +192,11 @@ namespace Liviano.CLI
             IAccount account;
 
             if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
             else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
             else
-                account = wallet.Accounts.First();
+                account = wallet.Accounts.FirstOrDefault();
 
             try
             {
@@ -235,11 +235,11 @@ namespace Liviano.CLI
             IAccount account;
 
             if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
             else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
             else
-                account = wallet.Accounts.First();
+                account = wallet.Accounts.FirstOrDefault();
 
             var txs = new List<Tx> { };
             foreach (var tx in account.Txs)
@@ -410,7 +410,7 @@ namespace Liviano.CLI
             }
 
             // Find our coin
-            var coin = wallet.CurrentAccount.UnspentCoins.Where((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n).FirstOrDefault();
+            var coin = wallet.CurrentAccount.UnspentCoins.FirstOrDefault(o => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n);
 
             wallet.CurrentAccount.FreezeUtxo(coin);
             wallet.Storage.Save();
@@ -426,7 +426,7 @@ namespace Liviano.CLI
             (string txId, int n) = ParseCoinString(frozenCoin);
 
             // Find our coin
-            var coin = wallet.CurrentAccount.FrozenCoins.Where((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n).FirstOrDefault();
+            var coin = wallet.CurrentAccount.FrozenCoins.FirstOrDefault(o => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n);
 
             wallet.CurrentAccount.UnfreezeUtxo(coin);
             wallet.Storage.Save();
