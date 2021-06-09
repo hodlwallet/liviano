@@ -489,9 +489,6 @@ namespace Liviano.CLI
             Console.WriteLine($"Total: {total}");
         }
 
-        /// Freeze Coin
-        /// </summary>
-
         /// <summary>
         /// Starts a wallet and waits for new txs
         /// </summary>
