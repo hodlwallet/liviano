@@ -92,6 +92,7 @@ namespace Liviano.Accounts
 
             SpentCoins ??= new List<Coin>();
             UnspentCoins ??= new List<Coin>();
+            FrozenCoins ??= new List<Coin>();
 
             Index = index;
 

@@ -171,6 +171,12 @@ namespace Liviano.Interfaces
         List<Coin> SpentCoins { get; set; }
 
         /// <summary>
+        /// The frozen (banned or blocked) transaction outputs
+        /// to prevent usage during coin selection, to use in coin control features
+        /// </summary>
+        List<Coin> FrozenCoins { get; set; }
+
+        /// <summary>
         /// All external addresses generated
         /// </summary>
         [JsonProperty(PropertyName = "externalAddresses", NullValueHandling = NullValueHandling.Ignore)]
@@ -201,6 +207,16 @@ namespace Liviano.Interfaces
         /// Remove UTXO
         /// </summary>
         void RemoveUtxo(Coin coin);
+
+        /// <summary>
+        /// Freeze UTXO
+        /// </summary>
+        void FreezeUtxo(Coin coin);
+
+        /// <summary>
+        /// Unfreeze UTXO
+        /// </summary>
+        void UnfreezeUtxo(Coin coin);
 
         /// <summary>
         /// Update UTXO list with the data from a transaction

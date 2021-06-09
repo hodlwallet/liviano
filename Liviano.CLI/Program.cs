@@ -83,8 +83,8 @@ namespace Liviano.CLI
         static bool start = false;
         static bool resync = false;
         static bool coinControl = false;
-        static string freezeCoinTxId = null;
-        static string unfreezeCoinTxId = null;
+        static string freezeCoin = null;
+        static string unfreezeCoin = null;
         static bool version = false;
 
         // Parse extra options arguments
@@ -135,8 +135,8 @@ namespace Liviano.CLI
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 // {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
-                {"fc|freeze-coin=", "TxId of the coin to freeze", (string v) => freezeCoinTxId = v},
-                {"ufc|unfreeze-coin=", "TxId of the coin to unfreeze", (string v) => unfreezeCoinTxId = v},
+                {"fc|freeze-coin=", "TxId of the coin to freeze", (string v) => freezeCoin = v},
+                {"ufc|unfreeze-coin=", "TxId of the coin to unfreeze", (string v) => unfreezeCoin = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -417,14 +417,14 @@ namespace Liviano.CLI
             {
                 // Check if we want to freeze or unfreeze
                 List<string> actions = new List<string>();
-                if (!string.IsNullOrEmpty(freezeCoinTxId))
+                if (!string.IsNullOrEmpty(freezeCoin))
                 {
-                    actions.Add("freeze-coin");
+                    actions.Add("freeze");
                 }
 
-                if (!string.IsNullOrEmpty(unfreezeCoinTxId))
+                if (!string.IsNullOrEmpty(unfreezeCoin))
                 {
-                    actions.Add("unfreeze-coin");
+                    actions.Add("unfreeze");
                 }
 
                 // We always wanna list the coins at the end
@@ -435,10 +435,10 @@ namespace Liviano.CLI
                     switch (action)
                     {
                         case "freeze":
-                            LightClient.FreezeCoin(config, freezeCoinTxId);
+                            LightClient.FreezeCoin(config, freezeCoin);
                             break;
                         case "unfreeze":
-                            LightClient.UnfreezeCoin(config, freezeCoinTxId);
+                            LightClient.UnfreezeCoin(config, unfreezeCoin);
                             break;
                         case "list":
                             LightClient.ShowCoins(config);

@@ -90,6 +90,7 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public List<Coin> UnspentCoins { get; set; }
         public List<Coin> SpentCoins { get; set; }
+        public List<Coin> FrozenCoins { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
@@ -176,6 +177,24 @@ namespace Liviano.Accounts
             if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
             SpentCoins.Add(coin);
+        }
+
+        public void FreezeUtxo(Coin coin)
+        {
+            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            if (FrozenCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            if (UnspentCoins.All(c => c.Outpoint.Hash != coin.Outpoint.Hash && c.Outpoint.N != coin.Outpoint.N)) return;
+
+            FrozenCoins.Add(coin);
+            UnspentCoins.Remove(coin);
+        }
+
+        public void UnfreezeUtxo(Coin coin)
+        {
+            if (!FrozenCoins.Contains(coin)) return;
+
+            FrozenCoins.Remove(coin);
+            UnspentCoins.Add(coin);
         }
 
         public void UpdateUtxoListWithTransaction(Transaction transaction)

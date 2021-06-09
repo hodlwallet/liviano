@@ -396,17 +396,53 @@ namespace Liviano.CLI
         /// <summary>
         /// Freeze Coin
         /// </summary>
-        public static void FreezeCoin(Config config, string coinTxId)
+        public static void FreezeCoin(Config config, string coinToFreeze)
         {
             if (wallet is null) Load(config, skipAuth: true);
+
+            (string txId, int n) = ParseCoinString(coinToFreeze);
+
+            if (!wallet.CurrentAccount.UnspentCoins.Exists((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n))
+            {
+                Console.WriteLine($"Could not find coin: {coinToFreeze}");
+
+                return;
+            }
+
+            // Find our coin
+            var coin = wallet.CurrentAccount.UnspentCoins.Where((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n).FirstOrDefault();
+
+            wallet.CurrentAccount.FreezeUtxo(coin);
+            wallet.Storage.Save();
         }
 
         /// <summary>
         /// Unfreeze Coin
         /// </summary>
-        public static void UnfreezeCoin(Config config, string coinTxId)
+        public static void UnfreezeCoin(Config config, string frozenCoin)
         {
             if (wallet is null) Load(config, skipAuth: true);
+
+            (string txId, int n) = ParseCoinString(frozenCoin);
+
+            // Find our coin
+            var coin = wallet.CurrentAccount.FrozenCoins.Where((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n).FirstOrDefault();
+
+            wallet.CurrentAccount.UnfreezeUtxo(coin);
+            wallet.Storage.Save();
+        }
+
+        static (string, int) ParseCoinString(string coinStr)
+        {
+            var parsed = coinStr.Split(':');
+
+            if (parsed.Length != 2)
+                throw new WalletException("Invalid coin format, must be txid:N");
+
+            var txId = parsed[0];
+            var n = int.Parse(parsed[1]);
+
+            return (txId, n);
         }
 
         /// <summary>
@@ -421,9 +457,10 @@ namespace Liviano.CLI
 
             Console.WriteLine("Unspent Coins:");
             Console.WriteLine("==============\n");
+            if (!acc.UnspentCoins.Any()) Console.WriteLine("-- Empty --");
             foreach (var unspentCoin in acc.UnspentCoins.ToList())
             {
-                Console.WriteLine($"Id: {unspentCoin.Outpoint.Hash} Amount: {unspentCoin.Amount}");
+                Console.WriteLine($"{unspentCoin.Outpoint.Hash}:{unspentCoin.Outpoint.N} Amount: {unspentCoin.Amount}");
                 total += unspentCoin.Amount;
             }
 
@@ -432,18 +469,23 @@ namespace Liviano.CLI
             Console.WriteLine("Spent Coins:");
             Console.WriteLine("============\n");
             total = Money.Zero;
+            if (!acc.SpentCoins.Any()) Console.WriteLine("-- Empty --");
             foreach (var spentCoin in acc.SpentCoins.ToList())
             {
-                Console.WriteLine($"Id: {spentCoin.Outpoint.Hash} Amount: {spentCoin.Amount}");
+                Console.WriteLine($"{spentCoin.Outpoint.Hash}:{spentCoin.Outpoint.N} Amount: {spentCoin.Amount}");
                 total += spentCoin.Amount;
             }
             Console.WriteLine($"Total: {total}\n");
 
-            total = Money.Zero;
             Console.WriteLine("Frozen Coins:");
             Console.WriteLine("=============\n");
-
-            Console.WriteLine("TODO");
+            total = Money.Zero;
+            if (!acc.FrozenCoins.Any()) Console.WriteLine("-- Empty --");
+            foreach (var frozenCoin in acc.FrozenCoins.ToList())
+            {
+                Console.WriteLine($"{frozenCoin.Outpoint.Hash}:{frozenCoin.Outpoint.N} Amount: {frozenCoin.Amount}");
+                total += frozenCoin.Amount;
+            }
             Console.WriteLine($"Total: {total}");
         }
 
