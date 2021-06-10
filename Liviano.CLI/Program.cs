@@ -468,7 +468,6 @@ namespace Liviano.CLI
                 var res = LightClient.Send(
                     config,
                     address, amount, feeSatsPerByte,
-                    accountName: null, accountIndex: accountIndex,
                     passphrase: passphrase
                 );
 

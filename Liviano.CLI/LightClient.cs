@@ -131,27 +131,18 @@ namespace Liviano.CLI
         public static async Task<(Transaction Transaction, string Error)> Send(
                 Config config,
                 string destinationAddress, double amount, int feeSatsPerByte,
-                string accountName = null, int accountIndex = -1, string passphrase = "")
+                string passphrase = "")
         {
             Load(config, passphrase: passphrase, skipAuth: false);
 
             Transaction tx = null;
             string error;
 
-            IAccount account;
-
-            if (accountName != null)
-                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
-            else if (accountIndex != -1)
-                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
-            else
-                account = wallet.Accounts.First();
-
             try
             {
                 // TODO create transaction should not require a passphrase it should error,
                 // if no pk is found in the account in that case we need to authenticate
-                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, passphrase);
+                (tx, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, passphrase);
 
                 if (!string.IsNullOrEmpty(error)) return (tx, error);
             }
@@ -255,8 +246,8 @@ namespace Liviano.CLI
             foreach (var tx in txs)
             {
                 logger.Information(
-                    "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                    tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                    "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                    tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                 );
             }
 
@@ -369,8 +360,8 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                            tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                         );
 
                         total += tx.IsReceive ? tx.AmountReceived : -tx.AmountSent;
