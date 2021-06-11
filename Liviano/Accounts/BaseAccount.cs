@@ -170,7 +170,7 @@ namespace Liviano.Accounts
 
         public void RemoveUtxo(Coin coin)
         {
-            foreach (var c in UnspentCoins.ToArray())
+            foreach (var c in UnspentCoins.ToList())
                 if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
                     UnspentCoins.Remove(c);
 
@@ -199,16 +199,12 @@ namespace Liviano.Accounts
 
         public void UpdateUtxoListWithTransaction(Transaction transaction)
         {
-            var spentTxIds = transaction.Inputs.Select(
-                (o) => o.PrevOut.Hash
-            );
-
             // Loop over the tx ids from the intputs of the transaction
-            foreach (var txId in spentTxIds)
+            foreach (var input in transaction.Inputs.ToList())
                 // We check them with each outpoint of the transaction that's on the spent coins
-                foreach (var unspentCoin in UnspentCoins.ToArray())
+                foreach (var unspentCoin in UnspentCoins.ToList())
                     // if found, we remove that UTXO from being used
-                    if (unspentCoin.Outpoint.Hash == txId)
+                    if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
                         RemoveUtxo(unspentCoin);
         }
 
