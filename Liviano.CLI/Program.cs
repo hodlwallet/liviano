@@ -483,7 +483,7 @@ namespace Liviano.CLI
                     return 1;
                 }
 
-                Console.WriteLine("Successfully sent transaction!");
+                logger.Information("Successfully sent transaction, id: {id}", tx.GetHash().ToString());
 
                 return 0;
             }
