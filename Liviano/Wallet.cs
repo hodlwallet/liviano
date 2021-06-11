@@ -610,18 +610,12 @@ namespace Liviano
 
             var index = ++AccountsIndex[type];
 
-            switch (type)
+            return type switch
             {
-                case "bip44":
-                case "bip49":
-                case "bip84":
-                case "bip141":
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
-                case "paper":
-                    return PaperAccount.Create(name, options);
-                default:
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip84", Index = index });
-            }
+                "bip44" or "bip49" or "bip84" or "bip141" => Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index }),
+                "paper" => PaperAccount.Create(name, options),
+                _ => Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip84", Index = index }),
+            };
         }
 
         public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = null)

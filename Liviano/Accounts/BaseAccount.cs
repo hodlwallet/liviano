@@ -230,7 +230,7 @@ namespace Liviano.Accounts
                 var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
 
                 if (
-                    !DateTimeOffset.Equals(txCreatedAt, default(DateTimeOffset)) ||
+                    !DateTimeOffset.Equals(txCreatedAt, default) ||
                     !tx.HasAproxCreatedAt
                 ) continue;
 
@@ -248,7 +248,7 @@ namespace Liviano.Accounts
                     continue;
                 }
 
-                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
+                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header);
                 tx.HasAproxCreatedAt = true;
 
                 OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
@@ -274,7 +274,7 @@ namespace Liviano.Accounts
             return false;
         }
 
-        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header, Tx tx)
+        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header)
         {
             var blocksApart = currentBlockHeight - txBlockHeight;
             var minutes = blocksApart * 10;

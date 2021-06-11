@@ -389,7 +389,7 @@ namespace Liviano.Electrum
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] changeAddresses,
+                BitcoinAddress[] _,
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;

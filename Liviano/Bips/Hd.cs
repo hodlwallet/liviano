@@ -197,16 +197,12 @@ namespace Liviano.Bips
             if (hdRootPath != null)
                 return $"{hdRootPath}/{accountIndex}";
 
-            switch (purpose)
+            return purpose switch
             {
-                case null:
-                    return $"m/84'/{coinType}'/{accountIndex}'";
-                case "32":
-                case "141":
-                    return $"m/0'"; // This is a very very very assumption.
-                default:
-                    return $"m/{purpose}'/{coinType}'/{accountIndex}'";
-            }
+                null => $"m/84'/{coinType}'/{accountIndex}'",
+                "32" or "141" => $"m/0'",// This is a very very very assumption.
+                _ => $"m/{purpose}'/{coinType}'/{accountIndex}'",
+            };
         }
 
         /// <summary>
@@ -333,8 +329,8 @@ namespace Liviano.Bips
             if (amountAround <= 0)
                 throw new WalletException($"It's not allowed to wrap the word around {amountAround} words");
 
-            Random rng = new Random();
-            List<string> guessWords = new List<string>(amountAround + 1);
+            Random rng = new();
+            List<string> guessWords = new(amountAround + 1);
             ReadOnlyCollection<string> dictionaryWordlist;
             dictionaryWordlist = WordlistFromString(language).GetWords();
 
@@ -368,7 +364,7 @@ namespace Liviano.Bips
         public static bool IsInMnemonicAtIndex(string mnemonic, string word, int index)
         {
             Guard.NotEmpty(mnemonic, nameof(mnemonic));
-            Mnemonic bitcoinMnemonic = new Mnemonic(mnemonic);
+            Mnemonic bitcoinMnemonic = new(mnemonic);
 
             return IsInMnemonicAtIndex(bitcoinMnemonic, word, index);
         }

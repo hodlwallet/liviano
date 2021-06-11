@@ -137,7 +137,7 @@ namespace Liviano.Electrum
             // The end of the message is signaled using the
             // "<EOF>" marker.
             byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
+            StringBuilder messageData = new();
 
             int bytes = -1;
             string[] msgs;
@@ -176,7 +176,7 @@ namespace Liviano.Electrum
             // The end of the message is signaled using the
             // "<EOF>" marker.
             byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
+            StringBuilder messageData = new();
 
             int bytes = -1;
             while (bytes != 0)
@@ -226,7 +226,7 @@ namespace Liviano.Electrum
             // "<EOF>" marker.
             //byte[] buffer = new byte[2048]; // TODO investigate why this doesn't work
             byte[] buffer = new byte[400000 + 78]; // Max size of a transaction + size of json structure
-            StringBuilder messageData = new StringBuilder();
+            StringBuilder messageData = new();
 
             int bytes = -1;
             while (bytes != 0)

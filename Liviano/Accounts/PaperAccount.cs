@@ -288,12 +288,12 @@ namespace Liviano.Accounts
             return coins.ToArray();
         }
 
-        public new int GetExternalIndex(BitcoinAddress address)
+        public new int GetExternalIndex(BitcoinAddress _)
         {
             return 0;
         }
 
-        public new int GetInternalIndex(BitcoinAddress address)
+        public new int GetInternalIndex(BitcoinAddress _)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }

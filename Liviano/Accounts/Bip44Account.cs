@@ -34,7 +34,7 @@ namespace Liviano.Accounts
         public override string AccountType => "bip44";
         public override string HdPathFormat => "m/44'/{0}'/{1}'";
 
-        List<ScriptPubKeyType> scriptPubKeyTypes = new List<ScriptPubKeyType> { ScriptPubKeyType.Legacy };
+        List<ScriptPubKeyType> scriptPubKeyTypes = new() { ScriptPubKeyType.Legacy };
         public override List<ScriptPubKeyType> ScriptPubKeyTypes
         {
             get => scriptPubKeyTypes;

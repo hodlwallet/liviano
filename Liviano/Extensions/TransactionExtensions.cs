@@ -103,7 +103,7 @@ namespace Liviano.Extensions
         }
 
         public static bool VerifyTransaction(
-                IAccount account,
+                IAccount _,
                 TransactionBuilder builder,
                 Transaction tx,
                 out WalletException[] transactionPolicyErrors)

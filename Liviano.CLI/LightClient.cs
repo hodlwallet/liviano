@@ -506,12 +506,12 @@ namespace Liviano.CLI
 
             wallet.ElectrumPool.OnNewTransaction += (s, txArgs) => 
             {
-                logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+                logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };
 
             wallet.ElectrumPool.OnUpdateTransaction += (s, txArgs) => 
             {
-                logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+                logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };
 
             wallet.OnNewHeaderNotified += (s, headerArgs) =>

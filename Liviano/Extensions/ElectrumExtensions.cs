@@ -63,7 +63,7 @@ namespace Liviano.Extensions
 
         public static bool ContainsAllServers(this List<Server> servers, Server[] serversToCompare)
         {
-            List<bool> res = new List<bool> { };
+            List<bool> res = new() { };
 
             foreach (var s in serversToCompare)
             {
