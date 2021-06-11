@@ -99,9 +99,7 @@ namespace Liviano.Extensions
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
 
-            builder.SignTransactionInPlace(tx);
-
-            return tx;
+            return builder.SignTransactionInPlace(tx);
         }
 
         public static bool VerifyTransaction(

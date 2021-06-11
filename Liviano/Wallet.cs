@@ -627,7 +627,6 @@ namespace Liviano
         public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = null)
         {
             Transaction tx = null;
-            string error = null;
             var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
 
             try
@@ -639,17 +638,6 @@ namespace Liviano
                 Debug.WriteLine($"[CreateTransaction] Error: {err.Message}");
 
                 return (tx, err.Message);
-            }
-
-            TransactionExtensions.VerifyTransaction(account, tx, out var errors);
-
-            if (errors.Any())
-            {
-                error = string.Join<string>(", ", errors.Select(o => o.Message));
-
-                Debug.WriteLine($"[CreateTransaction] Error: {error}");
-
-                return (tx, error);
             }
 
             return (tx, null);
