@@ -618,7 +618,7 @@ namespace Liviano
             };
         }
 
-        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = null)
+        public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, bool rbf, string passphrase = null)
         {
             Transaction tx = null;
             TransactionBuilder builder = null;
@@ -627,7 +627,7 @@ namespace Liviano
 
             try
             {
-                (builder, tx) = TransactionExtensions.CreateTransaction(destinationAddress, txAmount, (long)feeSatsPerByte, account);
+                (builder, tx) = TransactionExtensions.CreateTransaction(destinationAddress, txAmount, (long)feeSatsPerByte, rbf, account);
             }
             catch (WalletException err)
             {

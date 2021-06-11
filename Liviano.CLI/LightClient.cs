@@ -142,7 +142,7 @@ namespace Liviano.CLI
             {
                 // TODO create transaction should not require a passphrase it should error,
                 // if no pk is found in the account in that case we need to authenticate
-                (tx, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, passphrase);
+                (tx, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, true, passphrase);
 
                 if (!string.IsNullOrEmpty(error)) return (tx, error);
             }

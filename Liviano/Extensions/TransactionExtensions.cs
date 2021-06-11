@@ -65,6 +65,7 @@ namespace Liviano.Extensions
                 string destinationAddress,
                 Money amount,
                 long satsPerByte,
+                bool rbf,
                 IAccount account)
         {
             // Get coins from coin selector that satisfy our amount.
@@ -88,7 +89,7 @@ namespace Liviano.Extensions
             builder.AddKeys(keys);
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
-            builder.SetOptInRBF(true);
+            builder.SetOptInRBF(rbf);
             builder.SendEstimatedFees(new FeeRate((decimal) satsPerByte));
 
             // Create transaction builder
