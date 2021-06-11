@@ -293,21 +293,5 @@ namespace Liviano.Accounts
         {
             return GetReceiveAddressesToWatch();
         }
-
-        public new void AddUtxo(Coin coin)
-        {
-            if (SpentCoins.Contains(coin)) return;
-            if (UnspentCoins.Contains(coin)) return;
-
-            UnspentCoins.Add(coin);
-        }
-
-        public new void RemoveUtxo(Coin coin)
-        {
-            if (SpentCoins.Contains(coin)) return;
-            if (UnspentCoins.Contains(coin)) UnspentCoins.Remove(coin);
-
-            SpentCoins.Add(coin);
-        }
     }
 }

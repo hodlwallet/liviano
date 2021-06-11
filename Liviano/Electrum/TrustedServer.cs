@@ -217,6 +217,8 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
+
+            acc.FindAndRemoveDuplicateUtxo();
         }
 
         public async Task SubscribeToHeaders(IWallet wallet, CancellationToken ct)
@@ -512,6 +514,8 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
+
+            acc.FindAndRemoveDuplicateUtxo();
 
             var endTxCount = acc.Txs.Count;
 

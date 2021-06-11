@@ -208,6 +208,21 @@ namespace Liviano.Accounts
                         RemoveUtxo(unspentCoin);
         }
 
+        public void FindAndRemoveDuplicateUtxo()
+        {
+            foreach (var spentCoin in SpentCoins.ToList())
+            {
+                if (UnspentCoins.Contains(spentCoin))
+                    UnspentCoins.Remove(spentCoin);
+            }
+
+            foreach (var frozenCoin in FrozenCoins.ToList())
+            {
+                if (UnspentCoins.Contains(frozenCoin))
+                    UnspentCoins.Remove(frozenCoin);
+            }
+        }
+
         public void UpdateConfirmations(long height)
         {
             foreach (var tx in Txs)

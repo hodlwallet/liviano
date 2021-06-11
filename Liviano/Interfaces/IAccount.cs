@@ -224,6 +224,11 @@ namespace Liviano.Interfaces
         void UpdateUtxoListWithTransaction(Transaction transaction);
 
         /// <summary>
+        /// Finds and remove duplicate utxos on account
+        /// </summary>
+        void FindAndRemoveDuplicateUtxo();
+
+        /// <summary>
         /// Gets 1 receiving address
         /// </summary>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>
