@@ -78,7 +78,7 @@ namespace Liviano.Extensions
 
             var keys = GetCoinsKeys(coins, account);
 
-            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => $"{o.Outpoint.Hash.ToString()}-{o.Outpoint.N}"))}");
+            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => $"{o.Outpoint.Hash}-{o.Outpoint.N}"))}");
             Debug.WriteLine($"[CreateTransaction] Keys: {string.Join(",", keys.Select(o => $"{o.GetWif(account.Network)}"))}");
 
             var builder = account.Network.CreateTransactionBuilder();
@@ -89,7 +89,7 @@ namespace Liviano.Extensions
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
             builder.SetOptInRBF(true);
-            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+            builder.SendEstimatedFees(new FeeRate((decimal) satsPerByte));
 
             // Create transaction builder
             var tx = builder.BuildTransaction(sign: true);
