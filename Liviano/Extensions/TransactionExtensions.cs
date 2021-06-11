@@ -61,7 +61,7 @@ namespace Liviano.Extensions
             return extKey.PrivateKey;
         }
 
-        public static Transaction CreateTransaction(
+        public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
                 string destinationAddress,
                 Money amount,
                 long satsPerByte,
@@ -99,15 +99,15 @@ namespace Liviano.Extensions
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
 
-            return builder.SignTransactionInPlace(tx);
+            return (builder, builder.SignTransactionInPlace(tx));
         }
 
         public static bool VerifyTransaction(
                 IAccount account,
+                TransactionBuilder builder,
                 Transaction tx,
                 out WalletException[] transactionPolicyErrors)
         {
-            var builder = account.Network.CreateTransactionBuilder();
             var flag = builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
 
