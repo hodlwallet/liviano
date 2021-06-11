@@ -231,13 +231,7 @@ namespace Liviano.Accounts
 
         public override Money GetBalance()
         {
-            var total = Money.Zero;
-            foreach (var unspentCoin in UnspentCoins.ToList())
-            {
-                total += unspentCoin.TxOut.Value;
-            }
-
-            return total;
+            return UnspentCoins.ToList().Sum(o => o.TxOut.Value);
         }
 
         public new int GetExternalLastIndex()
