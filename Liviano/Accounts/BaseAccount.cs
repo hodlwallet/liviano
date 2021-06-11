@@ -39,6 +39,8 @@ namespace Liviano.Accounts
 {
     public abstract class BaseAccount : IAccount
     {
+        object @lock = new();
+
         public string Id { get; set; }
 
         public abstract string AccountType { get; }
@@ -162,64 +164,82 @@ namespace Liviano.Accounts
 
         public void AddUtxo(Coin coin)
         {
-            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
-            if (UnspentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            lock (@lock)
+            {
+                if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+                if (UnspentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
-            UnspentCoins.Add(coin);
+                UnspentCoins.Add(coin);
+            }
         }
 
         public void RemoveUtxo(Coin coin)
         {
-            foreach (var c in UnspentCoins.ToList())
-                if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
-                    UnspentCoins.Remove(c);
+            lock (@lock)
+            {
+                foreach (var c in UnspentCoins.ToList())
+                    if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
+                        UnspentCoins.Remove(c);
 
-            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+                if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
-            SpentCoins.Add(coin);
+                SpentCoins.Add(coin);
+            }
         }
 
         public void FreezeUtxo(Coin coin)
         {
-            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
-            if (FrozenCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
-            if (UnspentCoins.All(c => c.Outpoint.Hash != coin.Outpoint.Hash && c.Outpoint.N != coin.Outpoint.N)) return;
+            lock (@lock)
+            {
+                if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+                if (FrozenCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+                if (UnspentCoins.All(c => c.Outpoint.Hash != coin.Outpoint.Hash && c.Outpoint.N != coin.Outpoint.N)) return;
 
-            FrozenCoins.Add(coin);
-            UnspentCoins.Remove(coin);
+                FrozenCoins.Add(coin);
+                UnspentCoins.Remove(coin);
+            }
         }
 
         public void UnfreezeUtxo(Coin coin)
         {
-            if (!FrozenCoins.Contains(coin)) return;
+            lock (@lock)
+            {
+                if (!FrozenCoins.Contains(coin)) return;
 
-            FrozenCoins.Remove(coin);
-            UnspentCoins.Add(coin);
+                FrozenCoins.Remove(coin);
+                UnspentCoins.Add(coin);
+            }
         }
 
         public void UpdateUtxoListWithTransaction(Transaction transaction)
         {
-            // Loop over the tx ids from the intputs of the transaction
-            foreach (var input in transaction.Inputs.ToList())
-                // We check them with each outpoint of the transaction that's on the spent coins
-                foreach (var unspentCoin in UnspentCoins.ToList())
-                    // if found, we remove that UTXO from being used
-                    if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
-                        RemoveUtxo(unspentCoin);
+            lock (@lock)
+            {
+                // Loop over the tx ids from the intputs of the transaction
+                foreach (var input in transaction.Inputs.ToList())
+                    // We check them with each outpoint of the transaction that's on the spent coins
+                    foreach (var unspentCoin in UnspentCoins.ToList())
+                        // if found, we remove that UTXO from being used
+                        if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
+                            RemoveUtxo(unspentCoin);
+            }
         }
 
         public void FindAndRemoveDuplicateUtxo()
         {
-            foreach (var spentCoin in SpentCoins.ToList())
+            lock (@lock)
             {
-                if (UnspentCoins.Contains(spentCoin))
-                    UnspentCoins.Remove(spentCoin);
-            }
+                foreach (var spentCoin in SpentCoins.ToList())
+                {
+                    if (UnspentCoins.Contains(spentCoin))
+                        UnspentCoins.Remove(spentCoin);
+                }
 
-            foreach (var frozenCoin in FrozenCoins.ToList())
-            {
-                if (UnspentCoins.Contains(frozenCoin))
-                    UnspentCoins.Remove(frozenCoin);
+                foreach (var frozenCoin in FrozenCoins.ToList())
+                {
+                    if (UnspentCoins.Contains(frozenCoin))
+                        UnspentCoins.Remove(frozenCoin);
+                }
             }
         }
 
