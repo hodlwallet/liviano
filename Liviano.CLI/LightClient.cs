@@ -243,7 +243,7 @@ namespace Liviano.CLI
 
             Console.WriteLine("");
 
-            foreach (var tx in txs)
+            foreach (var tx in txs.OrderByDescending(o => o.CreatedAt))
             {
                 logger.Information(
                     "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
