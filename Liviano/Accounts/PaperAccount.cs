@@ -34,6 +34,7 @@ using NBitcoin;
 using Liviano.Utilities;
 using Liviano.Extensions;
 using Liviano.Models;
+using System.Linq;
 
 namespace Liviano.Accounts
 {
@@ -230,22 +231,13 @@ namespace Liviano.Accounts
 
         public override Money GetBalance()
         {
-            var received = Money.Zero;
-            var sent = Money.Zero;
-
-            foreach (var tx in Txs)
+            var total = Money.Zero;
+            foreach (var unspentCoin in UnspentCoins.ToList())
             {
-                if (tx.IsSend)
-                {
-                    sent += tx.AmountSent;
-                }
-                else
-                {
-                    received += tx.AmountReceived;
-                }
+                total += unspentCoin.TxOut.Value;
             }
 
-            return received - sent;
+            return total;
         }
 
         public new int GetExternalLastIndex()
