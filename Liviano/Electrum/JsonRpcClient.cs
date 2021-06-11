@@ -320,8 +320,6 @@ namespace Liviano.Electrum
 
                         if (json.ContainsKey("method")) // A subscription notification
                         {
-                            //Debug.WriteLine("[ConsumeMessages] A response result for a notification");
-
                             var @params = json.GetValue("params");
                             var method = (string) json.GetValue("method");
 
@@ -364,7 +362,7 @@ namespace Liviano.Electrum
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[ConsumeMessages] Error: {e.StackTrace}");
+                Debug.WriteLine($"[ConsumeMessages] Error: {e.Message}, Stracktrace: {e.StackTrace}");
 
                 readingStream = false;
 
