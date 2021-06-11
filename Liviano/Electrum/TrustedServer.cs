@@ -500,10 +500,10 @@ namespace Liviano.Electrum
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
-                foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType])
+                foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType].ToList())
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
 
-                foreach (var addressData in acc.InternalAddresses[scriptPubKeyType])
+                foreach (var addressData in acc.InternalAddresses[scriptPubKeyType].ToList())
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
