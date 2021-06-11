@@ -37,7 +37,7 @@ namespace Liviano.Electrum
     public class ElectrumClient
     {
         public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
-        public static System.Version REQUESTED_VERSION = new System.Version("1.4");
+        public static System.Version REQUESTED_VERSION = new("1.4");
 
         readonly JsonRpcClient jsonRpcClient;
 
@@ -310,7 +310,7 @@ namespace Liviano.Electrum
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
         {
-            readonly Regex pascalToUnderScoreRegex = new Regex(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
+            readonly Regex pascalToUnderScoreRegex = new(@"((?<=.)[A-Z][a-zA-Z]*)|((?<=[a-zA-Z])\d+)", RegexOptions.Multiline);
             readonly string pascalToUnderScoreReplacementExpression = "_$1$2";
 
             protected override string ResolvePropertyName(string propertyName)
@@ -520,7 +520,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainTransactionGetResult> BlockchainTransactionGet(string txhash)
         {
-            List<object> @params = new List<object> { txhash, false };
+            List<object> @params = new() { txhash, false };
 
             var obj = new Request { Id = NewRequestId(), Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
@@ -537,7 +537,7 @@ namespace Liviano.Electrum
                 );
             }
 
-            List<object> @params = new List<object> { txhash, true };
+            List<object> @params = new() { txhash, true };
 
             var obj = new Request { Id = NewRequestId(), Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
@@ -547,7 +547,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainTransactionGetMerkleResult> BlockchainTransactionGetMerkle(string txhash, int height)
         {
-            List<object> @params = new List<object> { txhash, height };
+            List<object> @params = new() { txhash, height };
 
             var obj = new Request { Id = NewRequestId(), Method = "blockchain.transaction.get", Params = @params };
             var json = Serialize(obj);
@@ -557,7 +557,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainTransactionIdFromPosResult> BlockchainTransactionIdFromPos(int height, int txPos)
         {
-            List<object> @params = new List<object> { height, txPos, false };
+            List<object> @params = new() { height, txPos, false };
 
             var obj = new Request { Id = NewRequestId(), Method = "blockchain.transaction.id_from_pos", Params = @params };
             var json = Serialize(obj);
@@ -567,7 +567,7 @@ namespace Liviano.Electrum
 
         public async Task<BlockchainTransactionIdFromPosMerkleResult> BlockchainTransactionIdFromPosMerkle(int height, int txPos)
         {
-            List<object> @params = new List<object> { height, txPos, true };
+            List<object> @params = new() { height, txPos, true };
 
             var obj = new Request { Id = NewRequestId(), Method = "blockchain.transaction.id_from_pos", Params = @params };
             var json = Serialize(obj);
@@ -577,7 +577,7 @@ namespace Liviano.Electrum
 
         public async Task<MempoolGetFeeHistogramResult> MempoolGetFeeHistogram()
         {
-            List<object> @params = new List<object> { };
+            List<object> @params = new() { };
             var obj = new Request { Id = NewRequestId(), Method = "mempool.get_fee_histogram", Params = @params };
             var json = Serialize(obj);
 
@@ -623,7 +623,7 @@ namespace Liviano.Electrum
 
             if (versionStr.EndsWith("+", StringComparison.Ordinal))
             {
-                correctedVersion = versionStr.Substring(0, versionStr.Length - 1);
+                correctedVersion = versionStr[0..^1];
             }
 
             try

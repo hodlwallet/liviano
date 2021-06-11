@@ -104,7 +104,7 @@ namespace Liviano.Extensions
         public static List<ChainedBlock> GetCheckpoints(this Network network)
 
         {
-            List<ChainedBlock> checkpoints = new List<ChainedBlock>();
+            List<ChainedBlock> checkpoints = new();
 
             if (network == Network.Main)
             {
@@ -185,7 +185,7 @@ namespace Liviano.Extensions
         public static BlockLocator GetDefaultBlockLocator(this Network network)
         {
             ChainedBlock bip39ActivationBlock = network.GetBIP39ActivationChainedBlock();
-            BlockLocator defaultScanLocations = new BlockLocator();
+            BlockLocator defaultScanLocations = new();
 
             defaultScanLocations.Blocks.Add(network.GenesisHash);
 
@@ -339,26 +339,21 @@ namespace Liviano.Extensions
 
         public static bool IsScriptPubKeyType(this BitcoinAddress address, ScriptPubKeyType spkType)
         {
-            switch (spkType)
+            return spkType switch
             {
-                case ScriptPubKeyType.Legacy:
-                    return address.ScriptPubKey.IsScriptType(ScriptType.P2PKH);
-                case ScriptPubKeyType.Segwit:
-                    return address.ScriptPubKey.IsScriptType(ScriptType.P2WPKH);
-                case ScriptPubKeyType.SegwitP2SH:
-                    return address.ScriptPubKey.IsScriptType(ScriptType.P2SH);
-                default:
-                    throw new ArgumentException("Invalid {0}", nameof(spkType));
-            }
+                ScriptPubKeyType.Legacy => address.ScriptPubKey.IsScriptType(ScriptType.P2PKH),
+                ScriptPubKeyType.Segwit => address.ScriptPubKey.IsScriptType(ScriptType.P2WPKH),
+                ScriptPubKeyType.SegwitP2SH => address.ScriptPubKey.IsScriptType(ScriptType.P2SH),
+                _ => throw new ArgumentException("Invalid {0}", nameof(spkType)),
+            };
         }
 
         public static BitcoinAddressWithMetadata ToAddressWithMetadata(this BitcoinAddress address, IAccount account)
         {
-            int index = -1;
             ScriptPubKeyType scriptPubKeyType = account.ScriptPubKeyTypes[0];
-            PubKey pubKey = null;
-            string hdPath = String.Empty;
-
+            int index;
+            PubKey pubKey;
+            string hdPath;
             if (account.IsReceive(address))
             {
                 index = account.GetExternalIndex(address);

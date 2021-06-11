@@ -241,16 +241,16 @@ namespace Liviano.Models
                 switch ((char)f[0])
                 {
                     case 'v':
-                        version = f.Substring(1);
+                        version = f[1..];
                         continue;
                     case 'p':
-                        pruning = f.Substring(1);
+                        pruning = f[1..];
                         continue;
                     case 't':
-                        tcpPort = f.Substring(1);
+                        tcpPort = f[1..];
                         continue;
                     case 's':
-                        sslPort = f.Substring(1);
+                        sslPort = f[1..];
                         continue;
                     default:
                         continue;
@@ -298,7 +298,7 @@ namespace Liviano.Models
             var s = new Server
             {
                 Domain = res[0],
-                PrivatePort = int.Parse(res[1].Substring(1))
+                PrivatePort = int.Parse(res[1][1..])
             };
 
             return s;

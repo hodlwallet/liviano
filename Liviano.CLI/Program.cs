@@ -82,6 +82,9 @@ namespace Liviano.CLI
         static bool newAcc = false;
         static bool start = false;
         static bool resync = false;
+        static bool coinControl = false;
+        static string freezeCoin = null;
+        static string unfreezeCoin = null;
         static bool version = false;
 
         // Parse extra options arguments
@@ -113,6 +116,7 @@ namespace Liviano.CLI
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
+                {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = !(v is null)},
                 {"v|version", "Show the liviano version", v => version = !(v is null)},
 
                 // Variables or modifiers
@@ -131,6 +135,8 @@ namespace Liviano.CLI
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 // {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
+                {"fc|freeze-coin=", "TxId of the coin to freeze", (string v) => freezeCoin = v},
+                {"ufc|unfreeze-coin=", "TxId of the coin to unfreeze", (string v) => unfreezeCoin = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -407,6 +413,45 @@ namespace Liviano.CLI
                 return 0;
             }
 
+            if (coinControl)
+            {
+                // Check if we want to freeze or unfreeze
+                List<string> actions = new List<string>();
+                if (!string.IsNullOrEmpty(freezeCoin))
+                {
+                    actions.Add("freeze");
+                }
+
+                if (!string.IsNullOrEmpty(unfreezeCoin))
+                {
+                    actions.Add("unfreeze");
+                }
+
+                // We always wanna list the coins at the end
+                actions.Add("list");
+
+                foreach (var action in actions)
+                {
+                    switch (action)
+                    {
+                        case "freeze":
+                            LightClient.FreezeCoin(config, freezeCoin);
+                            break;
+                        case "unfreeze":
+                            LightClient.UnfreezeCoin(config, unfreezeCoin);
+                            break;
+                        case "list":
+                            LightClient.ShowCoins(config);
+
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return 0;
+            }
+
             if (send)
             {
                 if (string.IsNullOrEmpty(config.WalletId))
@@ -423,7 +468,6 @@ namespace Liviano.CLI
                 var res = LightClient.Send(
                     config,
                     address, amount, feeSatsPerByte,
-                    accountName: null, accountIndex: accountIndex,
                     passphrase: passphrase
                 );
 

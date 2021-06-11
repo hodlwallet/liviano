@@ -214,7 +214,7 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressWatchTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
         }
@@ -389,7 +389,7 @@ namespace Liviano.Electrum
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] changeAddresses,
+                BitcoinAddress[] _,
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
@@ -477,6 +477,10 @@ namespace Liviano.Electrum
                             acc.UpdateTx(tx);
                             OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
+
+                        // Update list of UTXOs based on the transaction
+                        var transaction = Transaction.Parse(txHex, acc.Network);
+                        acc.UpdateUtxoListWithTransaction(transaction);
                     }
                 }
             );
@@ -496,16 +500,16 @@ namespace Liviano.Electrum
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
-                foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType])
+                foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType].ToList())
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
 
-                foreach (var addressData in acc.InternalAddresses[scriptPubKeyType])
+                foreach (var addressData in acc.InternalAddresses[scriptPubKeyType].ToList())
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
 
@@ -544,7 +548,7 @@ namespace Liviano.Electrum
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.AttachedToParent,
+                TaskCreationOptions.LongRunning,
                 ct
             );
 
@@ -605,7 +609,7 @@ namespace Liviano.Electrum
             {
                 if (ct.IsCancellationRequested) return;
 
-                Debug.WriteLine($"[Sync] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
 
                 BlockchainTransactionGetResult txRes;
                 try
@@ -614,7 +618,7 @@ namespace Liviano.Electrum
                 }
                 catch (ElectrumException e)
                 {
-                    Console.WriteLine($"[Sync] Error: {e.Message}");
+                    Console.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
                     await InsertTransactionsFromHistory(acc, addr, result, ct);
                     return;
@@ -642,10 +646,11 @@ namespace Liviano.Electrum
                     GetOutValueFromTxInputs
                 );
 
-                var txAddresses = Transaction.Parse(
-                    tx.Hex,
-                    Network
-                ).Outputs.Select(
+                var transaction = Transaction.Parse(tx.Hex, Network);
+
+                acc.UpdateUtxoListWithTransaction(transaction);
+
+                var txAddresses = transaction.Outputs.Select(
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
                 );
 

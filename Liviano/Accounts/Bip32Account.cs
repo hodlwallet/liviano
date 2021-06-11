@@ -54,6 +54,7 @@ namespace Liviano.Accounts
 
             UnspentCoins ??= new List<Coin>();
             SpentCoins ??= new List<Coin>();
+            FrozenCoins ??= new List<Coin>();
 
             Network = network;
 

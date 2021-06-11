@@ -131,27 +131,18 @@ namespace Liviano.CLI
         public static async Task<(Transaction Transaction, string Error)> Send(
                 Config config,
                 string destinationAddress, double amount, int feeSatsPerByte,
-                string accountName = null, int accountIndex = -1, string passphrase = "")
+                string passphrase = "")
         {
             Load(config, passphrase: passphrase, skipAuth: false);
 
             Transaction tx = null;
             string error;
 
-            IAccount account;
-
-            if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
-            else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
-            else
-                account = wallet.Accounts.First();
-
             try
             {
                 // TODO create transaction should not require a passphrase it should error,
                 // if no pk is found in the account in that case we need to authenticate
-                (tx, error) = wallet.CreateTransaction(account, destinationAddress, amount, feeSatsPerByte, passphrase);
+                (tx, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, passphrase);
 
                 if (!string.IsNullOrEmpty(error)) return (tx, error);
             }
@@ -192,11 +183,11 @@ namespace Liviano.CLI
             IAccount account;
 
             if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
             else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
             else
-                account = wallet.Accounts.First();
+                account = wallet.Accounts.FirstOrDefault();
 
             try
             {
@@ -235,11 +226,11 @@ namespace Liviano.CLI
             IAccount account;
 
             if (accountName != null)
-                account = wallet.Accounts.Where(acc => acc.Name == accountName).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Name == accountName);
             else if (accountIndex != -1)
-                account = wallet.Accounts.Where(acc => acc.Index == accountIndex).FirstOrDefault();
+                account = wallet.Accounts.FirstOrDefault(acc => acc.Index == accountIndex);
             else
-                account = wallet.Accounts.First();
+                account = wallet.Accounts.FirstOrDefault();
 
             var txs = new List<Tx> { };
             foreach (var tx in account.Txs)
@@ -252,11 +243,11 @@ namespace Liviano.CLI
 
             Console.WriteLine("");
 
-            foreach (var tx in txs)
+            foreach (var tx in txs.OrderByDescending(o => o.CreatedAt))
             {
                 logger.Information(
-                    "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                    tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                    "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                    tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                 );
             }
 
@@ -369,8 +360,8 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            "Id: {txId} Amount: {txAmount} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                            tx.Id, (tx.IsReceive ? tx.AmountReceived : tx.AmountSent), tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                         );
 
                         total += tx.IsReceive ? tx.AmountReceived : -tx.AmountSent;
@@ -391,6 +382,102 @@ namespace Liviano.CLI
             _ = PeriodicSave();
 
             WaitUntilEscapeIsPressed();
+        }
+
+        /// <summary>
+        /// Freeze Coin
+        /// </summary>
+        public static void FreezeCoin(Config config, string coinToFreeze)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+
+            (string txId, int n) = ParseCoinString(coinToFreeze);
+
+            if (!wallet.CurrentAccount.UnspentCoins.Exists((o) => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n))
+            {
+                Console.WriteLine($"Could not find coin: {coinToFreeze}");
+
+                return;
+            }
+
+            // Find our coin
+            var coin = wallet.CurrentAccount.UnspentCoins.FirstOrDefault(o => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n);
+
+            wallet.CurrentAccount.FreezeUtxo(coin);
+            wallet.Storage.Save();
+        }
+
+        /// <summary>
+        /// Unfreeze Coin
+        /// </summary>
+        public static void UnfreezeCoin(Config config, string frozenCoin)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+
+            (string txId, int n) = ParseCoinString(frozenCoin);
+
+            // Find our coin
+            var coin = wallet.CurrentAccount.FrozenCoins.FirstOrDefault(o => o.Outpoint.Hash.ToString() == txId && o.Outpoint.N == n);
+
+            wallet.CurrentAccount.UnfreezeUtxo(coin);
+            wallet.Storage.Save();
+        }
+
+        static (string, int) ParseCoinString(string coinStr)
+        {
+            var parsed = coinStr.Split(':');
+
+            if (parsed.Length != 2)
+                throw new WalletException("Invalid coin format, must be txid:N");
+
+            var txId = parsed[0];
+            var n = int.Parse(parsed[1]);
+
+            return (txId, n);
+        }
+
+        /// <summary>
+        /// Show Coin
+        /// </summary>
+        public static void ShowCoins(Config config)
+        {
+            if (wallet is null) Load(config, skipAuth: true);
+
+            var acc = wallet.CurrentAccount;
+            var total = Money.Zero; // Reusable for totals
+
+            Console.WriteLine("Unspent Coins:");
+            Console.WriteLine("==============\n");
+            if (!acc.UnspentCoins.Any()) Console.WriteLine("-- Empty --");
+            foreach (var unspentCoin in acc.UnspentCoins.ToList())
+            {
+                Console.WriteLine($"{unspentCoin.Outpoint.Hash}:{unspentCoin.Outpoint.N} Amount: {unspentCoin.Amount}");
+                total += unspentCoin.Amount;
+            }
+
+            Console.WriteLine($"Total: {total}\n");
+
+            Console.WriteLine("Spent Coins:");
+            Console.WriteLine("============\n");
+            total = Money.Zero;
+            if (!acc.SpentCoins.Any()) Console.WriteLine("-- Empty --");
+            foreach (var spentCoin in acc.SpentCoins.ToList())
+            {
+                Console.WriteLine($"{spentCoin.Outpoint.Hash}:{spentCoin.Outpoint.N} Amount: {spentCoin.Amount}");
+                total += spentCoin.Amount;
+            }
+            Console.WriteLine($"Total: {total}\n");
+
+            Console.WriteLine("Frozen Coins:");
+            Console.WriteLine("=============\n");
+            total = Money.Zero;
+            if (!acc.FrozenCoins.Any()) Console.WriteLine("-- Empty --");
+            foreach (var frozenCoin in acc.FrozenCoins.ToList())
+            {
+                Console.WriteLine($"{frozenCoin.Outpoint.Hash}:{frozenCoin.Outpoint.N} Amount: {frozenCoin.Amount}");
+                total += frozenCoin.Amount;
+            }
+            Console.WriteLine($"Total: {total}");
         }
 
         /// <summary>
@@ -419,12 +506,12 @@ namespace Liviano.CLI
 
             wallet.ElectrumPool.OnNewTransaction += (s, txArgs) => 
             {
-                logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+                logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };
 
             wallet.ElectrumPool.OnUpdateTransaction += (s, txArgs) => 
             {
-                logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address.ToString()}");
+                logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };
 
             wallet.OnNewHeaderNotified += (s, headerArgs) =>

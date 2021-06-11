@@ -61,7 +61,7 @@ namespace Liviano.Extensions
             return extKey.PrivateKey;
         }
 
-        public static Transaction CreateTransaction(
+        public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
                 string destinationAddress,
                 Money amount,
                 long satsPerByte,
@@ -78,7 +78,8 @@ namespace Liviano.Extensions
 
             var keys = GetCoinsKeys(coins, account);
 
-            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => o.Outpoint.Hash.ToString()))}");
+            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => $"{o.Outpoint.Hash}-{o.Outpoint.N}"))}");
+            Debug.WriteLine($"[CreateTransaction] Keys: {string.Join(",", keys.Select(o => $"{o.GetWif(account.Network)}"))}");
 
             var builder = account.Network.CreateTransactionBuilder();
 
@@ -88,7 +89,7 @@ namespace Liviano.Extensions
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
             builder.SetOptInRBF(true);
-            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+            builder.SendEstimatedFees(new FeeRate((decimal) satsPerByte));
 
             // Create transaction builder
             var tx = builder.BuildTransaction(sign: true);
@@ -98,17 +99,15 @@ namespace Liviano.Extensions
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
 
-            builder.SignTransactionInPlace(tx);
-
-            return tx;
+            return (builder, builder.SignTransactionInPlace(tx));
         }
 
         public static bool VerifyTransaction(
-                IAccount account,
+                IAccount _,
+                TransactionBuilder builder,
                 Transaction tx,
                 out WalletException[] transactionPolicyErrors)
         {
-            var builder = account.Network.CreateTransactionBuilder();
             var flag = builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
 

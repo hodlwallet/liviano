@@ -90,6 +90,7 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
         public List<Coin> UnspentCoins { get; set; }
         public List<Coin> SpentCoins { get; set; }
+        public List<Coin> FrozenCoins { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
@@ -169,13 +170,42 @@ namespace Liviano.Accounts
 
         public void RemoveUtxo(Coin coin)
         {
-            foreach (var c in UnspentCoins)
+            foreach (var c in UnspentCoins.ToList())
                 if (c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)
                     UnspentCoins.Remove(c);
 
             if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
 
             SpentCoins.Add(coin);
+        }
+
+        public void FreezeUtxo(Coin coin)
+        {
+            if (SpentCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            if (FrozenCoins.Any(c => c.Outpoint.Hash == coin.Outpoint.Hash && c.Outpoint.N == coin.Outpoint.N)) return;
+            if (UnspentCoins.All(c => c.Outpoint.Hash != coin.Outpoint.Hash && c.Outpoint.N != coin.Outpoint.N)) return;
+
+            FrozenCoins.Add(coin);
+            UnspentCoins.Remove(coin);
+        }
+
+        public void UnfreezeUtxo(Coin coin)
+        {
+            if (!FrozenCoins.Contains(coin)) return;
+
+            FrozenCoins.Remove(coin);
+            UnspentCoins.Add(coin);
+        }
+
+        public void UpdateUtxoListWithTransaction(Transaction transaction)
+        {
+            // Loop over the tx ids from the intputs of the transaction
+            foreach (var input in transaction.Inputs.ToList())
+                // We check them with each outpoint of the transaction that's on the spent coins
+                foreach (var unspentCoin in UnspentCoins.ToList())
+                    // if found, we remove that UTXO from being used
+                    if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
+                        RemoveUtxo(unspentCoin);
         }
 
         public void UpdateConfirmations(long height)
@@ -200,7 +230,7 @@ namespace Liviano.Accounts
                 var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
 
                 if (
-                    !DateTimeOffset.Equals(txCreatedAt, default(DateTimeOffset)) ||
+                    !DateTimeOffset.Equals(txCreatedAt, default) ||
                     !tx.HasAproxCreatedAt
                 ) continue;
 
@@ -218,7 +248,7 @@ namespace Liviano.Accounts
                     continue;
                 }
 
-                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header, tx);
+                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header);
                 tx.HasAproxCreatedAt = true;
 
                 OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
@@ -244,7 +274,7 @@ namespace Liviano.Accounts
             return false;
         }
 
-        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header, Tx tx)
+        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header)
         {
             var blocksApart = currentBlockHeight - txBlockHeight;
             var minutes = blocksApart * 10;

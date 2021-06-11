@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using NBitcoin;
 
@@ -144,7 +145,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// ScriptPubKeyTypes of the addresses that it generates
         /// </summary>
-        [JsonProperty(PropertyName = "scriptPubKeyTypes")]
+        [JsonProperty(PropertyName = "scriptPubKeyTypes", ItemConverterType = typeof(StringEnumConverter))]
         List<ScriptPubKeyType> ScriptPubKeyTypes { get; set; }
 
         /// <summary>
@@ -168,6 +169,12 @@ namespace Liviano.Interfaces
         /// The spent transaction outputs
         /// </summary>
         List<Coin> SpentCoins { get; set; }
+
+        /// <summary>
+        /// The frozen (banned or blocked) transaction outputs
+        /// to prevent usage during coin selection, to use in coin control features
+        /// </summary>
+        List<Coin> FrozenCoins { get; set; }
 
         /// <summary>
         /// All external addresses generated
@@ -200,6 +207,21 @@ namespace Liviano.Interfaces
         /// Remove UTXO
         /// </summary>
         void RemoveUtxo(Coin coin);
+
+        /// <summary>
+        /// Freeze UTXO
+        /// </summary>
+        void FreezeUtxo(Coin coin);
+
+        /// <summary>
+        /// Unfreeze UTXO
+        /// </summary>
+        void UnfreezeUtxo(Coin coin);
+
+        /// <summary>
+        /// Update UTXO list with the data from a transaction
+        /// </summary>
+        void UpdateUtxoListWithTransaction(Transaction transaction);
 
         /// <summary>
         /// Gets 1 receiving address

@@ -429,8 +429,7 @@ namespace Liviano
         {
             Debug.WriteLine("[Sync] Syncing...");
 
-            var cts = new CancellationTokenSource();
-            var ct = cts.Token;
+            var ct = Cts.Token;
 
             ElectrumPool.OnNewTransaction += ElectrumPool_OnNewTransaction;
             ElectrumPool.OnUpdateTransaction += ElectrumPool_OnUpdateTransaction;
@@ -447,7 +446,7 @@ namespace Liviano
                 );
 
             if (!ElectrumPool.Connected)
-                await ElectrumPool.Connect(cts);
+                await ElectrumPool.Connect(Cts);
         }
 
         private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
@@ -611,29 +610,24 @@ namespace Liviano
 
             var index = ++AccountsIndex[type];
 
-            switch (type)
+            return type switch
             {
-                case "bip44":
-                case "bip49":
-                case "bip84":
-                case "bip141":
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index });
-                case "paper":
-                    return PaperAccount.Create(name, options);
-                default:
-                    return Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip84", Index = index });
-            }
+                "bip44" or "bip49" or "bip84" or "bip141" => Bip32Account.Create(name, new { Wallet = this, Network, Type = type, Index = index }),
+                "paper" => PaperAccount.Create(name, options),
+                _ => Bip32Account.Create(name, new { Wallet = this, Network, Type = "bip84", Index = index }),
+            };
         }
 
         public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, string passphrase = null)
         {
             Transaction tx = null;
+            TransactionBuilder builder = null;
             string error = null;
             var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
 
             try
             {
-                tx = TransactionExtensions.CreateTransaction(destinationAddress, txAmount, (long)feeSatsPerByte, account);
+                (builder, tx) = TransactionExtensions.CreateTransaction(destinationAddress, txAmount, (long)feeSatsPerByte, account);
             }
             catch (WalletException err)
             {
@@ -642,7 +636,7 @@ namespace Liviano
                 return (tx, err.Message);
             }
 
-            TransactionExtensions.VerifyTransaction(account, tx, out var errors);
+            TransactionExtensions.VerifyTransaction(account, builder, tx, out var errors);
 
             if (errors.Any())
             {

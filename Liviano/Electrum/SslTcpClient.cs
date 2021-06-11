@@ -24,7 +24,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -138,7 +137,7 @@ namespace Liviano.Electrum
             // The end of the message is signaled using the
             // "<EOF>" marker.
             byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
+            StringBuilder messageData = new();
 
             int bytes = -1;
             string[] msgs;
@@ -177,7 +176,7 @@ namespace Liviano.Electrum
             // The end of the message is signaled using the
             // "<EOF>" marker.
             byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
+            StringBuilder messageData = new();
 
             int bytes = -1;
             while (bytes != 0)
@@ -225,12 +224,14 @@ namespace Liviano.Electrum
             // Read the  message sent by the server.
             // The end of the message is signaled using the
             // "<EOF>" marker.
-            byte[] buffer = new byte[2048];
-            StringBuilder messageData = new StringBuilder();
+            //byte[] buffer = new byte[2048]; // TODO investigate why this doesn't work
+            byte[] buffer = new byte[400000 + 78]; // Max size of a transaction + size of json structure
+            StringBuilder messageData = new();
 
             int bytes = -1;
             while (bytes != 0)
             {
+
                 bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
 
                 // Use Decoder class to convert from bytes to UTF8
