@@ -16,13 +16,13 @@ Or on OSX:
 make osx.debug.build
 ```
 
-If you get to install make on windows (`choco install make` from a admin console), and dotnet you can try to fix our Windows command if needed.
+If install make on windows (`choco install make` from a admin console) you can build the client as well, if you have dotnet.exe on your path as well.
 
 ```sh
 make win.debug.build
 ```
 
-On Windows you should add `Liviano.CLI/bin/Debug/net5.0/win-x64/publish` to your path, so you can call liviano like `liviano-cli.exe` on windows without the `./` the following commands have
+On Windows you should add `Liviano.CLI/bin/Debug/net5.0/win-x64/publish` to your path, so you can call liviano like `Liviano.CLI.exe` on windows without the `./` the following commands have.
 
 ## Create wallet
 

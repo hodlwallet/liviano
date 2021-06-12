@@ -50,13 +50,13 @@ run.osx.debug:
 ## Publishes Liviano's client for the Windows platform and executes liviano using input arguments. Usage: args="--help" make run.win
 run.win:
 	make win.debug.build
-	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\liviano-cli.exe ${args}
+	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\Liviano.CLI.exe ${args}
 
 ## Publishes Liviano's client for the Windows platform and executes liviano logging its output to stderr. Usage: args="--help" make run.win.debug
 run.win.debug:
 	make win.debug.build
 	setx COMPlus_DebugWriteToStdErr=1
-	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\liviano-cli.exe ${args}
+	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\Liviano.CLI.exe ${args}
 	setx COMPlus_DebugWriteToStdErr=0
 
 # Usage (all tests):        make test
