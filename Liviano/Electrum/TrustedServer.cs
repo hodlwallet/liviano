@@ -391,13 +391,16 @@ namespace Liviano.Electrum
                 IAccount acc,
                 BitcoinAddress addr,
                 BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] _,
+                BitcoinAddress[] changeAddresses,
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
             var scriptHashStr = addr.ToScriptHash().ToHex();
-            var receiveOrSend = receiveAddresses.Contains(addr) ? "Receive" : "Send";
+            string receiveOrSend = null;
+
+            if (receiveAddresses.Contains(addr)) receiveOrSend = "Receive";
+            if (changeAddresses.Contains(addr)) receiveOrSend = "Send";
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ({receiveOrSend}) ScriptHash: {scriptHashStr}");
 

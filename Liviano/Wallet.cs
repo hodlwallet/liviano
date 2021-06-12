@@ -636,7 +636,7 @@ namespace Liviano
                 return (tx, err.Message);
             }
 
-            TransactionExtensions.VerifyTransaction(account, builder, tx, out var errors);
+            TransactionExtensions.VerifyTransaction(builder, tx, out var errors);
 
             if (errors.Any())
             {
