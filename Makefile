@@ -167,6 +167,10 @@ clean.local:
 	rm liviano.json
 	rm -rf wallets
 
+## Count lines
+cloc:
+	cloc `git ls-files --recurse-submodules | grep -v .json | grep -v .js`
+
 ## Default target. Shows this help.
 help:
 	@printf "Usage:\n";
