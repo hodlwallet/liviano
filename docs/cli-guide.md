@@ -128,7 +128,22 @@ Now we resync to get an updated wallet and account.
 After about 2 minutes, our wallet will be synced with this output:
 
 ```log
+[18:15:36 INF] Using wallet id: e6d6a273-4cfb-4ce6-9698-bad1ce6ecdfe
+[18:15:37 INF] Sync started at 2021/06/11 06:15:37 PM!
+[18:15:38 INF] Press ESC to stop Liviano...
+[18:15:55 INF] Transaction found at height: 2004446!
+[18:16:04 INF] Transaction found at height: 2004448!
+[18:16:09 INF] Sync finished at 2021/06/11 06:16:09 PM. Total sync time: 31.68 seconds!
+[18:16:09 INF] Transactions:
+[18:16:09 INF] Id: b74771882cff2da9e62a0e66020fa697075f56c26679c30a5fe0764c161e43c8 Amount: -0.00099859 Height: 2004448 Confirmations: 0 Time: 06/12/2021 00:13:52 +00:00
+[18:16:09 INF] Id: 8b6da0cba2a17bb60f449be3ee5586a7a5da8994cf78e76eb48cd3093b9076e6 Amount: +0.00100000 Height: 2004446 Confirmations: 2 Time: 06/11/2021 23:52:04 +00:00
+[18:16:09 INF] Total: 0.00000000
+[18:16:09 INF] Saving...
+[18:16:09 INF] Closing process with pid: 151939
+[18:16:09 INF] bye!
 ```
+
+As you can see the balance is 0, so we sent all we had back to the faucet.
 
 ## More commands
 
