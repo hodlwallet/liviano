@@ -64,7 +64,7 @@ namespace Liviano.Extensions
         public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
                 string destinationAddress,
                 Money amount,
-                long satsPerByte,
+                decimal satsPerByte,
                 bool rbf,
                 IAccount account)
         {
@@ -90,7 +90,7 @@ namespace Liviano.Extensions
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
             builder.SetOptInRBF(rbf);
-            builder.SendEstimatedFees(new FeeRate((decimal) satsPerByte));
+            builder.SendEstimatedFees(new FeeRate(satsPerByte));
 
             // Create transaction builder
             var tx = builder.BuildTransaction(sign: true);

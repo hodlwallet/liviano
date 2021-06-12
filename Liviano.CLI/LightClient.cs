@@ -130,7 +130,7 @@ namespace Liviano.CLI
 
         public static async Task<(Transaction Transaction, string Error)> Send(
                 Config config,
-                string destinationAddress, double amount, int feeSatsPerByte,
+                string destinationAddress, double amount, decimal feeSatsPerByte,
                 string passphrase = "")
         {
             Load(config, passphrase: passphrase, skipAuth: false);

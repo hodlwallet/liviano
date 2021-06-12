@@ -245,7 +245,10 @@ namespace Liviano.Interfaces
         /// </param>
         void AddAccount(string type = "", string name = null, object options = null);
 
-        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, int feeSatsPerByte, bool rbf, string passphrase = "");
+        /// <summary>
+        /// Create transaction
+        /// </summary>
+        (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, decimal feeSatsPerByte, bool rbf, string passphrase = "");
 
         Task<bool> Broadcast(Transaction tx);
 
