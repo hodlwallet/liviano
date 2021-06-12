@@ -1,6 +1,28 @@
 # Liviano CLI Getting Started Guide
 
-To show you how the CLI(`liviano-cli`) works, we gonna have some commands here, everything will be created on testnet. Note most of these are for Ubuntu or on Windows WSL.
+To show you how the CLI(`liviano-cli`) works, we gonna have some commands here, everything will be created on testnet.
+
+## Compile client
+
+We need to compile liviano to be able to use its `cli`:
+
+```sh
+make ubuntu.debug.build
+```
+
+Or on OSX:
+
+```sh
+make osx.debug.build
+```
+
+If you get to install make on windows (`choco install make` from a admin console), and dotnet you can try to fix our Windows command if needed.
+
+```sh
+make win.debug.build
+```
+
+On Windows you should add `Liviano.CLI/bin/Debug/net5.0/win-x64/publish` to your path, so you can call liviano like `liviano-cli.exe` on windows without the `./` the following commands have
 
 ## Create wallet
 
