@@ -102,6 +102,34 @@ Total: 0.00000000
 
 ```
 
+## Spend the transcation
+
+After we receive we can spend said transaction, we need to use the `--send` command for that. We currently have 1 UTXO with the value of `0.00100000` BTC, in order to send the minimum amount of fee (1 sat per Byte) we need to substract it from its total: `final_amount = total_in_utxo - minimum_fee`, `minimum_fee` is 141 sats for 1 sat per Byte, `final_amount = 0.00100000 - 0.00000141 = 0.00099859`, so `0.00099859` is our final amount.
+
+We decided to return the money to the faucet, its address is this one: `mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt`.
+
+Before doing this you can set liviano-cli to start as explained above to see its output, or you can choose to resync afterwards with `liviano-cli --resync` we will resync here.
+
+```sh
+./liviano-cli --send --amount=0.00099859 --fee=1 --addr=mkHS9ne12qx9pS9VojpwU5xtRd4T7X7ZUt
+```
+
+```log
+[18:01:35 INF] Using wallet id: e6d6a273-4cfb-4ce6-9698-bad1ce6ecdfe
+[18:01:39 INF] Successfully sent transaction, id: b74771882cff2da9e62a0e66020fa697075f56c26679c30a5fe0764c161e43c8
+```
+
+Now we resync to get an updated wallet and account.
+
+```sh
+./liviano-cli --resync
+```
+
+After about 2 minutes, our wallet will be synced with this output:
+
+```log
+```
+
 ## More commands
 
 `liviano-cli` is well documented under its help:

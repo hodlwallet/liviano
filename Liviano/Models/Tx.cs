@@ -312,7 +312,7 @@ namespace Liviano.Models
                 });
                 tx.AmountSent = Money.Zero;
             }
-            else if (tx.IsSend)
+            else
             {
                 tx.AmountSent = transaction.Outputs.Sum((@out) =>
                 {
@@ -328,10 +328,6 @@ namespace Liviano.Models
                 });
 
                 tx.AmountReceived = Money.Zero;
-            }
-            else
-            {
-                throw new WalletException("Could not decide if the tx is send or receive...");
             }
 
             if (GetTotalValueFromTxInputsCallback is null)
