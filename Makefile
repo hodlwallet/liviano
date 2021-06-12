@@ -50,12 +50,14 @@ run.osx.debug:
 ## Publishes Liviano's client for the Windows platform and executes liviano using input arguments. Usage: args="--help" make run.win
 run.win:
 	make win.debug.build
-	./liviano-cli ${args}
+	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\liviano-cli.exe ${args}
 
 ## Publishes Liviano's client for the Windows platform and executes liviano logging its output to stderr. Usage: args="--help" make run.win.debug
 run.win.debug:
 	make win.debug.build
-	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+	setx COMPlus_DebugWriteToStdErr=1
+	Liviano.CLI\bin\Debug\$(BIN_DIR_NET_VERSION)\win-x64\publish\liviano-cli.exe ${args}
+	setx COMPlus_DebugWriteToStdErr=0
 
 # Usage (all tests):        make test
 # Usage (full name):        test="Liviano.Tests.Liviano.HdOperationsTest.Bip84CompatibilityTest" make test
@@ -143,10 +145,6 @@ osx.debug.build:
 ## Publishes Liviano using Debug configuration mode for Windows system.
 win.debug.build:
 	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
-	mkdir -p bin/win_debug_build
-	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/win-x64/publish bin/win_debug_build
-	rm -f ./liviano-cli
-	ln -s bin/win_debug_build/publish/Liviano.CLI liviano-cli
 
 ## Cleans the outputs created during the previous build. All intermediate (obj) and final output (bin) folders are removed. 
 clean:
