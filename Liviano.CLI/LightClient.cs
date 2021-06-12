@@ -244,8 +244,8 @@ namespace Liviano.CLI
             foreach (var tx in txs.OrderByDescending(o => o.CreatedAt))
             {
                 logger.Information(
-                    "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                    tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                    "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                    tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                 );
             }
 
@@ -357,8 +357,8 @@ namespace Liviano.CLI
                     foreach (var tx in txs)
                     {
                         logger.Information(
-                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                         );
                     }
 
@@ -546,7 +546,7 @@ namespace Liviano.CLI
 
                     foreach (var tx in txs)
                     {
-                        logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)}");
+                        logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)} Fees: {tx.TotalFees}");
                     }
 
                     logger.Information($"Total: {wallet.CurrentAccount.GetBalance()}");
