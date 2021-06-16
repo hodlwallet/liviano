@@ -61,6 +61,37 @@ namespace Liviano.Extensions
             return extKey.PrivateKey;
         }
 
+        static ICoin[] GetCoinsFromTransaction(Transaction tx, IAccount account)
+        {
+            var coins = new List<Coin>();
+
+            foreach (var input in tx.Inputs)
+            {
+                foreach (var unspentCoin in account.UnspentCoins.ToList())
+                    if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(unspentCoin);
+                foreach (var spentCoin in account.SpentCoins.ToList())
+                    if (spentCoin.Outpoint.Hash == input.PrevOut.Hash && spentCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(spentCoin);
+            }
+
+            return coins.ToArray();
+        }
+
+        public static (TransactionBuilder builder, Transaction tx) BumpFee(
+                decimal satsPerByte,
+                Transaction tx,
+                IAccount account)
+        {
+            if (!tx.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
+
+            var builder = account.Network.CreateTransactionBuilder();
+            var coins = GetCoinsFromTransaction(tx, account);
+            var keys = GetCoinsKeys(coins, account);
+
+            return (builder, tx);
+        }
+
         public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
                 string destinationAddress,
                 Money amount,
@@ -97,10 +128,12 @@ namespace Liviano.Extensions
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
 
+#if DEBUG
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
+#endif
 
-            return (builder, builder.SignTransactionInPlace(tx));
+            return (builder, tx);
         }
 
         public static bool VerifyTransaction(
