@@ -38,6 +38,7 @@ using Liviano.Interfaces;
 using Liviano.Bips;
 using Liviano.Storages;
 using System.Globalization;
+using Liviano.Extensions;
 
 namespace Liviano.CLI
 {
@@ -161,7 +162,7 @@ namespace Liviano.CLI
             {
                 Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
 
-                return (tx, "Failed to broadcast transaction");
+                return (tx, $"Failed to broadcast transaction: {err.Message}");
             }
 
             return (tx, null);
@@ -175,6 +176,37 @@ namespace Liviano.CLI
                 string txId, decimal feeSatsPerByte,
                 string passphrase = "")
         {
+            Load(config, passphrase: passphrase, skipAuth: false);
+
+            var account = wallet.CurrentAccount;
+            var tx = account.Txs.FirstOrDefault((o) => o.Id.ToString().Equals(txId));
+
+            Transaction bumpedTx;
+            try
+            {
+                bumpedTx = TransactionExtensions.BumpFee(feeSatsPerByte, tx, account);
+            }
+            catch (WalletException e)
+            {
+                Debug.WriteLine($"[BumpFee] Error: {e.Message}");
+
+                return (null, e.Message);
+            }
+
+            try
+            {
+                var res = await wallet.Broadcast(bumpedTx);
+
+                if (!res) return (bumpedTx, "Failed to broadcast transaction");
+            }
+            catch (Exception err)
+            {
+                Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
+
+                return (bumpedTx, $"Failed to broadcast transaction: {err.Message}");
+            }
+
+            return (bumpedTx, null);
         }
 
         /// <summary>
@@ -217,7 +249,7 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
-            var res = new Dictionary<IAccount, Money> ();
+            var res = new Dictionary<IAccount, Money>();
 
             foreach (var account in wallet.Accounts)
             {
@@ -509,12 +541,12 @@ namespace Liviano.CLI
                 );
             };
 
-            wallet.ElectrumPool.OnNewTransaction += (s, txArgs) => 
+            wallet.ElectrumPool.OnNewTransaction += (s, txArgs) =>
             {
                 logger.Information($"Found new transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };
 
-            wallet.ElectrumPool.OnUpdateTransaction += (s, txArgs) => 
+            wallet.ElectrumPool.OnUpdateTransaction += (s, txArgs) =>
             {
                 logger.Information($"Updated transaction!: {txArgs.Tx.Id} from address: {txArgs.Address}");
             };

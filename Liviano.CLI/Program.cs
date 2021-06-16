@@ -60,7 +60,7 @@ namespace Liviano.CLI
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
         // static string server = "";
         static double amount = 0.00;
-        static decimal feeSatsPerByte = 1m;
+        static decimal feeSatsPerByte = 0m;
         static int accountIndex = -1;
         // static string accountName = null;
         static string walletId = "";
@@ -494,6 +494,45 @@ namespace Liviano.CLI
 
             if (bump)
             {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                if (string.IsNullOrEmpty(txId))
+                {
+                    logger.Error("Invalid, txid is required");
+
+                    return 1;
+                }
+
+                if (feeSatsPerByte == 0m)
+                {
+                    logger.Error("Invalid, txid is required");
+
+                    return 1;
+                }
+
+                var res = LightClient.BumpFee(config, txId, feeSatsPerByte, passphrase);
+
+                res.Wait();
+
+                var tx = res.Result.Transaction;
+                var error = res.Result.Error;
+
+                if (string.IsNullOrEmpty(error))
+                {
+                    logger.Information("Bumped transaction with id: {txId}, new fee: {fee}", txId, feeSatsPerByte);
+                }
+                else
+                {
+                    logger.Error("Failed to bump transaction with id: {txId}", txId);
+                }
+
                 return 0;
             }
 
