@@ -82,7 +82,7 @@ namespace Liviano.Extensions
             return coins.ToArray();
         }
 
-        public static (TransactionBuilder builder, Transaction transaction) BumpFee(
+        public static Transaction BumpFee(
                 decimal satsPerByte,
                 Tx tx,
                 IAccount account)
@@ -126,7 +126,18 @@ namespace Liviano.Extensions
 
             tx.ReplacedId = transaction.GetHash();
 
-            return (builder, transaction);
+            VerifyTransaction(builder, transaction, out var errors);
+
+            if (errors.Any())
+            {
+                string error = string.Join<string>(", ", errors.Select(o => o.Message));
+
+                Debug.WriteLine($"[CreateTransaction] Error: {error}");
+
+                throw new WalletException(error);
+            }
+
+            return transaction;
         }
 
         public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
