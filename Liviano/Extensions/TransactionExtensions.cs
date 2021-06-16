@@ -31,6 +31,7 @@ using NBitcoin;
 
 using Liviano.Interfaces;
 using Liviano.Exceptions;
+using Liviano.Models;
 
 namespace Liviano.Extensions
 {
@@ -73,23 +74,59 @@ namespace Liviano.Extensions
                 foreach (var spentCoin in account.SpentCoins.ToList())
                     if (spentCoin.Outpoint.Hash == input.PrevOut.Hash && spentCoin.Outpoint.N == input.PrevOut.N)
                         coins.Add(spentCoin);
+                foreach (var frozenCoin in account.FrozenCoins.ToList())
+                    if (frozenCoin.Outpoint.Hash == input.PrevOut.Hash && frozenCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(frozenCoin);
             }
 
             return coins.ToArray();
         }
 
-        public static (TransactionBuilder builder, Transaction tx) BumpFee(
+        public static (TransactionBuilder builder, Transaction transaction) BumpFee(
                 decimal satsPerByte,
-                Transaction tx,
+                Tx tx,
                 IAccount account)
         {
-            if (!tx.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
 
             var builder = account.Network.CreateTransactionBuilder();
-            var coins = GetCoinsFromTransaction(tx, account);
+            var transaction = Transaction.Parse(tx.Hex, account.Network);
+
+            if (!transaction.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
+
+            var coins = GetCoinsFromTransaction(transaction, account);
             var keys = GetCoinsKeys(coins, account);
 
-            return (builder, tx);
+            builder.AddCoins(coins);
+            builder.AddKeys(keys);
+
+            foreach (var output in transaction.Outputs.ToList())
+            {
+                var destinationAddress = output.ScriptPubKey.GetDestinationAddress(account.Network);
+                var amount = output.Value;
+                bool isInternal = false;
+
+                foreach (var spkt in account.ScriptPubKeyTypes)
+                    if (account.InternalAddresses[spkt].ToList().Any(o => o.Address.Equals(destinationAddress)))
+                        isInternal = true;
+
+                if (isInternal)
+                {
+                    builder.SetChange(destinationAddress);
+                    builder.SubtractFees();
+                }
+                else
+                    builder.Send(destinationAddress, amount);
+            }
+
+            builder.SetOptInRBF(true);
+            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+
+            transaction = builder.BuildTransaction(sign: true);
+
+            // TODO Change tx to show that it's a replacement
+            // tx.ReplacedBy(transaction.Hash.ToString());
+
+            return (builder, transaction);
         }
 
         public static (TransactionBuilder builder, Transaction tx) CreateTransaction(
