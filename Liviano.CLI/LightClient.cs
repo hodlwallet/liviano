@@ -168,6 +168,16 @@ namespace Liviano.CLI
         }
 
         /// <summary>
+        /// Bump transaction's fee
+        /// </summary>
+        public static async Task<(Transaction Transaction, string Error)> BumpFee(
+                Config config,
+                string txId, decimal feeSatsPerByte,
+                string passphrase = "")
+        {
+        }
+
+        /// <summary>
         /// Gets accounts balance
         /// </summary>
         /// <returns>A <see cref="Money"/> with the balance in Bitcoin</returns>

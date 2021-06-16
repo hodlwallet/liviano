@@ -67,6 +67,7 @@ namespace Liviano.CLI
         // static string walletName = DEFAULT_WALLET_NAME;
         static string newAccName = DEFAULT_ACCOUNT_NAME;
         static string newAccType = "bip84";
+        static string txId = null;
 
         // Menu of the cli program
         static bool showHelp = false;
@@ -77,6 +78,7 @@ namespace Liviano.CLI
         static bool newWallet = false;
         static bool getScriptPubKey = false;
         static bool send = false;
+        static bool bump = false;
         static bool balance = false;
         static bool summary = false;
         static bool newAcc = false;
@@ -111,6 +113,7 @@ namespace Liviano.CLI
                 {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
                 {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
                 {"send|send-to-address", "Send to address", v => send = !(v is null)},
+                {"bump|bump-fee", "Bump fee of a transcation", v => bump = !(v is null)},
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"s|summary", "Show wallet summary", v => summary = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
@@ -135,8 +138,9 @@ namespace Liviano.CLI
                 {"w|wallet=", "Wallet id", (string v) => walletId = v},
                 // {"wn|wallet-name=", "Wallet name", (string v) => walletName = v},
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
-                {"fc|freeze-coin=", "TxId of the coin to freeze", (string v) => freezeCoin = v},
-                {"ufc|unfreeze-coin=", "TxId of the coin to unfreeze", (string v) => unfreezeCoin = v},
+                {"fc|freeze-coin=", "TxId:N of the coin to freeze", (string v) => freezeCoin = v},
+                {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
+                {"txid|txid", "TxId of the tx to bump fee", (string v) => txId = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -485,6 +489,11 @@ namespace Liviano.CLI
 
                 logger.Information("Successfully sent transaction, id: {id}", tx.GetHash().ToString());
 
+                return 0;
+            }
+
+            if (bump)
+            {
                 return 0;
             }
 
