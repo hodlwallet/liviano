@@ -512,7 +512,7 @@ namespace Liviano.CLI
 
                 if (feeSatsPerByte == 0m)
                 {
-                    logger.Error("Invalid, txid is required");
+                    logger.Error("Invalid, feeSatsPerByte is required");
 
                     return 1;
                 }
