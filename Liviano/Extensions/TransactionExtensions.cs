@@ -87,6 +87,7 @@ namespace Liviano.Extensions
                 Tx tx,
                 IAccount account)
         {
+            if (tx.IsReceive) throw new WalletException("[BumpFee] Bump fee failed because transaction was not sent by yourself");
 
             var builder = account.Network.CreateTransactionBuilder();
             var transaction = Transaction.Parse(tx.Hex, account.Network);
@@ -123,8 +124,7 @@ namespace Liviano.Extensions
 
             transaction = builder.BuildTransaction(sign: true);
 
-            // TODO Change tx to show that it's a replacement
-            // tx.ReplacedBy(transaction.Hash.ToString());
+            tx.ReplacedId = transaction.GetHash();
 
             return (builder, transaction);
         }

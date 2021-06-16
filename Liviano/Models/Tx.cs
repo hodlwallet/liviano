@@ -32,7 +32,6 @@ using Newtonsoft.Json;
 using NBitcoin;
 
 using Liviano.Interfaces;
-using Liviano.Exceptions;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -165,6 +164,12 @@ namespace Liviano.Models
         /// </summary>
         [JsonProperty(PropertyName = "hasAproxCreatedAt")]
         public bool HasAproxCreatedAt { get; set; }
+
+        /// <summary>
+        /// Replaced id
+        /// </summary>
+        [JsonProperty(PropertyName = "replacedId", NullValueHandling = NullValueHandling.Ignore)]
+        public uint256 ReplacedId { get; set; }
 
         /// <summary>
         /// Determines whether this transaction is confirmed.
