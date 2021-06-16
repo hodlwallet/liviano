@@ -124,8 +124,6 @@ namespace Liviano.Extensions
 
             transaction = builder.BuildTransaction(sign: true);
 
-            tx.ReplacedId = transaction.GetHash();
-
             VerifyTransaction(builder, transaction, out var errors);
 
             if (errors.Any())
@@ -136,6 +134,8 @@ namespace Liviano.Extensions
 
                 throw new WalletException(error);
             }
+
+            tx.ReplacedId = transaction.GetHash();
 
             return transaction;
         }
