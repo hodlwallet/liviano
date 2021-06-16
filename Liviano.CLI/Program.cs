@@ -140,7 +140,7 @@ namespace Liviano.CLI
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
                 {"fc|freeze-coin=", "TxId:N of the coin to freeze", (string v) => freezeCoin = v},
                 {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
-                {"txid|txid", "TxId of the tx to bump fee", (string v) => txId = v},
+                {"txid|tx-id", "TxId of the tx to bump fee", (string v) => txId = v},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
