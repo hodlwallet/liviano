@@ -188,9 +188,9 @@ namespace Liviano.Extensions
 
             transaction = builder.BuildTransaction(sign: true);
 
-            VerifyTransaction(builder, transaction, out var errors);
+            var verified = VerifyTransaction(builder, transaction, out var errors);
 
-            if (errors.Any())
+            if (!verified)
             {
                 string error = string.Join<string>(", ", errors.Select(o => o.Message));
 
