@@ -113,7 +113,7 @@ namespace Liviano.CLI
                 {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
                 {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
                 {"send|send-to-address", "Send to address", v => send = !(v is null)},
-                {"bump|bump-fee", "Bump fee of a transcation", v => bump = !(v is null)},
+                {"bump|bump-fee", "Bump fee of a transaction", v => bump = !(v is null)},
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"s|summary", "Show wallet summary", v => summary = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
