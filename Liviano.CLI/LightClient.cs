@@ -184,7 +184,7 @@ namespace Liviano.CLI
             Transaction bumpedTx;
             try
             {
-                bumpedTx = TransactionExtensions.BumpFee(feeSatsPerByte, tx, account);
+                bumpedTx = account.BumpFee(tx, feeSatsPerByte);
             }
             catch (WalletException e)
             {

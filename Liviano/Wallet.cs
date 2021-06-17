@@ -621,30 +621,18 @@ namespace Liviano
         public (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, decimal feeSatsPerByte, bool rbf, string passphrase = null)
         {
             Transaction tx = null;
-            TransactionBuilder builder = null;
-            string error = null;
-            var txAmount = new Money(new Decimal(amount), MoneyUnit.BTC);
+            var txAmount = new Money(new decimal(amount), MoneyUnit.BTC);
 
             try
             {
-                (builder, tx) = TransactionExtensions.CreateTransaction(destinationAddress, txAmount, feeSatsPerByte, rbf, account);
+                string error;
+                (tx, error) = account.CreateTransaction(destinationAddress, txAmount, feeSatsPerByte, rbf);
             }
             catch (WalletException err)
             {
                 Debug.WriteLine($"[CreateTransaction] Error: {err.Message}");
 
                 return (tx, err.Message);
-            }
-
-            TransactionExtensions.VerifyTransaction(builder, tx, out var errors);
-
-            if (errors.Any())
-            {
-                error = string.Join<string>(", ", errors.Select(o => o.Message));
-
-                Debug.WriteLine($"[CreateTransaction] Error: {error}");
-
-                return (tx, error);
             }
 
             return (tx, null);

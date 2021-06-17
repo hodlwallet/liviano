@@ -24,11 +24,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+
+using NBitcoin;
 
 using Liviano.Accounts;
 using Liviano.Bips;
+using Liviano.Exceptions;
 using Liviano.Interfaces;
+using Liviano.Models;
 
 namespace Liviano.Extensions
 {
@@ -96,6 +102,180 @@ namespace Liviano.Extensions
         public static string GetYPub(this IAccount acc)
         {
             return acc.ExtPubKey.ToYPub();
+        }
+
+        static Key[] GetCoinsKeys(this IAccount account, ICoin[] coins)
+        {
+            return coins.Select(o => account.GetCoinKey(o)).ToArray();
+        }
+
+        static Key GetCoinKey(this IAccount account, ICoin coin)
+        {
+            var tx = account.Txs.FirstOrDefault(o => o.Id == coin.Outpoint.Hash);
+            var transaction = Transaction.Parse(tx.Hex, account.Network);
+            var output = transaction.Outputs[coin.Outpoint.N];
+            var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
+
+            int change = tx.IsSend ? 1 : 0;
+            int index;
+            if (change == 0)
+                index = account.GetExternalIndex(addr);
+            else
+                index = account.GetInternalIndex(addr);
+
+            var keyPath = new KeyPath($"{change}/{index}");
+            var extKey = account.ExtKey.Derive(keyPath);
+
+            return extKey.PrivateKey;
+        }
+
+        static ICoin[] GetCoinsFromTransaction(this IAccount account, Transaction tx)
+        {
+            var coins = new List<Coin>();
+
+            foreach (var input in tx.Inputs)
+            {
+                foreach (var unspentCoin in account.UnspentCoins.ToList())
+                    if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(unspentCoin);
+                foreach (var spentCoin in account.SpentCoins.ToList())
+                    if (spentCoin.Outpoint.Hash == input.PrevOut.Hash && spentCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(spentCoin);
+                foreach (var frozenCoin in account.FrozenCoins.ToList())
+                    if (frozenCoin.Outpoint.Hash == input.PrevOut.Hash && frozenCoin.Outpoint.N == input.PrevOut.N)
+                        coins.Add(frozenCoin);
+            }
+
+            return coins.ToArray();
+        }
+
+        public static Transaction BumpFee(
+                this IAccount account,
+                Tx tx,
+                decimal satsPerByte)
+        {
+            if (tx.IsReceive) throw new WalletException("[BumpFee] Bump fee failed because transaction was not sent by yourself");
+
+            var builder = account.Network.CreateTransactionBuilder();
+            var transaction = Transaction.Parse(tx.Hex, account.Network);
+
+            if (!transaction.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
+
+            var coins = account.GetCoinsFromTransaction(transaction);
+            var keys = account.GetCoinsKeys(coins);
+
+            builder.AddCoins(coins);
+            builder.AddKeys(keys);
+
+            foreach (var output in transaction.Outputs.ToList())
+            {
+                var destinationAddress = output.ScriptPubKey.GetDestinationAddress(account.Network);
+                var amount = output.Value;
+                bool isInternal = false;
+
+                foreach (var spkt in account.ScriptPubKeyTypes)
+                    if (account.InternalAddresses[spkt].ToList().Any(o => o.Address.Equals(destinationAddress)))
+                        isInternal = true;
+
+                if (isInternal)
+                    builder.SetChange(destinationAddress);
+                else
+                    builder.Send(destinationAddress, amount);
+            }
+
+            builder.SetOptInRBF(true);
+            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+
+            transaction = builder.BuildTransaction(sign: true);
+
+            VerifyTransaction(builder, transaction, out var errors);
+
+            if (errors.Any())
+            {
+                string error = string.Join<string>(", ", errors.Select(o => o.Message));
+
+                Debug.WriteLine($"[CreateTransaction] Error: {error}");
+
+                throw new WalletException(error);
+            }
+
+            tx.ReplacedId = transaction.GetHash();
+
+            return transaction;
+        }
+
+        public static (Transaction Transaction, string Error) CreateTransaction(
+                this IAccount account,
+                string destinationAddress,
+                Money amount,
+                decimal satsPerByte,
+                bool rbf)
+        {
+            // Get coins from coin selector that satisfy our amount.
+            var coinSelector = new DefaultCoinSelector();
+            var coins = coinSelector.Select(account.UnspentCoins, amount).ToArray();
+
+            if (coins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
+
+            var changeDestination = account.GetChangeAddress();
+            var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
+
+            var keys = account.GetCoinsKeys(coins);
+
+            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => $"{o.Outpoint.Hash}-{o.Outpoint.N}"))}");
+            Debug.WriteLine($"[CreateTransaction] Keys: {string.Join(",", keys.Select(o => $"{o.GetWif(account.Network)}"))}");
+
+            var builder = account.Network.CreateTransactionBuilder();
+
+            // Build the tx
+            builder.AddCoins(coins);
+            builder.AddKeys(keys);
+            builder.Send(toDestination, amount);
+            builder.SetChange(changeDestination);
+            builder.SetOptInRBF(rbf);
+            builder.SendEstimatedFees(new FeeRate(satsPerByte));
+
+            // Create transaction builder
+            var tx = builder.BuildTransaction(sign: true);
+
+            VerifyTransaction(builder, tx, out var errors);
+
+            if (errors.Any())
+            {
+                var errorMessage = string.Join<string>(", ", errors.Select(o => o.Message));
+
+                Debug.WriteLine($"[CreateTransaction] Error: {errorMessage}");
+
+                return (tx, errorMessage);
+            }
+
+            Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
+
+#if DEBUG
+            foreach (var input in tx.Inputs)
+                Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
+#endif
+
+            return (tx, null);
+        }
+
+        static bool VerifyTransaction(
+                TransactionBuilder builder,
+                Transaction tx,
+                out WalletException[] transactionPolicyErrors)
+        {
+            var flag = builder.Verify(tx, out var errors);
+            var exceptions = new List<WalletException>();
+
+            if (errors.Any())
+            {
+                foreach (var error in errors)
+                    exceptions.Add(new WalletException(error.ToString()));
+            }
+
+            transactionPolicyErrors = exceptions.ToArray();
+
+            return flag;
         }
     }
 }
