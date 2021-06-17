@@ -219,12 +219,7 @@ namespace Liviano.Extensions
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
-
             var keys = account.GetCoinsKeys(coins);
-
-            Debug.WriteLine($"[CreateTransaction] Coins: {string.Join(",", coins.Select(o => $"{o.Outpoint.Hash}-{o.Outpoint.N}"))}");
-            Debug.WriteLine($"[CreateTransaction] Keys: {string.Join(",", keys.Select(o => $"{o.GetWif(account.Network)}"))}");
-
             var builder = account.Network.CreateTransactionBuilder();
 
             // Build the tx
@@ -237,10 +232,9 @@ namespace Liviano.Extensions
 
             // Create transaction builder
             var tx = builder.BuildTransaction(sign: true);
+            var verified = VerifyTransaction(builder, tx, out var errors);
 
-            VerifyTransaction(builder, tx, out var errors);
-
-            if (errors.Any())
+            if (!verified)
             {
                 var errorMessage = string.Join<string>(", ", errors.Select(o => o.Message));
 
@@ -250,11 +244,8 @@ namespace Liviano.Extensions
             }
 
             Debug.WriteLine($"[CreateTransaction] Tx: {tx.ToHex()}");
-
-#if DEBUG
             foreach (var input in tx.Inputs)
                 Debug.WriteLine($"[CreateTransaction] Inputs: {input.PrevOut.Hash}-{input.PrevOut.N}");
-#endif
 
             return (tx, null);
         }
@@ -264,18 +255,16 @@ namespace Liviano.Extensions
                 Transaction tx,
                 out WalletException[] transactionPolicyErrors)
         {
-            var flag = builder.Verify(tx, out var errors);
+            var verified = builder.Verify(tx, out var errors);
             var exceptions = new List<WalletException>();
 
-            if (errors.Any())
-            {
+            if (!verified)
                 foreach (var error in errors)
                     exceptions.Add(new WalletException(error.ToString()));
-            }
 
             transactionPolicyErrors = exceptions.ToArray();
 
-            return flag;
+            return verified;
         }
     }
 }
