@@ -113,7 +113,6 @@ namespace Liviano.Extensions
                 if (isInternal)
                 {
                     builder.SetChange(destinationAddress);
-                    builder.SubtractFees();
                 }
                 else
                     builder.Send(destinationAddress, amount);
