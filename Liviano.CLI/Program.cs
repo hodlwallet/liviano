@@ -525,13 +525,9 @@ namespace Liviano.CLI
                 var error = res.Result.Error;
 
                 if (string.IsNullOrEmpty(error))
-                {
                     logger.Information("Bumped transaction with id: {txId}, new fee: {fee}", txId, feeSatsPerByte);
-                }
                 else
-                {
-                    logger.Error("Failed to bump transaction with id: {txId}", txId);
-                }
+                    logger.Error("Failed to bump transaction with id: {txId}, error: {error}", txId, error);
 
                 return 0;
             }

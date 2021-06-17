@@ -62,7 +62,7 @@ namespace Liviano.Interfaces
         /// Broadcast Bitcoin Transaction
         /// </summary>
         /// <param name="transaction">A signed <see cref="Transaction"/> to be broadcasted</param>
-        Task<bool> Broadcast(Transaction transaction);
+        Task<(bool Result, string Error)> Broadcast(Transaction transaction);
 
         /// <summary>
         /// Susbscribes to the headers until tip

@@ -105,7 +105,7 @@ namespace Liviano.Electrum
             Network = network;
         }
 
-        public async Task<bool> Broadcast(Transaction transaction)
+        public async Task<(bool Result, string Error)> Broadcast(Transaction transaction)
         {
             var txHex = transaction.ToHex();
 
@@ -117,18 +117,18 @@ namespace Liviano.Electrum
                 {
                     Debug.WriteLine("[Broadcast] Error could not broadcast");
 
-                    return false;
+                    return (false, "Broadcast result does not have a tx hash");
                 }
             }
             catch (Exception err)
             {
                 Debug.WriteLine($"[Broadcast] Error could not broadcast: {err.Message}");
 
-                return false;
+                return (false, err.Message);
             }
 
 
-            return true;
+            return (true, null);
         }
 
         public async Task SyncWallet(IWallet wallet, CancellationToken ct)
@@ -226,16 +226,17 @@ namespace Liviano.Electrum
             if (ct.IsCancellationRequested) return;
 
             await ElectrumClient.BlockchainHeadersSubscribe(
-                resultCallback: async (str) => {
+                resultCallback: async (str) =>
+                {
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] {str}");
 
                     if (ct.IsCancellationRequested) return;
 
                     var json = JObject.Parse(str);
-                    var res = (JObject) json.GetValue("result");
+                    var res = (JObject)json.GetValue("result");
 
-                    var height = (int) res.GetValue("height");
-                    var hex = (string) res.GetValue("hex");
+                    var height = (int)res.GetValue("height");
+                    var hex = (string)res.GetValue("hex");
 
                     wallet.LastBlockHeaderHex = hex;
                     wallet.Height = height;
@@ -250,11 +251,12 @@ namespace Liviano.Electrum
 
                     await DownloadHeaders(wallet, wallet.Height);
                 },
-                notificationCallback: async (str) => {
+                notificationCallback: async (str) =>
+                {
                     var json = JObject.Parse(str);
 
-                    var lastHeaderHex = (string) json.GetValue("hex");
-                    var lastHeaderHeight = (long) json.GetValue("height");
+                    var lastHeaderHex = (string)json.GetValue("hex");
+                    var lastHeaderHeight = (long)json.GetValue("height");
 
                     if (ct.IsCancellationRequested) return;
 
@@ -406,7 +408,8 @@ namespace Liviano.Electrum
 
             await ElectrumClient.BlockchainScriptHashSubscribe(
                 scriptHashStr,
-                resultCallback: (str) => {
+                resultCallback: (str) =>
+                {
                     Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
 
                     Debug.WriteLine($"[WatchAddress][resultCallback] Status: '{str}'.");
@@ -414,7 +417,8 @@ namespace Liviano.Electrum
                     // TODO Status data structure description: https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-basics.html#status
                     // I'm not sure what to do with it... What matters are the notifications and those are described bellow
                 },
-                notificationCallback: async (str) => {
+                notificationCallback: async (str) =>
+                {
                     Debug.WriteLine($"[WatchAddress][notificationCallback] Notification: '{str}'.");
 
                     if (string.IsNullOrEmpty(str))

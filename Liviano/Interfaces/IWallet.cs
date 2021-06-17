@@ -250,7 +250,7 @@ namespace Liviano.Interfaces
         /// </summary>
         (Transaction transaction, string error) CreateTransaction(IAccount account, string destinationAddress, double amount, decimal feeSatsPerByte, bool rbf, string passphrase = "");
 
-        Task<bool> Broadcast(Transaction tx);
+        Task<(bool Result, string Error)> Broadcast(Transaction tx);
 
         /// <summary>
         /// Event handlers for syncing, start and end...

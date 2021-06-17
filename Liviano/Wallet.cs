@@ -650,7 +650,7 @@ namespace Liviano
             return (tx, null);
         }
 
-        public async Task<bool> Broadcast(Transaction tx)
+        public async Task<(bool Result, string Error)> Broadcast(Transaction tx)
         {
             var res = await ElectrumPool.Broadcast(tx);
 
