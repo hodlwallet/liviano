@@ -179,7 +179,7 @@ namespace Liviano.CLI
             Load(config, passphrase: passphrase, skipAuth: false);
 
             var account = wallet.CurrentAccount;
-            var tx = account.Txs.FirstOrDefault((o) => o.Id.ToString().Equals(txId));
+            var tx = account.Txs.FirstOrDefault((o) => string.Equals(o.Id.ToString(), txId));
 
             Transaction bumpedTx;
             try
