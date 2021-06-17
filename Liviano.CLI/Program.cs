@@ -60,7 +60,7 @@ namespace Liviano.CLI
         static string hdPath = "m/84'/0'/0'/0/0"; // Default BIP84 / Bitcoin / 1st account / receive / 1st pubkey
         // static string server = "";
         static double amount = 0.00;
-        static decimal feeSatsPerByte = 0m;
+        static decimal feeSatsPerByte = 1m;
         static int accountIndex = -1;
         // static string accountName = null;
         static string walletId = "";
@@ -510,9 +510,9 @@ namespace Liviano.CLI
                     return 1;
                 }
 
-                if (feeSatsPerByte == 0m)
+                if (feeSatsPerByte < 1m)
                 {
-                    logger.Error("Invalid, feeSatsPerByte is required");
+                    logger.Error("Invalid, feeSatsPerByte is required and must be 1.0 or more");
 
                     return 1;
                 }
