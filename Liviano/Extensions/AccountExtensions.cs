@@ -157,17 +157,17 @@ namespace Liviano.Extensions
             if (tx.IsReceive) throw new WalletException("[BumpFee] Bump fee failed because transaction was not sent by yourself");
 
             var builder = account.Network.CreateTransactionBuilder();
-            var transaction = Transaction.Parse(tx.Hex, account.Network);
+            var parentTransaction = Transaction.Parse(tx.Hex, account.Network);
 
-            if (!transaction.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
+            if (!parentTransaction.RBF) throw new WalletException("[BumpFee] Bump fee failed because transaction is not RBF");
 
-            var coins = account.GetCoinsFromTransaction(transaction);
+            var coins = account.GetCoinsFromTransaction(parentTransaction);
             var keys = account.GetCoinsKeys(coins);
 
             builder.AddCoins(coins);
             builder.AddKeys(keys);
 
-            foreach (var output in transaction.Outputs.ToList())
+            foreach (var output in parentTransaction.Outputs.ToList())
             {
                 var destinationAddress = output.ScriptPubKey.GetDestinationAddress(account.Network);
                 var amount = output.Value;
@@ -186,9 +186,8 @@ namespace Liviano.Extensions
             builder.SetOptInRBF(true);
             builder.SendEstimatedFees(new FeeRate(satsPerByte));
 
-            transaction = builder.BuildTransaction(sign: true);
-
-            var verified = VerifyTransaction(builder, transaction, out var errors);
+            var childTransaction = builder.BuildTransaction(sign: true);
+            var verified = VerifyTransaction(builder, childTransaction, out var errors);
 
             if (!verified)
             {
@@ -199,9 +198,9 @@ namespace Liviano.Extensions
                 throw new WalletException(error);
             }
 
-            tx.ReplacedId = transaction.GetHash();
+            tx.ReplacedId = childTransaction.GetHash();
 
-            return transaction;
+            return childTransaction;
         }
 
         public static (Transaction Transaction, string Error) CreateTransaction(
