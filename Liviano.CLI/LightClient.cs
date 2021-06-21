@@ -154,9 +154,10 @@ namespace Liviano.CLI
 
             try
             {
-                var res = await wallet.Broadcast(tx);
+                bool res;
+                (res, error) = await wallet.Broadcast(tx);
 
-                if (!res.Result) return (tx, "Failed to broadcast transaction");
+                if (!res) return (tx, $"Failed to broadcast transaction: {error}");
             }
             catch (Exception err)
             {

@@ -564,32 +564,6 @@ namespace Liviano
             Storage.Save();
         }
 
-        public async Task<(bool Sent, string Error)> SendTransaction(Transaction tx)
-        {
-            var txHex = tx.ToHex();
-
-            Debug.WriteLine($"[Send] Attempting to send a transaction: {txHex}");
-
-            try
-            {
-                var electrum = ElectrumPool.CurrentServer.ElectrumClient;
-                var broadcast = await electrum.BlockchainTransactionBroadcast(txHex);
-
-                if (broadcast.Result != tx.GetHash().ToString())
-                {
-                    throw new WalletException($"Transaction Broadcast failed for tx: {txHex}\n{broadcast.Result}");
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[Error] {e.Message}");
-
-                return (false, e.Message);
-            }
-
-            return (true, null);
-        }
-
         /// <summary>
         /// Read <see cref="AddAccount(string, string, object)"/>
         /// </summary>
