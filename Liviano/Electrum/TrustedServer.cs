@@ -465,8 +465,7 @@ namespace Liviano.Electrum
                         if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network,
-                                GetOutValueFromTxInputs
+                                txHex, height, header, acc, Network
                             );
 
                             acc.AddTx(tx);
@@ -479,8 +478,7 @@ namespace Liviano.Electrum
                         if (currentTx.BlockHeight != height)
                         {
                             var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network,
-                                GetOutValueFromTxInputs
+                                txHex, height, header, acc, Network
                             );
 
                             acc.UpdateTx(tx);
@@ -653,8 +651,7 @@ namespace Liviano.Electrum
                     r.Height,
                     header,
                     acc,
-                    Network,
-                    GetOutValueFromTxInputs
+                    Network
                 );
 
                 var transaction = Transaction.Parse(tx.Hex, Network);
@@ -697,34 +694,6 @@ namespace Liviano.Electrum
                     OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
             }
-        }
-
-        /// <summary>
-        /// This will get all the transactions out to the total to calculate fees
-        /// </summary>
-        /// <param name="inputs">A <see cref="TxInList"/> of the inputs from the tx</param>
-        /// <returns>A <see cref="Money"/> with the outs value from N</returns>
-        Money GetOutValueFromTxInputs(TxInList inputs)
-        {
-            Money total = 0L;
-
-            foreach (var input in inputs)
-            {
-                var outIndex = input.PrevOut.N;
-                var outHash = input.PrevOut.Hash.ToString();
-
-                // Get the transaction from the input
-                var task = ElectrumClient.BlockchainTransactionGet(outHash);
-                task.Wait();
-
-                var hex = task.Result.Result;
-                var transaction = Transaction.Parse(hex, Network);
-                var txOut = transaction.Outputs[outIndex];
-
-                total += txOut.Value;
-            }
-
-            return total;
         }
     }
 }

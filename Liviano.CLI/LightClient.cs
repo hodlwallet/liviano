@@ -26,6 +26,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,7 +38,6 @@ using Liviano.Models;
 using Liviano.Interfaces;
 using Liviano.Bips;
 using Liviano.Storages;
-using System.Globalization;
 using Liviano.Extensions;
 
 namespace Liviano.CLI
@@ -136,37 +136,55 @@ namespace Liviano.CLI
         {
             Load(config, passphrase: passphrase, skipAuth: false);
 
-            Transaction tx = null;
+            Transaction transaction = null;
             string error;
 
             try
             {
-                (tx, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, true, passphrase);
+                (transaction, error) = wallet.CreateTransaction(wallet.CurrentAccount, destinationAddress, amount, feeSatsPerByte, true, passphrase);
 
-                if (!string.IsNullOrEmpty(error)) return (tx, error);
+                if (!string.IsNullOrEmpty(error)) return (transaction, error);
             }
             catch (Exception err)
             {
                 Debug.WriteLine($"[Send] Failed to create transaction: {err.Message}");
 
-                return (tx, "Failed to create transaction");
+                return (transaction, "Failed to create transaction");
             }
 
             try
             {
                 bool res;
-                (res, error) = await wallet.Broadcast(tx);
+                (res, error) = await wallet.Broadcast(transaction);
 
-                if (!res) return (tx, $"Failed to broadcast transaction: {error}");
+                if (!res) return (transaction, $"Failed to broadcast transaction: {error}");
             }
             catch (Exception err)
             {
                 Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
 
-                return (tx, $"Failed to broadcast transaction: {err.Message}");
+                return (transaction, $"Failed to broadcast transaction: {err.Message}");
             }
 
-            return (tx, null);
+            // In the end is important to add the tx even though we don't know certain things
+            // from it so we have the tx in our store already.
+            var tx = new Tx
+            {
+                Id = transaction.GetHash(),
+                Account = wallet.CurrentAccount,
+                AccountId = wallet.CurrentAccount.Id,
+                Network = network,
+                Hex = transaction.ToHex(),
+                IsRBF = transaction.RBF,
+                CreatedAt = DateTimeOffset.UtcNow,
+                IsReceive = false,
+                IsSend = true,
+                TotalAmount = transaction.TotalOut
+            };
+
+            wallet.CurrentAccount.AddTx(tx);
+
+            return (transaction, null);
         }
 
         /// <summary>

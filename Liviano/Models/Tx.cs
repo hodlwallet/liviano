@@ -32,6 +32,7 @@ using Newtonsoft.Json;
 using NBitcoin;
 
 using Liviano.Interfaces;
+using Liviano.Extensions;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -239,8 +240,7 @@ namespace Liviano.Models
                 long height,
                 BlockHeader header,
                 IAccount account,
-                Network network,
-                Func<TxInList, Money> GetTotalValueFromTxInputsCallback = null)
+                Network network)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
@@ -270,7 +270,6 @@ namespace Liviano.Models
 
             // Decide if the tx is a send tx or a receive tx
             var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
-            BitcoinAddress currentAddress = null;
             foreach (var addr in addresses)
             {
                 if (account.IsReceive(addr))
@@ -279,7 +278,6 @@ namespace Liviano.Models
 
                     tx.IsReceive = true;
                     tx.IsSend = false;
-                    currentAddress = addr;
 
                     break;
                 }
@@ -290,7 +288,6 @@ namespace Liviano.Models
 
                     tx.IsSend = true;
                     tx.IsReceive = false;
-                    currentAddress = addr;
 
                     break;
                 }
@@ -335,10 +332,7 @@ namespace Liviano.Models
                 tx.AmountReceived = Money.Zero;
             }
 
-            if (GetTotalValueFromTxInputsCallback is null)
-                tx.TotalFees = Money.Zero;
-            else
-                tx.TotalFees = GetTotalValueFromTxInputsCallback(transaction.Inputs) - tx.TotalAmount;
+            tx.TotalFees = account.GetOutValueFromTxInputs(transaction.Inputs) - tx.TotalAmount;
 
             return tx;
         }

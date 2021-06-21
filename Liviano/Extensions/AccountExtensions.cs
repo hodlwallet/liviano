@@ -265,5 +265,50 @@ namespace Liviano.Extensions
 
             return verified;
         }
+
+        /// <summary>
+        /// This will get all the transactions out to the total to calculate fees
+        /// </summary>
+        /// <param name="account">A <see cref="IAccount"/> to get the values from</param>
+        /// <param name="inputs">A <see cref="TxInList"/> of the inputs from the tx</param>
+        /// <returns>A <see cref="Money"/> with the outs value from N</returns>
+        public static Money GetOutValueFromTxInputs(this IAccount account, TxInList inputs)
+        {
+            Money total = 0L;
+
+            foreach (var input in inputs)
+            {
+                var outIndex = input.PrevOut.N;
+                var outHash = input.PrevOut.Hash.ToString();
+
+                // Try to find the tx locally to avoid performance issues
+                var accountTxId = account.TxIds.FirstOrDefault(o => o.Equals(outHash));
+                if (!string.IsNullOrEmpty(accountTxId))
+                {
+                    var accountTx = account.Txs.FirstOrDefault(o => o.Id.ToString().Equals(accountTxId));
+
+                    var accountTransaction = Transaction.Parse(accountTx.Hex, account.Network);
+                    var accountTxOut = accountTransaction.Outputs[outIndex];
+
+                    total += accountTxOut.Value;
+
+                    continue;
+                }
+
+                // Tx is not found locally we resource to the electrum pool to find it.
+
+                // Get the transaction from the input
+                var task = account.Wallet.ElectrumPool.ElectrumClient.BlockchainTransactionGet(outHash);
+                task.Wait();
+
+                var hex = task.Result.Result;
+                var transaction = Transaction.Parse(hex, account.Network);
+                var txOut = transaction.Outputs[outIndex];
+
+                total += txOut.Value;
+            }
+
+            return total;
+        }
     }
 }
