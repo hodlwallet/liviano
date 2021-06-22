@@ -158,6 +158,24 @@ namespace Liviano.CLI
                 (res, error) = await wallet.Broadcast(transaction);
 
                 if (!res) return (transaction, $"Failed to broadcast transaction: {error}");
+
+                // In the end is important to add the tx even though we don't know certain things
+                // from it so we have the tx in our store already.
+                var tx = new Tx
+                {
+                    Id = transaction.GetHash(),
+                    Account = wallet.CurrentAccount,
+                    AccountId = wallet.CurrentAccount.Id,
+                    Network = network,
+                    Hex = transaction.ToHex(),
+                    IsRBF = transaction.RBF,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    IsReceive = false,
+                    IsSend = true,
+                    TotalAmount = transaction.TotalOut
+                };
+
+                wallet.CurrentAccount.AddTx(tx);
             }
             catch (Exception err)
             {
@@ -166,23 +184,6 @@ namespace Liviano.CLI
                 return (transaction, $"Failed to broadcast transaction: {err.Message}");
             }
 
-            // In the end is important to add the tx even though we don't know certain things
-            // from it so we have the tx in our store already.
-            var tx = new Tx
-            {
-                Id = transaction.GetHash(),
-                Account = wallet.CurrentAccount,
-                AccountId = wallet.CurrentAccount.Id,
-                Network = network,
-                Hex = transaction.ToHex(),
-                IsRBF = transaction.RBF,
-                CreatedAt = DateTimeOffset.UtcNow,
-                IsReceive = false,
-                IsSend = true,
-                TotalAmount = transaction.TotalOut
-            };
-
-            wallet.CurrentAccount.AddTx(tx);
 
             return (transaction, null);
         }
@@ -200,7 +201,7 @@ namespace Liviano.CLI
             var account = wallet.CurrentAccount;
             var tx = account.Txs.FirstOrDefault((o) => string.Equals(o.Id.ToString(), txId));
 
-            Transaction bumpedTx;
+            Transaction bumpedTx = null;
             try
             {
                 bumpedTx = account.BumpFee(tx, feeSatsPerByte);
@@ -216,13 +217,13 @@ namespace Liviano.CLI
             {
                 var (res, error) = await wallet.Broadcast(bumpedTx);
 
-                if (!res) return (bumpedTx, $"Failed to broadcast transaction: {error}");
+                if (!res) return (null, $"Failed to broadcast transaction: {error}");
             }
             catch (Exception err)
             {
                 Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
 
-                return (bumpedTx, $"Failed to broadcast transaction: {err.Message}");
+                return (null, $"Failed to broadcast transaction: {err.Message}");
             }
 
             return (bumpedTx, null);
