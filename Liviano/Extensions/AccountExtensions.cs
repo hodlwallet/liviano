@@ -167,20 +167,32 @@ namespace Liviano.Extensions
             builder.AddCoins(coins);
             builder.AddKeys(keys);
 
-            foreach (var output in parentTransaction.Outputs.ToList())
+            if (parentTransaction.Outputs.Count == 1)
             {
+                var output = parentTransaction.Outputs[0];
                 var destinationAddress = output.ScriptPubKey.GetDestinationAddress(account.Network);
                 var amount = output.Value;
-                bool isInternal = false;
 
-                foreach (var spkt in account.ScriptPubKeyTypes)
-                    if (account.InternalAddresses[spkt].ToList().Any(o => o.Address.Equals(destinationAddress)))
-                        isInternal = true;
+                builder.Send(destinationAddress, amount);
+                builder.SubtractFees();
+            }
+            else
+            {
+                foreach (var output in parentTransaction.Outputs.ToList())
+                {
+                    var destinationAddress = output.ScriptPubKey.GetDestinationAddress(account.Network);
+                    var amount = output.Value;
+                    bool isInternal = false;
 
-                if (isInternal)
-                    builder.SetChange(destinationAddress);
-                else
-                    builder.Send(destinationAddress, amount);
+                    foreach (var spkt in account.ScriptPubKeyTypes)
+                        if (account.InternalAddresses[spkt].ToList().Any(o => o.Address.Equals(destinationAddress)))
+                            isInternal = true;
+
+                    if (isInternal)
+                        builder.SetChange(destinationAddress);
+                    else
+                        builder.Send(destinationAddress, amount);
+                }
             }
 
             builder.SetOptInRBF(true);
