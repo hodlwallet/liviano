@@ -293,20 +293,26 @@ namespace Liviano.Accounts
 
         public bool IsReceive(BitcoinAddress address)
         {
-            foreach (var spkt in ScriptPubKeyTypes)
-                if (ExternalAddresses[spkt].Any(addrWithData => address == addrWithData.Address))
-                    return true;
+            lock (@lock)
+            {
+                foreach (var spkt in ScriptPubKeyTypes)
+                    if (ExternalAddresses[spkt].ToList().Any(addrWithData => address == addrWithData.Address))
+                        return true;
 
-            return false;
+                return false;
+            }
         }
 
         public bool IsChange(BitcoinAddress address)
         {
-            foreach (var spkt in ScriptPubKeyTypes)
-                if (InternalAddresses[spkt].Any(addrWithData => address == addrWithData.Address))
-                    return true;
+            lock (@lock)
+            {
+                foreach (var spkt in ScriptPubKeyTypes)
+                    if (InternalAddresses[spkt].ToList().Any(addrWithData => address == addrWithData.Address))
+                        return true;
 
-            return false;
+                return false;
+            }
         }
 
         DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header)
