@@ -257,7 +257,7 @@ namespace Liviano.CLI
             {
                 var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
 
-                if (tx.Account.IsChange(addr)) tx.Account.RemoveUtxo(coin);
+                if (tx.Account.IsChange(addr)) tx.Account.AddUtxo(coin);
             }
 
             var originalTransaction = Transaction.Parse(tx.Hex, tx.Account.Network);
