@@ -39,6 +39,7 @@ using Liviano.Interfaces;
 using Liviano.Bips;
 using Liviano.Storages;
 using Liviano.Extensions;
+using Liviano.Utilities;
 
 namespace Liviano.CLI
 {
@@ -175,7 +176,14 @@ namespace Liviano.CLI
                     TotalAmount = transaction.TotalOut
                 };
 
-                wallet.CurrentAccount.AddTx(tx);
+                tx.Account.AddTx(tx);
+
+                foreach (var coin in transaction.Outputs.AsCoins())
+                {
+                    var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
+
+                    if (tx.Account.IsChange(addr)) tx.Account.AddUtxo(coin);
+                }
             }
             catch (Exception err)
             {
@@ -201,6 +209,8 @@ namespace Liviano.CLI
             var account = wallet.CurrentAccount;
             var tx = account.Txs.FirstOrDefault((o) => string.Equals(o.Id.ToString(), txId));
 
+            Guard.NotNull(tx, nameof(tx));
+
             Transaction bumpedTx = null;
             try
             {
@@ -210,20 +220,52 @@ namespace Liviano.CLI
             {
                 Debug.WriteLine($"[BumpFee] Error: {e.Message}");
 
-                return (null, e.Message);
+                return (bumpedTx, e.Message);
             }
 
             try
             {
                 var (res, error) = await wallet.Broadcast(bumpedTx);
 
-                if (!res) return (null, $"Failed to broadcast transaction: {error}");
+                if (!res) return (bumpedTx, $"Failed to broadcast transaction: {error}");
             }
             catch (Exception err)
             {
                 Debug.WriteLine($"[Send] Failed to broadcast transaction: {err.Message}");
 
-                return (null, $"Failed to broadcast transaction: {err.Message}");
+                return (bumpedTx, $"Failed to broadcast transaction: {err.Message}");
+            }
+
+            // In the end is important to add the tx even though we don't know certain things
+            // from it so we have the tx in our store already.
+            var bumpedTxModel = new Tx
+            {
+                Id = bumpedTx.GetHash(),
+                Account = wallet.CurrentAccount,
+                AccountId = wallet.CurrentAccount.Id,
+                Network = network,
+                Hex = bumpedTx.ToHex(),
+                IsRBF = bumpedTx.RBF,
+                CreatedAt = DateTimeOffset.UtcNow,
+                IsReceive = false,
+                IsSend = true,
+                TotalAmount = bumpedTx.TotalOut
+            };
+
+            tx.Account.AddTx(bumpedTxModel);
+            foreach (var coin in bumpedTx.Outputs.AsCoins())
+            {
+                var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
+
+                if (tx.Account.IsChange(addr)) tx.Account.RemoveUtxo(coin);
+            }
+
+            var originalTransaction = Transaction.Parse(tx.Hex, tx.Account.Network);
+            foreach (var coin in originalTransaction.Outputs.AsCoins())
+            {
+                var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
+
+                if (tx.Account.IsChange(addr) || tx.Account.IsReceive(addr)) tx.Account.RemoveUtxo(coin);
             }
 
             return (bumpedTx, null);
