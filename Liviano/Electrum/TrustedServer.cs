@@ -51,6 +51,8 @@ namespace Liviano.Electrum
         public const int HEADER_SIZE = 80; // bytes
 
         Server currentServer;
+        readonly object @lock = new();
+
         public Server CurrentServer
         {
             get => currentServer;
@@ -605,9 +607,8 @@ namespace Liviano.Electrum
         /// </summary>
         /// <param name="acc">a <see cref="IAccount"/> address belong to</param>
         /// <param name="address">a <see cref="BitcoinAddress"/> that found this tx</param>
-        /// <param name="receiveAddresses">a <see cref="BitcoinAddress[]"/> of the receive addresses (external)</param>
-        /// <param name="changeAddresses">a <see cref="BitcoinAddress[]"/> of the change addresses (internal)</param>
         /// <param name="result">a <see cref="BlockchainScriptHashGetHistoryResult"/> to load txs from</param>
+        /// <param name="ct">a <see cref="CancellationToken"/> to cancel the request</param>
         async Task InsertTransactionsFromHistory(
                 IAccount acc,
                 BitcoinAddress addr,
@@ -660,38 +661,41 @@ namespace Liviano.Electrum
 
                 var txAddresses = transaction.Outputs.Select(
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                ).ToList();
+                );
 
-                foreach (var txAddr in txAddresses)
+                lock (@lock)
                 {
-                    if (acc.IsReceive(txAddr))
+                    foreach (var txAddr in txAddresses)
                     {
-                        if (acc.UsedExternalAddresses.Contains(txAddr))
-                            continue;
+                        if (acc.IsReceive(txAddr))
+                        {
+                            if (acc.UsedExternalAddresses.Contains(txAddr))
+                                continue;
 
-                        acc.UsedExternalAddresses.Add(txAddr);
+                            acc.UsedExternalAddresses.Add(txAddr);
+                        }
+
+                        if (acc.IsChange(txAddr))
+                        {
+                            if (acc.UsedInternalAddresses.Contains(txAddr))
+                                continue;
+
+                            acc.UsedInternalAddresses.Add(txAddr);
+                        }
                     }
 
-                    if (acc.IsChange(txAddr))
+                    if (acc.TxIds.ToList().Contains(tx.Id.ToString()))
                     {
-                        if (acc.UsedInternalAddresses.Contains(txAddr))
-                            continue;
+                        acc.UpdateTx(tx);
 
-                        acc.UsedInternalAddresses.Add(txAddr);
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                     }
-                }
+                    else
+                    {
+                        acc.AddTx(tx);
 
-                if (acc.TxIds.ToList().Contains(tx.Id.ToString()))
-                {
-                    acc.UpdateTx(tx);
-
-                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                }
-                else
-                {
-                    acc.AddTx(tx);
-
-                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    }
                 }
             }
         }

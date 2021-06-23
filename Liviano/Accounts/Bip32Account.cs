@@ -127,7 +127,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress> { };
 
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
-                addresses.AddRange(ExternalAddresses[scriptPubKeyType].Select((addrData) => addrData.Address));
+                addresses.AddRange(ExternalAddresses[scriptPubKeyType].ToList().Select((addrData) => addrData.Address));
 
             return addresses.ToArray();
         }
@@ -137,7 +137,7 @@ namespace Liviano.Accounts
             var addresses = new List<BitcoinAddress> { };
 
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
-                addresses.AddRange(InternalAddresses[scriptPubKeyType].Select((addrData) => addrData.Address));
+                addresses.AddRange(InternalAddresses[scriptPubKeyType].ToList().Select((addrData) => addrData.Address));
 
             return addresses.ToArray();
         }
@@ -156,30 +156,33 @@ namespace Liviano.Accounts
         {
             Debug.WriteLine("[GenerateNewAddresses] Creating new addresses if theyre needed");
 
-            foreach (var scriptPubKeyType in ScriptPubKeyTypes)
+            lock (@lock)
             {
-                var lastExternalIndex = GetExternalLastIndex();
-                for (int i = ExternalAddresses[scriptPubKeyType].Count; i < lastExternalIndex + GapLimit + 1; i++)
+                foreach (var scriptPubKeyType in ScriptPubKeyTypes)
                 {
-                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
-                    var address = pubKey.GetAddress(scriptPubKeyType, Network);
-                    var externalHdPath = $"{HdPath}/0/{i}";
+                    var lastExternalIndex = GetExternalLastIndex();
+                    for (int i = ExternalAddresses[scriptPubKeyType].ToList().Count; i < lastExternalIndex + GapLimit + 1; i++)
+                    {
+                        var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, false);
+                        var address = pubKey.GetAddress(scriptPubKeyType, Network);
+                        var externalHdPath = $"{HdPath}/0/{i}";
 
-                    ExternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
-                        address, scriptPubKeyType, pubKey.ToString(), externalHdPath, i
-                    ));
-                }
+                        ExternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
+                            address, scriptPubKeyType, pubKey.ToString(), externalHdPath, i
+                        ));
+                    }
 
-                var lastInternalIndex = GetInternalLastIndex();
-                for (int i = InternalAddresses[scriptPubKeyType].Count; i < lastInternalIndex + GapLimit + 1; i++)
-                {
-                    var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
-                    var address = pubKey.GetAddress(scriptPubKeyType, Network);
-                    var internalHdPath = $"{HdPath}/1/{i}";
+                    var lastInternalIndex = GetInternalLastIndex();
+                    for (int i = InternalAddresses[scriptPubKeyType].ToList().Count; i < lastInternalIndex + GapLimit + 1; i++)
+                    {
+                        var pubKey = Hd.GeneratePublicKey(Network, ExtPubKey.ToString(), i, true);
+                        var address = pubKey.GetAddress(scriptPubKeyType, Network);
+                        var internalHdPath = $"{HdPath}/1/{i}";
 
-                    InternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
-                        address, scriptPubKeyType, pubKey.ToString(), internalHdPath, i
-                    ));
+                        InternalAddresses[scriptPubKeyType].Insert(i, new BitcoinAddressWithMetadata(
+                            address, scriptPubKeyType, pubKey.ToString(), internalHdPath, i
+                        ));
+                    }
                 }
             }
         }
