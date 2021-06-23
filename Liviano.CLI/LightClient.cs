@@ -159,31 +159,6 @@ namespace Liviano.CLI
                 (res, error) = await wallet.Broadcast(transaction);
 
                 if (!res) return (transaction, $"Failed to broadcast transaction: {error}");
-
-                // In the end is important to add the tx even though we don't know certain things
-                // from it so we have the tx in our store already.
-                var tx = new Tx
-                {
-                    Id = transaction.GetHash(),
-                    Account = wallet.CurrentAccount,
-                    AccountId = wallet.CurrentAccount.Id,
-                    Network = network,
-                    Hex = transaction.ToHex(),
-                    IsRBF = transaction.RBF,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    IsReceive = false,
-                    IsSend = true,
-                    TotalAmount = transaction.TotalOut
-                };
-
-                tx.Account.AddTx(tx);
-
-                foreach (var coin in transaction.Outputs.AsCoins())
-                {
-                    var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
-
-                    if (tx.Account.IsChange(addr)) tx.Account.AddUtxo(coin);
-                }
             }
             catch (Exception err)
             {
@@ -192,6 +167,32 @@ namespace Liviano.CLI
                 return (transaction, $"Failed to broadcast transaction: {err.Message}");
             }
 
+            // In the end is important to add the tx even though we don't know certain things
+            // from it so we have the tx in our store already.
+            var tx = new Tx
+            {
+                Id = transaction.GetHash(),
+                Account = wallet.CurrentAccount,
+                AccountId = wallet.CurrentAccount.Id,
+                Network = network,
+                Hex = transaction.ToHex(),
+                IsRBF = transaction.RBF,
+                CreatedAt = DateTimeOffset.UtcNow,
+                IsReceive = false,
+                IsSend = true,
+                TotalAmount = transaction.TotalOut
+            };
+
+            tx.Account.AddTx(tx);
+
+            foreach (var coin in transaction.Outputs.AsCoins())
+            {
+                var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
+
+                if (tx.Account.IsChange(addr)) tx.Account.AddUtxo(coin);
+            }
+
+            wallet.Storage.Save();
 
             return (transaction, null);
         }
@@ -267,6 +268,8 @@ namespace Liviano.CLI
 
                 if (tx.Account.IsChange(addr) || tx.Account.IsReceive(addr)) tx.Account.RemoveUtxo(coin);
             }
+
+            wallet.Storage.Save();
 
             return (bumpedTx, null);
         }
