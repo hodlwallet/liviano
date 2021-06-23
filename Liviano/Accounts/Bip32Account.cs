@@ -40,6 +40,8 @@ namespace Liviano.Accounts
 {
     public abstract class Bip32Account : HdAccount
     {
+        readonly object @lock = new();
+
         public abstract string HdPathFormat { get; }
 
         protected Bip32Account(Network network, int index = 0)
@@ -184,47 +186,56 @@ namespace Liviano.Accounts
 
         public override void AddTx(Tx tx)
         {
-            if (TxIds.Contains(tx.Id.ToString()))
+            lock (@lock)
             {
-                Debug.WriteLine($"[AddTx] Wallet already has a tx with id: {tx.Id}");
+                if (TxIds.Contains(tx.Id.ToString()))
+                {
+                    Debug.WriteLine($"[AddTx] Wallet already has a tx with id: {tx.Id}");
 
-                return;
+                    return;
+                }
+
+                TxIds.Add(tx.Id.ToString());
+                Txs.Add(tx);
             }
-
-            TxIds.Add(tx.Id.ToString());
-            Txs.Add(tx);
         }
 
         public override void RemoveTx(Tx tx)
         {
-            if (!TxIds.Contains(tx.Id.ToString()))
+            lock (@lock)
             {
-                Debug.WriteLine($"[RemoveTx] Wallet doesn't have tx with id: {tx.Id}");
+                if (!TxIds.Contains(tx.Id.ToString()))
+                {
+                    Debug.WriteLine($"[RemoveTx] Wallet doesn't have tx with id: {tx.Id}");
 
-                return;
+                    return;
+                }
+
+                Txs.Remove(tx);
+                TxIds.Remove(tx.Id.ToString());
             }
-
-            Txs.Remove(tx);
-            TxIds.Remove(tx.Id.ToString());
         }
 
         public override void UpdateTx(Tx tx)
         {
-            if (!TxIds.Contains(tx.Id.ToString()))
+            lock (@lock)
             {
-                Debug.WriteLine($"[UpdateTx] Wallet doesn't have tx with id: {tx.Id}");
-
-                return;
-            }
-
-            for (int i = 0, count = Txs.Count; i < count; i++)
-            {
-                if (tx.Equals(Txs[i])) break;
-
-                if (Txs[i].Id == tx.Id)
+                if (!TxIds.Contains(tx.Id.ToString()))
                 {
-                    Txs[i] = tx;
-                    break;
+                    Debug.WriteLine($"[UpdateTx] Wallet doesn't have tx with id: {tx.Id}");
+
+                    return;
+                }
+
+                for (int i = 0, count = Txs.Count; i < count; i++)
+                {
+                    if (tx.Equals(Txs[i])) break;
+
+                    if (Txs[i].Id == tx.Id)
+                    {
+                        Txs[i] = tx;
+                        break;
+                    }
                 }
             }
         }
@@ -312,8 +323,8 @@ namespace Liviano.Accounts
 
             foreach (var scriptPubKeyType in ScriptPubKeyTypes)
             {
-                ExternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> {};
-                InternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> {};
+                ExternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> { };
+                InternalAddresses[scriptPubKeyType] = new List<BitcoinAddressWithMetadata> { };
             }
 
             for (int i = 0; i < GapLimit; i++)

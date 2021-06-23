@@ -660,7 +660,7 @@ namespace Liviano.Electrum
 
                 var txAddresses = transaction.Outputs.Select(
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                );
+                ).ToList();
 
                 foreach (var txAddr in txAddresses)
                 {
@@ -681,7 +681,7 @@ namespace Liviano.Electrum
                     }
                 }
 
-                if (acc.TxIds.Contains(tx.Id.ToString()))
+                if (acc.TxIds.ToList().Contains(tx.Id.ToString()))
                 {
                     acc.UpdateTx(tx);
 
