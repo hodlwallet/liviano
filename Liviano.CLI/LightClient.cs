@@ -254,6 +254,18 @@ namespace Liviano.CLI
                 return (bumpedTx, $"Failed to broadcast transaction: {err.Message}");
             }
 
+            BitcoinAddress destinationAddress = null;
+            foreach (var output in bumpedTx.Outputs)
+            {
+                var addr = output.ScriptPubKey.GetDestinationAddress(wallet.Network);
+                if (
+                    wallet.CurrentAccount.IsReceive(addr) || wallet.CurrentAccount.IsChange(addr)
+                )
+                    continue;
+
+                destinationAddress = addr;
+            }
+
             // In the end is important to add the tx even though we don't know certain things
             // from it so we have the tx in our store already.
             var bumpedTxModel = new Tx
@@ -266,12 +278,24 @@ namespace Liviano.CLI
                 IsRBF = bumpedTx.RBF,
                 CreatedAt = DateTimeOffset.UtcNow,
                 AmountReceived = Money.Zero,
-                //TotalFees = transaction.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(transaction)),
-                //ScriptPubKey = bitcoinAddress.ScriptPubKey,
+                TotalFees = bumpedTx.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(bumpedTx)),
+                ScriptPubKey = destinationAddress.ScriptPubKey,
                 IsReceive = false,
                 IsSend = true,
                 TotalAmount = bumpedTx.TotalOut
             };
+            tx.AmountSent = bumpedTx.Outputs.Sum((@out) =>
+            {
+                var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+
+                if (!wallet.CurrentAccount.IsChange(outAddr))
+                {
+                    tx.SentScriptPubKey = @out.ScriptPubKey;
+                    return @out.Value;
+                }
+
+                return Money.Zero;
+            });
 
             tx.Account.AddTx(bumpedTxModel);
             foreach (var coin in bumpedTx.Outputs.AsCoins())
