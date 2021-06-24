@@ -129,7 +129,7 @@ namespace Liviano.Extensions
             return extKey.PrivateKey;
         }
 
-        static ICoin[] GetCoinsFromTransaction(this IAccount account, Transaction tx)
+        public static ICoin[] GetCoinsFromTransaction(this IAccount account, Transaction tx)
         {
             var coins = new List<Coin>();
 

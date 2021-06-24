@@ -169,6 +169,8 @@ namespace Liviano.CLI
 
             // In the end is important to add the tx even though we don't know certain things
             // from it so we have the tx in our store already.
+            var bitcoinAddress = BitcoinAddress.Create(destinationAddress, wallet.CurrentAccount.Network);
+
             var tx = new Tx
             {
                 Id = transaction.GetHash(),
@@ -178,10 +180,25 @@ namespace Liviano.CLI
                 Hex = transaction.ToHex(),
                 IsRBF = transaction.RBF,
                 CreatedAt = DateTimeOffset.UtcNow,
+                AmountReceived = Money.Zero,
+                TotalFees = transaction.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(transaction)),
+                ScriptPubKey = bitcoinAddress.ScriptPubKey,
                 IsReceive = false,
                 IsSend = true,
                 TotalAmount = transaction.TotalOut
             };
+            tx.AmountSent = transaction.Outputs.Sum((@out) =>
+            {
+                var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+
+                if (!wallet.CurrentAccount.IsChange(outAddr))
+                {
+                    tx.SentScriptPubKey = @out.ScriptPubKey;
+                    return @out.Value;
+                }
+
+                return Money.Zero;
+            });
 
             tx.Account.AddTx(tx);
 
@@ -248,6 +265,9 @@ namespace Liviano.CLI
                 Hex = bumpedTx.ToHex(),
                 IsRBF = bumpedTx.RBF,
                 CreatedAt = DateTimeOffset.UtcNow,
+                AmountReceived = Money.Zero,
+                //TotalFees = transaction.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(transaction)),
+                //ScriptPubKey = bitcoinAddress.ScriptPubKey,
                 IsReceive = false,
                 IsSend = true,
                 TotalAmount = bumpedTx.TotalOut
