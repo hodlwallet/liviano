@@ -684,17 +684,21 @@ namespace Liviano.Electrum
                         }
                     }
 
-                    if (acc.TxIds.ToList().Contains(tx.Id.ToString()))
-                    {
-                        acc.UpdateTx(tx);
-
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                    }
-                    else
+                    var currentTx = acc.Txs.FirstOrDefault(o => o.Id == tx.Id);
+                    if (currentTx is null)
                     {
                         acc.AddTx(tx);
 
                         OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    }
+                    else
+                    {
+                        if (currentTx.BlockHeight < r.Height)
+                        {
+                            acc.UpdateTx(tx);
+
+                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                        }
                     }
                 }
             }
