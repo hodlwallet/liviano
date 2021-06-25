@@ -284,7 +284,7 @@ namespace Liviano.CLI
                 IsSend = true,
                 TotalAmount = bumpedTx.TotalOut
             };
-            tx.AmountSent = bumpedTx.Outputs.Sum((@out) =>
+            bumpedTxModel.AmountSent = bumpedTx.Outputs.Sum((@out) =>
             {
                 var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
@@ -297,12 +297,12 @@ namespace Liviano.CLI
                 return Money.Zero;
             });
 
-            tx.Account.AddTx(bumpedTxModel);
+            wallet.CurrentAccount.AddTx(bumpedTxModel);
             foreach (var coin in bumpedTx.Outputs.AsCoins())
             {
-                var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(tx.Account.Network);
+                var addr = coin.TxOut.ScriptPubKey.GetDestinationAddress(wallet.CurrentAccount.Network);
 
-                if (tx.Account.IsChange(addr)) tx.Account.AddUtxo(coin);
+                if (wallet.CurrentAccount.IsChange(addr)) wallet.CurrentAccount.AddUtxo(coin);
             }
 
             var originalTransaction = Transaction.Parse(tx.Hex, tx.Account.Network);
