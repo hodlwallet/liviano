@@ -313,6 +313,9 @@ namespace Liviano.CLI
                 if (tx.Account.IsChange(addr) || tx.Account.IsReceive(addr)) tx.Account.RemoveUtxo(coin);
             }
 
+            // Now we delete the old transaction
+            wallet.CurrentAccount.RemoveTx(tx);
+
             wallet.Storage.Save();
 
             return (bumpedTx, null);
