@@ -98,15 +98,6 @@ namespace Liviano.Models
         public bool IsReceive { get; set; }
 
         /// <summary>
-        /// The index of this scriptPubKey in the transaction it is contained.
-        /// </summary>
-        /// <remarks>
-        /// This is effectively the index of the output, the position of the output in the parent transaction.
-        /// </remarks>
-        [JsonProperty(PropertyName = "index", NullValueHandling = NullValueHandling.Ignore)]
-        public int Index { get; set; }
-
-        /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
@@ -222,7 +213,6 @@ namespace Liviano.Models
             CreatedAt = copy.CreatedAt;
             Hex = copy.Hex;
             Id = copy.Id;
-            Index = copy.Index;
             IsReceive = copy.IsReceive;
             IsSend = copy.IsSend;
             Memo = copy.Memo;
