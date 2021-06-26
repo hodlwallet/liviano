@@ -211,6 +211,16 @@ namespace Liviano.Accounts
             }
         }
 
+        public void DeleteUtxo(Coin coin)
+        {
+            lock (@lock)
+            {
+                UnspentCoins.Remove(coin);
+                FrozenCoins.Remove(coin);
+                SpentCoins.Remove(coin);
+            }
+        }
+
         public void UpdateUtxoListWithTransaction(Transaction transaction)
         {
             lock (@lock)

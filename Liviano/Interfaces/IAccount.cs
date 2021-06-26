@@ -219,6 +219,11 @@ namespace Liviano.Interfaces
         void UnfreezeUtxo(Coin coin);
 
         /// <summary>
+        /// Delete UTXO permantently (an rbf utxo)
+        /// </summary>
+        void DeleteUtxo(Coin coin);
+
+        /// <summary>
         /// Update UTXO list with the data from a transaction
         /// </summary>
         void UpdateUtxoListWithTransaction(Transaction transaction);
