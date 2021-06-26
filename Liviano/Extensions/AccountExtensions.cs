@@ -322,5 +322,39 @@ namespace Liviano.Extensions
 
             return total;
         }
+
+        public static Tx FindReplacedTx(this IAccount account, Transaction transaction)
+        {
+            Tx replacedTx = null;
+            var unconfirmedRBFTransactions = account.Txs.Where(o => o.IsRBF && o.Confirmations == 0).ToList();
+
+            foreach (var tx in unconfirmedRBFTransactions)
+            {
+                var parsedTransaction = Transaction.Parse(tx.Hex, tx.Network);
+
+                if (transaction.Inputs.Count != parsedTransaction.Inputs.Count)
+                    continue;
+
+                bool sameInputs = true;
+                for (int i = 0; i < parsedTransaction.Inputs.Count; i++)
+                {
+                    if (parsedTransaction.Inputs[i].PrevOut.Hash != transaction.Inputs[i].PrevOut.Hash || parsedTransaction.Inputs[i].PrevOut.N != transaction.Inputs[i].PrevOut.N)
+                    {
+                        sameInputs = false;
+
+                        break;
+                    }
+                }
+
+                if (sameInputs) replacedTx = tx;
+            }
+
+            return replacedTx;
+        }
+
+        public static bool IsReplacingTransaction(this IAccount account, Transaction transaction)
+        {
+            return account.FindReplacedTx(transaction) != null;
+        }
     }
 }
