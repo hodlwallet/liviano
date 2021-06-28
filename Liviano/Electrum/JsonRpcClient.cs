@@ -131,7 +131,7 @@ namespace Liviano.Electrum
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
             var json = JObject.Parse(request);
-            var requestId = (string) json.GetValue("id");
+            var requestId = (string)json.GetValue("id");
 
             // TODO should use this right?
             //var req = ElectrumClient.Deserialize<ElectrumClient.Request>(request);
@@ -198,8 +198,8 @@ namespace Liviano.Electrum
 
             var ct = cts.Token;
             var json = JObject.Parse(request);
-            var requestId = (string) json.GetValue("id");
-            var method = (string) json.GetValue("method");
+            var requestId = (string)json.GetValue("id");
+            var method = (string)json.GetValue("method");
 
             _ = ConsumeMessages();
 
@@ -211,8 +211,8 @@ namespace Liviano.Electrum
 
             if (string.Equals(method, "blockchain.scripthash.subscribe"))
             {
-                var @params = (JArray) json.GetValue("params");
-                var scripthash = (string) @params[0];
+                var @params = (JArray)json.GetValue("params");
+                var scripthash = (string)@params[0];
 
                 results[scripthash] = null;
                 requestId = scripthash;
@@ -228,6 +228,8 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
+
+            await Subscribe(request, resultCallback, notificationCallback, cts);
         }
 
         async Task<string> GetResult(string requestId)
@@ -269,7 +271,7 @@ namespace Liviano.Electrum
                         queue.TryDequeue(out string req);
 
                         var json = JsonConvert.DeserializeObject<JObject>(req);
-                        var requestId = (string) json.GetValue("id");
+                        var requestId = (string)json.GetValue("id");
                         var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
                         await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
@@ -321,12 +323,12 @@ namespace Liviano.Electrum
                         if (json.ContainsKey("method")) // A subscription notification
                         {
                             var @params = json.GetValue("params");
-                            var method = (string) json.GetValue("method");
+                            var method = (string)json.GetValue("method");
 
                             if (string.Equals(method, "blockchain.scripthash.subscribe"))
                             {
-                                var scripthash = (string) @params[0];
-                                var status = (string) @params[1];
+                                var scripthash = (string)@params[0];
+                                var status = (string)@params[1];
 
                                 //Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
@@ -337,7 +339,7 @@ namespace Liviano.Electrum
                             }
                             else if (string.Equals(method, "blockchain.headers.subscribe"))
                             {
-                                var newHeader = (JObject) @params[0];
+                                var newHeader = (JObject)@params[0];
                                 //Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
                                 //await WaitForEmptyResult("blockchain.headers.subscribe");
@@ -347,7 +349,7 @@ namespace Liviano.Electrum
                         }
                         else
                         {
-                            var requestId = (string) json.GetValue("id");
+                            var requestId = (string)json.GetValue("id");
 
                             //Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
 
