@@ -463,30 +463,6 @@ namespace Liviano.Electrum
                             blockHash = header.GetHash();
                         }
 
-                        // Tx is new
-                        if (currentTx is null)
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network
-                            );
-
-                            acc.AddTx(tx);
-                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-
-                            return;
-                        }
-
-                        // A potential update if tx heights are different
-                        if (currentTx.BlockHeight != height)
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network
-                            );
-
-                            acc.UpdateTx(tx);
-                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                        }
-
                         // Update list of UTXOs based on the transaction
                         var transaction = Transaction.Parse(txHex, acc.Network);
 
@@ -500,6 +476,29 @@ namespace Liviano.Electrum
 
                             var coins = acc.GetCoinsFromTransaction(parsedReplacedTx);
                             foreach (var coin in coins) acc.DeleteUtxo(coin as Coin);
+                        }
+
+                        // Tx is new
+                        var added = currentTx is null;
+                        if (added)
+                        {
+                            var tx = Tx.CreateFromHex(
+                                txHex, height, header, acc, Network
+                            );
+
+                            acc.AddTx(tx);
+                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                        }
+
+                        // A potential update if tx heights are different
+                        if (!added && currentTx.BlockHeight != height)
+                        {
+                            var tx = Tx.CreateFromHex(
+                                txHex, height, header, acc, Network
+                            );
+
+                            acc.UpdateTx(tx);
+                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
 
                         acc.UpdateUtxoListWithTransaction(transaction);
