@@ -489,7 +489,6 @@ namespace Liviano.Electrum
 
                         // Update list of UTXOs based on the transaction
                         var transaction = Transaction.Parse(txHex, acc.Network);
-                        acc.UpdateUtxoListWithTransaction(transaction);
 
                         // Find out if this tx is a replacement tx, and find said replacement tx
                         if (acc.IsReplacingTransaction(transaction))
@@ -502,6 +501,8 @@ namespace Liviano.Electrum
                             var coins = acc.GetCoinsFromTransaction(parsedReplacedTx);
                             foreach (var coin in coins) acc.DeleteUtxo(coin as Coin);
                         }
+
+                        acc.UpdateUtxoListWithTransaction(transaction);
                     }
                 }
             );
