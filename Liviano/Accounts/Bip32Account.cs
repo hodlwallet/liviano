@@ -40,7 +40,7 @@ namespace Liviano.Accounts
 {
     public abstract class Bip32Account : HdAccount
     {
-        readonly object @lock = new();
+        static readonly object @lock = new();
 
         public abstract string HdPathFormat { get; }
 

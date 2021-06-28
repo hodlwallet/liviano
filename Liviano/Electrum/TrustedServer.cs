@@ -51,7 +51,7 @@ namespace Liviano.Electrum
         public const int HEADER_SIZE = 80; // bytes
 
         Server currentServer;
-        readonly object @lock = new();
+        static readonly object @lock = new();
 
         public Server CurrentServer
         {
@@ -479,8 +479,7 @@ namespace Liviano.Electrum
                         }
 
                         // Tx is new
-                        var added = currentTx is null;
-                        if (added)
+                        if (currentTx is null)
                         {
                             var tx = Tx.CreateFromHex(
                                 txHex, height, header, acc, Network
@@ -489,9 +488,7 @@ namespace Liviano.Electrum
                             acc.AddTx(tx);
                             OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                         }
-
-                        // A potential update if tx heights are different
-                        if (!added && currentTx.BlockHeight != height)
+                        else if (currentTx.BlockHeight != height) // A potential update if tx heights are different
                         {
                             var tx = Tx.CreateFromHex(
                                 txHex, height, header, acc, Network
@@ -668,9 +665,6 @@ namespace Liviano.Electrum
                 );
 
                 var transaction = Transaction.Parse(tx.Hex, Network);
-
-                acc.UpdateUtxoListWithTransaction(transaction);
-
                 var txAddresses = transaction.Outputs.Select(
                     (o) => o.ScriptPubKey.GetDestinationAddress(Network)
                 );
@@ -703,15 +697,14 @@ namespace Liviano.Electrum
 
                         OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                     }
-                    else
+                    else if (currentTx.BlockHeight < r.Height)
                     {
-                        if (currentTx.BlockHeight < r.Height)
-                        {
-                            acc.UpdateTx(tx);
+                        acc.UpdateTx(tx);
 
-                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                        }
+                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                     }
+
+                    acc.UpdateUtxoListWithTransaction(transaction);
                 }
             }
         }

@@ -39,7 +39,7 @@ namespace Liviano.Accounts
 {
     public abstract class BaseAccount : IAccount
     {
-        readonly object @lock = new();
+        static readonly object @lock = new();
 
         public string Id { get; set; }
 
