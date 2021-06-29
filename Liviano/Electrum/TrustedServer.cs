@@ -212,7 +212,7 @@ namespace Liviano.Electrum
 
             var addressWatchTasks = new List<Task>();
             foreach (var addr in addresses)
-                addressWatchTasks.Add(WatchAddress(acc, addr, receiveAddresses, changeAddresses, ct));
+                addressWatchTasks.Add(WatchAddress(acc, addr, ct));
 
             await Task.Factory.StartNew(
                 o => Task.WaitAll(addressWatchTasks.ToArray(), ct),
@@ -394,8 +394,6 @@ namespace Liviano.Electrum
         async Task WatchAddress(
                 IAccount acc,
                 BitcoinAddress addr,
-                BitcoinAddress[] receiveAddresses,
-                BitcoinAddress[] changeAddresses,
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
@@ -403,8 +401,7 @@ namespace Liviano.Electrum
             var scriptHashStr = addr.ToScriptHash().ToHex();
             string receiveOrSend = null;
 
-            if (receiveAddresses.Contains(addr)) receiveOrSend = "Receive";
-            if (changeAddresses.Contains(addr)) receiveOrSend = "Send";
+            receiveOrSend = acc.IsReceive(addr) ? "Receive" : "Send";
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ({receiveOrSend}) ScriptHash: {scriptHashStr}");
 
