@@ -458,8 +458,7 @@ namespace Liviano
 
             Debug.WriteLine("");
 
-            _ = ElectrumPool.SubscribeToHeaders(this, ct).ConfigureAwait(false);
-
+            await ElectrumPool.SubscribeToHeaders(this, ct);
             await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
 
@@ -477,8 +476,7 @@ namespace Liviano
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 
-            _ = ElectrumPool.SubscribeToHeaders(this, ct);
-
+            await ElectrumPool.SubscribeToHeaders(this, ct);
             await ElectrumPool.WatchAccount(CurrentAccount, ct);
         }
 

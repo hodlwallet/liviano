@@ -228,8 +228,6 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
-
-            await Subscribe(request, resultCallback, notificationCallback, cts);
         }
 
         async Task<string> GetResult(string requestId)
@@ -293,6 +291,8 @@ namespace Liviano.Electrum
 
         void EnqueueMessage(string requestId, string request)
         {
+            if (queue.Any(o => o.Equals(requestId))) return;
+
             results[requestId] = null;
             queue.Enqueue(request);
         }
