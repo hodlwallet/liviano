@@ -510,7 +510,7 @@ namespace Liviano.Electrum
         {
             OnSyncStarted?.Invoke(this, null);
 
-            var currentTxCount = acc.Txs.Count;
+            var currentTxCount = acc.Txs.ToList().Count;
 
             var addressSyncTasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
