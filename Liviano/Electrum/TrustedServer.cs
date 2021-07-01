@@ -530,7 +530,7 @@ namespace Liviano.Electrum
 
             acc.FindAndRemoveDuplicateUtxo();
 
-            var endTxCount = acc.Txs.Count;
+            var endTxCount = acc.Txs.ToList().Count;
 
             if (currentTxCount < endTxCount)
                 await SyncAccountUntilGapLimit(acc, ct);
