@@ -444,7 +444,7 @@ namespace Liviano.Electrum
                         var txHash = unspentResult.TxHash;
                         var height = unspentResult.Height;
 
-                        var currentTx = acc.Txs.FirstOrDefault((i) => i.Id.ToString() == txHash);
+                        var currentTx = acc.Txs.ToList().FirstOrDefault((i) => i.Id.ToString() == txHash);
 
                         var txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
                         BlockHeader header = null;
@@ -687,7 +687,7 @@ namespace Liviano.Electrum
                         }
                     }
 
-                    var currentTx = acc.Txs.FirstOrDefault(o => o.Id == tx.Id);
+                    var currentTx = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
                     if (currentTx is null)
                     {
                         acc.AddTx(tx);
