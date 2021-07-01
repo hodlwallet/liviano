@@ -241,7 +241,9 @@ namespace Liviano.Electrum
             // Now the result is ready
             var res = results[requestId];
 
-            results.TryRemove(requestId, out _);
+            var rmRes = results.TryRemove(requestId, out _);
+
+            if (!rmRes) Debug.WriteLine("[GetResult] Error removing result!");
 
             return res;
         }
@@ -251,6 +253,8 @@ namespace Liviano.Electrum
             Debug.WriteLine($"[CallbackOnResult] Callback for requestId: {requestId}");
 
             callback(await GetResult(requestId));
+
+            await CallbackOnResult(requestId, callback);
         }
 
         public async Task ConsumeQueue()
