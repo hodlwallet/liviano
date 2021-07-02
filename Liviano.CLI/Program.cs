@@ -84,6 +84,7 @@ namespace Liviano.CLI
         static bool newAcc = false;
         static bool start = false;
         static bool resync = false;
+        static bool sync = false;
         static bool coinControl = false;
         static string freezeCoin = null;
         static string unfreezeCoin = null;
@@ -119,6 +120,7 @@ namespace Liviano.CLI
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
+                {"sy|sync", "Start wallet sync and exit when done", v => sync = !(v is null)},
                 {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = !(v is null)},
                 {"v|version", "Show the liviano version", v => version = !(v is null)},
 
@@ -397,6 +399,22 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.Start(config);
+
+                return 0;
+            }
+
+            if (sync)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                LightClient.Sync(config);
 
                 return 0;
             }
