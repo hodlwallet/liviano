@@ -240,10 +240,7 @@ namespace Liviano.Electrum
 
             // Now the result is ready
             var res = results[requestId];
-
-            var rmRes = results.TryRemove(requestId, out _);
-
-            if (!rmRes) Debug.WriteLine("[GetResult] Error removing result!");
+            results.TryRemove(requestId, out _);
 
             return res;
         }
