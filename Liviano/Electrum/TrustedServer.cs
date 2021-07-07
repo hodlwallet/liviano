@@ -409,9 +409,7 @@ namespace Liviano.Electrum
                 scriptHashStr,
                 resultCallback: (str) =>
                 {
-                    Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, hash: {scriptHashStr} status: {str}.");
-
-                    Debug.WriteLine($"[WatchAddress][resultCallback] Status: '{str}'.");
+                    Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, address {addr} hash: {scriptHashStr} status: {str}.");
 
                     // TODO Status data structure description: https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-basics.html#status
                     // I'm not sure what to do with it... What matters are the notifications and those are described bellow
@@ -464,7 +462,7 @@ namespace Liviano.Electrum
                         var transaction = Transaction.Parse(txHex, acc.Network);
 
                         // Find out if this tx is a replacement tx, and find said replacement tx
-                        if (acc.IsReplacingTransaction(transaction))
+                        if (currentTx != null && acc.IsReplacingTransaction(transaction))
                         {
                             var replacedTx = acc.FindReplacedTx(transaction);
                             var parsedReplacedTx = Transaction.Parse(replacedTx.Hex, replacedTx.Network);
