@@ -40,7 +40,6 @@ namespace Liviano.Electrum
 {
     public class JsonRpcClient
     {
-        readonly int DEFAULT_NETWORK_TIMEOUT_INT = 30;
         readonly TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
 
         readonly Server server;
@@ -120,7 +119,7 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
 
-            // TODO Usecured tcp streams support back
+            // TODO add usecured tcp streams support back
 
             return await RequestInternalSsl(request);
         }
@@ -160,29 +159,6 @@ namespace Liviano.Electrum
             if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
 
             return result;
-        }
-
-        public SslStream GetSslStream()
-        {
-            Host = server.Domain;
-            ipAddress = ResolveHost(server.Domain).Result;
-            port = server.PrivatePort.Value;
-
-            Debug.WriteLine(
-                $"[GetSslStream] From: {Host}:{port} ({server.Version})"
-            );
-
-            var tcpClient = Connect();
-
-            tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            tcpClient.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
-
-            var sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
-
-            sslStream.ReadTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
-            sslStream.WriteTimeout = Convert.ToInt32(TimeSpan.FromSeconds(DEFAULT_NETWORK_TIMEOUT_INT).TotalMilliseconds);
-
-            return sslStream;
         }
 
         public async Task Subscribe(string request, Action<string> resultCallback, Action<string> notificationCallback, CancellationTokenSource cts = null)
