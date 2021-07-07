@@ -449,7 +449,7 @@ namespace Liviano
                 await ElectrumPool.Connect(Cts);
         }
 
-        private async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
+        async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
         {
             Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Sent from {sender}");
 
@@ -458,11 +458,13 @@ namespace Liviano
 
             Debug.WriteLine("");
 
-            await ElectrumPool.SubscribeToHeaders(this, ct);
+            _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.SubscribeToHeaders(this, ct);
+
             await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
 
-        private async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
+        async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
         {
             Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Sent from {sender}");
             Debug.WriteLine($"[ElectrumPool_OnConnectedToWatch] Server {server.Domain}");
@@ -476,18 +478,29 @@ namespace Liviano
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 
-            await ElectrumPool.SubscribeToHeaders(this, ct);
+            _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.SubscribeToHeaders(this, ct);
+
             await ElectrumPool.WatchAccount(CurrentAccount, ct);
         }
 
-        private void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
+        async void ElectrumServer_PingFailedCallback(DateTimeOffset? pingFailedAt)
+        {
+            Debug.WriteLine($"[Connect] Ping failed at {pingFailedAt}. Reconnecting...");
+            ElectrumPool.CurrentServer.OnConnectedEvent = null;
+
+            await Task.Delay(TrustedServer.RECONNECT_DELAY);
+            await ElectrumPool.Connect(Cts);
+        }
+
+        void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
             this.OnSyncStarted?.Invoke(this, null);
         }
 
-        private void ElectrumPool_OnNewHeaderNotified(object sender, NewHeaderEventArgs args)
+        void ElectrumPool_OnNewHeaderNotified(object sender, NewHeaderEventArgs args)
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
@@ -497,21 +510,21 @@ namespace Liviano
             this.OnNewHeaderNotified?.Invoke(this, args);
         }
 
-        private void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
+        void ElectrumPool_OnWatchStarted(object sender, EventArgs args)
         {
             Debug.WriteLine($"[ElectrumPool_OnWatchStarted] Watch started at {DateTime.Now}");
 
             this.OnWatchStarted?.Invoke(this, null);
         }
 
-        private void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
+        void ElectrumPool_OnSyncFinished(object sender, EventArgs args)
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncFinished] Sync finished at {DateTime.Now}");
 
             this.OnSyncFinished?.Invoke(this, args);
         }
 
-        private void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
+        void ElectrumPool_OnNewTransaction(object sender, TxEventArgs txArgs)
         {
             var tx = txArgs.Tx;
             var addr = txArgs.Address;
@@ -536,7 +549,7 @@ namespace Liviano
             Storage.Save();
         }
 
-        private void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)
+        void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)
         {
             var tx = txArgs.Tx;
             var addr = txArgs.Address;

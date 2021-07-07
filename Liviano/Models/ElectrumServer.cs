@@ -68,7 +68,6 @@ namespace Liviano.Models
         public EventHandler OnDisconnectedEvent;
 
         bool connected = false;
-
         [JsonIgnore]
         public bool Connected
         {
@@ -84,6 +83,9 @@ namespace Liviano.Models
                     OnDisconnectedEvent?.Invoke(this, null);
             }
         }
+
+        [JsonIgnore]
+        public bool IsPinging { get; set; }
 
         [JsonIgnore]
         public ElectrumClient ElectrumClient { get; set; }
@@ -168,6 +170,10 @@ namespace Liviano.Models
         /// </summary>
         public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
         {
+            if (IsPinging) return;
+
+            IsPinging = true;
+
             try
             {
                 await Ping();
@@ -179,6 +185,8 @@ namespace Liviano.Models
                 Debug.WriteLine($"[PeriodicPing] Ping failed!");
 
                 pingFailedAtCallback(ElectrumClient.LastCalledAt);
+
+                IsPinging = false;
 
                 return;
             }

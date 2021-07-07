@@ -161,9 +161,9 @@ namespace Liviano.Electrum
             OnConnected?.Invoke(this, CurrentServer);
 
             // Periodic ping, every 450_000 ms
-            await CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
+            _ = CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
             {
-                Console.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
+                Debug.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
                 // TODO check if this is needed
                 //CurrentServer.ElectrumClient = null;
@@ -171,7 +171,7 @@ namespace Liviano.Electrum
 
                 await Task.Delay(RECONNECT_DELAY);
                 await Connect(cts);
-            }).ConfigureAwait(false);
+            });
 
             if (cancellationToken.IsCancellationRequested)
                 OnCancelFindingPeersEvent?.Invoke(this, null);
@@ -632,7 +632,7 @@ namespace Liviano.Electrum
                 }
                 catch (ElectrumException e)
                 {
-                    Console.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
+                    Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
                     await InsertTransactionsFromHistory(acc, addr, result, ct);
                     return;
