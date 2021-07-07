@@ -198,6 +198,10 @@ namespace Liviano.Electrum
                 results["blockchain.headers.subscribe"] = null;
                 requestId = "blockchain.headers.subscribe";
             }
+            else
+            {
+                throw new WalletException("Invalid subscription");
+            }
 
             await Task.Factory.StartNew(
                 o => CallbackOnResult(requestId, notificationCallback),
@@ -216,7 +220,7 @@ namespace Liviano.Electrum
 
             // Now the result is ready
             var res = results[requestId];
-            results.TryRemove(requestId, out _);
+            results.TryRemove(requestId, out var t);
 
             return res;
         }
@@ -277,19 +281,17 @@ namespace Liviano.Electrum
         /// <summary>
         /// Consume messages from the stream
         /// </summary>
-        /// <param name="newStream">Read from a new stream not the one we already have set</param>
-        /// <param name="scripthash">Subscribe to a scripthash</param>
-        async Task ConsumeMessages(SslStream newStream = null)
+        async Task ConsumeMessages()
         {
             if (readingStream) return;
 
             readingStream = true;
 
-            using var stream = newStream ?? sslStream;
+            using var stream = sslStream;
 
             try
             {
-                await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
+                await SslTcpClient.ReadMessagesFrom(stream, async (msgs) =>
                 {
                     foreach (var msg in msgs.Split('\n'))
                     {
@@ -310,7 +312,7 @@ namespace Liviano.Electrum
                                 //Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
                                 // See below's fixme
-                                //await WaitForEmptyResult(scripthash);
+                                await WaitForEmptyResult(scripthash);
 
                                 results[scripthash] = status;
                             }
@@ -319,7 +321,7 @@ namespace Liviano.Electrum
                                 var newHeader = (JObject)@params[0];
                                 //Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
-                                //await WaitForEmptyResult("blockchain.headers.subscribe");
+                                await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                 results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                             }
@@ -331,7 +333,7 @@ namespace Liviano.Electrum
                             //Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
 
                             // FIXME This is a bug, there should always be an empty result...
-                            //await WaitForEmptyResult(requestId);
+                            await WaitForEmptyResult(requestId);
 
                             results[requestId] = msg;
                         }
@@ -347,6 +349,19 @@ namespace Liviano.Electrum
 
                 await ConsumeMessages();
             }
+        }
+
+        async Task WaitForEmptyResult(string requestId)
+        {
+            string val;
+            results.TryGetValue(requestId, out val);
+            while (!string.IsNullOrEmpty(val))
+            {
+                Console.WriteLine($"wtf '{val}'");
+                await Task.Delay(10);
+            }
+            //
+            //await Task.Delay(1);
         }
     }
 }

@@ -459,9 +459,9 @@ namespace Liviano
             Debug.WriteLine("");
 
             _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
-            _ = ElectrumPool.SubscribeToHeaders(this, ct);
+            //_ = ElectrumPool.SubscribeToHeaders(this, ct);
 
-            await ElectrumPool.SyncAccount(CurrentAccount, ct);
+            //await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
 
         async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
@@ -481,7 +481,7 @@ namespace Liviano
             _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
-            await ElectrumPool.WatchAccount(CurrentAccount, ct);
+            //await ElectrumPool.WatchAccount(CurrentAccount, ct);
         }
 
         async void ElectrumServer_PingFailedCallback(DateTimeOffset? pingFailedAt)

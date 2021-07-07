@@ -172,27 +172,27 @@ namespace Liviano.Models
         {
             if (IsPinging) return;
 
-            IsPinging = true;
-
-            try
+            while (true)
             {
-                await Ping();
+                try
+                {
+                    IsPinging = true;
 
-                Debug.WriteLine($"[PeriodicPing] Ping successful!");
+                    await Ping();
+
+                    Debug.WriteLine($"[PeriodicPing] Ping successful!");
+                }
+                catch (Exception e)
+                {
+                    IsPinging = false;
+
+                    Debug.WriteLine($"[PeriodicPing] Ping failed! Error: {e.Message}, stacktrace: {e.StackTrace}");
+
+                    pingFailedAtCallback(ElectrumClient.LastCalledAt);
+                }
+
+                await Task.Delay(3000);
             }
-            catch
-            {
-                Debug.WriteLine($"[PeriodicPing] Ping failed!");
-
-                pingFailedAtCallback(ElectrumClient.LastCalledAt);
-
-                IsPinging = false;
-
-                return;
-            }
-
-            await Task.Delay(PING_DELAY);
-            await PeriodicPing(pingFailedAtCallback);
         }
 
         public async Task<string> DonationAddress()
