@@ -743,17 +743,6 @@ namespace Liviano.CLI
                 logger.Information($"New header notified!, height: {headerArgs.Height}");
             };
 
-            if (!resync)
-            {
-                wallet.Watch();
-
-                _ = PeriodicSave();
-
-                WaitUntilEscapeIsPressed();
-
-                return;
-            }
-
             wallet.OnSyncStarted += (s, e) =>
             {
                 logger.Information("Sync started!");
@@ -783,6 +772,17 @@ namespace Liviano.CLI
 
                 wallet.Watch();
             };
+
+            if (!resync)
+            {
+                wallet.Watch();
+
+                _ = PeriodicSave();
+
+                WaitUntilEscapeIsPressed();
+
+                return;
+            }
 
             wallet.Sync();
 
