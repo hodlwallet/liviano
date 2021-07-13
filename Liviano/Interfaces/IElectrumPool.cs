@@ -81,8 +81,24 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Connect async
         /// </summary>
+        /// <param name="retries">A <see cref="int"/> to retry</param>
         /// <param name="cts">A cancellation tocken source</param>
-        Task Connect(CancellationTokenSource cts = null);
+        Task Connect(int retries, CancellationTokenSource cts = null);
+
+        /// <summary>
+        /// Get current server banner
+        /// </summary>
+        Task<string> Banner();
+
+        /// <summary>
+        /// Ping the current server
+        /// </summary>
+        Task<bool> Ping();
+
+        /// <summary>
+        /// Ping the current server periodically with a callback for failures
+        /// </summary>
+        Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback);
 
         /// <summary>
         /// Sync wallet

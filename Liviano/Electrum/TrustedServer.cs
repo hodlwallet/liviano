@@ -55,6 +55,26 @@ namespace Liviano.Electrum
         Server currentServer;
         static readonly object @lock = new();
 
+        [JsonIgnore]
+        public bool IsPinging { get; set; }
+
+        bool connected = false;
+        [JsonIgnore]
+        public bool Connected
+        {
+            get => connected;
+
+            set
+            {
+                connected = value;
+
+                if (Connected)
+                    CurrentServer.OnConnectedEvent?.Invoke(this, null);
+                else
+                    CurrentServer.OnDisconnectedEvent?.Invoke(this, null);
+            }
+        }
+
         public Server CurrentServer
         {
             get => currentServer;
@@ -83,7 +103,6 @@ namespace Liviano.Electrum
         }
 
         public ElectrumClient ElectrumClient { get; set; }
-        public bool Connected { get; private set; }
         public Network Network { get; private set; }
 
         public event EventHandler<Server> OnCurrentServerChangedEvent;
@@ -160,7 +179,6 @@ namespace Liviano.Electrum
             OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
             OnConnected?.Invoke(this, CurrentServer);
 
-            await CurrentServer.ConnectAsync();
             Debug.WriteLine($"Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
             if (cancellationToken.IsCancellationRequested)
@@ -215,7 +233,7 @@ namespace Liviano.Electrum
             }
 
             // Periodic ping, every 450_000 ms
-            _ = CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
+            _ = PeriodicPing(pingFailedAtCallback: async (dt) =>
             {
                 Debug.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
@@ -397,6 +415,78 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[DownloadHeaders] Saved wallet");
         }
+
+        public async Task<string> Banner()
+        {
+            var banner = await ElectrumClient.ServerBanner();
+
+            return banner;
+        }
+
+        public async Task<bool> Ping()
+        {
+            var ping = await ElectrumClient.ServerPing();
+
+            return ping.Result == null;
+        }
+
+        /// <summary>
+        /// Periodicly ping the server based on the last called time
+        /// </summary>
+        public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
+        {
+            if (IsPinging) return;
+
+            while (true)
+            {
+                try
+                {
+                    IsPinging = true;
+
+                    await Ping();
+
+                    Debug.WriteLine($"[PeriodicPing] Ping successful!");
+                }
+                catch (Exception e)
+                {
+                    IsPinging = false;
+
+                    Debug.WriteLine($"[PeriodicPing] Ping failed! Error: {e.Message}, stacktrace: {e.StackTrace}");
+
+                    pingFailedAtCallback(ElectrumClient.LastCalledAt);
+                }
+
+                await Task.Delay(3000);
+            }
+        }
+
+        public async Task<string> DonationAddress()
+        {
+            var donationAddress = await ElectrumClient.ServerDonationAddress();
+
+            return donationAddress.Result;
+        }
+
+        public async Task<Server[]> FindPeers()
+        {
+            Debug.WriteLine($"[FindPeers] for {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
+
+            try
+            {
+                var peers = await ElectrumClient.ServerPeersSubscribe();
+
+                return ElectrumServers.FromPeersSubscribeResult(peers.Result).Servers.CompatibleServers().ToArray();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[FindPeers] Error: {e.Message}");
+
+                // TODO ngl this shit should fail.
+
+                return new Server[] { };
+            }
+        }
+
 
         public static IElectrumPool Load(Network network = null, string localDirectory = null)
         {

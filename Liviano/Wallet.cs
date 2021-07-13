@@ -378,7 +378,7 @@ namespace Liviano
                     );
                 };
 
-            if (!ElectrumPool.Connected) await ElectrumPool.Connect(Cts);
+            if (!ElectrumPool.Connected) await ElectrumPool.Connect(3, Cts); // TODO use const for retries
         }
 
         /// <summary>
@@ -446,7 +446,7 @@ namespace Liviano
                 );
 
             if (!ElectrumPool.Connected)
-                await ElectrumPool.Connect(Cts);
+                await ElectrumPool.Connect(3, Cts); // TODO use a const for retries
         }
 
         async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
@@ -458,7 +458,7 @@ namespace Liviano
 
             Debug.WriteLine("");
 
-            _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingFailedCallback);
             //_ = ElectrumPool.SubscribeToHeaders(this, ct);
 
             //await ElectrumPool.SyncAccount(CurrentAccount, ct);
@@ -478,7 +478,7 @@ namespace Liviano
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 
-            _ = ElectrumPool.CurrentServer.PeriodicPing(ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingFailedCallback);
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
             //await ElectrumPool.WatchAccount(CurrentAccount, ct);
@@ -490,7 +490,7 @@ namespace Liviano
             ElectrumPool.CurrentServer.OnConnectedEvent = null;
 
             await Task.Delay(TrustedServer.RECONNECT_DELAY);
-            await ElectrumPool.Connect(Cts);
+            await ElectrumPool.Connect(3, Cts); // TODO use a const for retries
         }
 
         void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
