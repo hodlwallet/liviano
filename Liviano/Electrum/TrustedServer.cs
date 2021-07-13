@@ -68,10 +68,11 @@ namespace Liviano.Electrum
             {
                 connected = value;
 
-                if (Connected)
-                    CurrentServer.OnConnectedEvent?.Invoke(this, null);
-                else
-                    CurrentServer.OnDisconnectedEvent?.Invoke(this, null);
+                if (CurrentServer != null)
+                {
+                    if (Connected) CurrentServer.OnConnectedEvent?.Invoke(this, null);
+                    else CurrentServer.OnDisconnectedEvent?.Invoke(this, null);
+                }
             }
         }
 
