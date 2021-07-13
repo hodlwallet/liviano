@@ -87,70 +87,6 @@ namespace Liviano.Models
         [JsonIgnore]
         public bool IsPinging { get; set; }
 
-        [JsonIgnore]
-        public ElectrumClient ElectrumClient { get; set; }
-
-        /// <summary>
-        /// Connects by trying to get a version.
-        /// </summary>
-        /// <param name="retries">How many times we've retried</param>
-        /// <returns></returns>
-        public async Task ConnectAsync(int retries = 2)
-        {
-            Debug.WriteLine($"Connecting to {Domain}:{PrivatePort} at {DateTime.UtcNow}");
-
-            if (CancellationToken.IsCancellationRequested)
-            {
-                Debug.WriteLine("Cancellation requested, NOT CONNECTING!");
-
-                return;
-            }
-
-            System.Version version;
-            try
-            {
-                version = await ElectrumClient.ServerVersion();
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
-
-                if (retries >= VERSION_REQUEST_MAX_RETRIES)
-                    return;
-
-                Connected = false;
-
-                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
-
-                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
-                await ConnectAsync(retries + 1);
-
-                return;
-            }
-
-            if (version >= ElectrumClient.REQUESTED_VERSION)
-            {
-                Debug.WriteLine($"Connected {Domain}! at {DateTime.UtcNow}");
-
-                Connected = true;
-                return;
-            }
-
-            if (retries > VERSION_REQUEST_MAX_RETRIES)
-            {
-                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
-
-                Connected = false;
-
-                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
-
-                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
-                await ConnectAsync(retries + 1);
-
-                return;
-            }
-        }
-
         public async Task<string> Banner()
         {
             var banner = await ElectrumClient.ServerBanner();
@@ -279,10 +215,6 @@ namespace Liviano.Models
             if (!string.IsNullOrEmpty(tcpPort)) server.UnencryptedPort = int.Parse(tcpPort);
             else server.UnencryptedPort = null;
 
-            server.ElectrumClient = new ElectrumClient(
-                new JsonRpcClient(server)
-            );
-
             return server;
         }
 
@@ -373,10 +305,6 @@ namespace Liviano.Models
                     server.UnencryptedPort = int.Parse(values["t"]);
                 else
                     server.UnencryptedPort = null;
-
-                server.ElectrumClient = new ElectrumClient(
-                    new JsonRpcClient(server)
-                );
 
                 servers.Servers.Add(server);
             }

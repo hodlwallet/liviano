@@ -38,6 +38,7 @@ namespace Liviano.Interfaces
     public interface IElectrumPool
     {
         bool Connected { get; }
+        bool IsPinging { get; }
         Server CurrentServer { get; set; }
         ElectrumClient ElectrumClient { get; set; }
 

@@ -49,6 +49,8 @@ namespace Liviano.Electrum
     {
         public const int RECONNECT_DELAY = 1000; // ms
         public const int HEADER_SIZE = 80; // bytes
+        public const int VERSION_REQUEST_RETRY_DELAY = 1500;
+        public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
         Server currentServer;
         static readonly object @lock = new();
@@ -74,7 +76,7 @@ namespace Liviano.Electrum
                 }
 
                 currentServer = value;
-                ElectrumClient = currentServer.ElectrumClient;
+                ElectrumClient = new ElectrumClient(new JsonRpcClient(currentServer));
 
                 OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
             }
@@ -147,7 +149,7 @@ namespace Liviano.Electrum
             OnSyncFinished?.Invoke(this, null);
         }
 
-        public async Task Connect(CancellationTokenSource cts = null)
+        public async Task Connect(int retries = 2, CancellationTokenSource cts = null)
         {
             cts ??= new CancellationTokenSource();
             var cancellationToken = cts.Token;
@@ -155,10 +157,62 @@ namespace Liviano.Electrum
             CurrentServer.CancellationToken = cancellationToken;
             CurrentServer.OnConnectedEvent += HandleConnectedServers;
 
-            await CurrentServer.ConnectAsync();
-
             OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
             OnConnected?.Invoke(this, CurrentServer);
+
+            await CurrentServer.ConnectAsync();
+            Debug.WriteLine($"Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Debug.WriteLine("Cancellation requested, NOT CONNECTING!");
+
+                return;
+            }
+
+            System.Version version;
+            try
+            {
+                version = await ElectrumClient.ServerVersion();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
+
+                if (retries >= VERSION_REQUEST_MAX_RETRIES)
+                    return;
+
+                Connected = false;
+
+                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+
+                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
+                await Connect(retries + 1);
+
+                return;
+            }
+
+            if (version >= ElectrumClient.REQUESTED_VERSION)
+            {
+                Debug.WriteLine($"Connected {CurrentServer.Domain}! at {DateTime.UtcNow}");
+
+                Connected = true;
+                return;
+            }
+
+            if (retries > VERSION_REQUEST_MAX_RETRIES)
+            {
+                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
+
+                Connected = false;
+
+                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+
+                await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
+                await Connect(retries + 1);
+
+                return;
+            }
 
             // Periodic ping, every 450_000 ms
             _ = CurrentServer.PeriodicPing(pingFailedAtCallback: async (dt) =>
@@ -170,7 +224,7 @@ namespace Liviano.Electrum
                 CurrentServer.OnConnectedEvent = null;
 
                 await Task.Delay(RECONNECT_DELAY);
-                await Connect(cts);
+                await Connect(0, cts);
             });
 
             if (cancellationToken.IsCancellationRequested)
