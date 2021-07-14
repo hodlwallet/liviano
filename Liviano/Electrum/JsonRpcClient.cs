@@ -352,16 +352,16 @@ namespace Liviano.Electrum
             }
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         async Task WaitForEmptyResult(string requestId)
+#pragma warning restore IDE0051 // Remove unused private members
         {
+            var loopDelay = 10;
             results.TryGetValue(requestId, out string val);
             while (!string.IsNullOrEmpty(val))
             {
-                Console.WriteLine($"WTF, {requestId}");
-                await Task.Delay(10);
+                await Task.Delay(loopDelay);
             }
-            //
-            //await Task.Delay(1);
         }
     }
 }
