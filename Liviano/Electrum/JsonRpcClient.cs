@@ -220,7 +220,8 @@ namespace Liviano.Electrum
 
             // Now the result is ready
             var res = results[requestId];
-            results.TryRemove(requestId, out var t);
+            results[requestId] = null;
+            results.TryRemove(requestId, out var _);
 
             return res;
         }
@@ -267,6 +268,7 @@ namespace Liviano.Electrum
                 consumingQueue = false;
             }
 
+            consumingQueue = false;
             await ConsumeQueue();
         }
 
@@ -312,7 +314,7 @@ namespace Liviano.Electrum
                                 //Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
 
                                 // See below's fixme
-                                await WaitForEmptyResult(scripthash);
+                                //await WaitForEmptyResult(scripthash);
 
                                 results[scripthash] = status;
                             }
@@ -321,7 +323,7 @@ namespace Liviano.Electrum
                                 var newHeader = (JObject)@params[0];
                                 //Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
-                                await WaitForEmptyResult("blockchain.headers.subscribe");
+                                //await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                 results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                             }
@@ -333,11 +335,10 @@ namespace Liviano.Electrum
                             //Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
 
                             // FIXME This is a bug, there should always be an empty result...
-                            await WaitForEmptyResult(requestId);
+                            //await WaitForEmptyResult(requestId);
 
                             results[requestId] = msg;
                         }
-
                     }
                 });
             }
@@ -353,11 +354,10 @@ namespace Liviano.Electrum
 
         async Task WaitForEmptyResult(string requestId)
         {
-            string val;
-            results.TryGetValue(requestId, out val);
+            results.TryGetValue(requestId, out string val);
             while (!string.IsNullOrEmpty(val))
             {
-                Console.WriteLine($"wtf '{val}'");
+                Console.WriteLine($"WTF, {requestId}");
                 await Task.Delay(10);
             }
             //

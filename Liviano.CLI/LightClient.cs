@@ -608,6 +608,20 @@ namespace Liviano.CLI
             WaitUntilEscapeIsPressed();
         }
 
+        public static void Ping(Config config)
+        {
+            Load(config, skipAuth: true);
+
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o)
+            );
+
+            _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
+        }
+
         /// <summary>
         /// Freeze Coin
         /// </summary>

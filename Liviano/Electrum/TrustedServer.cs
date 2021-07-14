@@ -49,6 +49,7 @@ namespace Liviano.Electrum
     {
         public const int RECONNECT_DELAY = 1000; // ms
         public const int HEADER_SIZE = 80; // bytes
+        public const int PERIODIC_PING_DELAY = 90000; // 1.5 minutes
         public const int VERSION_REQUEST_RETRY_DELAY = 1500;
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
@@ -234,7 +235,7 @@ namespace Liviano.Electrum
             }
 
             // Periodic ping, every 450_000 ms
-            _ = PeriodicPing(pingFailedAtCallback: async (dt) =>
+            _ = PeriodicPing(failedCallback: async (dt) =>
             {
                 Debug.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
@@ -434,31 +435,33 @@ namespace Liviano.Electrum
         /// <summary>
         /// Periodicly ping the server based on the last called time
         /// </summary>
-        public async Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback)
+        public async Task PeriodicPing(Action<DateTimeOffset?> successCallback = null, Action<DateTimeOffset?> failedCallback = null)
         {
             if (IsPinging) return;
 
-            while (true)
+            try
             {
-                try
-                {
-                    IsPinging = true;
+                IsPinging = true;
 
-                    await Ping();
+                await Ping();
 
-                    Debug.WriteLine($"[PeriodicPing] Ping successful!");
-                }
-                catch (Exception e)
-                {
-                    IsPinging = false;
+                Debug.WriteLine($"[PeriodicPing] Ping successful!");
 
-                    Debug.WriteLine($"[PeriodicPing] Ping failed! Error: {e.Message}, stacktrace: {e.StackTrace}");
-
-                    pingFailedAtCallback(ElectrumClient.LastCalledAt);
-                }
-
-                await Task.Delay(3000);
+                successCallback?.Invoke(ElectrumClient.LastCalledAt);
             }
+            catch (Exception e)
+            {
+                IsPinging = false;
+
+                Debug.WriteLine($"[PeriodicPing] Ping failed! Error: {e.Message}, stacktrace: {e.StackTrace}");
+
+                failedCallback?.Invoke(ElectrumClient.LastCalledAt);
+            }
+
+            await Task.Delay(PERIODIC_PING_DELAY);
+
+            IsPinging = false;
+            await PeriodicPing(successCallback, failedCallback);
         }
 
         public async Task<string> DonationAddress()

@@ -33,6 +33,7 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
+using System.Net.NetworkInformation;
 
 namespace Liviano.CLI
 {
@@ -85,6 +86,7 @@ namespace Liviano.CLI
         static bool start = false;
         static bool resync = false;
         static bool sync = false;
+        static bool ping = false;
         static bool coinControl = false;
         static string freezeCoin = null;
         static string unfreezeCoin = null;
@@ -143,6 +145,7 @@ namespace Liviano.CLI
                 {"fc|freeze-coin=", "TxId:N of the coin to freeze", (string v) => freezeCoin = v},
                 {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
+                {"png|ping", "Ping electrum server", (string v) => ping = !(v is null)},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -431,6 +434,13 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.ReSync(config);
+
+                return 0;
+            }
+
+            if (ping)
+            {
+                LightClient.Ping(config);
 
                 return 0;
             }

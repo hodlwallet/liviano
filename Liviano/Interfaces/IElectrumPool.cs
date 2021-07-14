@@ -98,7 +98,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Ping the current server periodically with a callback for failures
         /// </summary>
-        Task PeriodicPing(Action<DateTimeOffset?> pingFailedAtCallback);
+        Task PeriodicPing(Action<DateTimeOffset?> successCallback, Action<DateTimeOffset?> failedCallback);
 
         /// <summary>
         /// Sync wallet
