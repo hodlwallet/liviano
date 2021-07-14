@@ -293,7 +293,7 @@ namespace Liviano.Electrum
 
             try
             {
-                await SslTcpClient.ReadMessagesFrom(stream, async (msgs) =>
+                await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
                 {
                     foreach (var msg in msgs.Split('\n'))
                     {
