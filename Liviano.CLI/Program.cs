@@ -440,6 +440,13 @@ namespace Liviano.CLI
 
             if (ping)
             {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("Ping needs a wallet id, cause... There's no actual reason why but cause");
+
+                    return 1;
+                }
+
                 LightClient.Ping(config);
 
                 return 0;
