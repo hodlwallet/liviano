@@ -49,7 +49,7 @@ namespace Liviano.Electrum
     {
         public const int RECONNECT_DELAY = 1000; // ms
         public const int HEADER_SIZE = 80; // bytes
-        public const int PERIODIC_PING_DELAY = 90000; // 1.5 minutes
+        public const int PERIODIC_PING_DELAY = 450000; // 450 seconds as mentioned in: https://electrumx-spesmilo.readthedocs.io/en/latest/environment.html#envvar-SESSION_TIMEOUT
         public const int VERSION_REQUEST_RETRY_DELAY = 1500;
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
