@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
@@ -616,6 +617,33 @@ namespace Liviano.CLI
                 o => logger.Information("Ping Successful at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o)
             );
+
+            _ = PeriodicSave();
+
+            WaitUntilEscapeIsPressed();
+        }
+
+        public static void HeadersNotifications(Config config)
+        {
+            Load(config, skipAuth: true);
+
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o)
+            );
+
+            var cts = new CancellationTokenSource();
+            wallet.ElectrumPool.SubscribeToHeaders(wallet, cts.Token);
+
+            wallet.ElectrumPool.OnUpdatedHeader += (s, o) =>
+            {
+                logger.Information("New header found height: {height} time: {time}", o.Height, DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.OnNewHeaderNotified += (s, o) =>
+            {
+                logger.Information("New header found height: {height} time: {time}", o.Height, DateTimeOffset.UtcNow);
+            };
 
             _ = PeriodicSave();
 

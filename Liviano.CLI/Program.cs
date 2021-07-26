@@ -33,7 +33,6 @@ using NBitcoin;
 using Serilog;
 
 using Liviano.Bips;
-using System.Net.NetworkInformation;
 
 namespace Liviano.CLI
 {
@@ -87,6 +86,7 @@ namespace Liviano.CLI
         static bool resync = false;
         static bool sync = false;
         static bool ping = false;
+        static bool headers = false;
         static bool coinControl = false;
         static string freezeCoin = null;
         static string unfreezeCoin = null;
@@ -146,6 +146,7 @@ namespace Liviano.CLI
                 {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
                 {"png|ping", "Ping electrum server", (string v) => ping = !(v is null)},
+                {"hdr|headers", "Subscribe to new headers", (string v) => headers = !(v is null)},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -448,6 +449,20 @@ namespace Liviano.CLI
                 }
 
                 LightClient.Ping(config);
+
+                return 0;
+            }
+
+            if (headers)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("Subscribe to headers needs a wallet id");
+
+                    return 1;
+                }
+
+                LightClient.HeadersNotifications(config);
 
                 return 0;
             }

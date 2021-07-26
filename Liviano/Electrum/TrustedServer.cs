@@ -123,6 +123,7 @@ namespace Liviano.Electrum
 
         public event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
         public event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
+        public event EventHandler<NewHeaderEventArgs> OnUpdatedHeader;
 
         public TrustedServer(Server server, Network network)
         {
@@ -324,6 +325,11 @@ namespace Liviano.Electrum
                     wallet.Storage.Save();
 
                     Debug.WriteLine($"[SubscribeToHeaders][resultCallback] Saved wallet");
+
+                    OnUpdatedHeader?.Invoke(
+                        this,
+                        new NewHeaderEventArgs(wallet, wallet.LastBlockHeaderHex, wallet.Height)
+                    );
 
                     await DownloadHeaders(wallet, wallet.Height);
                 },
