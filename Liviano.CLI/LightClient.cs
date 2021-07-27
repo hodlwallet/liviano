@@ -613,9 +613,11 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
+            // Ping every 5 seconds
             wallet.ElectrumPool.PeriodicPing(
                 o => logger.Information("Ping Successful at {time}!", o),
-                o => logger.Information("Ping failed at {time}!", o)
+                o => logger.Information("Ping failed at {time}!", o),
+                5000
             );
 
             _ = PeriodicSave();
@@ -629,7 +631,8 @@ namespace Liviano.CLI
 
             wallet.ElectrumPool.PeriodicPing(
                 o => logger.Information("Ping Successful at {time}!", o),
-                o => logger.Information("Ping failed at {time}!", o)
+                o => logger.Information("Ping failed at {time}!", o),
+                null
             );
 
             var cts = new CancellationTokenSource();

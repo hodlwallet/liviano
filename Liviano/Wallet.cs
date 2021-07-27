@@ -458,7 +458,7 @@ namespace Liviano
 
             Debug.WriteLine("");
 
-            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingSuccessCallback, ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingSuccessCallback, ElectrumServer_PingFailedCallback, null);
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
             await ElectrumPool.SyncAccount(CurrentAccount, ct);
@@ -478,7 +478,7 @@ namespace Liviano
                 OnWatchAddressNotified?.Invoke(this, args);
             };
 
-            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingSuccessCallback, ElectrumServer_PingFailedCallback);
+            _ = ElectrumPool.PeriodicPing(ElectrumServer_PingSuccessCallback, ElectrumServer_PingFailedCallback, null);
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
             await ElectrumPool.WatchAccount(CurrentAccount, ct);

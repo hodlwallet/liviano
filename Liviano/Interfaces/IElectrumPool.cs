@@ -99,7 +99,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Ping the current server periodically with a callback for failures
         /// </summary>
-        Task PeriodicPing(Action<DateTimeOffset?> successCallback, Action<DateTimeOffset?> failedCallback);
+        Task PeriodicPing(Action<DateTimeOffset?> successCallback, Action<DateTimeOffset?> failedCallback, int? timeoutMilliseconds);
 
         /// <summary>
         /// Sync wallet

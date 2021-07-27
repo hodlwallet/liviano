@@ -221,35 +221,65 @@ namespace Liviano.Electrum
             if (isSslPooling) return;
 
             isSslPooling = true;
-            var isConnected = false;
+
+            var ping = new Ping();
+            var pingOptions = new PingOptions(64, true)
+            {
+                DontFragment = true
+            };
+            var pingData = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            var pingTimeout = TCP_CLIENT_POLL_TIME_TO_WAIT;
+            var pingBuffer = Encoding.ASCII.GetBytes(pingData);
+
+            bool isConnected = false;
             while (true)
             {
-                // First test if we can get the ip address in case of a disconnected client:
-                var @ipAddress = GetIp
-
-                // Now we test if the tcpclient can connect
-                Console.WriteLine("****************************3WTF*****************");
-                using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                if (NetworkInterface.GetIsNetworkAvailable())
                 {
-                    SendTimeout = Convert.ToInt32(1000),
-                    ReceiveTimeout = Convert.ToInt32(1000)
-                };
-                Console.WriteLine("****************************2WTF*****************");
-                
-                isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromSeconds(5));
-                Console.WriteLine("****************************1WTF*****************");
+                    // Ping the hostname first
+                    var t = Task.Run(() =>
+                    {
+                        var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
 
-                if(!isConnected)
-                {
-                    Debug.WriteLine("[PollSslClient] This tcpClient is disconnected.");
+                        if (pingReply.Status != IPStatus.Success)
+                        {
+                            Debug.WriteLine("[PollSslClient] Ping failed.");
+                            isConnected = false;
+
+                            return;
+                        }
+
+                        // Now we test if the tcpclient can connect
+                        using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                        {
+                            SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
+                            ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
+                        };
+
+                        isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
+                        if (!isConnected)
+                        {
+                            Debug.WriteLine("[PollSslClient] Stream is disconnected.");
+                        }
+                    });
+
+                    if (await Task.WhenAny(t, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != t)
+                    {
+                        Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
+                        isConnected = false;
+                    }
                 }
                 else
                 {
-                    Debug.WriteLine("[PollSslClient] This tcpClient is connected.");
-                }
-                Console.WriteLine("****************************0WTF*****************");
+                    Console.WriteLine("[PollSslClient] Network not available");
 
-                await Task.Delay(1000);
+                    isConnected = false;
+                }
+
+                if (!isConnected)
+                    Debug.WriteLine("[PollSslClient] Disconnected!");
+
+                await Task.Delay(TCP_CLIENT_POLL_TIME_TO_WAIT);
             }
         }
 

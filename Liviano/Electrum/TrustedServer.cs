@@ -441,9 +441,11 @@ namespace Liviano.Electrum
         /// <summary>
         /// Periodicly ping the server based on the last called time
         /// </summary>
-        public async Task PeriodicPing(Action<DateTimeOffset?> successCallback = null, Action<DateTimeOffset?> failedCallback = null)
+        public async Task PeriodicPing(Action<DateTimeOffset?> successCallback = null, Action<DateTimeOffset?> failedCallback = null, int? timeoutMilliseconds = null)
         {
             if (IsPinging) return;
+
+            timeoutMilliseconds ??= PERIODIC_PING_DELAY;
 
             try
             {
@@ -464,7 +466,7 @@ namespace Liviano.Electrum
                 failedCallback?.Invoke(ElectrumClient.LastCalledAt);
             }
 
-            await Task.Delay(PERIODIC_PING_DELAY);
+            await Task.Delay(timeoutMilliseconds.Value);
 
             IsPinging = false;
             await PeriodicPing(successCallback, failedCallback);
