@@ -469,7 +469,8 @@ namespace Liviano.Electrum
             await Task.Delay(timeoutMilliseconds.Value);
 
             IsPinging = false;
-            await PeriodicPing(successCallback, failedCallback);
+
+            await PeriodicPing(successCallback, failedCallback, timeoutMilliseconds);
         }
 
         public async Task<string> DonationAddress()
