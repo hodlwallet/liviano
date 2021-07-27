@@ -28,6 +28,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Threading;
 
 using Liviano.Models;
@@ -41,6 +42,8 @@ namespace Liviano.Electrum
     public class JsonRpcClient
     {
         readonly TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
+        readonly TimeSpan DEFAULT_NETWORK_TIMEOUT_POLL = TimeSpan.FromSeconds(5.0);
+        readonly int TCP_CLIENT_POLL_TIME_TO_WAIT = 5000; // Milliseconds for polling, 5 seconds.
 
         readonly Server server;
 
@@ -48,6 +51,8 @@ namespace Liviano.Electrum
 
         TcpClient tcpClient;
         SslStream sslStream;
+
+        [ThreadStatic] bool isSslPooling = false;
 
         [ThreadStatic] bool readingStream = false;
         bool consumingQueue = false;
@@ -132,8 +137,7 @@ namespace Liviano.Electrum
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
 
-            // TODO should use this right?
-            //var req = ElectrumClient.Deserialize<ElectrumClient.Request>(request);
+            _ = PollSslClient();
 
             _ = ConsumeMessages();
 
@@ -177,6 +181,8 @@ namespace Liviano.Electrum
             var requestId = (string)json.GetValue("id");
             var method = (string)json.GetValue("method");
 
+            _ = PollSslClient();
+
             _ = ConsumeMessages();
 
             EnqueueMessage(requestId, request);
@@ -208,6 +214,43 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 ct
             );
+        }
+
+        async Task PollSslClient()
+        {
+            if (isSslPooling) return;
+
+            isSslPooling = true;
+            var isConnected = false;
+            while (true)
+            {
+                // First test if we can get the ip address in case of a disconnected client:
+                var @ipAddress = GetIp
+
+                // Now we test if the tcpclient can connect
+                Console.WriteLine("****************************3WTF*****************");
+                using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                {
+                    SendTimeout = Convert.ToInt32(1000),
+                    ReceiveTimeout = Convert.ToInt32(1000)
+                };
+                Console.WriteLine("****************************2WTF*****************");
+                
+                isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromSeconds(5));
+                Console.WriteLine("****************************1WTF*****************");
+
+                if(!isConnected)
+                {
+                    Debug.WriteLine("[PollSslClient] This tcpClient is disconnected.");
+                }
+                else
+                {
+                    Debug.WriteLine("[PollSslClient] This tcpClient is connected.");
+                }
+                Console.WriteLine("****************************0WTF*****************");
+
+                await Task.Delay(1000);
+            }
         }
 
         async Task<string> GetResult(string requestId)
@@ -311,9 +354,8 @@ namespace Liviano.Electrum
                                 var scripthash = (string)@params[0];
                                 var status = (string)@params[1];
 
-                                //Debug.WriteLine($"[ConsumeMessages] Scripthash ({scripthash}) new status: {(string) @params[1]}");
-
-                                // See below's fixme
+                                // FIXME We need to wait for empty result,
+                                // it should be empty but sometimes this fails
                                 //await WaitForEmptyResult(scripthash);
 
                                 results[scripthash] = status;
@@ -321,8 +363,8 @@ namespace Liviano.Electrum
                             else if (string.Equals(method, "blockchain.headers.subscribe"))
                             {
                                 var newHeader = (JObject)@params[0];
-                                //Debug.WriteLine($"[ConsumeMessages] New header: {newHeader}");
 
+                                // See above
                                 //await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                 results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
@@ -332,9 +374,7 @@ namespace Liviano.Electrum
                         {
                             var requestId = (string)json.GetValue("id");
 
-                            //Debug.WriteLine($"[ConsumeMessages] Response: ({requestId}): '{msg}'");
-
-                            // FIXME This is a bug, there should always be an empty result...
+                            // See above
                             //await WaitForEmptyResult(requestId);
 
                             results[requestId] = msg;
