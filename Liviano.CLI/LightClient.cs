@@ -468,6 +468,22 @@ namespace Liviano.CLI
             Load(config, skipAuth: true);
             var startTime = DateTimeOffset.UtcNow;
 
+            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
+            {
+                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
+            {
+                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o),
+                null
+            );
+
             wallet.OnNewTransaction += (s, e) =>
             {
                 logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
@@ -543,6 +559,22 @@ namespace Liviano.CLI
             Load(config, skipAuth: true);
             var startTime = DateTimeOffset.UtcNow;
 
+            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
+            {
+                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
+            {
+                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o),
+                null
+            );
+
             wallet.OnNewTransaction += (s, e) =>
             {
                 logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
@@ -613,13 +645,6 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
-            // Ping every 5 seconds
-            wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
-                o => logger.Information("Ping failed at {time}!", o),
-                5000
-            );
-
             wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
             {
                 logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
@@ -629,6 +654,14 @@ namespace Liviano.CLI
             {
                 logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
             };
+
+            // Ping every 5 seconds
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o),
+                5000
+            );
+
 
             _ = PeriodicSave();
 
@@ -767,6 +800,23 @@ namespace Liviano.CLI
         public static void Start(Config config, bool resync = false)
         {
             Load(config, skipAuth: true);
+
+            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
+            {
+                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
+            {
+                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            // Ping every 5 seconds
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o),
+                5000
+            );
 
             wallet.OnWatchStarted += (s, e) =>
             {
