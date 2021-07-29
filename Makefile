@@ -18,6 +18,9 @@ build:
 liviano:
 	make ubuntu.debug.build
 
+liviano.release:
+	make ubuntu.release.build
+
 ## Runs Liviano's client from source code using a particular Net framework version. Usage: args="--help" make run
 run:
 	@if [ "${args}" = "" ]; then\
@@ -133,6 +136,13 @@ ubuntu.debug.build:
 	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/ubuntu-x64/publish bin/ubuntu_debug_build
 	rm -f ./liviano-cli
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
+
+ubuntu.release.build:
+	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime ubuntu-x64
+	mkdir -p bin/ubuntu_release_build
+	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/ubuntu-x64/publish bin/ubuntu_release_build
+	rm -f ./liviano-cli
+	ln -s bin/ubuntu_release_build/publish/Liviano.CLI liviano-cli
 
 ## Publishes Liviano using Debug configuration mode for macOS system.
 osx.debug.build:
