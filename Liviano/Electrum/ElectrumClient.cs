@@ -43,6 +43,9 @@ namespace Liviano.Electrum
 
         public DateTimeOffset? LastCalledAt { get; private set; }
 
+        public event EventHandler OnDisconnected;
+        public event EventHandler OnConnected;
+
         public class Request
         {
             public string Id { get; set; }
@@ -306,6 +309,9 @@ namespace Liviano.Electrum
         public ElectrumClient(JsonRpcClient jsonRpcClient)
         {
             this.jsonRpcClient = jsonRpcClient;
+
+            this.jsonRpcClient.OnConnected += (s, o) => OnConnected?.Invoke(s, o);
+            this.jsonRpcClient.OnDisconnected += (s, o) => OnDisconnected?.Invoke(s, o);
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver

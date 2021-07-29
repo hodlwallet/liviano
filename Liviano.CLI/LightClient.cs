@@ -620,6 +620,16 @@ namespace Liviano.CLI
                 5000
             );
 
+            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
+            {
+                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
+            {
+                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
+            };
+
             _ = PeriodicSave();
 
             WaitUntilEscapeIsPressed();
