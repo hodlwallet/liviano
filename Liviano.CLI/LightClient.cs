@@ -815,7 +815,7 @@ namespace Liviano.CLI
             wallet.ElectrumPool.PeriodicPing(
                 o => logger.Information("Ping Successful at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
-                5000
+                null
             );
 
             wallet.OnWatchStarted += (s, e) =>
