@@ -73,7 +73,7 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 address,
-                account0ExtPubKey.PubKey.GetSegwitAddress(network).ToString()
+                account0ExtPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ToString()
             );
 
             // Account 0, second receiving address = m/84'/0'/0'/0/1
@@ -96,7 +96,7 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 address,
-                account0ExtPubKey.PubKey.GetSegwitAddress(network).ToString()
+                account0ExtPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ToString()
             );
 
             // Account 0, first change address = m/84'/0'/0'/1/0
@@ -119,7 +119,7 @@ namespace Liviano.Tests.Liviano
 
             Assert.Equal(
                 address,
-                account0ExtPubKey.PubKey.GetSegwitAddress(network).ToString()
+                account0ExtPubKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, network).ToString()
             );
         }
 
