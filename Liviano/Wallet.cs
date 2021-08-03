@@ -49,6 +49,7 @@ namespace Liviano
     {
         const string DEFAULT_WALLET_NAME = "Wallet";
         const string DEFAULT_ACCOUNT_NAME = "Account";
+        const int MAX_CONNECT_RETRIES = 3;
 
         public string[] AccountTypes => new string[] { "bip141", "bip44", "bip49", "bip84", "paper", "wasabi" };
 
@@ -351,7 +352,7 @@ namespace Liviano
 
             Cleanup();
 
-            //  And we do the regular sync
+            // And we do the regular sync
             await Sync();
         }
 
@@ -378,7 +379,7 @@ namespace Liviano
                     );
                 };
 
-            if (!ElectrumPool.Connected) await ElectrumPool.Connect(3, Cts); // TODO use const for retries
+            if (!ElectrumPool.Connected) await ElectrumPool.Connect(MAX_CONNECT_RETRIES, Cts);
         }
 
         /// <summary>
@@ -446,7 +447,7 @@ namespace Liviano
                 );
 
             if (!ElectrumPool.Connected)
-                await ElectrumPool.Connect(3, Cts); // TODO use a const for retries
+                await ElectrumPool.Connect(MAX_CONNECT_RETRIES, Cts);
         }
 
         async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
@@ -495,7 +496,7 @@ namespace Liviano
             ElectrumPool.CurrentServer.OnConnectedEvent = null;
 
             await Task.Delay(TrustedServer.RECONNECT_DELAY);
-            await ElectrumPool.Connect(3, Cts); // TODO use a const for retries
+            await ElectrumPool.Connect(MAX_CONNECT_RETRIES, Cts);
         }
 
         void ElectrumPool_OnSyncStarted(object sender, EventArgs args)
