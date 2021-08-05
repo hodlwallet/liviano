@@ -693,6 +693,38 @@ namespace Liviano.Electrum
             OnSyncFinished?.Invoke(this, null);
         }
 
+        public void SyncAccountParallel(IAccount acc, CancellationToken ct)
+        {
+            OnSyncStarted?.Invoke(this, null);
+
+            var addresses = new List<BitcoinAddress> {};
+
+            foreach (var spkt in acc.ScriptPubKeyTypes)
+            {
+                foreach (var addressData in acc.ExternalAddresses[spkt].ToList())
+                    addresses.Add(addressData.Address);
+
+                foreach (var addressData in acc.InternalAddresses[spkt].ToList())
+                    addresses.Add(addressData.Address);
+            }
+
+            var options = new ParallelOptions()
+            {
+                CancellationToken = ct,
+                MaxDegreeOfParallelism = 1000
+            };
+
+            Parallel.ForEach(addresses, options, (addr) =>
+            {
+                //SyncAddress(acc, addr, ct).WithCancellation(ct).Wait();
+                Task.Delay(10000);
+            });
+
+            acc.FindAndRemoveDuplicateUtxo();
+
+            OnSyncFinished?.Invoke(this, null);
+        }
+
         /// <summary>
         /// Syncs an account until the gap limit is full of empty addresses
         /// </summary>
