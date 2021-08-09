@@ -693,11 +693,12 @@ namespace Liviano.Electrum
             OnSyncFinished?.Invoke(this, null);
         }
 
-        public void SyncAccountParallel(IAccount acc, CancellationToken ct)
+        public async Task SyncAccountParallel(IAccount acc, CancellationToken ct)
         {
             OnSyncStarted?.Invoke(this, null);
 
             var addresses = new List<BitcoinAddress> {};
+            var currentTxCount = acc.Txs.ToList().Count;
 
             foreach (var spkt in acc.ScriptPubKeyTypes)
             {
@@ -708,23 +709,26 @@ namespace Liviano.Electrum
                     addresses.Add(addressData.Address);
             }
 
-            var maxDegreeOfParallelism = acc.UsedExternalAddresses.Count + acc.UsedInternalAddresses.Count + acc.GapLimit + 3;
             var options = new ParallelOptions()
             {
                 CancellationToken = ct,
-                MaxDegreeOfParallelism = maxDegreeOfParallelism
+                MaxDegreeOfParallelism = Environment.ProcessorCount * 10
             };
 
-            Parallel.ForEach(addresses, options, (addr) =>
+            Parallel.ForEach(addresses.ToList(), options, async (addr) =>
             {
-                Console.WriteLine($"!!!! Start sync address {addr} !!!");
+                await SyncAddress(acc, addr, ct);
 
-                var startTime = DateTimeOffset.UtcNow;
-                SyncAddress(acc, addr, ct).WithCancellation(ct).Wait();
-                var endTime = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"!!!! End sync address {addr} time: {endTime - startTime}!!!");
+                addresses.Remove(addr);
             });
+
+            // Wait for addresses to be processed
+            while (addresses.Count > 0) { await Task.Delay(100); }
+
+            var endTxCount = acc.Txs.ToList().Count;
+
+            if (currentTxCount < endTxCount)
+                await SyncAccountUntilGapLimit(acc, ct);
 
             acc.FindAndRemoveDuplicateUtxo();
 

@@ -292,12 +292,14 @@ namespace Liviano.Extensions
             {
                 var outIndex = input.PrevOut.N;
                 var outHash = input.PrevOut.Hash.ToString();
+                var txIds = account.TxIds.ToList();
+                var txs = account.Txs.ToList();
 
                 // Try to find the tx locally to avoid performance issues
-                var accountTxId = account.TxIds.FirstOrDefault(o => o.Equals(outHash));
+                var accountTxId = txIds.FirstOrDefault(o => o.Equals(outHash));
                 if (!string.IsNullOrEmpty(accountTxId))
                 {
-                    var accountTx = account.Txs.FirstOrDefault(o => o.Id.ToString().Equals(accountTxId));
+                    var accountTx = txs.FirstOrDefault(o => o.Id.ToString().Equals(accountTxId));
 
                     var accountTransaction = Transaction.Parse(accountTx.Hex, account.Network);
                     var accountTxOut = accountTransaction.Outputs[outIndex];

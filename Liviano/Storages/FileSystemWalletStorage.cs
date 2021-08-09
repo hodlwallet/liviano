@@ -284,8 +284,9 @@ namespace Liviano.Storages
 
             foreach (var account in Wallet.Accounts.ToList())
             {
-                var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{account.Id}.json";
-                var content = JsonConvert.SerializeObject(account, serializerSettings);
+                var acc = account.Clone() as IAccount;
+                var singleAccountPath = $"{accountsPath}{Path.DirectorySeparatorChar}{acc.Id}.json";
+                var content = JsonConvert.SerializeObject(acc, serializerSettings);
 
                 File.WriteAllText(singleAccountPath, content);
             }

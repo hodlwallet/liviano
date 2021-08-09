@@ -120,7 +120,7 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="account">a <see cref="IAccount"/> to sync</param>
         /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
-        void SyncAccountParallel(IAccount account, CancellationToken ct);
+        Task SyncAccountParallel(IAccount account, CancellationToken ct);
 
         /// <summary>
         /// Watches a wallet for new transactions
