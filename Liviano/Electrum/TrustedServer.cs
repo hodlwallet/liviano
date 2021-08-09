@@ -708,16 +708,22 @@ namespace Liviano.Electrum
                     addresses.Add(addressData.Address);
             }
 
+            var maxDegreeOfParallelism = acc.UsedExternalAddresses.Count + acc.UsedInternalAddresses.Count + acc.GapLimit + 3;
             var options = new ParallelOptions()
             {
                 CancellationToken = ct,
-                MaxDegreeOfParallelism = 1000
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
             };
 
             Parallel.ForEach(addresses, options, (addr) =>
             {
-                //SyncAddress(acc, addr, ct).WithCancellation(ct).Wait();
-                Task.Delay(10000);
+                Console.WriteLine($"!!!! Start sync address {addr} !!!");
+
+                var startTime = DateTimeOffset.UtcNow;
+                SyncAddress(acc, addr, ct).WithCancellation(ct).Wait();
+                var endTime = DateTimeOffset.UtcNow;
+
+                Console.WriteLine($"!!!! End sync address {addr} time: {endTime - startTime}!!!");
             });
 
             acc.FindAndRemoveDuplicateUtxo();
