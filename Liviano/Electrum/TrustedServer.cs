@@ -715,15 +715,10 @@ namespace Liviano.Electrum
                 MaxDegreeOfParallelism = Environment.ProcessorCount * 10
             };
 
-            Parallel.ForEach(addresses.ToList(), options, async (addr) =>
+            Parallel.ForEach(addresses.ToList(), options, (addr) =>
             {
-                await SyncAddress(acc, addr, ct);
-
-                addresses.Remove(addr);
+                SyncAddress(acc, addr, ct).Wait();
             });
-
-            // Wait for addresses to be processed
-            while (addresses.Count > 0) { await Task.Delay(100); }
 
             var endTxCount = acc.Txs.ToList().Count;
 
