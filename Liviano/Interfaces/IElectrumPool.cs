@@ -116,6 +116,13 @@ namespace Liviano.Interfaces
         Task SyncAccount(IAccount account, CancellationToken ct);
 
         /// <summary>
+        /// Sync a wallet account parallel version
+        /// </summary>
+        /// <param name="account">a <see cref="IAccount"/> to sync</param>
+        /// <param name="cancellationToken">a <see cref="CancellationToken"/> to stop this</param>
+        Task SyncAccountParallel(IAccount account, CancellationToken ct);
+
+        /// <summary>
         /// Watches a wallet for new transactions
         /// </summary>
         /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
