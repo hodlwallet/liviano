@@ -55,7 +55,7 @@ namespace Liviano.Electrum
             // The remote certificate is valid!
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
-            if (chain.ChainStatus.Length == 0 && certificate.Subject == certificate.Issuer)
+            if (chain.ChainStatus.Length == 0 && sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && certificate.Subject == certificate.Issuer)
             {
                 return true;
             }
