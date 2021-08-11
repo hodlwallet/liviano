@@ -41,6 +41,9 @@ namespace Liviano.Electrum
 
         /// <summary>
         /// The following method is invoked by the RemoteCertificateValidationDelegate.
+        /// This code currently accept invalid ssl certs and only checks the subject and the issuer
+        /// to see if they're the same in order to support most electrum servers that do
+        /// not validate ssl certs
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="certificate"></param>
@@ -52,8 +55,11 @@ namespace Liviano.Electrum
             // The remote certificate is valid!
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
-            // If there is more than one error then it shouldn't be allowed
-            if (chain.ChainStatus.Length == 1)
+            if (chain.ChainStatus.Length == 0 && certificate.Subject == certificate.Issuer)
+            {
+                return true;
+            }
+            else if (chain.ChainStatus.Length == 1)
             {
                 // Self signed certificates have the issuer in the subject field
                 if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors || certificate.Subject == certificate.Issuer)
@@ -76,7 +82,7 @@ namespace Liviano.Electrum
             Debug.WriteLine("[ValidateServerCertificate] Certificate error: {0}", sslPolicyErrors);
 
             // Do not allow this client to communicate with unauthenticated servers.
-            return true;
+            return false;
         }
 
         /// <summary>
