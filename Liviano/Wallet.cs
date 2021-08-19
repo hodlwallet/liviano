@@ -682,14 +682,16 @@ namespace Liviano
 
                         foreach (var r in t.Result.Result)
                         {
-                            Debug.WriteLine($"[FindAccounts] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
-                            Debug.WriteLine($"[FindAccounts] Found non empty account of type: {account.AccountType}, index: {account.Index}, hd path: {account.HdPath}");
+                            Console.WriteLine($"[FindAccounts] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                            Console.WriteLine($"[FindAccounts] Found non empty account of type: {account.AccountType}, index: {account.Index}, hd path: {account.HdPath}");
 
                             accounts.Add(account);
                             accountsFound = true;
 
                             break;
                         }
+
+                        if (accountsFound) break;
                     }
                 }
 
