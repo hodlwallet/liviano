@@ -91,6 +91,8 @@ namespace Liviano.CLI
         static string freezeCoin = null;
         static string unfreezeCoin = null;
         static bool version = false;
+        static bool detectAccount = false;
+        static bool saveAccounts = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -125,6 +127,8 @@ namespace Liviano.CLI
                 {"sy|sync", "Start wallet sync and exit when done", v => sync = !(v is null)},
                 {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = !(v is null)},
                 {"v|version", "Show the liviano version", v => version = !(v is null)},
+                {"dccs|detect-accounts", "Detect accounts on a mnemonic seed", v => detectAccount = !(v is null)},
+                {"sdccs|save-accounts", "Save detected accounts on a mnemonic seed", v => saveAccounts = !(v is null)},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -435,6 +439,27 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.ReSync(config);
+
+                return 0;
+            }
+
+            if (detectAccount)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
+                }
+                else
+                    logger.Information("Using wallet id: {walletId}", config.WalletId);
+
+                var accounts = LightClient.FindAccouns(config);
+
+                if (saveAccounts)
+                {
+                    Debug.WriteLine("[detectAccount] Save accounts TODO");
+                }
 
                 return 0;
             }
