@@ -372,6 +372,20 @@ namespace Liviano.CLI
             return res;
         }
 
+        public static List<IAccount> FindAccounts(string mnemonic, Network network)
+        {
+            var wallet = new Wallet();
+
+            wallet.Init(
+                mnemonic: mnemonic,
+                network: network,
+                passphrase: "",
+                skipAuth: false
+            );
+
+            return wallet.FindAccounts();
+        }
+
         public static void AccountSummary(Config config, string accountName, int accountIndex)
         {
             Load(config, skipAuth: true);

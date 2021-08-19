@@ -42,6 +42,7 @@ using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Exceptions;
 using Liviano.Events;
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano
 {
@@ -634,6 +635,73 @@ namespace Liviano
             var res = await ElectrumPool.Broadcast(tx);
 
             return res;
+        }
+
+        public List<IAccount> FindAccounts()
+        {
+            var cts = new CancellationTokenSource();
+            var accounts = new List<IAccount> {};
+            var emptyAccounts = 0;
+            var index = 0;
+            var emptyAccountsToStop = 1;
+            var bip32AccountTypes = new List<string>
+            {
+                //"bip44",
+                //"bip49",
+                "bip84",
+                "bip141"
+            };
+
+            Cts = cts;
+
+            InitElectrumPool();
+
+            while (emptyAccounts <= emptyAccountsToStop)
+            {
+                var accountsFound = false;
+                foreach (var accountType in bip32AccountTypes)
+                {
+                    var account = Bip32Account.Create(
+                        $"Account #{index}",
+                        new
+                        {
+                            Wallet = this,
+                            Network,
+                            Type = accountType,
+                            Index = index
+                        }
+                    );
+
+                    for (int i = 0; i < account.ScriptPubKeyTypes.Count; i++)
+                    {
+                        var addr = account.GetReceiveAddress(i);
+                        var scriptHashStr = addr.ToScriptHash().ToHex();
+
+                        var t = ElectrumPool.ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr);
+                        t.Wait();
+
+                        foreach (var r in t.Result.Result)
+                        {
+                            Debug.WriteLine($"[FindAccounts] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                            Debug.WriteLine($"[FindAccounts] Found non empty account of type: {account.AccountType}, index: {account.Index}, hd path: {account.HdPath}");
+
+                            accounts.Add(account);
+                            accountsFound = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if (accountsFound) emptyAccounts = 0;
+                else emptyAccounts++;
+
+                accountsFound = false;
+
+                index++;
+            }
+
+            return accounts;
         }
     }
 }

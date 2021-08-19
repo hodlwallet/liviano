@@ -445,16 +445,24 @@ namespace Liviano.CLI
 
             if (detectAccount)
             {
-                if (string.IsNullOrEmpty(config.WalletId))
+                if (string.IsNullOrEmpty(mnemonic))
                 {
-                    Console.WriteLine("New account needs a wallet id");
+                    Console.WriteLine("Detect accounts need a mnemonic");
 
                     return 1;
                 }
-                else
-                    logger.Information("Using wallet id: {walletId}", config.WalletId);
 
-                var accounts = LightClient.FindAccouns(config);
+                var accounts = LightClient.FindAccounts(mnemonic, network);
+
+                foreach (var acc in accounts)
+                {
+                    logger.Information(
+                        "Found account of type: {type}, index: {index}, hd path: {hdPath}",
+                        acc.AccountType,
+                        acc.Index,
+                        acc.HdPath
+                    );
+                }
 
                 if (saveAccounts)
                 {

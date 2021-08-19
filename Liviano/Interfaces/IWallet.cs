@@ -190,6 +190,11 @@ namespace Liviano.Interfaces
         void CreateAccountIndexes();
 
         /// <summary>
+        /// Finds all the possible accounts in the wallet
+        /// </summary>
+        List<IAccount> FindAccounts();
+
+        /// <summary>
         /// Syncing, used to start syncing from 0 and also to continue after booting
         /// </summary>
         /// <returns></returns>
