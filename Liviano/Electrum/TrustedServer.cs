@@ -177,7 +177,7 @@ namespace Liviano.Electrum
             var cancellationToken = cts.Token;
 
             CurrentServer.CancellationToken = cancellationToken;
-            CurrentServer.OnConnectedEvent += HandleConnectedServers;
+            CurrentServer.OnConnectedEvent += (_, e) => HandleConnectedServers(CurrentServer, e);
 
             OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
             OnConnected?.Invoke(this, CurrentServer);

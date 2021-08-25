@@ -655,6 +655,7 @@ namespace Liviano
             Cts = cts;
 
             InitElectrumPool();
+            ElectrumPool.Connect(retries: 3, cts).Wait();
 
             while (emptyAccounts <= emptyAccountsToStop)
             {
