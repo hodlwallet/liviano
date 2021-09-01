@@ -641,9 +641,6 @@ namespace Liviano
         {
             var cts = new CancellationTokenSource();
             var accounts = new List<IAccount> {};
-            var emptyAccounts = 0;
-            var index = 0;
-            var emptyAccountsToStop = 1;
             var bip32AccountTypes = new List<string>
             {
                 //"bip44",
@@ -655,54 +652,58 @@ namespace Liviano
             Cts = cts;
 
             InitElectrumPool();
-            ElectrumPool.Connect(retries: 3, cts).Wait();
 
-            while (emptyAccounts <= emptyAccountsToStop)
+            var accountsWithAddresses = new Dictionary<IAccount, List<BitcoinAddress>> {};
+            for (int i = 0; i < 10; i++) // Get 10 accounts to check
             {
-                var accountsFound = false;
                 foreach (var accountType in bip32AccountTypes)
                 {
                     var account = Bip32Account.Create(
-                        $"Account #{index}",
+                        $"Account #{i}",
                         new
                         {
                             Wallet = this,
                             Network,
                             Type = accountType,
-                            Index = index
+                            Index = i
                         }
                     );
 
-                    for (int i = 0; i < account.ScriptPubKeyTypes.Count; i++)
+                    for (int j = 0; j < account.ScriptPubKeyTypes.Count; j++)
                     {
-                        var addr = account.GetReceiveAddress(i);
-                        var scriptHashStr = addr.ToScriptHash().ToHex();
+                        var addr = account.GetReceiveAddress(j);
 
+                        if (!accountsWithAddresses.ContainsKey(account))
+                            accountsWithAddresses.Add(account, new List<BitcoinAddress> {});
+
+                        accountsWithAddresses[account].Add(addr);
+                    }
+                }
+            }
+
+            Parallel.ForEach(accountsWithAddresses, (accAddrs) =>
+            {
+                var acc = accAddrs.Key;
+                if (!accounts.Contains(acc))
+                {
+                    Parallel.ForEach(accAddrs.Value, (addr, state) =>
+                    {
+                        var scriptHashStr = addr.ToScriptHash().ToHex();
                         var t = ElectrumPool.ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr);
                         t.Wait();
 
                         foreach (var r in t.Result.Result)
                         {
-                            Console.WriteLine($"[FindAccounts] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
-                            Console.WriteLine($"[FindAccounts] Found non empty account of type: {account.AccountType}, index: {account.Index}, hd path: {account.HdPath}");
+                            Debug.WriteLine($"[FindAccounts] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                            Debug.WriteLine($"[FindAccounts] Found non empty account of type: {acc.AccountType}, index: {acc.Index}, hd path: {acc.HdPath}");
 
-                            accounts.Add(account);
-                            accountsFound = true;
+                            accounts.Add(acc);
 
-                            break;
+                            state.Break();
                         }
-
-                        if (accountsFound) break;
-                    }
+                    });
                 }
-
-                if (accountsFound) emptyAccounts = 0;
-                else emptyAccounts++;
-
-                accountsFound = false;
-
-                index++;
-            }
+            });
 
             return accounts;
         }
