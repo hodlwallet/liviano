@@ -68,9 +68,12 @@ namespace Liviano.Accounts
         {
             var address = ExternalAddresses[ScriptPubKeyTypes[typeIndex]][ExternalAddressesIndex + ExternalAddressesGapIndex].Address;
 
-            ExternalAddressesGapIndex++;
+            if (IsAddressReuse(address, isChange: false))
+            {
+                ExternalAddressesGapIndex++;
 
-            if (IsAddressReuse(address, isChange: false)) return GetReceiveAddress(typeIndex);
+                return GetReceiveAddress(typeIndex);
+            }
 
             return address;
         }
@@ -78,9 +81,12 @@ namespace Liviano.Accounts
         public override BitcoinAddress[] GetReceiveAddress(int n, int typeIndex)
         {
             var addresses = new List<BitcoinAddress>();
+            var initialGap = ExternalAddressesGapIndex;
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < n; i++, ExternalAddressesGapIndex++)
                 addresses.Add(GetReceiveAddress(typeIndex));
+
+            ExternalAddressesGapIndex = initialGap;
 
             return addresses.ToArray();
         }
@@ -89,9 +95,12 @@ namespace Liviano.Accounts
         {
             var address = InternalAddresses[ScriptPubKeyTypes[typeIndex]][InternalAddressesIndex + InternalAddressesGapIndex].Address;
 
-            InternalAddressesGapIndex++;
+            if (IsAddressReuse(address, isChange: true))
+            {
+                InternalAddressesGapIndex++;
 
-            if (IsAddressReuse(address, isChange: true)) return GetChangeAddress(typeIndex);
+                return GetChangeAddress(typeIndex);
+            }
 
             return address;
         }
@@ -99,9 +108,12 @@ namespace Liviano.Accounts
         public override BitcoinAddress[] GetChangeAddress(int n, int typeIndex)
         {
             var addresses = new List<BitcoinAddress>();
+            var initialGap = InternalAddressesGapIndex;
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < n; i++, InternalAddressesGapIndex++)
                 addresses.Add(GetChangeAddress(typeIndex));
+
+            InternalAddressesGapIndex = initialGap;
 
             return addresses.ToArray();
         }
