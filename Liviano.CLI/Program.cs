@@ -91,6 +91,7 @@ namespace Liviano.CLI
         static string freezeCoin = null;
         static string unfreezeCoin = null;
         static bool version = false;
+        static bool refreshAddress = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -147,6 +148,7 @@ namespace Liviano.CLI
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
                 {"png|ping", "Ping electrum server", (string v) => ping = !(v is null)},
                 {"hdr|headers", "Subscribe to new headers", (string v) => headers = !(v is null)},
+                {"raddr|refresh-address", "Refresh address", v => refreshAddress = !(v is null)},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -294,7 +296,7 @@ namespace Liviano.CLI
                 {
                     if (addressAmount == 1)
                     {
-                        var address = LightClient.GetAddress(config, accountIndex);
+                        var address = LightClient.GetAddress(config, accountIndex, refreshAddress);
 
                         if (address is null)
                         {
@@ -309,7 +311,7 @@ namespace Liviano.CLI
                         return 0;
                     }
 
-                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
+                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount, refreshAddress: refreshAddress);
 
                     var data = string.Join('\n', addresses.ToList());
 

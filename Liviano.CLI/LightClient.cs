@@ -424,13 +424,15 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">Light client config</param>
         /// <param name="accountIndex">An <see cref="int"/> of the account index</param>
-        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0)
+        public static BitcoinAddress GetAddress(Config config, int accountIndex = 0, bool refreshAddress = false)
         {
             Load(config, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
             if (account is null) return null;
+
+            if (refreshAddress) account.ExternalAddressesGapIndex++;
 
             var addr = account.GetReceiveAddress();
 
@@ -444,13 +446,15 @@ namespace Liviano.CLI
         /// </summary>
         /// <param name="config">A <see cref="Config"/></param>
         /// <param name="addressAmount">Amount of addresses to generate</param>
-        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1)
+        public static BitcoinAddress[] GetAddresses(Config config, int accountIndex = 0, int addressAmount = 1, bool refreshAddress = false)
         {
             Load(config, skipAuth: true);
 
             IAccount account = wallet.Accounts[accountIndex];
 
             if (account is null) return null;
+
+            if (refreshAddress) account.ExternalAddressesGapIndex++;
 
             var addrs = account.GetReceiveAddress(addressAmount, 0);
 
