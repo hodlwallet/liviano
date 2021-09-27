@@ -28,5 +28,12 @@ namespace Liviano.Models
 {
     public class AccountInfo
     {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string HdPath { get; set; }
+        public string Color { get; set; }
+
+        public string Xpub { get; set; }
+        public string Xprv { get; set; }
     }
 }

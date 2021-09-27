@@ -926,6 +926,20 @@ namespace Liviano.CLI
             return wallet.Accounts.Last().ExtPubKey.ToString();
         }
 
+        public static AccountInfo GetAccountInfo(Config config, int accountIndex = -1)
+        {
+            Load(config, skipAuth: true);
+
+            IAccount acc;
+
+            if (accountIndex <= 0)
+                acc = wallet.CurrentAccount;
+            else
+                acc = wallet.Accounts[accountIndex];
+
+            return acc.GetAccountInfo();
+        }
+
         /// <summary>
         /// Waits until the user press esc
         /// </summary>

@@ -82,6 +82,7 @@ namespace Liviano.CLI
         static bool balance = false;
         static bool summary = false;
         static bool newAcc = false;
+        static bool infoAcc = false;
         static bool start = false;
         static bool resync = false;
         static bool sync = false;
@@ -121,6 +122,7 @@ namespace Liviano.CLI
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"s|summary", "Show wallet summary", v => summary = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
+                {"info-acc|info-account", "Gets the account info", v => infoAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
                 {"sy|sync", "Start wallet sync and exit when done", v => sync = !(v is null)},
@@ -405,6 +407,27 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.Start(config);
+
+                return 0;
+            }
+
+            if (infoAcc)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("Account info needs a wallet id");
+
+                    return 1;
+                }
+
+                var info = LightClient.GetAccountInfo(config);
+
+                Console.WriteLine("Account Info: \n");
+                Console.WriteLine($"Id:\t\t{info.Id}");
+                Console.WriteLine($"Name:\t\t{info.Name}");
+                Console.WriteLine($"HD Path:\t{info.HdPath}");
+                Console.WriteLine($"Xpub:\t\t{info.Xpub}");
+                Console.WriteLine($"Xprv:\t\t{info.Xprv}");
 
                 return 0;
             }

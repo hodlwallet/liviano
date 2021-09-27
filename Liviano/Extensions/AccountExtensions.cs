@@ -358,5 +358,17 @@ namespace Liviano.Extensions
         {
             return account.FindReplacedTx(transaction) != null;
         }
+
+        public static AccountInfo GetAccountInfo(this IAccount account)
+        {
+            return new AccountInfo()
+            {
+                Id = account.Id,
+                Name = account.Name,
+                HdPath = account.HdPath,
+                Xpub = account.ExtPubKey.ToWif(),
+                Xprv = account.ExtKey.ToWif(),
+            };
+        }
     }
 }
