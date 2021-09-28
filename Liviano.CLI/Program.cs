@@ -424,6 +424,7 @@ namespace Liviano.CLI
 
                 Console.WriteLine("Account Info: \n");
                 Console.WriteLine($"Id:\t\t{info.Id}");
+                Console.WriteLine($"Wallet Id:\t{config.WalletId}");
                 Console.WriteLine($"Name:\t\t{info.Name}");
                 Console.WriteLine($"HD Path:\t{info.HdPath}");
                 Console.WriteLine($"Xpub:\t\t{info.Xpub}");
