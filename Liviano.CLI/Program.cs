@@ -82,6 +82,7 @@ namespace Liviano.CLI
         static bool balance = false;
         static bool summary = false;
         static bool newAcc = false;
+        static bool infoAcc = false;
         static bool start = false;
         static bool resync = false;
         static bool sync = false;
@@ -91,6 +92,7 @@ namespace Liviano.CLI
         static string freezeCoin = null;
         static string unfreezeCoin = null;
         static bool version = false;
+        static bool refreshAddress = false;
         static bool detectAccount = false;
         static bool saveAccounts = false;
 
@@ -122,6 +124,7 @@ namespace Liviano.CLI
                 {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
                 {"s|summary", "Show wallet summary", v => summary = !(v is null)},
                 {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
+                {"info-acc|info-account", "Gets the account info", v => infoAcc = !(v is null)},
                 {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
                 {"sy|sync", "Start wallet sync and exit when done", v => sync = !(v is null)},
@@ -151,6 +154,7 @@ namespace Liviano.CLI
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
                 {"png|ping", "Ping electrum server", (string v) => ping = !(v is null)},
                 {"hdr|headers", "Subscribe to new headers", (string v) => headers = !(v is null)},
+                {"raddr|refresh-address", "Refresh address", v => refreshAddress = !(v is null)},
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = !(v is null)}
@@ -298,7 +302,7 @@ namespace Liviano.CLI
                 {
                     if (addressAmount == 1)
                     {
-                        var address = LightClient.GetAddress(config, accountIndex);
+                        var address = LightClient.GetAddress(config, accountIndex, refreshAddress);
 
                         if (address is null)
                         {
@@ -313,7 +317,7 @@ namespace Liviano.CLI
                         return 0;
                     }
 
-                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount);
+                    var addresses = LightClient.GetAddresses(config, accountIndex, addressAmount, refreshAddress: refreshAddress);
 
                     var data = string.Join('\n', addresses.ToList());
 
@@ -407,6 +411,28 @@ namespace Liviano.CLI
                     logger.Information("Using wallet id: {walletId}", config.WalletId);
 
                 LightClient.Start(config);
+
+                return 0;
+            }
+
+            if (infoAcc)
+            {
+                if (string.IsNullOrEmpty(config.WalletId))
+                {
+                    Console.WriteLine("Account info needs a wallet id");
+
+                    return 1;
+                }
+
+                var info = LightClient.GetAccountInfo(config);
+
+                Console.WriteLine("Account Info: \n");
+                Console.WriteLine($"Id:\t\t{info.Id}");
+                Console.WriteLine($"Wallet Id:\t{config.WalletId}");
+                Console.WriteLine($"Name:\t\t{info.Name}");
+                Console.WriteLine($"HD Path:\t{info.HdPath}");
+                Console.WriteLine($"Xpub:\t\t{info.Xpub}");
+                Console.WriteLine($"Xprv:\t\t{info.Xprv}");
 
                 return 0;
             }

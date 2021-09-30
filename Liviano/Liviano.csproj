@@ -14,7 +14,7 @@
         <ProjectReference Include="..\Liviano.Utilities\Liviano.Utilities.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NBitcoin" Version="6.0.7" />
+        <PackageReference Include="NBitcoin" Version="6.0.10" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="serilog" Version="2.10.0" />
     </ItemGroup>

@@ -1,5 +1,5 @@
 //
-// Wallet.cs
+// Tx.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
