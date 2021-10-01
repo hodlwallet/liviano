@@ -383,6 +383,16 @@ namespace Liviano.CLI
                 skipAuth: false
             );
 
+            wallet.OnFoundAccount += (s, args) => {
+                logger.Information(
+                    "Account: Name: {name}, Type: {type}, Index: {index}, HdPath: {path}",
+                    args.Account.Name,
+                    args.Account.AccountType,
+                    args.Account.Index,
+                    args.Account.HdPath
+                );
+            };
+
             return wallet.FindAccounts();
         }
 

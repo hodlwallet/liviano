@@ -267,5 +267,7 @@ namespace Liviano.Interfaces
 
         event EventHandler<WatchAddressEventArgs> OnWatchAddressNotified;
         event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
+
+        event EventHandler<FoundAccountEventArgs> OnFoundAccount;
     }
 }

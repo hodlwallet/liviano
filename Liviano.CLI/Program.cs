@@ -480,16 +480,6 @@ namespace Liviano.CLI
 
                 var accounts = LightClient.FindAccounts(mnemonic, network);
 
-                foreach (var acc in accounts)
-                {
-                    logger.Information(
-                        "Found account of type: {type}, index: {index}, hd path: {hdPath}",
-                        acc.AccountType,
-                        acc.Index,
-                        acc.HdPath
-                    );
-                }
-
                 if (saveAccounts)
                 {
                     Debug.WriteLine("[detectAccount] Save accounts TODO");

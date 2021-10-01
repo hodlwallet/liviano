@@ -96,4 +96,14 @@ namespace Liviano.Events
             CreatedAt = createdAt;
         }
     }
+
+    public class FoundAccountEventArgs : EventArgs
+    {
+        public IAccount Account { get; set; }
+
+        public FoundAccountEventArgs(IAccount account)
+        {
+            Account = account;
+        }
+    }
 }
