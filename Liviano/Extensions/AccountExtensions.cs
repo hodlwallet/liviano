@@ -260,7 +260,7 @@ namespace Liviano.Extensions
                 Debug.WriteLine($"[CreateTransaction] Destination: {toDestination.ToString()}");
                 Debug.WriteLine($"[CreateTransaction] Amount: {amount.ToString()}");
 
-                throw new WalletException(e.Message);
+                return (tx, e.Message);
             }
 
             var verified = VerifyTransaction(builder, tx, out var errors);
