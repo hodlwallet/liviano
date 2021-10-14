@@ -224,7 +224,7 @@ namespace Liviano.Extensions
         {
             // Get coins from coin selector that satisfy our amount.
             // A typicalMinFee is a transaction sending to an address (bech32) spending only one input (bech32) in segwit inputs and outputs (bech32).
-            var typicalMinFee = 176 / satsPerByte;
+            var typicalMinFee = 141 / satsPerByte;
             var coinSelector = new DefaultCoinSelector() { GroupByScriptPubKey = false };
             var unspentCoins = account.UnspentCoins.ToArray();
 
