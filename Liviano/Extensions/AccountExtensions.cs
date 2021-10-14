@@ -254,7 +254,6 @@ namespace Liviano.Extensions
             } catch (NotEnoughFundsException e)
             {
                 var coinsStr = string.Join(", ", expectedCoins.Select((o) => $"{o.Outpoint.Hash.ToString()}:{o.Amount}"));
-                var keysStr = string.Join(", ", keys.Select((o) => o.GetWif(account.Network)));
 
                 Debug.WriteLine($"[CreateTransaction] Error Message: {e.Message}");
                 Debug.WriteLine($"[CreateTransaction] Coins: {coinsStr}");
