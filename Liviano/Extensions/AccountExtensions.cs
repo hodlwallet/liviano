@@ -223,10 +223,12 @@ namespace Liviano.Extensions
                 bool rbf)
         {
             // Get coins from coin selector that satisfy our amount.
-            var minimumFee = 166 / satsPerByte;
+            // A typicalMinFee is a transaction sending to an address (bech32) spending only one input (bech32) in segwit inputs and outputs (bech32).
+            var typicalMinFee = 176 / satsPerByte;
             var coinSelector = new DefaultCoinSelector() { GroupByScriptPubKey = false };
             var unspentCoins = account.UnspentCoins.ToArray();
-            var expectedCoins = coinSelector.Select(unspentCoins, amount + new Money(minimumFee, MoneyUnit.Satoshi));
+
+            var expectedCoins = coinSelector.Select(unspentCoins, amount + new Money(typicalMinFee, MoneyUnit.Satoshi));
 
             if (expectedCoins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
 
