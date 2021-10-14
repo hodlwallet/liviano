@@ -238,7 +238,7 @@ namespace Liviano.Extensions
             var builder = account.Network.CreateTransactionBuilder();
 
             // Build the tx
-            builder.SetCoinSelector(new DefaultCoinSelector() { GroupByScriptPubKey = false });
+            builder.SetCoinSelector(coinSelector);
             builder.AddCoins(unspentCoins);
             builder.AddKeys(keys);
             builder.Send(toDestination, amount);
