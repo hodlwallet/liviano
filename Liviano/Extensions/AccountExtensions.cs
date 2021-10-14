@@ -223,18 +223,21 @@ namespace Liviano.Extensions
                 bool rbf)
         {
             // Get coins from coin selector that satisfy our amount.
-            var coinSelector = new DefaultCoinSelector();
-            var coins = coinSelector.Select(account.UnspentCoins, amount).ToArray();
+            var minimumFee = 166 / satsPerByte;
+            var coinSelector = new DefaultCoinSelector() { GroupByScriptPubKey = false };
+            var unspentCoins = account.UnspentCoins.ToArray();
+            var expectedCoins = coinSelector.Select(unspentCoins, amount + new Money(minimumFee, MoneyUnit.Satoshi));
 
-            if (coins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
+            if (expectedCoins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
-            var keys = account.GetCoinsKeys(coins);
+            var keys = account.GetCoinsKeys(unspentCoins);
             var builder = account.Network.CreateTransactionBuilder();
 
             // Build the tx
-            builder.AddCoins(coins);
+            builder.SetCoinSelector(new DefaultCoinSelector() { GroupByScriptPubKey = false });
+            builder.AddCoins(unspentCoins);
             builder.AddKeys(keys);
             builder.Send(toDestination, amount);
             builder.SetChange(changeDestination);
@@ -242,7 +245,23 @@ namespace Liviano.Extensions
             builder.SendEstimatedFees(new FeeRate(satsPerByte));
 
             // Create transaction builder
-            var tx = builder.BuildTransaction(sign: true);
+            Transaction tx = null;
+            try
+            {
+                tx = builder.BuildTransaction(sign: true);
+            } catch (NotEnoughFundsException e)
+            {
+                var coinsStr = string.Join(", ", expectedCoins.Select((o) => $"{o.Outpoint.Hash.ToString()}:{o.Amount}"));
+                var keysStr = string.Join(", ", keys.Select((o) => o.GetWif(account.Network)));
+
+                Debug.WriteLine($"[CreateTransaction] Error Message: {e.Message}");
+                Debug.WriteLine($"[CreateTransaction] Coins: {coinsStr}");
+                Debug.WriteLine($"[CreateTransaction] Destination: {toDestination.ToString()}");
+                Debug.WriteLine($"[CreateTransaction] Amount: {amount.ToString()}");
+
+                throw new WalletException(e.Message);
+            }
+
             var verified = VerifyTransaction(builder, tx, out var errors);
 
             if (!verified)
