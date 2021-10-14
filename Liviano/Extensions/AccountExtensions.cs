@@ -230,7 +230,7 @@ namespace Liviano.Extensions
 
             var expectedCoins = coinSelector.Select(unspentCoins, amount + new Money(typicalMinFee, MoneyUnit.Satoshi));
 
-            if (expectedCoins.Count() == 0) throw new WalletException("Balance too low to create transaction.");
+            if (expectedCoins.Count() == 0) return (null, "Balance too low to create transaction.");
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
