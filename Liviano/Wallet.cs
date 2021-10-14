@@ -96,6 +96,8 @@ namespace Liviano
             {
                 CurrentAccountId = value.Id;
                 currentAccount = value;
+
+                OnCurrentAccountChanged?.Invoke(this, null);
             }
         }
 
@@ -103,6 +105,8 @@ namespace Liviano
         public List<IAccount> Accounts { get; set; }
 
         public Dictionary<string, int> AccountsIndex { get; set; }
+
+        public event EventHandler OnCurrentAccountChanged;
 
         public event EventHandler OnSyncStarted;
         public event EventHandler OnSyncFinished;

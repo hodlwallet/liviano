@@ -258,6 +258,7 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Event handlers for syncing, start and end...
         /// </summary>
+        event EventHandler OnCurrentAccountChanged;
         event EventHandler OnSyncStarted;
         event EventHandler OnSyncFinished;
         event EventHandler OnWatchStarted;
