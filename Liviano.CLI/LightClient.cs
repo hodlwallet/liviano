@@ -493,89 +493,7 @@ namespace Liviano.CLI
         /// <param name="config">A <see cref="Config"/> for the client</param>
         public static void Sync(Config config)
         {
-            Load(config, skipAuth: true);
-            var startTime = DateTimeOffset.UtcNow;
-
-            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
-            {
-                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
-            };
-
-            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
-            {
-                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
-            };
-
-            wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
-                o => logger.Information("Ping failed at {time}!", o),
-                null
-            );
-
-            wallet.OnNewTransaction += (s, e) =>
-            {
-                logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
-            };
-
-            wallet.OnUpdateTransaction += (s, e) =>
-            {
-                logger.Information("Updated transaction at height: {height}!", e.Tx.BlockHeight);
-            };
-
-            wallet.OnSyncStarted += (s, e) =>
-            {
-                startTime = DateTimeOffset.UtcNow;
-                logger.Information("Sync started at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
-            };
-
-            wallet.OnSyncFinished += (s, e) =>
-            {
-                logger.Information(
-                    "Sync finished at {time}. Total sync time: {totalTime:n} seconds!",
-                    DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture),
-                    (DateTimeOffset.UtcNow - startTime).TotalSeconds
-                );
-
-                // Print transactions
-                List<Tx> txs = new List<Tx> { };
-
-                foreach (var tx in wallet.CurrentAccount.Txs.OrderByDescending(tx => tx.CreatedAt))
-                    txs.Add(tx);
-
-                if (txs.Count() == 0)
-                {
-                    logger.Information("No transactions found {sadFace}", ":(");
-
-                    Quit();
-                }
-                else
-                    logger.Information("Transactions:");
-
-                if (txs.Count() != 0)
-                {
-                    foreach (var tx in txs)
-                    {
-                        logger.Information(
-                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
-                        );
-                    }
-
-                    logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
-                }
-
-                Quit();
-            };
-
-            wallet.OnNewHeaderNotified += (s, e) =>
-            {
-                logger.Information("New header found!");
-            };
-
-            wallet.Sync();
-            _ = PeriodicSave();
-
-            WaitUntilEscapeIsPressed();
+            SyncResync(config, action: "sync");
         }
 
         /// <summary>
@@ -584,6 +502,14 @@ namespace Liviano.CLI
         /// <param name="config">A <see cref="Config"/> for the client</param>
         public static void ReSync(Config config)
         {
+            SyncResync(config, action: "resync");
+        }
+
+        static void SyncResync(Config config, string action)
+        {
+            if (new string[] { "sync", "resync" }.Contains(action))
+                throw new WalletException($"Invalid action, '{action}', action can only be 'sync' or 'resync'");
+
             Load(config, skipAuth: true);
             var startTime = DateTimeOffset.UtcNow;
 
@@ -663,7 +589,19 @@ namespace Liviano.CLI
                 logger.Information("New header found!");
             };
 
-            wallet.Resync();
+            switch (action)
+            {
+                case "sync":
+                    wallet.Sync();
+                    break;
+
+                case "resync":
+                    wallet.Resync();
+                    break;
+
+                default:
+                    break;
+            }
             _ = PeriodicSave();
 
             WaitUntilEscapeIsPressed();
