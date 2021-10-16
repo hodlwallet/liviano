@@ -5,7 +5,7 @@
         <LangVersion>8.0</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="NBitcoin" Version="6.0.10" />
+        <PackageReference Include="NBitcoin" Version="6.0.13" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 </Project>
