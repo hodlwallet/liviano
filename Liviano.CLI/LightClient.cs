@@ -581,6 +581,8 @@ namespace Liviano.CLI
                     logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
                 }
 
+                wallet.Disconnect();
+
                 Quit();
             };
 
@@ -598,13 +600,14 @@ namespace Liviano.CLI
                 case "resync":
                     wallet.Resync();
                     break;
-
-                default:
-                    break;
             }
+
             _ = PeriodicSave();
 
-            WaitUntilEscapeIsPressed();
+            WaitUntilEscapeIsPressed(exitCallback: () =>
+            {
+                wallet.Disconnect();
+            });
         }
 
         public static void Ping(Config config)
@@ -905,7 +908,7 @@ namespace Liviano.CLI
         /// <summary>
         /// Waits until the user press esc
         /// </summary>
-        static void WaitUntilEscapeIsPressed()
+        static void WaitUntilEscapeIsPressed(Action exitCallback = null)
         {
             bool quit = false;
             bool quitHandledByIDE = false;
@@ -936,9 +939,11 @@ namespace Liviano.CLI
             if (quitHandledByIDE)
             {
                 Console.ReadLine();
+                exitCallback();
             }
             else
             {
+                exitCallback();
                 Quit();
             }
         }

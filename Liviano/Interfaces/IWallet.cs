@@ -270,5 +270,7 @@ namespace Liviano.Interfaces
         event EventHandler<NewHeaderEventArgs> OnNewHeaderNotified;
 
         event EventHandler<FoundAccountEventArgs> OnFoundAccount;
+
+        void Disconnect();
     }
 }
