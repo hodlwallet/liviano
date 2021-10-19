@@ -47,6 +47,8 @@ namespace Liviano.Electrum
 
         readonly Server server;
 
+        readonly object @lock = new();
+
         IPAddress ipAddress;
 
         TcpClient tcpClient;
@@ -121,6 +123,26 @@ namespace Liviano.Electrum
             }
 
             return tcpClient;
+        }
+
+        public void Disconnect()
+        {
+            lock (@lock)
+            {
+                tcpClient.Dispose();
+                tcpClient = null;
+
+                sslStream.Dispose();
+                sslStream = null;
+
+                results.Clear();
+                queue.Clear();
+
+                isSslPooling = false;
+                consumingQueue = false;
+            }
+
+            OnDisconnected?.Invoke(this, null);
         }
 
         async Task<string> RequestInternal(string request)

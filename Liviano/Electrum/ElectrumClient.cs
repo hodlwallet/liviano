@@ -641,5 +641,12 @@ namespace Liviano.Electrum
                 throw new ElectrumException(string.Format("Electrum Server's version disliked by .NET Version class: {0}\n{1}", versionStr, ex.Message));
             }
         }
+
+        public void Disconnect()
+        {
+            jsonRpcClient.Disconnect();
+
+            OnDisconnected?.Invoke(this, null);
+        }
     }
 }

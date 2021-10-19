@@ -704,5 +704,10 @@ namespace Liviano
 
             return accounts;
         }
+
+        public void Disconnect()
+        {
+            ElectrumPool.ElectrumClient.Disconnect();
+        }
     }
 }
