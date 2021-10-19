@@ -237,7 +237,6 @@ namespace Liviano.Electrum
             int bytes = -1;
             while (bytes != 0)
             {
-
                 bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
 
                 // Use Decoder class to convert from bytes to UTF8

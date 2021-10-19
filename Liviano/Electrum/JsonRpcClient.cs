@@ -471,6 +471,15 @@ namespace Liviano.Electrum
                 }
                 catch (Exception e)
                 {
+                    if (Cts.IsCancellationRequested || sslStream == null)
+                    {
+                        Debug.WriteLine("[ConsumeMessages] Cancelled.");
+
+                        readingStream = false;
+
+                        return;
+                    }
+
                     Debug.WriteLine($"[ConsumeMessages] Error: {e.Message}, Stracktrace: {e.StackTrace}");
 
                     readingStream = false;

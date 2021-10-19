@@ -594,11 +594,11 @@ namespace Liviano.CLI
             switch (action)
             {
                 case "sync":
-                    wallet.Sync();
+                    Task.Run(async () => await wallet.Sync());
                     break;
 
                 case "resync":
-                    wallet.Resync();
+                    Task.Run(async () => await wallet.Resync());
                     break;
             }
 
