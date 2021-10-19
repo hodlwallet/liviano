@@ -54,10 +54,10 @@ namespace Liviano.Electrum
         TcpClient tcpClient;
         SslStream sslStream;
 
-        [ThreadStatic] bool isSslPooling = false;
-
-        [ThreadStatic] bool readingStream = false;
+        bool isSslPolling = false;
+        bool readingStream = false;
         bool consumingQueue = false;
+
         ConcurrentDictionary<string, string> results;
         ConcurrentQueue<string> queue;
 
@@ -67,9 +67,17 @@ namespace Liviano.Electrum
         int port;
         public string Host { get; private set; }
 
+        public CancellationTokenSource Cts;
+
+        public Task PollSslClientTask;
+        public Task ConsumeMessagesTask;
+        public Task ConsumeRequestTask;
+
         public JsonRpcClient(Server server)
         {
             this.server = server;
+
+            Cts ??= new();
 
             InitQueue();
         }
@@ -138,7 +146,7 @@ namespace Liviano.Electrum
                 results.Clear();
                 queue.Clear();
 
-                isSslPooling = false;
+                isSslPolling = false;
                 consumingQueue = false;
             }
 
@@ -162,13 +170,13 @@ namespace Liviano.Electrum
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
 
-            _ = PollSslClient();
+            PollSslClient();
 
-            _ = ConsumeMessages();
+            ConsumeMessages();
 
             EnqueueMessage(requestId, request);
 
-            _ = ConsumeQueue();
+            ConsumeRequests();
 
             return await GetResult(requestId);
         }
@@ -190,7 +198,7 @@ namespace Liviano.Electrum
             return result;
         }
 
-        public async Task Subscribe(string request, Action<string> resultCallback, Action<string> notificationCallback, CancellationTokenSource cts = null)
+        public async Task Subscribe(string request, Action<string> resultCallback, Action<string> notificationCallback)
         {
             Host = server.Domain;
             ipAddress = ResolveHost(server.Domain).Result;
@@ -199,20 +207,17 @@ namespace Liviano.Electrum
             tcpClient ??= Connect();
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
-            if (cts is null) cts = new CancellationTokenSource();
-
-            var ct = cts.Token;
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
             var method = (string)json.GetValue("method");
 
-            _ = PollSslClient();
+            PollSslClient();
 
-            _ = ConsumeMessages();
+            ConsumeMessages();
 
             EnqueueMessage(requestId, request);
 
-            _ = ConsumeQueue();
+            ConsumeRequests();
 
             resultCallback(await GetResult(requestId));
 
@@ -237,94 +242,97 @@ namespace Liviano.Electrum
             await Task.Factory.StartNew(
                 o => CallbackOnResult(requestId, notificationCallback),
                 TaskCreationOptions.LongRunning,
-                ct
+                Cts.Token
             );
         }
 
-        async Task PollSslClient()
+        void PollSslClient()
         {
-            if (isSslPooling) return;
+            if (isSslPolling) return;
 
-            isSslPooling = true;
+            isSslPolling = true;
 
-            var ping = new Ping();
-            var pingOptions = new PingOptions(64, true)
+            PollSslClientTask = Task.Run(async () =>
             {
-                DontFragment = true
-            };
-            var pingData = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            var pingTimeout = TCP_CLIENT_POLL_TIME_TO_WAIT;
-            var pingBuffer = Encoding.ASCII.GetBytes(pingData);
-
-            bool isConnected = false;
-            while (true)
-            {
-                bool initialIsConnected = isConnected;
-
-                if (NetworkInterface.GetIsNetworkAvailable())
+                var ping = new Ping();
+                var pingOptions = new PingOptions(64, true)
                 {
-                    // Ping the hostname first
-                    var pingTask = Task.Run(() =>
-                    {
-                        var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
+                    DontFragment = true
+                };
+                var pingData = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+                var pingTimeout = TCP_CLIENT_POLL_TIME_TO_WAIT;
+                var pingBuffer = Encoding.ASCII.GetBytes(pingData);
 
-                        if (pingReply.Status != IPStatus.Success)
+                bool isConnected = false;
+                while (true)
+                {
+                    bool initialIsConnected = isConnected;
+
+                    if (NetworkInterface.GetIsNetworkAvailable())
+                    {
+                        // Ping the hostname first
+                        var pingTask = Task.Run(() =>
                         {
-                            Debug.WriteLine("[PollSslClient] Ping failed.");
-                            isConnected = false;
-                        }
-                    });
+                            var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
 
-                    if (await Task.WhenAny(pingTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != pingTask)
-                    {
-                        Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
-                        isConnected = false;
-                    }
-                    else
-                    {
-                        var tcpPollTask = Task.Run(() =>
-                        {
-                            // Now we test if the tcpclient can connect
-                            using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                            if (pingReply.Status != IPStatus.Success)
                             {
-                                SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
-                                ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
-                            };
-
-                            isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
-                            if (!isConnected)
-                            {
-                                Debug.WriteLine("[PollSslClient] Stream is disconnected.");
+                                Debug.WriteLine("[PollSslClient] Ping failed.");
+                                isConnected = false;
                             }
-                        });
+                        }, Cts.Token);
 
-                        if (await Task.WhenAny(tcpPollTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != tcpPollTask)
+                        if (await Task.WhenAny(pingTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != pingTask)
                         {
                             Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
                             isConnected = false;
                         }
+                        else
+                        {
+                            var tcpPollTask = Task.Run(() =>
+                            {
+                                // Now we test if the tcpclient can connect
+                                using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                                {
+                                    SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
+                                    ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
+                                };
+
+                                isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
+                                if (!isConnected)
+                                {
+                                    Debug.WriteLine("[PollSslClient] Stream is disconnected.");
+                                }
+                            }, Cts.Token);
+
+                            if (await Task.WhenAny(tcpPollTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != tcpPollTask)
+                            {
+                                Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
+                                isConnected = false;
+                            }
+                        }
                     }
-                }
-                else
-                {
-                    Debug.WriteLine("[PollSslClient] Network not available");
+                    else
+                    {
+                        Debug.WriteLine("[PollSslClient] Network not available");
 
-                    isConnected = false;
-                }
+                        isConnected = false;
+                    }
 
-                if (isConnected)
-                {
-                    if (!initialIsConnected) OnConnected?.Invoke(this, null);
-                }
-                else
-                {
-                    Debug.WriteLine("[PollSslClient] Disconnected!");
+                    if (isConnected)
+                    {
+                        if (!initialIsConnected) OnConnected?.Invoke(this, null);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("[PollSslClient] Disconnected!");
 
-                    if (initialIsConnected) OnDisconnected?.Invoke(this, null);
-                }
+                        if (initialIsConnected) OnDisconnected?.Invoke(this, null);
+                    }
 
-                await Task.Delay(TCP_CLIENT_POLL_TIME_TO_WAIT);
-            }
+                    await Task.Delay(TCP_CLIENT_POLL_TIME_TO_WAIT);
+                }
+            }, Cts.Token);
         }
 
         async Task<string> GetResult(string requestId)
@@ -352,46 +360,49 @@ namespace Liviano.Electrum
             await CallbackOnResult(requestId, callback);
         }
 
-        public async Task ConsumeQueue()
+        void ConsumeRequests()
         {
             if (consumingQueue) return;
 
             consumingQueue = true;
 
-            var loopDelay = 3000;
-            try
+            ConsumeMessagesTask = Task.Run(async () =>
             {
-                while (true)
+                var loopDelay = 3000;
+                try
                 {
-                    while (!queue.IsEmpty)
+                    while (true)
                     {
-                        queue.TryDequeue(out string req);
+                        while (!queue.IsEmpty)
+                        {
+                            queue.TryDequeue(out string req);
 
-                        var json = JsonConvert.DeserializeObject<JObject>(req);
-                        var requestId = (string)json.GetValue("id");
-                        var bytes = Encoding.UTF8.GetBytes(req + "\n");
+                            var json = JsonConvert.DeserializeObject<JObject>(req);
+                            var requestId = (string)json.GetValue("id");
+                            var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
-                        await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
-                        await sslStream.FlushAsync();
+                            await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
+                            await sslStream.FlushAsync();
+                        }
+
+                        await Task.Delay(loopDelay);
                     }
-
-                    await Task.Delay(loopDelay);
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[ConsumeQueue] Error: {e.StackTrace}");
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[ConsumeQueue] Error: {e.StackTrace}");
+
+                    consumingQueue = false;
+                }
 
                 consumingQueue = false;
-            }
-
-            consumingQueue = false;
-            await ConsumeQueue();
+                ConsumeRequests();
+            }, Cts.Token);
         }
 
         void EnqueueMessage(string requestId, string request)
         {
-            if (queue.Any(o => o.Equals(requestId))) return;
+            if (queue.Any(o => string.Equals(o, requestId))) return;
 
             results[requestId] = null;
             queue.Enqueue(request);
@@ -400,7 +411,7 @@ namespace Liviano.Electrum
         /// <summary>
         /// Consume messages from the stream
         /// </summary>
-        async Task ConsumeMessages()
+        void ConsumeMessages()
         {
             if (readingStream) return;
 
@@ -408,62 +419,65 @@ namespace Liviano.Electrum
 
             using var stream = sslStream;
 
-            try
+            ConsumeMessagesTask = Task.Run(async () =>
             {
-                await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
+                try
                 {
-                    foreach (var msg in msgs.Split('\n'))
+                    await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
                     {
-                        if (string.IsNullOrEmpty(msg)) continue;
-
-                        var json = JsonConvert.DeserializeObject<JObject>(msg);
-
-                        if (json.ContainsKey("method")) // A subscription notification
+                        foreach (var msg in msgs.Split('\n'))
                         {
-                            var @params = json.GetValue("params");
-                            var method = (string)json.GetValue("method");
+                            if (string.IsNullOrEmpty(msg)) continue;
 
-                            if (string.Equals(method, "blockchain.scripthash.subscribe"))
+                            var json = JsonConvert.DeserializeObject<JObject>(msg);
+
+                            if (json.ContainsKey("method")) // A subscription notification
                             {
-                                var scripthash = (string)@params[0];
-                                var status = (string)@params[1];
+                                var @params = json.GetValue("params");
+                                var method = (string)json.GetValue("method");
 
-                                // FIXME We need to wait for empty result,
-                                // it should be empty but sometimes this fails
-                                //await WaitForEmptyResult(scripthash);
+                                if (string.Equals(method, "blockchain.scripthash.subscribe"))
+                                {
+                                    var scripthash = (string)@params[0];
+                                    var status = (string)@params[1];
 
-                                results[scripthash] = status;
+                                    // FIXME We need to wait for empty result,
+                                    // it should be empty but sometimes this fails
+                                    //await WaitForEmptyResult(scripthash);
+
+                                    results[scripthash] = status;
+                                }
+                                else if (string.Equals(method, "blockchain.headers.subscribe"))
+                                {
+                                    var newHeader = (JObject)@params[0];
+
+                                    // See above
+                                    //await WaitForEmptyResult("blockchain.headers.subscribe");
+
+                                    results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
+                                }
                             }
-                            else if (string.Equals(method, "blockchain.headers.subscribe"))
+                            else
                             {
-                                var newHeader = (JObject)@params[0];
+                                var requestId = (string)json.GetValue("id");
 
                                 // See above
-                                //await WaitForEmptyResult("blockchain.headers.subscribe");
+                                //await WaitForEmptyResult(requestId);
 
-                                results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
+                                results[requestId] = msg;
                             }
                         }
-                        else
-                        {
-                            var requestId = (string)json.GetValue("id");
+                    });
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[ConsumeMessages] Error: {e.Message}, Stracktrace: {e.StackTrace}");
 
-                            // See above
-                            //await WaitForEmptyResult(requestId);
+                    readingStream = false;
 
-                            results[requestId] = msg;
-                        }
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"[ConsumeMessages] Error: {e.Message}, Stracktrace: {e.StackTrace}");
-
-                readingStream = false;
-
-                await ConsumeMessages();
-            }
+                    ConsumeMessages();
+                }
+            }, Cts.Token);
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
@@ -474,6 +488,8 @@ namespace Liviano.Electrum
             results.TryGetValue(requestId, out string val);
             while (!string.IsNullOrEmpty(val))
             {
+                if (Cts.IsCancellationRequested) return;
+
                 await Task.Delay(loopDelay);
             }
         }
