@@ -417,10 +417,10 @@ namespace Liviano.Electrum
 
             readingStream = true;
 
-            using var stream = sslStream;
-
             ConsumeMessagesTask = Task.Run(async () =>
             {
+                using var stream = sslStream;
+
                 try
                 {
                     await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>

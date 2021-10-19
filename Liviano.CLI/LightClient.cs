@@ -507,7 +507,7 @@ namespace Liviano.CLI
 
         static void SyncResync(Config config, string action)
         {
-            if (new string[] { "sync", "resync" }.Contains(action))
+            if (action != "resync" && action != "sync")
                 throw new WalletException($"Invalid action, '{action}', action can only be 'sync' or 'resync'");
 
             Load(config, skipAuth: true);
