@@ -137,6 +137,8 @@ namespace Liviano.Electrum
         {
             lock (@lock)
             {
+                Cts.Cancel();
+
                 tcpClient.Dispose();
                 tcpClient = null;
 
