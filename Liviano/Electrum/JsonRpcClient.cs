@@ -139,6 +139,9 @@ namespace Liviano.Electrum
             {
                 Cts.Cancel();
 
+                // FIXME This is called twice, it shouldn't
+                if (tcpClient is null || sslStream is null) return;
+
                 tcpClient.Dispose();
                 tcpClient = null;
 
