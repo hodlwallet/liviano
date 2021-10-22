@@ -424,10 +424,10 @@ namespace Liviano.Electrum
 
             ConsumeMessagesTask = Task.Run(async () =>
             {
-                using var stream = sslStream;
-
                 try
                 {
+                    using var stream = sslStream;
+
                     await SslTcpClient.ReadMessagesFrom(stream, (msgs) =>
                     {
                         foreach (var msg in msgs.Split('\n'))
@@ -476,7 +476,7 @@ namespace Liviano.Electrum
                 }
                 catch (Exception e)
                 {
-                    if (Cts.IsCancellationRequested || sslStream == null)
+                    if (Cts.IsCancellationRequested || sslStream is null)
                     {
                         Debug.WriteLine("[ConsumeMessages] Cancelled.");
 
@@ -486,6 +486,9 @@ namespace Liviano.Electrum
                     }
 
                     Debug.WriteLine($"[ConsumeMessages] Error: {e.Message}, Stracktrace: {e.StackTrace}");
+
+                    tcpClient = Connect();
+                    sslStream = SslTcpClient.GetSslStream(tcpClient, Host);
 
                     readingStream = false;
 
