@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
         <ReleaseVersion>0.1.0</ReleaseVersion>
     </PropertyGroup>
