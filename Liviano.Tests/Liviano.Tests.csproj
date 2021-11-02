@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+        <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
         <LangVersion>8.0</LangVersion>
         <IsPackable>false</IsPackable>
+        <ReleaseVersion>0.1.0</ReleaseVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="3.1.0">
