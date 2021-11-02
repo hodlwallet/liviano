@@ -11,7 +11,7 @@
         <RepositoryType>git</RepositoryType>
         <Authors>HODL Wallet</Authors>
         <Company>HODL Wallet</Company>
-        <Copyright>HODL Wallet</Copyright>
+        <Copyright>Copyright © HODL Wallet 2021</Copyright>
         <Version>0.1.0</Version>
         <ReleaseVersion>0.1.0</ReleaseVersion>
         <AssemblyVersion>0.1.0</AssemblyVersion>
