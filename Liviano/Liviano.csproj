@@ -3,6 +3,11 @@
     <PropertyGroup>
         <TargetFrameworks>net5.0;netcoreapp3.1;netstandard2.1</TargetFrameworks>
         <PackageId>Liviano</PackageId>
+        <PackageTags>bitcoin</PackageTags>
+        <PackageProjectUrl>https://hodlwallet.com</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/hodlwallet/hodlwallet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
         <Authors>HODL Wallet</Authors>
         <Company>HODL Wallet</Company>
         <Copyright>HODL Wallet</Copyright>

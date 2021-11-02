@@ -4,6 +4,11 @@
         <OutputType>Exe</OutputType>
         <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
         <PackageId>Liviano.CLI</PackageId>
+        <PackageTags>bitcoin</PackageTags>
+        <PackageProjectUrl>https://hodlwallet.com</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/hodlwallet/hodlwallet</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryType>git</RepositoryType>
         <Authors>HODL Wallet</Authors>
         <Company>HODL Wallet</Company>
         <Copyright>HODL Wallet</Copyright>
