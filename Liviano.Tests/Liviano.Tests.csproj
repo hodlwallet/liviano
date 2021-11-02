@@ -4,7 +4,7 @@
         <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
-        <ReleaseVersion>0.1.0</ReleaseVersion>
+        <ReleaseVersion>0.1.1</ReleaseVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="3.1.0">
