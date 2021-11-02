@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net5.0;netcoreapp3.1;netstandard2.1</TargetFrameworks>
         <PackageId>Liviano</PackageId>
+        <PackageIcon>icon.png</PackageIcon>
         <PackageTags>bitcoin</PackageTags>
         <PackageProjectUrl>https://hodlwallet.com</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -22,8 +23,6 @@
         <PackageReference Include="NBitcoin" Version="6.0.15" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="serilog" Version="2.10.0" />
-    </ItemGroup>
-    <ItemGroup>
         <Folder Include="Extensions\" />
         <Folder Include="Interfaces\" />
         <Folder Include="Models\" />
@@ -31,8 +30,6 @@
         <Folder Include="Accounts\" />
         <Folder Include="Storages\" />
         <Folder Include="Utilities\" />
-    </ItemGroup>
-    <ItemGroup>
         <EmbeddedResource Include="Electrum\servers\hodlwallet_main.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -48,8 +45,6 @@
         <EmbeddedResource Include="Electrum\servers\testnet.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-    </ItemGroup>
-    <ItemGroup>
-      <None Remove="Utilities\" />
+        <None Include="..\icon.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>

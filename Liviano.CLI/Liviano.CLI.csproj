@@ -4,6 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
         <PackageId>Liviano.CLI</PackageId>
+        <PackageIcon>icon.png</PackageIcon>
         <PackageTags>bitcoin</PackageTags>
         <PackageProjectUrl>https://hodlwallet.com</PackageProjectUrl>
         <RepositoryUrl>https://github.com/hodlwallet/hodlwallet</RepositoryUrl>
@@ -27,13 +28,10 @@
         <PackageReference Include="NBitcoin" Version="6.0.15" />
         <PackageReference Include="NETStandard.Library" Version="2.0.3" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="..\Liviano\Liviano.csproj" />
-    </ItemGroup>
-    <ItemGroup>
         <Compile Update="Program.cs">
             <Generator>e</Generator>
         </Compile>
+        <None Include="..\icon.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>
