@@ -42,7 +42,6 @@ namespace Liviano.Electrum
     public class JsonRpcClient
     {
         readonly TimeSpan DEFAULT_NETWORK_TIMEOUT = TimeSpan.FromSeconds(30.0);
-        readonly TimeSpan DEFAULT_NETWORK_TIMEOUT_POLL = TimeSpan.FromSeconds(5.0);
         readonly int TCP_CLIENT_POLL_TIME_TO_WAIT = 5000; // Milliseconds for polling, 5 seconds.
 
         readonly Server server;
@@ -63,6 +62,9 @@ namespace Liviano.Electrum
 
         public event EventHandler OnConnected;
         public event EventHandler OnDisconnected;
+
+        public event EventHandler<string> OnRequestFailed;
+        public event EventHandler<string> OnSubscriptionFailed;
 
         int port;
         public string Host { get; private set; }
@@ -196,9 +198,24 @@ namespace Liviano.Electrum
                 $"[Request] Server: {Host}:{port} ({server.Version}) Request: {request}"
             );
 
-            var result = await RequestInternal(request);
+            string result = null;
+            try
+            {
+                result = await RequestInternal(request);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error: {e}");
 
-            if (result == null) throw new ElectrumException("Timeout when trying to communicate with server");
+                OnRequestFailed?.Invoke(this, request);
+            }
+
+            if (result == null) 
+            {
+                Debug.WriteLine("Timeout when trying to communicate with server");
+
+                OnRequestFailed?.Invoke(this, request);
+            }
 
             return result;
         }
