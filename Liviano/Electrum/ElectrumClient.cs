@@ -46,6 +46,9 @@ namespace Liviano.Electrum
         public event EventHandler OnDisconnected;
         public event EventHandler OnConnected;
 
+        public event EventHandler<string> OnRequestFailed;
+        public event EventHandler<string> OnSubscriptionFailed;
+
         public class Request
         {
             public string Id { get; set; }
@@ -310,6 +313,8 @@ namespace Liviano.Electrum
         {
             this.jsonRpcClient = jsonRpcClient;
 
+            this.jsonRpcClient.OnRequestFailed += (s, o) => OnRequestFailed?.Invoke(s, o);
+            this.jsonRpcClient.OnSubscriptionFailed += (s, o) => OnSubscriptionFailed?.Invoke(s, o);
             this.jsonRpcClient.OnConnected += (s, o) => OnConnected?.Invoke(s, o);
             this.jsonRpcClient.OnDisconnected += (s, o) => OnDisconnected?.Invoke(s, o);
         }
