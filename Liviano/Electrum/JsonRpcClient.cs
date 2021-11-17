@@ -258,7 +258,11 @@ namespace Liviano.Electrum
             }
             else
             {
-                throw new WalletException("Invalid subscription");
+                Debug.WriteLine("Invalid subscription");
+
+                OnSubscriptionFailed?.Invoke(this, requestId);
+
+                return;
             }
 
             await Task.Factory.StartNew(
@@ -266,6 +270,8 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 Cts.Token
             );
+
+            OnSubscriptionFailed?.Invoke(this, requestId);
         }
 
         void PollSslClient()
