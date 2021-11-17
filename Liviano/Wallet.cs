@@ -265,7 +265,7 @@ namespace Liviano
         /// <returns>a <see cref="ElectrumPool"/></returns>
         public IElectrumPool GetElectrumPool()
         {
-            if (!(ElectrumPool is null))
+            if (ElectrumPool is not null)
             {
                 return ElectrumPool;
             }
