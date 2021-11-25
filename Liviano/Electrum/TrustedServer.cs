@@ -788,9 +788,14 @@ namespace Liviano.Electrum
             var scriptHashStr = addr.ToScriptHash().ToHex();
             var addrLabel = isReceive ? "External" : "Internal";
 
-            Debug.WriteLine(
-                $"[GetAddressHistoryTask] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}"
-            );
+            Debug.WriteLine($"[SyncAddress] Address: {addr} ({addrLabel}) scriptHash: {scriptHashStr}");
+
+            ElectrumClient.OnRequestFailed += async (s, o) =>
+            {
+                Debug.WriteLine($"[SyncAddress] {scriptHashStr}, failed, now retrying...");
+
+                await SyncAddress(acc, addr, ct);
+            };
 
             await InsertTransactionsFromHistory(
                 acc,
