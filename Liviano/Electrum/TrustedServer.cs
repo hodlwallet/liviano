@@ -562,6 +562,16 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ({receiveOrSend}) ScriptHash: {scriptHashStr}");
 
+            ElectrumClient.OnRequestFailed += (s, o) =>
+            {
+                if (!string.Equals(o, scriptHashStr))
+                    return;
+
+                Debug.WriteLine($"[WatchAddress] Failed to do the request for script hash: {o}");
+
+                await WatchAddress(acc, addr, ct);
+            });
+
             await ElectrumClient.BlockchainScriptHashSubscribe(
                 scriptHashStr,
                 resultCallback: (str) =>
@@ -792,6 +802,9 @@ namespace Liviano.Electrum
 
             ElectrumClient.OnRequestFailed += async (s, o) =>
             {
+                if (!string.Equals(o, scriptHashStr))
+                    return;
+
                 Debug.WriteLine($"[SyncAddress] {scriptHashStr}, failed, now retrying...");
 
                 await SyncAddress(acc, addr, ct);
