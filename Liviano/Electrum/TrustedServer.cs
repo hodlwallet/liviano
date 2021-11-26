@@ -562,12 +562,12 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[WatchAddress] Address: {addr} ({receiveOrSend}) ScriptHash: {scriptHashStr}");
 
-            ElectrumClient.OnRequestFailed += (s, o) =>
+            ElectrumClient.OnSubscriptionFailed += (s, o) =>
             {
                 if (!string.Equals(o, scriptHashStr))
                     return;
 
-                Debug.WriteLine($"[WatchAddress] Failed to do the request for script hash: {o}");
+                Debug.WriteLine($"[WatchAddress] Failed to do the subscription for script hash: {o}");
 
                 await WatchAddress(acc, addr, ct);
             });
