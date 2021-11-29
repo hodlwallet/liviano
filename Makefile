@@ -5,10 +5,10 @@
 
 # Set Net framework version to use with dotnet
 # USING_NET_VERSION = --framework netappcore3.1
-USING_NET_VERSION = --framework net5.0
+USING_NET_VERSION = --framework net6.0
 
 # BIN_DIR_NET_VERSION = netcoreapp3.1
-BIN_DIR_NET_VERSION = net5.0
+BIN_DIR_NET_VERSION = net6.0
 
 ## Builds Liviano project and its dependencies on Debug configuration mode for all Net target frameworks supported.
 build:
@@ -155,6 +155,9 @@ osx.debug.build:
 ## Publishes Liviano using Debug configuration mode for Windows system.
 win.debug.build:
 	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
+
+nuget:
+	dotnet pack -c Release
 
 ## Cleans the outputs created during the previous build. All intermediate (obj) and final output (bin) folders are removed. 
 clean:
