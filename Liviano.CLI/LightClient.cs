@@ -948,6 +948,11 @@ namespace Liviano.CLI
             }
         }
 
+        public static void TestStuff()
+        {
+            logger.Information("Test");
+        }
+
         /// <summary>
         /// Quits the program
         /// </summary>
