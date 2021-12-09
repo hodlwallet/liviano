@@ -112,9 +112,9 @@ publish.debug:
 
 ## Publishes Liviano using Release configuration mode for the following target platforms: Windows, macOS and Ubuntu.
 publish.release:
-	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime ubuntu-x64
-	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime win-x64
-	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime osx-x64
+	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime ubuntu-x64 --self-contained
+	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime win-x64 --self-contained
+	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime osx-x64 --self-contained
 	mkdir -p bin/release/Liviano/win-x64
 	mkdir -p bin/release/Liviano/osx-x64
 	mkdir -p bin/release/Liviano/ubuntu-x64
@@ -131,14 +131,14 @@ publish.release:
 
 ## Publishes and prepares Liviano's symbolic link on Debug configuration mode for Ubuntu system.
 ubuntu.debug.build:
-	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true
+	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime ubuntu-x64 -property:GenerateFullPaths=true --self-contained
 	mkdir -p bin/ubuntu_debug_build
 	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/ubuntu-x64/publish bin/ubuntu_debug_build
 	rm -f ./liviano-cli
 	ln -s bin/ubuntu_debug_build/publish/Liviano.CLI liviano-cli
 
 ubuntu.release.build:
-	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime ubuntu-x64
+	dotnet publish $(USING_NET_VERSION) --configuration Release --runtime ubuntu-x64 --self-contained
 	mkdir -p bin/ubuntu_release_build
 	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/ubuntu-x64/publish bin/ubuntu_release_build
 	rm -f ./liviano-cli
@@ -146,7 +146,7 @@ ubuntu.release.build:
 
 ## Publishes Liviano using Debug configuration mode for macOS system.
 osx.debug.build:
-	dotnet publish --framework net5.0 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true
+	dotnet publish --framework net5.0 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true --self-contained
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/osx-x64/publish bin/osx_debug_build
 	rm -rf ./liviano-cli
@@ -154,7 +154,7 @@ osx.debug.build:
 
 ## Publishes Liviano using Debug configuration mode for Windows system.
 win.debug.build:
-	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true
+	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime win-x64 -property:GenerateFullPaths=true --self-contained
 
 nuget:
 	dotnet pack -c Release
