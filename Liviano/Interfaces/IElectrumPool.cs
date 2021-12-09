@@ -132,9 +132,25 @@ namespace Liviano.Interfaces
         /// <summary>
         /// Watches a wallet's account for new transactions
         /// </summary>
-        /// <param name="wallet">A <see cref="IWallet"/> to watch</param>
+        /// <param name="account">A <see cref="IAccount"/> to watch</param>
         /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
         Task WatchAccount(IAccount account, CancellationToken ct);
+
+        /// <summary>
+        /// Watches a wallet's account for new transactions
+        /// </summary>
+        /// <param name="account">A <see cref="IAccount"/> to watch</param>
+        /// <param name="addr">A <see cref="BitcoinAddress"/> to watch</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
+        Task WatchAddress(IAccount acc, BitcoinAddress addr, CancellationToken ct);
+
+        /// <summary>
+        /// Watches a wallet's account for new transactions
+        /// </summary>
+        /// <param name="account">A <see cref="IAccount"/> to sync</param>
+        /// <param name="addr">A <see cref="BitcoinAddress"/> to sync</param>
+        /// <param name="ct">A <see cref="CancellationToken"/> to cancel</param>
+        Task SyncAddress(IAccount acc, BitcoinAddress addr, CancellationToken ct);
 
         /// <summary>
         /// Loads the pool from the filesystem
@@ -143,5 +159,6 @@ namespace Liviano.Interfaces
         /// <param name="localDirectory">a <see cref="string"/> to servers file fromm (custom server)</param>
         /// <returns>A new <see cref="ElectrumPool"/></returns>
         IElectrumPool Load(Network network, string localDirectory);
+
     }
 }

@@ -548,7 +548,7 @@ namespace Liviano.Electrum
         /// <summary>
         /// Watches an address
         /// </summary>
-        async Task WatchAddress(
+        public async Task WatchAddress(
                 IAccount acc,
                 BitcoinAddress addr,
                 CancellationToken ct)
@@ -787,7 +787,7 @@ namespace Liviano.Electrum
         /// <param name="acc">The <see cref="IAccount"/> that address comes from</param>
         /// <param name="addr">The <see cref="BitcoinAddress"/> to sync</param>
         /// <param name="ct">A <see cref="CancellationToken"/></param>
-        async Task SyncAddress(
+        public async Task SyncAddress(
                 IAccount acc,
                 BitcoinAddress addr,
                 CancellationToken ct)

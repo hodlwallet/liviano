@@ -950,8 +950,21 @@ namespace Liviano.CLI
 
         public static void TestStuff(Config config)
         {
-            logger.Information("Test stuff");
+            Load(config);
 
+            var acc = wallet.CurrentAccount;
+            var addr = acc.ExternalAddresses[acc.ScriptPubKeyTypes[0]][0].Address; // Gets the first address of the first ScriptPubKey
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+
+            //var scriptHash = addr.Address.ToScriptHash();
+
+            // Now a electrumx call and try to monitor it
+
+            wallet.ElectrumPool.WatchAddress(acc, addr, ct).Wait();
+
+            Console.WriteLine("Press any key to continue");
+            Console.ReadLine();
         }
 
         /// <summary>
