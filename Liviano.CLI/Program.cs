@@ -687,7 +687,7 @@ namespace Liviano.CLI
             // Debug commands
             if (testStuff)
             {
-                LightClient.TestStuff();
+                LightClient.TestStuff(config);
 
                 return 0;
             }

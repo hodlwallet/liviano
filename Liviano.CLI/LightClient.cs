@@ -948,9 +948,10 @@ namespace Liviano.CLI
             }
         }
 
-        public static void TestStuff()
+        public static void TestStuff(Config config)
         {
-            logger.Information("Test");
+            logger.Information("Test stuff");
+
         }
 
         /// <summary>
