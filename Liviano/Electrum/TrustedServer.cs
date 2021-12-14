@@ -601,7 +601,8 @@ namespace Liviano.Electrum
 
                     // TODO the following code should not be implemented like this... but it is
                     // because I don't understand the status data structure, rather, I need to save
-                    // the transactions with the height reported before...
+                    // the transactions with the height reported before... which I think is rather slow
+                    // than just getting the unspent from each address, and that's what we ended up doing.
 
                     var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
                     foreach (var unspentResult in unspent.Result)
