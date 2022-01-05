@@ -957,11 +957,15 @@ namespace Liviano.CLI
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
+            wallet.ElectrumPool.Connect(retries: 3, cts);
+
+            wallet.ElectrumPool.ElectrumClient.OnConnected += async (s, e) => {
+                await wallet.ElectrumPool.WatchAddress(acc, addr, ct);
+            };
+
             //var scriptHash = addr.Address.ToScriptHash();
 
             // Now a electrumx call and try to monitor it
-
-            wallet.ElectrumPool.WatchAddress(acc, addr, ct).Wait();
 
             Console.WriteLine("Press any key to continue");
             Console.ReadLine();

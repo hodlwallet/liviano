@@ -180,7 +180,8 @@ namespace Liviano.Electrum
             CurrentServer.OnConnectedEvent += (_, e) => HandleConnectedServers(CurrentServer, e);
 
             OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
-            OnConnected?.Invoke(this, CurrentServer);
+
+            ElectrumClient.OnConnected += (s, e) => OnConnected?.Invoke(this, CurrentServer);
 
             Debug.WriteLine($"Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
