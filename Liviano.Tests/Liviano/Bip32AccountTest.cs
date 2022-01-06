@@ -75,7 +75,7 @@ namespace Liviano.Tests.Liviano.Accounts
             Assert.Equal("1MseVFBWLkbPeGMpkAsahBujinBq3QjGo4", address.ToString());
         }
 
-        Bip32Account GetAccount()
+        static Bip32Account GetAccount()
         {
             var w = GetWallet();
 
@@ -84,7 +84,7 @@ namespace Liviano.Tests.Liviano.Accounts
             return (Bip32Account)w.Accounts[0];
         }
 
-        Wallet GetWallet()
+        static Wallet GetWallet()
         {
             var w = new Wallet();
             w.Init(MNEMONIC, skipAuth: false);

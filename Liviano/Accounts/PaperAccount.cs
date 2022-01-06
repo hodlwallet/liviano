@@ -73,9 +73,9 @@ namespace Liviano.Accounts
         [JsonProperty(PropertyName = "publicKey")]
         public PubKey PublicKey { get; set; }
 
-        public new string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public new BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
-        public new BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public static new string HdPath { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public static new BitcoinExtPubKey ExtPubKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
+        public static new BitcoinExtKey ExtKey { get => null; set => throw new ArgumentException($"Invalid cannot set to {value}"); }
         public override int InternalAddressesIndex { get; set; }
         public override int ExternalAddressesIndex { get; set; }
 
@@ -234,12 +234,12 @@ namespace Liviano.Accounts
             return UnspentCoins.ToList().Sum(o => o.TxOut.Value);
         }
 
-        public new int GetExternalLastIndex()
+        public static new int GetExternalLastIndex()
         {
             return 0;
         }
 
-        public new int GetInternalLastIndex()
+        public static new int GetInternalLastIndex()
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }
@@ -274,12 +274,12 @@ namespace Liviano.Accounts
             return coins.ToArray();
         }
 
-        public new int GetExternalIndex(BitcoinAddress _)
+        public static new int GetExternalIndex(BitcoinAddress _)
         {
             return 0;
         }
 
-        public new int GetInternalIndex(BitcoinAddress _)
+        public static new int GetInternalIndex(BitcoinAddress _)
         {
             throw new ArgumentException("Paper accounts cannot generate change addresses, you must swippe then into another account!");
         }

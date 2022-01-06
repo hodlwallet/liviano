@@ -235,7 +235,7 @@ namespace Liviano
         /// </summary>
         public void CreateAccountIndexes()
         {
-            if (!(AccountsIndex is null)) return;
+            if (AccountsIndex is not null) return;
 
             AccountsIndex = new Dictionary<string, int>();
             var types = new string[] { "bip44", "bip49", "bip84", "bip141", "paper" };

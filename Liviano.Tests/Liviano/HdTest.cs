@@ -144,7 +144,7 @@ namespace Liviano.Tests.Liviano
             ExtKey extKey = Hd.GetExtendedKey(mnemonic);
 
             // Creates a new wallet
-            Wallet wallet = new Wallet();
+            Wallet wallet = new();
             wallet.Init(mnemonic);
 
             wallet.AddAccount("bip84", options: new object {});
@@ -290,7 +290,7 @@ namespace Liviano.Tests.Liviano
             ExtKey extKey = Hd.GetExtendedKey(mnemonic, password);
 
             // Creates a new wallet
-            Wallet wallet = new Wallet();
+            Wallet wallet = new();
             wallet.Init(mnemonic, passphrase: password, network: network);
 
             wallet.AddAccount("bip84");

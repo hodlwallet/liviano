@@ -248,7 +248,7 @@ namespace Liviano.Models
                 BlockHeight = height
             };
 
-            if (height > 0 && !(header is null))
+            if (height > 0 && header is not null)
             {
                 tx.Blockhash = header.GetHash();
                 tx.CreatedAt = header.BlockTime;

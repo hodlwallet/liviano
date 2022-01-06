@@ -128,14 +128,6 @@ namespace Liviano.CLI
         }
 
         /// <summary>
-        /// Check if the config exist in the filesystem
-        /// </summary>
-        public bool IsSaved()
-        {
-            return Exists();
-        }
-
-        /// <summary>
         /// Loads a config
         /// </summary>
         public static Config Load()

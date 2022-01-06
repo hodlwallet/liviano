@@ -81,7 +81,7 @@ namespace Liviano.Tests.Liviano
 
         public string GetBlockHeaderHex()
         {
-            using MemoryStream ms = new MemoryStream();
+            using MemoryStream ms = new();
             byte[] versionBytes = BitConverter.GetBytes(Ver);
 
             ms.Write(versionBytes);
@@ -118,7 +118,7 @@ namespace Liviano.Tests.Liviano
 
         const string BLOCKCYPHER_TESTNET_BLOCK_API = "https://api.blockcypher.com/v1/btc/test3/blocks/{0}";
 
-        static readonly HttpClient HttpClient = new HttpClient();
+        static readonly HttpClient HttpClient = new();
 
         readonly ITestOutputHelper output;
 

@@ -325,7 +325,7 @@ namespace Liviano.Accounts
             }
         }
 
-        DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header)
+        static DateTimeOffset GetAproxTime(long currentBlockHeight, long txBlockHeight, BlockHeader header)
         {
             var blocksApart = currentBlockHeight - txBlockHeight;
             var minutes = blocksApart * 10;

@@ -37,7 +37,7 @@ namespace Liviano.Electrum
 {
     public static class SslTcpClient
     {
-        public static EventHandler<string> OnSubscriptionMessageEvent;
+        public static readonly EventHandler<string> OnSubscriptionMessageEvent;
 
         /// <summary>
         /// The following method is invoked by the RemoteCertificateValidationDelegate.
@@ -237,7 +237,7 @@ namespace Liviano.Electrum
             int bytes = -1;
             while (bytes != 0)
             {
-                bytes = await stream.ReadAsync(buffer, 0, buffer.Length);
+                bytes = await stream.ReadAsync(buffer);
 
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.

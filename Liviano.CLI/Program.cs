@@ -110,30 +110,30 @@ namespace Liviano.CLI
             return new OptionSet
             {
                 // Global variables
-                {"m|mainnet", "Run on mainnet", v => network = !(v is null) ? Network.Main : null},
-                {"t|testnet", "Run on testnet", v => network = !(v is null) ? Network.TestNet : null},
+                {"m|mainnet", "Run on mainnet", v => network = v is not null ? Network.Main : null},
+                {"t|testnet", "Run on testnet", v => network = v is not null ? Network.TestNet : null},
 
                 // Actions
-                {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = !(v is null)},
-                {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = !(v is null)},
-                {"getaddr|get-address", "Get an address from a xpub", v => getAddr= !(v is null)},
-                {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = !(v is null)},
-                {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = !(v is null)},
-                {"nw|new-wallet", "Create a new wallet", v => newWallet = !(v is null)},
-                {"send|send-to-address", "Send to address", v => send = !(v is null)},
-                {"bump|bump-fee", "Bump fee of a transaction", v => bump = !(v is null)},
-                {"bal|balance", "Show wallet balance", v => balance = !(v is null)},
-                {"s|summary", "Show wallet summary", v => summary = !(v is null)},
-                {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = !(v is null)},
-                {"info-acc|info-account", "Gets the account info", v => infoAcc = !(v is null)},
-                {"st|start", "Start wallet sync, and wait for transactions", v => start = !(v is null)},
-                {"rs|resync", "Start wallet resync and exit when done", v => resync = !(v is null)},
-                {"sy|sync", "Start wallet sync and exit when done", v => sync = !(v is null)},
-                {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = !(v is null)},
-                {"v|version", "Show the liviano version", v => version = !(v is null)},
-                {"dccs|detect-accounts", "Detect accounts on a mnemonic seed", v => detectAccount = !(v is null)},
-                {"sdccs|save-accounts", "Save detected accounts on a mnemonic seed", v => saveAccounts = !(v is null)},
-                {"tst|test", "Test stuff", v => testStuff = !(v is null)},
+                {"xprv|ext-priv-key", "Get an xpriv from mnemonic", v => getXPrv = v is not null},
+                {"xpub|ext-pub-key", "Get an xpub from a xprv", v => getXPub = v is not null},
+                {"getaddr|get-address", "Get an address from a xpub", v => getAddr= v is not null},
+                {"nmn|new-mnemonic", "Get new mnemonic", v => newMnemonic = v is not null},
+                {"to-scriptpubkey|address-to-script-pub-key", "Get script pub key from address", v => getScriptPubKey = v is not null},
+                {"nw|new-wallet", "Create a new wallet", v => newWallet = v is not null},
+                {"send|send-to-address", "Send to address", v => send = v is not null},
+                {"bump|bump-fee", "Bump fee of a transaction", v => bump = v is not null},
+                {"bal|balance", "Show wallet balance", v => balance = v is not null},
+                {"s|summary", "Show wallet summary", v => summary = v is not null},
+                {"new-acc|new-account", "Create a new account on the wallet", v => newAcc = v is not null},
+                {"info-acc|info-account", "Gets the account info", v => infoAcc = v is not null},
+                {"st|start", "Start wallet sync, and wait for transactions", v => start = v is not null},
+                {"rs|resync", "Start wallet resync and exit when done", v => resync = v is not null},
+                {"sy|sync", "Start wallet sync and exit when done", v => sync = v is not null},
+                {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = v is not null},
+                {"v|version", "Show the liviano version", v => version = v is not null},
+                {"dccs|detect-accounts", "Detect accounts on a mnemonic seed", v => detectAccount = v is not null},
+                {"sdccs|save-accounts", "Save detected accounts on a mnemonic seed", v => saveAccounts = v is not null},
+                {"tst|test", "Test stuff", v => testStuff = v is not null},
 
                 // Variables or modifiers
                 {"l|lang=", "Mnemonic language", (string v) => wordlist = v},
@@ -154,12 +154,12 @@ namespace Liviano.CLI
                 {"fc|freeze-coin=", "TxId:N of the coin to freeze", (string v) => freezeCoin = v},
                 {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
-                {"png|ping", "Ping electrum server", (string v) => ping = !(v is null)},
-                {"hdr|headers", "Subscribe to new headers", (string v) => headers = !(v is null)},
-                {"raddr|refresh-address", "Refresh address", v => refreshAddress = !(v is null)},
+                {"png|ping", "Ping electrum server", (string v) => ping = v is not null},
+                {"hdr|headers", "Subscribe to new headers", (string v) => headers = v is not null},
+                {"raddr|refresh-address", "Refresh address", v => refreshAddress = v is not null},
 
                 // Default & help
-                {"h|help", "Liviano help", v => showHelp = !(v is null)}
+                {"h|help", "Liviano help", v => showHelp = v is not null}
             };
         }
 
@@ -521,7 +521,7 @@ namespace Liviano.CLI
             if (coinControl)
             {
                 // Check if we want to freeze or unfreeze
-                List<string> actions = new List<string>();
+                List<string> actions = new();
                 if (!string.IsNullOrEmpty(freezeCoin))
                 {
                     actions.Add("freeze");

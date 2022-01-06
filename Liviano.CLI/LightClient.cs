@@ -47,7 +47,7 @@ namespace Liviano.CLI
     public static class LightClient
     {
         const int PERIODIC_SAVE_DELAY = 30_000;
-        static readonly object @lock = new object();
+        static readonly object @lock = new();
         static readonly ILogger logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
         static Network network;
         static IWallet wallet;
@@ -554,12 +554,12 @@ namespace Liviano.CLI
                 );
 
                 // Print transactions
-                List<Tx> txs = new List<Tx> { };
+                List<Tx> txs = new();
 
                 foreach (var tx in wallet.CurrentAccount.Txs.OrderByDescending(tx => tx.CreatedAt))
                     txs.Add(tx);
 
-                if (txs.Count() == 0)
+                if (txs.Count == 0)
                 {
                     logger.Information("No transactions found {sadFace}", ":(");
 
@@ -568,7 +568,7 @@ namespace Liviano.CLI
                 else
                     logger.Information("Transactions:");
 
-                if (txs.Count() != 0)
+                if (txs.Count != 0)
                 {
                     foreach (var tx in txs)
                     {
@@ -827,12 +827,12 @@ namespace Liviano.CLI
                 logger.Information("Sync finished!");
 
                 // Print transactions
-                List<Tx> txs = new List<Tx> { };
+                List<Tx> txs = new();
 
                 foreach (var tx in wallet.CurrentAccount.Txs.OrderByDescending(tx => tx.CreatedAt))
                     txs.Add(tx);
 
-                if (txs.Count() > 0)
+                if (txs.Count > 0)
                 {
                     logger.Information("Transactions:");
 

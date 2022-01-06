@@ -90,7 +90,7 @@ namespace Liviano.Electrum
                     OnConnected?.Invoke(this, value);
                 }
 
-                if (value is null && !(currentServer is null))
+                if (value is null && currentServer is not null)
                 {
                     Connected = false;
 
@@ -497,7 +497,7 @@ namespace Liviano.Electrum
 
                 // TODO ngl this shit should fail.
 
-                return new Server[] { };
+                return Array.Empty<Server>();
             }
         }
 

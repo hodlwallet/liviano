@@ -230,7 +230,7 @@ namespace Liviano.Extensions
 
             var expectedCoins = coinSelector.Select(unspentCoins, amount + new Money(typicalMinFee, MoneyUnit.Satoshi));
 
-            if (expectedCoins.Count() == 0) return (null, "Balance too low to create transaction.");
+            if (!expectedCoins.Any()) return (null, "Balance too low to create transaction.");
 
             var changeDestination = account.GetChangeAddress();
             var toDestination = BitcoinAddress.Create(destinationAddress, account.Network);
@@ -253,12 +253,12 @@ namespace Liviano.Extensions
                 tx = builder.BuildTransaction(sign: true);
             } catch (NotEnoughFundsException e)
             {
-                var coinsStr = string.Join(", ", expectedCoins.Select((o) => $"{o.Outpoint.Hash.ToString()}:{o.Amount}"));
+                var coinsStr = string.Join(", ", expectedCoins.Select((o) => $"{o.Outpoint.Hash}:{o.Amount}"));
 
                 Debug.WriteLine($"[CreateTransaction] Error Message: {e.Message}");
                 Debug.WriteLine($"[CreateTransaction] Coins: {coinsStr}");
-                Debug.WriteLine($"[CreateTransaction] Destination: {toDestination.ToString()}");
-                Debug.WriteLine($"[CreateTransaction] Amount: {amount.ToString()}");
+                Debug.WriteLine($"[CreateTransaction] Destination: {toDestination}");
+                Debug.WriteLine($"[CreateTransaction] Amount: {amount}");
 
                 return (tx, e.Message);
             }

@@ -36,8 +36,8 @@ namespace Liviano.Electrum
 {
     public class ElectrumClient
     {
-        public static string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
-        public static System.Version REQUESTED_VERSION = new("1.4");
+        public static readonly string CLIENT_NAME = $"{Version.ElectrumUserAgent}";
+        public static readonly System.Version REQUESTED_VERSION = new("1.4");
 
         readonly JsonRpcClient jsonRpcClient;
 
@@ -335,7 +335,7 @@ namespace Liviano.Electrum
             return new JsonSerializerSettings { ContractResolver = new PascalCase2LowercasePlusUnderscoreContractResolver() };
         }
 
-        string Serialize(Request req)
+        static string Serialize(Request req)
         {
             return JsonConvert.SerializeObject(req, Formatting.None, PascalCase2LowercasePlusUnderscoreConversionSettings());
         }
