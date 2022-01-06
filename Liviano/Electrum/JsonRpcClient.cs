@@ -271,7 +271,7 @@ namespace Liviano.Electrum
                 Cts.Token
             );
 
-            OnSubscriptionFailed?.Invoke(this, requestId);
+            // OnSubscriptionFailed?.Invoke(this, requestId);
         }
 
         void PollSslClient()

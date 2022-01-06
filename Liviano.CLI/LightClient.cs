@@ -963,8 +963,6 @@ namespace Liviano.CLI
                 await wallet.ElectrumPool.WatchAddress(acc, addr, ct);
             };
 
-            //var scriptHash = addr.Address.ToScriptHash();
-
             // Now a electrumx call and try to monitor it
 
             Console.WriteLine("Press any key to continue");
