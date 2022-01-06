@@ -183,11 +183,11 @@ namespace Liviano.Electrum
 
             ElectrumClient.OnConnected += (s, e) => OnConnected?.Invoke(this, CurrentServer);
 
-            Debug.WriteLine($"Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
+            Debug.WriteLine($"[Connect] Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
             if (cancellationToken.IsCancellationRequested)
             {
-                Debug.WriteLine("Cancellation requested, NOT CONNECTING!");
+                Debug.WriteLine("[Connect] Cancellation requested, NOT CONNECTING!");
 
                 return;
             }
@@ -199,14 +199,14 @@ namespace Liviano.Electrum
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"Error = {e.Message} {DateTime.UtcNow}");
+                Debug.WriteLine($"[Connect] Error = {e.Message} {DateTime.UtcNow}");
 
                 if (retries >= VERSION_REQUEST_MAX_RETRIES)
                     return;
 
                 Connected = false;
 
-                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+                Debug.WriteLine($"[Connect] Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
 
                 await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
                 await Connect(retries + 1);
@@ -216,7 +216,7 @@ namespace Liviano.Electrum
 
             if (version >= ElectrumClient.REQUESTED_VERSION)
             {
-                Debug.WriteLine($"Connected {CurrentServer.Domain}! at {DateTime.UtcNow}");
+                Debug.WriteLine($"[Connect] Connected {CurrentServer.Domain}! at {DateTime.UtcNow}");
 
                 Connected = true;
                 return;
@@ -224,11 +224,11 @@ namespace Liviano.Electrum
 
             if (retries > VERSION_REQUEST_MAX_RETRIES)
             {
-                Debug.WriteLine($"Failed to get version, retrying! at {DateTime.UtcNow}");
+                Debug.WriteLine($"[Connect] Failed to get version, retrying! at {DateTime.UtcNow}");
 
                 Connected = false;
 
-                Debug.WriteLine($"Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
+                Debug.WriteLine($"[Connect] Retry in {VERSION_REQUEST_RETRY_DELAY} ms");
 
                 await Task.Delay(VERSION_REQUEST_RETRY_DELAY);
                 await Connect(retries + 1);
