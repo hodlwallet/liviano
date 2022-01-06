@@ -265,11 +265,13 @@ namespace Liviano.Electrum
                 return;
             }
 
-            await Task.Factory.StartNew(
-                o => CallbackOnResult(requestId, notificationCallback),
-                TaskCreationOptions.LongRunning,
+            await Task.Run(
+                () => CallbackOnResult(requestId, notificationCallback),
                 Cts.Token
             );
+
+            Debug.WriteLine("[Subscribe] Subscription failed.");
+            OnSubscriptionFailed?.Invoke(this, requestId);
         }
 
         void PollSslClient()
