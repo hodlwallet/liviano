@@ -964,9 +964,7 @@ namespace Liviano.CLI
             };
 
             // Now a electrumx call and try to monitor it
-
-            Console.WriteLine("Press any key to continue");
-            Console.ReadLine();
+            WaitUntilEscapeIsPressed();
         }
 
         /// <summary>

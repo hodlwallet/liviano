@@ -258,7 +258,7 @@ namespace Liviano.Electrum
             }
             else
             {
-                Debug.WriteLine("Invalid subscription");
+                Debug.WriteLine("[Subscribe] Invalid subscription");
 
                 OnSubscriptionFailed?.Invoke(this, requestId);
 
@@ -270,8 +270,6 @@ namespace Liviano.Electrum
                 TaskCreationOptions.LongRunning,
                 Cts.Token
             );
-
-            // OnSubscriptionFailed?.Invoke(this, requestId);
         }
 
         void PollSslClient()
