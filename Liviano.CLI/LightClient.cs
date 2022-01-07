@@ -957,7 +957,23 @@ namespace Liviano.CLI
             var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
+            wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
+            {
+                logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
+            };
+
+            wallet.ElectrumPool.ElectrumClient.OnDisconnected += (s, o) =>
+            {
+                logger.Information("Disconnected at {at}!", DateTimeOffset.UtcNow);
+            };
+
             wallet.ElectrumPool.Connect(retries: 3, cts);
+
+            wallet.ElectrumPool.PeriodicPing(
+                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping failed at {time}!", o),
+                null
+            );
 
             wallet.ElectrumPool.ElectrumClient.OnConnected += async (s, e) => {
                 await wallet.ElectrumPool.WatchAddress(acc, addr, ct);
