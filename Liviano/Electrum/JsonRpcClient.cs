@@ -141,14 +141,17 @@ namespace Liviano.Electrum
             {
                 Cts.Cancel();
 
-                // FIXME This is called twice, it shouldn't
-                if (tcpClient is null || sslStream is null) return;
+                if (tcpClient is not null)
+                {
+                    tcpClient.Dispose();
+                    tcpClient = null;
+                }
 
-                tcpClient.Dispose();
-                tcpClient = null;
-
-                sslStream.Dispose();
-                sslStream = null;
+                if (sslStream is not null)
+                {
+                    sslStream.Dispose();
+                    sslStream = null;
+                }
 
                 results.Clear();
                 queue.Clear();
