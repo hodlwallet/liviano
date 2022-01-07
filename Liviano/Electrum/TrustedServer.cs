@@ -613,7 +613,13 @@ namespace Liviano.Electrum
 
                         var currentTx = acc.Txs.ToList().FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                        var txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                        string txHex = string.Empty;
+
+                        if (currentTx is null)
+                            txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                        else
+                            txHex = currentTx.Hex;
+
                         BlockHeader header = null;
                         uint256 blockHash = null;
                         if (height > 0)
