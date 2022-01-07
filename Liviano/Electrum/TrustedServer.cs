@@ -839,16 +839,22 @@ namespace Liviano.Electrum
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
+            var txs = acc.Txs.ToList();
             foreach (var r in result.Result)
             {
                 if (ct.IsCancellationRequested) return;
 
                 Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
 
-                BlockchainTransactionGetResult txRes;
+                string txHex = string.Empty;
                 try
                 {
-                    txRes = await ElectrumClient.BlockchainTransactionGet(r.TxHash);
+                    var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
+
+                    if (currentTx is not null)
+                        txHex = currentTx.Hex;
+                    else
+                        txHex = (await ElectrumClient.BlockchainTransactionGet(r.TxHash)).Result;
                 }
                 catch (ElectrumException e)
                 {
@@ -872,7 +878,7 @@ namespace Liviano.Electrum
                 }
 
                 var tx = Tx.CreateFromHex(
-                    txRes.Result,
+                    txHex,
                     r.Height,
                     header,
                     acc,
