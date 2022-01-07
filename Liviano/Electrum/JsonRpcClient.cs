@@ -167,7 +167,7 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
 
-            // TODO add usecured tcp streams support back
+            // TODO add usecured tcp streams (http) support back
 
             return await RequestInternalSsl(request);
         }
