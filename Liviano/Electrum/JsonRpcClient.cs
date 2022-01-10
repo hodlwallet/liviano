@@ -420,7 +420,7 @@ namespace Liviano.Electrum
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"[ConsumeQueue] Error: {e.StackTrace}");
+                    Debug.WriteLine($"[ConsumeRequests] Error: {e.StackTrace}");
 
                     consumingQueue = false;
                 }
