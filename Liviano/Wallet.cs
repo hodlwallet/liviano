@@ -493,7 +493,7 @@ namespace Liviano
 
         void ElectrumServer_PingSuccessCallback(DateTimeOffset? pingFailedAt)
         {
-            Debug.WriteLine($"[Connect] Ping successful at {pingFailedAt}.");
+            Debug.WriteLine($"[Connect] Ping successful, last successful call at {pingFailedAt}.");
         }
 
         async void ElectrumServer_PingFailedCallback(DateTimeOffset? pingFailedAt)

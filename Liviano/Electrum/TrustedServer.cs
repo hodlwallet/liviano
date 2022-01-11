@@ -556,9 +556,6 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            // In case of a disconnection try again
-            OnConnected += async (s, o) => await WatchAddress(acc, addr, ct);
-
             var scriptHashStr = addr.ToScriptHash().ToHex();
             string receiveOrSend = null;
 

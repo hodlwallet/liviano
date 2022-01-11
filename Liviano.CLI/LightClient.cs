@@ -524,7 +524,7 @@ namespace Liviano.CLI
             };
 
             wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping Successful, last successful call at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
                 null
             );
@@ -626,7 +626,7 @@ namespace Liviano.CLI
 
             // Ping every 5 seconds
             wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping Successful at, last successful call {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
                 5000
             );
@@ -642,7 +642,7 @@ namespace Liviano.CLI
             Load(config, skipAuth: true);
 
             wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping Successful, last successful call at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
                 null
             );
@@ -782,7 +782,7 @@ namespace Liviano.CLI
 
             // Ping every 5 seconds
             wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping Successful, last successful call at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
                 null
             );
@@ -970,7 +970,7 @@ namespace Liviano.CLI
             wallet.ElectrumPool.Connect(retries: 3, cts);
 
             wallet.ElectrumPool.PeriodicPing(
-                o => logger.Information("Ping Successful at {time}!", o),
+                o => logger.Information("Ping Successful, last successful call at {time}!", o),
                 o => logger.Information("Ping failed at {time}!", o),
                 null
             );
