@@ -975,9 +975,7 @@ namespace Liviano.CLI
                 null
             );
 
-            wallet.ElectrumPool.ElectrumClient.OnConnected += async (s, e) => {
-                await wallet.ElectrumPool.WatchAddress(acc, addr, ct);
-            };
+            wallet.ElectrumPool.WatchAddress(acc, addr, ct);
 
             // Now a electrumx call and try to monitor it
             WaitUntilEscapeIsPressed();

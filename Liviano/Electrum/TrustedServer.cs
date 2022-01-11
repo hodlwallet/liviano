@@ -26,6 +26,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -130,7 +131,6 @@ namespace Liviano.Electrum
             CurrentServer = server;
             Network = network;
         }
-
         public async Task<(bool Result, string Error)> Broadcast(Transaction transaction)
         {
             var txHex = transaction.ToHex();
@@ -555,6 +555,9 @@ namespace Liviano.Electrum
                 CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
+
+            // In case of a disconnection try again
+            OnConnected += async (s, o) => await WatchAddress(acc, addr, ct);
 
             var scriptHashStr = addr.ToScriptHash().ToHex();
             string receiveOrSend = null;
