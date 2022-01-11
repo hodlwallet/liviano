@@ -556,6 +556,7 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
+            var retryDelay = 3000;
             var scriptHashStr = addr.ToScriptHash().ToHex();
             string receiveOrSend = null;
 
@@ -573,105 +574,115 @@ namespace Liviano.Electrum
                 await WatchAddress(acc, addr, ct);
             };
 
-            await ElectrumClient.BlockchainScriptHashSubscribe(
-                scriptHashStr,
-                resultCallback: (str) =>
-                {
-                    Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, address {addr} hash: {scriptHashStr} status: {str}.");
-
-                    // TODO Status data structure description: https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-basics.html#status
-                    // I'm not sure what to do with it... What matters are the notifications and those are described bellow
-                },
-                notificationCallback: async (str) =>
-                {
-                    Debug.WriteLine($"[WatchAddress][notificationCallback] Notification: '{str}'.");
-
-                    if (string.IsNullOrEmpty(str))
+            try
+            {
+                await ElectrumClient.BlockchainScriptHashSubscribe(
+                    scriptHashStr,
+                    resultCallback: (str) =>
                     {
-                        Debug.WriteLine($"[WatchAddress][notificationCallback] Status is null or empty");
+                        Debug.WriteLine($"[WatchAddress][resultCallback] Got status from BlockchainScriptHashSubscribe, address {addr} hash: {scriptHashStr} status: {str}.");
 
-                        return;
-                    }
-
-                    Debug.WriteLine($"[WatchAddress][notificationCallback] Status: '{str}'.");
-
-                    OnWatchAddressNotified?.Invoke(
-                        this,
-                        new WatchAddressEventArgs(str, acc, addr)
-                    );
-
-                    // TODO the following code should not be implemented like this... but it is
-                    // because I don't understand the status data structure, rather, I need to save
-                    // the transactions with the height reported before... which I think is rather slow
-                    // than just getting the unspent from each address, and that's what we ended up doing.
-
-                    var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
-                    foreach (var unspentResult in unspent.Result)
+                        // TODO Status data structure description: https://electrumx-spesmilo.readthedocs.io/en/latest/protocol-basics.html#status
+                        // I'm not sure what to do with it... What matters are the notifications and those are described bellow
+                    },
+                    notificationCallback: async (str) =>
                     {
-                        var txHash = unspentResult.TxHash;
-                        var height = unspentResult.Height;
+                        Debug.WriteLine($"[WatchAddress][notificationCallback] Notification: '{str}'.");
 
-                        var currentTx = acc.Txs.ToList().FirstOrDefault((i) => i.Id.ToString() == txHash);
-
-                        string txHex = string.Empty;
-
-                        if (currentTx is null)
-                            txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
-                        else
-                            txHex = currentTx.Hex;
-
-                        BlockHeader header = null;
-                        uint256 blockHash = null;
-                        if (height > 0)
+                        if (string.IsNullOrEmpty(str))
                         {
-                            var headerHex = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
-                            header = BlockHeader.Parse(
-                                headerHex,
-                                acc.Network
-                            );
+                            Debug.WriteLine($"[WatchAddress][notificationCallback] Status is null or empty");
 
-                            blockHash = header.GetHash();
+                            return;
                         }
 
-                        // Update list of UTXOs based on the transaction
-                        var transaction = Transaction.Parse(txHex, acc.Network);
+                        Debug.WriteLine($"[WatchAddress][notificationCallback] Status: '{str}'.");
 
-                        // Find out if this tx is a replacement tx, and find said replacement tx
-                        if (currentTx != null && acc.IsReplacingTransaction(transaction))
+                        OnWatchAddressNotified?.Invoke(
+                            this,
+                            new WatchAddressEventArgs(str, acc, addr)
+                        );
+
+                        // TODO the following code should not be implemented like this... but it is
+                        // because I don't understand the status data structure, rather, I need to save
+                        // the transactions with the height reported before... which I think is rather slow
+                        // than just getting the unspent from each address, and that's what we ended up doing.
+
+                        var unspent = await ElectrumClient.BlockchainScriptHashListUnspent(scriptHashStr);
+                        foreach (var unspentResult in unspent.Result)
                         {
-                            var replacedTx = acc.FindReplacedTx(transaction);
-                            var parsedReplacedTx = Transaction.Parse(replacedTx.Hex, replacedTx.Network);
+                            var txHash = unspentResult.TxHash;
+                            var height = unspentResult.Height;
 
-                            acc.RemoveTx(replacedTx);
+                            var currentTx = acc.Txs.ToList().FirstOrDefault((i) => i.Id.ToString() == txHash);
 
-                            var coins = acc.GetCoinsFromTransaction(parsedReplacedTx);
-                            foreach (var coin in coins) acc.DeleteUtxo(coin as Coin);
+                            string txHex = string.Empty;
+
+                            if (currentTx is null)
+                                txHex = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+                            else
+                                txHex = currentTx.Hex;
+
+                            BlockHeader header = null;
+                            uint256 blockHash = null;
+                            if (height > 0)
+                            {
+                                var headerHex = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
+                                header = BlockHeader.Parse(
+                                    headerHex,
+                                    acc.Network
+                                );
+
+                                blockHash = header.GetHash();
+                            }
+
+                            // Update list of UTXOs based on the transaction
+                            var transaction = Transaction.Parse(txHex, acc.Network);
+
+                            // Find out if this tx is a replacement tx, and find said replacement tx
+                            if (currentTx != null && acc.IsReplacingTransaction(transaction))
+                            {
+                                var replacedTx = acc.FindReplacedTx(transaction);
+                                var parsedReplacedTx = Transaction.Parse(replacedTx.Hex, replacedTx.Network);
+
+                                acc.RemoveTx(replacedTx);
+
+                                var coins = acc.GetCoinsFromTransaction(parsedReplacedTx);
+                                foreach (var coin in coins) acc.DeleteUtxo(coin as Coin);
+                            }
+
+                            // Tx is new
+                            if (currentTx is null)
+                            {
+                                var tx = Tx.CreateFromHex(
+                                    txHex, height, header, acc, Network
+                                );
+
+                                acc.AddTx(tx);
+                                OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                            }
+                            else if (currentTx.BlockHeight != height) // A potential update if tx heights are different
+                            {
+                                var tx = Tx.CreateFromHex(
+                                    txHex, height, header, acc, Network
+                                );
+
+                                acc.UpdateTx(tx);
+                                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                            }
+
+                            acc.UpdateUtxoListWithTransaction(transaction);
                         }
-
-                        // Tx is new
-                        if (currentTx is null)
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network
-                            );
-
-                            acc.AddTx(tx);
-                            OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                        }
-                        else if (currentTx.BlockHeight != height) // A potential update if tx heights are different
-                        {
-                            var tx = Tx.CreateFromHex(
-                                txHex, height, header, acc, Network
-                            );
-
-                            acc.UpdateTx(tx);
-                            OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                        }
-
-                        acc.UpdateUtxoListWithTransaction(transaction);
                     }
-                }
-            );
+                );
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[WatchAddress] Error when trying to subscribe to address ({addr}): {e.StackTrace}");
+
+                await Task.Delay(retryDelay);
+                await WatchAddress(acc, addr, ct);
+            }
         }
 
         /// <summary>
