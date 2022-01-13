@@ -905,6 +905,14 @@ namespace Liviano.CLI
             return acc.GetAccountInfo();
         }
 
+        public static IAccount GetAccount(Config config)
+        {
+
+            Load(config, skipAuth: true);
+
+            return wallet.CurrentAccount;
+        }
+
         /// <summary>
         /// Waits until the user press esc
         /// </summary>

@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -163,18 +164,28 @@ namespace Liviano.Interfaces
         /// <summary>
         /// The UTXO list from the account
         /// </summary>
+        [JsonProperty(PropertyName = "unspentCoins", NullValueHandling = NullValueHandling.Ignore)]
         List<Coin> UnspentCoins { get; set; }
 
         /// <summary>
         /// The spent transaction outputs
         /// </summary>
+        [JsonProperty(PropertyName = "spentCoins", NullValueHandling = NullValueHandling.Ignore)]
         List<Coin> SpentCoins { get; set; }
 
         /// <summary>
         /// The frozen (banned or blocked) transaction outputs
         /// to prevent usage during coin selection, to use in coin control features
         /// </summary>
+        [JsonProperty(PropertyName = "frozenCoins", NullValueHandling = NullValueHandling.Ignore)]
         List<Coin> FrozenCoins { get; set; }
+
+        /// <summary>
+        /// Dust prevention minimum value, more than equal this amount is okay less is not
+        /// </summary>
+        [JsonProperty(PropertyName = "dustMinValue", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue(0)]
+        long DustMinValue { get; set; }
 
         /// <summary>
         /// All external addresses generated
@@ -191,11 +202,13 @@ namespace Liviano.Interfaces
         /// <summary>
         /// List of used external addresses
         /// </summary>
+        [JsonProperty(PropertyName = "usedExternalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         List<BitcoinAddress> UsedExternalAddresses { get; set; }
 
         /// <summary>
         /// List of used internal addresses
         /// </summary>
+        [JsonProperty(PropertyName = "usedInternalAddresses", NullValueHandling = NullValueHandling.Ignore)]
         List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
         /// <summary>
@@ -334,5 +347,10 @@ namespace Liviano.Interfaces
         /// True if the address is in InternalAddresses on any scriptpubkey
         /// </summary>
         bool IsChange(BitcoinAddress address);
+
+        /// <summary>
+        /// Update Dust coins
+        /// </summary>
+        void UpdateDustCoins();
     }
 }

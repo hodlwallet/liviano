@@ -94,6 +94,8 @@ namespace Liviano.Accounts
         public List<Coin> SpentCoins { get; set; }
         public List<Coin> FrozenCoins { get; set; }
 
+        public long DustMinValue { get; set; }
+
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
         public abstract void RemoveTx(Tx tx);
@@ -171,6 +173,8 @@ namespace Liviano.Accounts
 
                 UnspentCoins.Add(coin);
             }
+
+            if (coin.Amount < Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) FreezeUtxo(coin);
         }
 
         public void RemoveUtxo(Coin coin)
@@ -218,6 +222,18 @@ namespace Liviano.Accounts
                 UnspentCoins.Remove(coin);
                 FrozenCoins.Remove(coin);
                 SpentCoins.Remove(coin);
+            }
+        }
+
+        public void UpdateDustCoins()
+        {
+            if (DustMinValue == 0) return;
+            if (!UnspentCoins.Any()) return;
+
+            lock (@lock)
+            {
+                foreach (var unspentCoin in UnspentCoins)
+                    if (unspentCoin.Amount < Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) FreezeUtxo(unspentCoin);
             }
         }
 

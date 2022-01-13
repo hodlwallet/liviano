@@ -426,6 +426,7 @@ namespace Liviano.CLI
                     return 1;
                 }
 
+                var acc = LightClient.GetAccount(config);
                 var info = LightClient.GetAccountInfo(config);
 
                 Console.WriteLine("Account Info: \n");
@@ -435,6 +436,9 @@ namespace Liviano.CLI
                 Console.WriteLine($"HD Path:\t{info.HdPath}");
                 Console.WriteLine($"Xpub:\t\t{info.Xpub}");
                 Console.WriteLine($"Xprv:\t\t{info.Xprv}");
+
+                // Example to get more data, from the acc variable
+                Console.WriteLine($"DustMinValue:\t{acc.DustMinValue}");
 
                 return 0;
             }
