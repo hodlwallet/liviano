@@ -569,7 +569,7 @@ namespace Liviano.CLI
             {
                 if (string.IsNullOrEmpty(config.WalletId))
                 {
-                    Console.WriteLine("New account needs a wallet id");
+                    Console.WriteLine("Dust control needs a wallet");
 
                     return 1;
                 }
