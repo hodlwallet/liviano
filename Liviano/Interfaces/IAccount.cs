@@ -181,11 +181,11 @@ namespace Liviano.Interfaces
         List<Coin> FrozenCoins { get; set; }
 
         /// <summary>
-        /// Dust prevention minimum value, more than equal this amount is okay less is not
+        /// Dust prevention minimum amount, more than equal this amount is okay less is not
         /// </summary>
-        [JsonProperty(PropertyName = "dustMinValue", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Populate)]
+        [JsonProperty(PropertyName = "dustMinAmount", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Populate)]
         [DefaultValue(-1)]
-        long DustMinValue { get; set; }
+        long DustMinAmount { get; set; }
 
         /// <summary>
         /// All external addresses generated

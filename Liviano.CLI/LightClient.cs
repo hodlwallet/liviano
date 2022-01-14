@@ -918,7 +918,7 @@ namespace Liviano.CLI
 
             var acc = wallet.CurrentAccount;
 
-            acc.DustMinValue = dustAmount;
+            acc.DustMinAmount = dustAmount;
             acc.UpdateDustCoins();
 
             wallet.Storage.Save();

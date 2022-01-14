@@ -442,7 +442,7 @@ namespace Liviano.CLI
                 Console.WriteLine($"Xprv:\t\t{info.Xprv}");
 
                 // Example to get more data, from the acc variable
-                Console.WriteLine($"DustMinValue:\t{acc.DustMinValue}");
+                Console.WriteLine($"DustMinValue:\t{acc.DustMinAmount}");
 
                 return 0;
             }

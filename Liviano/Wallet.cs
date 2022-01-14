@@ -420,7 +420,7 @@ namespace Liviano
                     account.UsedExternalAddresses = new List<BitcoinAddress> { };
                     account.UsedInternalAddresses = new List<BitcoinAddress> { };
 
-                    account.DustMinValue = -1;
+                    account.DustMinAmount = -1;
                     account.UnspentCoins = new List<Coin> { };
                     account.SpentCoins = new List<Coin> { };
                     account.FrozenCoins = new List<Coin> { };

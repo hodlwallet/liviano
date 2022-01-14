@@ -94,7 +94,7 @@ namespace Liviano.Accounts
         public List<Coin> SpentCoins { get; set; }
         public List<Coin> FrozenCoins { get; set; }
 
-        public long DustMinValue { get; set; }
+        public long DustMinAmount { get; set; }
 
         public abstract void AddTx(Tx tx);
         public abstract void UpdateTx(Tx tx);
@@ -174,7 +174,7 @@ namespace Liviano.Accounts
                 UnspentCoins.Add(coin);
             }
 
-            if (coin.Amount < Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) FreezeUtxo(coin);
+            if (coin.Amount < Money.FromUnit(DustMinAmount, MoneyUnit.Satoshi)) FreezeUtxo(coin);
         }
 
         public void RemoveUtxo(Coin coin)
@@ -227,16 +227,16 @@ namespace Liviano.Accounts
 
         public void UpdateDustCoins()
         {
-            if (DustMinValue == -1) return;
+            if (DustMinAmount == -1) return;
             if (!UnspentCoins.Any()) return;
 
             lock (@lock)
             {
                 foreach (var frozenCoin in FrozenCoins.ToList())
-                    if (frozenCoin.Amount > Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) UnfreezeUtxo(frozenCoin);
+                    if (frozenCoin.Amount > Money.FromUnit(DustMinAmount, MoneyUnit.Satoshi)) UnfreezeUtxo(frozenCoin);
 
                 foreach (var unspentCoin in UnspentCoins.ToList())
-                    if (unspentCoin.Amount < Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) FreezeUtxo(unspentCoin);
+                    if (unspentCoin.Amount < Money.FromUnit(DustMinAmount, MoneyUnit.Satoshi)) FreezeUtxo(unspentCoin);
 
                 FindAndRemoveDuplicateUtxo();
             }
