@@ -912,6 +912,22 @@ namespace Liviano.CLI
             return wallet.CurrentAccount;
         }
 
+        public static void DustControl(Config config, long dustAmount)
+        {
+            Load(config, skipAuth: true);
+
+            var acc = wallet.CurrentAccount;
+
+            // -1 is the default 0 will disable it basically
+            if (dustAmount >= 0) acc.DustMinValue = dustAmount;
+
+            acc.UpdateDustCoins();
+
+            wallet.Storage.Save();
+
+            config.SaveChanges();
+        }
+
         /// <summary>
         /// Waits until the user press esc
         /// </summary>

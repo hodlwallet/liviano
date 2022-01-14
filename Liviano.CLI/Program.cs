@@ -567,18 +567,14 @@ namespace Liviano.CLI
 
             if (dustControl)
             {
-                var acc = LightClient.GetAccount(config);
-
-                // -1 is the default 0 will disable it basically
-                if (dustAmount >= 0)
+                if (string.IsNullOrEmpty(config.WalletId))
                 {
-                    // Sets dust control amount on the account
-                    acc.DustMinValue = dustAmount;
-                    acc.Wallet.Storage.Save();
+                    Console.WriteLine("New account needs a wallet id");
+
+                    return 1;
                 }
 
-                acc.UpdateDustCoins();
-                acc.Wallet.Storage.Save();
+                LightClient.DustControl(config, dustAmount);
 
                 return 0;
             }
