@@ -232,8 +232,13 @@ namespace Liviano.Accounts
 
             lock (@lock)
             {
-                foreach (var unspentCoin in UnspentCoins)
+                foreach (var frozenCoin in FrozenCoins.ToList())
+                    if (frozenCoin.Amount > Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) UnfreezeUtxo(frozenCoin);
+
+                foreach (var unspentCoin in UnspentCoins.ToList())
                     if (unspentCoin.Amount < Money.FromUnit(DustMinValue, MoneyUnit.Satoshi)) FreezeUtxo(unspentCoin);
+
+                FindAndRemoveDuplicateUtxo();
             }
         }
 

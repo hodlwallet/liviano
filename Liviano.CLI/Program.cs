@@ -61,6 +61,7 @@ namespace Liviano.CLI
         // static string server = "";
         static double amount = 0.00;
         static decimal feeSatsPerByte = 1m;
+        static long dustAmount = 0;
         static int accountIndex = -1;
         // static string accountName = null;
         static string walletId = "";
@@ -89,6 +90,7 @@ namespace Liviano.CLI
         static bool ping = false;
         static bool headers = false;
         static bool coinControl = false;
+        static bool dustControl = false;
         static string freezeCoin = null;
         static string unfreezeCoin = null;
         static bool version = false;
@@ -130,6 +132,7 @@ namespace Liviano.CLI
                 {"rs|resync", "Start wallet resync and exit when done", v => resync = v is not null},
                 {"sy|sync", "Start wallet sync and exit when done", v => sync = v is not null},
                 {"cc|coin-control", "Show the coins / froze / unfreeze coins", v => coinControl = v is not null},
+                {"dc|dust-control", "Update dust control and sets a new value for it", v => dustControl = v is not null},
                 {"v|version", "Show the liviano version", v => version = v is not null},
                 {"dccs|detect-accounts", "Detect accounts on a mnemonic seed", v => detectAccount = v is not null},
                 {"sdccs|save-accounts", "Save detected accounts on a mnemonic seed", v => saveAccounts = v is not null},
@@ -153,6 +156,7 @@ namespace Liviano.CLI
                 {"addramt|address-amount=", "Amount of addresses to generate", (int v) => addressAmount = v},
                 {"fc|freeze-coin=", "TxId:N of the coin to freeze", (string v) => freezeCoin = v},
                 {"ufc|unfreeze-coin=", "TxId:N of the coin to unfreeze", (string v) => unfreezeCoin = v},
+                {"da|dust-amount=", "Amount to set a dust thereshold", (string v) => dustAmount = long.Parse(v)},
                 {"txid|tx-id=", "TxId of the tx to bump fee", (string v) => txId = v},
                 {"png|ping", "Ping electrum server", (string v) => ping = v is not null},
                 {"hdr|headers", "Subscribe to new headers", (string v) => headers = v is not null},
@@ -557,6 +561,23 @@ namespace Liviano.CLI
                             break;
                     }
                 }
+
+                return 0;
+            }
+
+            if (dustControl)
+            {
+                var acc = LightClient.GetAccount(config);
+
+                if (dustAmount > 0)
+                {
+                    // Sets dust control amount on the account
+                    acc.DustMinValue = dustAmount;
+                    acc.Wallet.Storage.Save();
+                }
+
+                acc.UpdateDustCoins();
+                acc.Wallet.Storage.Save();
 
                 return 0;
             }
