@@ -227,7 +227,7 @@ namespace Liviano.Accounts
 
         public void UpdateDustCoins()
         {
-            if (DustMinValue == 0) return;
+            if (DustMinValue == -1) return;
             if (!UnspentCoins.Any()) return;
 
             lock (@lock)

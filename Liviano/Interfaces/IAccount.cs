@@ -184,7 +184,7 @@ namespace Liviano.Interfaces
         /// Dust prevention minimum value, more than equal this amount is okay less is not
         /// </summary>
         [JsonProperty(PropertyName = "dustMinValue", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Populate)]
-        [DefaultValue(0)]
+        [DefaultValue(-1)]
         long DustMinValue { get; set; }
 
         /// <summary>
