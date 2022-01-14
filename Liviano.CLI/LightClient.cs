@@ -907,7 +907,6 @@ namespace Liviano.CLI
 
         public static IAccount GetAccount(Config config)
         {
-
             Load(config, skipAuth: true);
 
             return wallet.CurrentAccount;

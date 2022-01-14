@@ -61,7 +61,7 @@ namespace Liviano.CLI
         // static string server = "";
         static double amount = 0.00;
         static decimal feeSatsPerByte = 1m;
-        static long dustAmount = 0;
+        static long dustAmount = -1;
         static int accountIndex = -1;
         // static string accountName = null;
         static string walletId = "";
@@ -569,7 +569,8 @@ namespace Liviano.CLI
             {
                 var acc = LightClient.GetAccount(config);
 
-                if (dustAmount > 0)
+                // -1 is the default 0 will disable it basically
+                if (dustAmount >= 0)
                 {
                     // Sets dust control amount on the account
                     acc.DustMinValue = dustAmount;
