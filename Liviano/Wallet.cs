@@ -711,5 +711,11 @@ namespace Liviano
         {
             ElectrumPool.ElectrumClient.Disconnect();
         }
+
+        public void UpdateDustCoinsTo(long dustAmount)
+        {
+            CurrentAccount.DustMinAmount = dustAmount;
+            CurrentAccount.UpdateDustCoins();
+        }
     }
 }

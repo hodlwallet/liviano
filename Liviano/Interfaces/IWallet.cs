@@ -271,6 +271,8 @@ namespace Liviano.Interfaces
 
         event EventHandler<FoundAccountEventArgs> OnFoundAccount;
 
+        void UpdateDustCoinsTo(long dustAmount);
+
         void Disconnect();
     }
 }

@@ -916,11 +916,7 @@ namespace Liviano.CLI
         {
             Load(config, skipAuth: true);
 
-            var acc = wallet.CurrentAccount;
-
-            acc.DustMinAmount = dustAmount;
-            acc.UpdateDustCoins();
-
+            wallet.UpdateDustCoinsTo(dustAmount);
             wallet.Storage.Save();
         }
 
