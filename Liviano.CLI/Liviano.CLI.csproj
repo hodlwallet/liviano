@@ -7,7 +7,7 @@
         <PackageIcon>icon.png</PackageIcon>
         <PackageTags>bitcoin</PackageTags>
         <PackageProjectUrl>https://hodlwallet.com</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/hodlwallet/hodlwallet</RepositoryUrl>
+        <RepositoryUrl>https://github.com/hodlwallet/liviano</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <Authors>HODL Wallet</Authors>
