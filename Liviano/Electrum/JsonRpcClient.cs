@@ -73,7 +73,7 @@ namespace Liviano.Electrum
 
         public Task PollSslClientTask;
         public Task ConsumeMessagesTask;
-        public Task ConsumeRequestTask;
+        public Task ConsumeRequestsTask;
 
         public JsonRpcClient(Server server)
         {
@@ -397,7 +397,7 @@ namespace Liviano.Electrum
 
             consumingQueue = true;
 
-            ConsumeMessagesTask = Task.Run(async () =>
+            ConsumeRequestsTask = Task.Run(async () =>
             {
                 var loopDelay = 3000;
                 try
