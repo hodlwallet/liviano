@@ -21,5 +21,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="refit" Version="6.2.16" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 </Project>
