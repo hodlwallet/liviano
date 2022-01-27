@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+
 using Refit;
+
+using Liviano.Services.Models;
 
 namespace Liviano.Services
 {
-    public interface MempoolHttpService
+    public interface IMempoolHttpService
     {
         [Get("/statistics/2h")]
-        string Get2hStatistics();
+        List<MempoolStatisticEntity> Get2hStatistics();
     }
 }
