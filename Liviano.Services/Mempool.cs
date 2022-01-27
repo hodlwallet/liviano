@@ -1,8 +1,7 @@
 ﻿namespace Liviano.Services
 {
-    public class Class1
+    public class Mempool
     {
 
     }
 }
-

@@ -19,4 +19,7 @@
     <LangVersion>latest</LangVersion>
     <Description>Liviano is a library to build Bitcoin light clients</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="refit" Version="6.2.16" />
+  </ItemGroup>
 </Project>
