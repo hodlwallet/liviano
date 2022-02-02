@@ -680,7 +680,7 @@ namespace Liviano.Electrum
             {
                 Debug.WriteLine($"[WatchAddress] Error when trying to subscribe to address ({addr}): {e.StackTrace}");
 
-                await Task.Delay(retryDelay);
+                await Task.Delay(retryDelay, ct);
                 await WatchAddress(acc, addr, ct);
             }
         }
