@@ -413,6 +413,7 @@ namespace Liviano.Electrum
                             var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
                             await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
+                            await sslStream.FlushAsync();
                         }
 
                         await Task.Delay(loopDelay);
