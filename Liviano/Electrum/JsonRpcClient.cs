@@ -179,6 +179,38 @@ namespace Liviano.Electrum
 
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
+            var requestMethod = (string)json.GetValue("method");
+
+            // FIXME we do a special case here, we create a new stream and
+            // connection so we don't mix the big responses on these
+            // big hex responses
+            if (string.Equals(requestMethod, "blockchain.transaction.get"))
+            {
+                using var tcpClientLocal = Connect();
+                using var stream = SslTcpClient.GetSslStream(tcpClientLocal, Host);
+                var data = Encoding.UTF8.GetBytes(request + "\n");
+
+                await stream.WriteAsync(data.AsMemory(0, data.Length));
+                await stream.FlushAsync();
+
+                byte[] buffer = new byte[2048];
+                StringBuilder messageData = new();
+
+                while (true)
+                {
+                    int bytes = await stream.ReadAsync(buffer);
+
+                    Decoder decoder = Encoding.UTF8.GetDecoder();
+                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                    decoder.GetChars(buffer, 0, bytes, chars, 0);
+                    messageData.Append(chars);
+
+                    if (bytes < 2048) break;
+                }
+
+                return messageData.ToString();
+            }
 
             PollSslClient();
 
@@ -539,7 +571,10 @@ namespace Liviano.Electrum
         // all the other json messages
         static string SanitizeMsg(string msg)
         {
-            return msg[msg.LastIndexOf("{\"jsonrpc\"")..];
+            var idx = msg.LastIndexOf("{\"jsonrpc\"");
+
+            if (idx > 0) return msg[idx..];
+            else return msg;
         }
 
 #pragma warning disable IDE0051 // Remove unused private members
