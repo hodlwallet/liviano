@@ -179,6 +179,38 @@ namespace Liviano.Electrum
 
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
+            var requestMethod = (string)json.GetValue("method");
+
+            // FIXME we do a special case here, we create a new stream and
+            // connection so we don't mix the big responses on these
+            // big hex responses
+            if (string.Equals(requestMethod, "blockchain.transaction.get"))
+            {
+                using var tcpClientLocal = Connect();
+                using var stream = SslTcpClient.GetSslStream(tcpClientLocal, Host);
+                var data = Encoding.UTF8.GetBytes(request + "\n");
+
+                await stream.WriteAsync(data.AsMemory(0, data.Length));
+                await stream.FlushAsync();
+
+                byte[] buffer = new byte[2048];
+                StringBuilder messageData = new();
+
+                while (true)
+                {
+                    int bytes = await stream.ReadAsync(buffer);
+
+                    Decoder decoder = Encoding.UTF8.GetDecoder();
+                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                    decoder.GetChars(buffer, 0, bytes, chars, 0);
+                    messageData.Append(chars);
+
+                    if (bytes < 2048) break;
+                }
+
+                return messageData.ToString();
+            }
 
             PollSslClient();
 
@@ -413,6 +445,7 @@ namespace Liviano.Electrum
                             var bytes = Encoding.UTF8.GetBytes(req + "\n");
 
                             await sslStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
+                            await sslStream.FlushAsync();
                         }
 
                         await Task.Delay(loopDelay);
@@ -457,7 +490,19 @@ namespace Liviano.Electrum
                         {
                             if (string.IsNullOrEmpty(msg)) continue;
 
-                            var json = JsonConvert.DeserializeObject<JObject>(msg);
+                            string saneMsg = msg;
+                            JObject json = null;
+                            try
+                            {
+                                json = JsonConvert.DeserializeObject<JObject>(saneMsg);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"[ConsumeMessages] Error: {ex.StackTrace}, trying to sanitize");
+
+                                saneMsg = SanitizeMsg(msg);
+                                json = JsonConvert.DeserializeObject<JObject>(saneMsg);
+                            }
 
                             if (json.ContainsKey("method")) // A subscription notification
                             {
@@ -492,7 +537,7 @@ namespace Liviano.Electrum
                                 // See above
                                 //await WaitForEmptyResult(requestId);
 
-                                results[requestId] = msg;
+                                results[requestId] = saneMsg;
                             }
                         }
                     });
@@ -518,6 +563,18 @@ namespace Liviano.Electrum
                     ConsumeMessages();
                 }
             }, Cts.Token);
+        }
+
+        // FIXME: This is a hack, this method is to fix the problem of a msg not being parsed correctly due to an error
+        // in the ssl stream or the electrum server when calling the blockchain.scripthash.transaction.get
+        // which is a very special call in the electrumx spec. This code asumes this error but should work with
+        // all the other json messages
+        static string SanitizeMsg(string msg)
+        {
+            var idx = msg.LastIndexOf("{\"jsonrpc\"");
+
+            if (idx > 0) return msg[idx..];
+            else return msg;
         }
 
 #pragma warning disable IDE0051 // Remove unused private members

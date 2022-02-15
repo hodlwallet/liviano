@@ -230,22 +230,17 @@ namespace Liviano.Electrum
             // Read the  message sent by the server.
             // The end of the message is signaled using the
             // "<EOF>" marker.
-            //byte[] buffer = new byte[2048]; // TODO investigate why this doesn't work
-            byte[] buffer = new byte[400000 + 78]; // Max size of a transaction + size of json structure
+            byte[] buffer = new byte[2048];
             StringBuilder messageData = new();
 
-            int bytes = -1;
-            while (bytes != 0)
+            while (true)
             {
-                bytes = await stream.ReadAsync(buffer);
+                int bytes = await stream.ReadAsync(buffer);
 
                 // Use Decoder class to convert from bytes to UTF8
                 // in case a character spans two buffers.
                 Decoder decoder = Encoding.UTF8.GetDecoder();
                 char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
-
-                decoder.GetChars(buffer, 0, bytes, chars, 0);
-                messageData.Append(chars);
 
                 decoder.GetChars(buffer, 0, bytes, chars, 0);
                 messageData.Append(chars);
