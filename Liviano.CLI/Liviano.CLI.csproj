@@ -13,10 +13,10 @@
         <Authors>HODL Wallet</Authors>
         <Company>HODL Wallet</Company>
         <Copyright>Copyright © HODL Wallet 2022</Copyright>
-        <Version>0.1.7</Version>
-        <ReleaseVersion>0.1.7</ReleaseVersion>
-        <AssemblyVersion>0.1.7</AssemblyVersion>
-        <FileVersion>0.1.7</FileVersion>
+        <Version>0.1.8</Version>
+        <ReleaseVersion>0.1.8</ReleaseVersion>
+        <AssemblyVersion>0.1.8</AssemblyVersion>
+        <FileVersion>0.1.8</FileVersion>
         <LangVersion>latest</LangVersion>
         <Description>Liviano.CLI is a Bitcoin light client using Electrum built on Liviano</Description>
     </PropertyGroup>

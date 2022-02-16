@@ -34,6 +34,8 @@ using NBitcoin;
 using Liviano.Interfaces;
 using Liviano.Extensions;
 
+using static Liviano.Electrum.ElectrumClient;
+
 namespace Liviano.Models
 {
     public class Tx
@@ -169,6 +171,58 @@ namespace Liviano.Models
             return Confirmations >= 1;
         }
 
+        /// <summary>
+        /// Indicates an output is spendable.
+        /// </summary>
+        public bool IsSpendable()
+        {
+            return IsSend == false;
+        }
+
+        public Transaction GetTransaction()
+        {
+            return Transaction.Parse(Hex, Network);
+        }
+
+        public Money SpendableAmount(bool confirmedOnly)
+        {
+            // This method only returns a UTXO that has no spending output.
+            // If a spending output exists (even if its not confirmed) this will return as zero balance.
+            if (IsSpendable())
+            {
+                // If the 'confirmedOnly' flag is set check that the UTXO is confirmed.
+                if (confirmedOnly && !IsConfirmed())
+                {
+                    return Money.Zero;
+                }
+
+                return AmountReceived;
+            }
+
+            return Money.Zero;
+        }
+
+        public Tx(Tx copy)
+        {
+            Account = copy.Account;
+            AccountId = copy.AccountId;
+            AmountReceived = copy.AmountReceived;
+            AmountSent = copy.AmountSent;
+            Blockhash = copy.Blockhash;
+            BlockHeight = copy.BlockHeight;
+            CreatedAt = copy.CreatedAt;
+            Hex = copy.Hex;
+            Id = copy.Id;
+            IsReceive = copy.IsReceive;
+            IsSend = copy.IsSend;
+            Memo = copy.Memo;
+            Network = copy.Network;
+            ScriptPubKey = copy.ScriptPubKey;
+            SentScriptPubKey = copy.SentScriptPubKey;
+            TotalAmount = copy.TotalAmount;
+            TotalFees = copy.TotalFees;
+        }
+
         public Tx() { }
 
         public static Tx CreateFromHex(
@@ -270,6 +324,20 @@ namespace Liviano.Models
             }
 
             tx.TotalFees = account.GetOutValueFromTxInputs(transaction.Inputs) - tx.TotalAmount;
+
+            return tx;
+        }
+
+        public static Tx CreateFromElectrumResult(BlockchainTransactionGetVerboseResult result, IAccount account, Network network)
+        {
+            var tx = new Tx
+            {
+                Id = uint256.Parse(result.Result.Txid),
+                Account = account,
+                AccountId = account.Id,
+                Network = network,
+                Hex = result.Result.Hex
+            };
 
             return tx;
         }

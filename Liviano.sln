@@ -42,7 +42,7 @@ Global
 		SolutionGuid = {D52E553C-49D2-4BB4-A8CC-FCE9BE7EDEE2}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		version = 0.1.7
+		version = 0.1.8
 		description = Liviano is a library to build Bitcoin light clients
 	EndGlobalSection
 EndGlobal
