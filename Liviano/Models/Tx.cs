@@ -245,7 +245,8 @@ namespace Liviano.Models
                 Network = network,
                 Hex = hex,
                 IsRBF = transaction.RBF,
-                BlockHeight = height
+                BlockHeight = height,
+                Memo = ""
             };
 
             if (height > 0 && header is not null)
