@@ -41,6 +41,7 @@ namespace Liviano.CLI.Gui
             RxApp.MainThreadScheduler = TerminalScheduler.Default;
             RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
 
+            Application.QuitKey = Key.Esc;
             Application.Run(new HomeView(new HomeViewModel()));
             Application.Shutdown();
         }
