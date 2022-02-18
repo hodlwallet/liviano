@@ -361,3 +361,4 @@ blockchain
 .nvimlog
 nohup.out
 *.backup
+.netcoredbg_hist

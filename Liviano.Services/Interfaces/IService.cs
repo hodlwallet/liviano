@@ -1,5 +1,5 @@
-﻿//
-// Mempool.cs
+//
+// IService.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -23,42 +23,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-
-using Refit;
-
-using Liviano.Services.Models;
-
 namespace Liviano.Services
 {
-    public class Mempool : IService
+    public interface IService
     {
-        const int MEMPOOL_SPACE_2H_STATS_DELAY = 10_000;
-
-        public IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
-
-        CancellationTokenSource cts = new();
-
-        public List<MempoolStatisticEntity> Stats { get; set; } = new();
-
-        public void Start()
-        {
-            Debug.WriteLine("[Start] Started");
-
-            Task.Factory.StartNew(async (options) =>
-            {
-                Stats = MempoolHttpService.Get2hStatistics();
-
-                await Task.Delay(MEMPOOL_SPACE_2H_STATS_DELAY);
-            }, TaskCreationOptions.LongRunning, cts.Token);
-        }
-
-        public void Cancel()
-        {
-            cts.Cancel();
-        }
+        void Start();
+        void Cancel();
     }
 }
