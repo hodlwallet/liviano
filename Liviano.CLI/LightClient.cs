@@ -1001,7 +1001,7 @@ namespace Liviano.CLI
         /// </summary>
         public static void ShowGui(Config config)
         {
-
+            Console.WriteLine("Test");
         }
 
         /// <summary>

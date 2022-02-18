@@ -98,6 +98,7 @@ namespace Liviano.CLI
         static bool detectAccount = false;
         static bool saveAccounts = false;
         static bool testStuff = false;
+        static bool gui = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -136,6 +137,7 @@ namespace Liviano.CLI
                 {"v|version", "Show the liviano version", v => version = v is not null},
                 {"dccs|detect-accounts", "Detect accounts on a mnemonic seed", v => detectAccount = v is not null},
                 {"sdccs|save-accounts", "Save detected accounts on a mnemonic seed", v => saveAccounts = v is not null},
+                {"g|gui", "GUI showing a dashbaord and other experiments", v => gui = v is not null},
                 {"tst|test", "Test stuff", v => testStuff = v is not null},
 
                 // Variables or modifiers
@@ -702,6 +704,13 @@ namespace Liviano.CLI
                 }
 
                 LightClient.AllAccountsSummaries(config);
+
+                return 0;
+            }
+
+            if (gui)
+            {
+                LightClient.ShowGui(config);
 
                 return 0;
             }
