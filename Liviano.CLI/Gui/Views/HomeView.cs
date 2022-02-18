@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 
 using ReactiveUI;
@@ -36,12 +37,15 @@ namespace Liviano.CLI.Gui.Views
     {
         readonly CompositeDisposable disposable = new();
 
-        FrameView menuFrame; // left pane (smaller, static)
-        FrameView contentFrame; // right pane (biggger, changes)
+        FrameView menuFrameView;
+        FrameView contentFrameView;
+        ListView menuItemsListView;
+
+        List<string> menuItemsList = new() { "Mempool Info", "Home", "Receive", "Send", "Settings" };
 
         public HomeViewModel ViewModel { get; set; }
 
-        public HomeView(HomeViewModel viewModel) : base(Version.ToString())
+        public HomeView(HomeViewModel viewModel) : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
             ViewModel = viewModel;
 
@@ -52,17 +56,29 @@ namespace Liviano.CLI.Gui.Views
 
         void SetupMainFrames()
         {
-            menuFrame = new("Menu")
+            menuFrameView = new("Menu")
             {
                 X = 0,
                 Y = 1,
                 Width = 25,
                 Height = Dim.Fill(1),
-                CanFocus = false,
+                CanFocus = true,
                 Shortcut = Key.CtrlMask | Key.M,
             };
 
-            contentFrame = new("Content")
+            menuItemsListView = new(menuItemsList)
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(0),
+                Height = Dim.Fill(0),
+                AllowsMarking = false,
+                CanFocus = true
+            };
+
+            menuFrameView.Add(menuItemsListView);
+
+            contentFrameView = new("Content")
             {
                 X = 25,
                 Y = 1,
@@ -72,8 +88,8 @@ namespace Liviano.CLI.Gui.Views
                 Shortcut = Key.CtrlMask | Key.S,
             };
 
-            Add(menuFrame);
-            Add(contentFrame);
+            Add(menuFrameView);
+            Add(contentFrameView);
         }
 
         protected override void Dispose(bool disposing)
