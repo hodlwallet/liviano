@@ -34,7 +34,7 @@ namespace Liviano.CLI.Gui
 {
     public static class Gui
     {
-        static void Run()
+        public static void Run()
         {
             Application.Init();
 
