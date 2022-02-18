@@ -28,12 +28,13 @@ using ReactiveUI;
 using Terminal.Gui;
 
 using Liviano.CLI.Gui.Views;
+using Liviano.CLI.Gui.ViewModels;
 
 namespace Liviano.CLI.Gui
 {
     public static class Gui
     {
-        static void Run(string[] args)
+        static void Run()
         {
             Application.Init();
 
