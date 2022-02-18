@@ -714,10 +714,7 @@ namespace Liviano.CLI
                 return 0;
             }
 
-            // End... invalid options
-            InvalidArguments();
-
-            return 1;
+            return DefaultCommand();
         }
 
         /// <summary>
@@ -738,7 +735,17 @@ namespace Liviano.CLI
         }
 
         /// <summary>
-        /// Displays invalid argument message
+        /// Displays default command a gui on LightClient
+        /// </summary>
+        static int DefaultCommand()
+        {
+            LightClient.ShowGui(config);
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Displays default command
         /// </summary>
         /// <param name="msg">A <see cref="string"/> with a custom message</param>
         static void InvalidArguments(string msg = "Invalid argument options.")

@@ -997,6 +997,14 @@ namespace Liviano.CLI
         }
 
         /// <summary>
+        /// Shows the terminal UI
+        /// </summary>
+        public static void ShowGui(Config config)
+        {
+
+        }
+
+        /// <summary>
         /// Quits the program
         /// </summary>
         /// <param name="retVal">Unix return value an <see cref="int"/></param>
