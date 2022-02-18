@@ -36,11 +36,44 @@ namespace Liviano.CLI.Gui.Views
     {
         readonly CompositeDisposable disposable = new();
 
+        FrameView menuFrame; // left pane (smaller, static)
+        FrameView contentFrame; // right pane (biggger, changes)
+
         public HomeViewModel ViewModel { get; set; }
 
         public HomeView(HomeViewModel viewModel) : base(Version.ToString())
         {
             ViewModel = viewModel;
+
+            ColorScheme = Colors.TopLevel;
+
+            SetupMainFrames();
+        }
+
+        void SetupMainFrames()
+        {
+            menuFrame = new("Menu")
+            {
+                X = 0,
+                Y = 1,
+                Width = 25,
+                Height = Dim.Fill(1),
+                CanFocus = false,
+                Shortcut = Key.CtrlMask | Key.M,
+            };
+
+            contentFrame = new("Content")
+            {
+                X = 25,
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(1),
+                CanFocus = true,
+                Shortcut = Key.CtrlMask | Key.S,
+            };
+
+            Add(menuFrame);
+            Add(contentFrame);
         }
 
         protected override void Dispose(bool disposing)
