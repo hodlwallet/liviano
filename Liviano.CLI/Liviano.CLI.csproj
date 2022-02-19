@@ -36,6 +36,7 @@
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
         <PackageReference Include="Terminal.Gui" Version="1.4.0" />
         <ProjectReference Include="..\Liviano\Liviano.csproj" />
+        <ProjectReference Include="..\Liviano.Services\Liviano.Services.csproj" />
         <Compile Update="Program.cs">
             <Generator>e</Generator>
         </Compile>

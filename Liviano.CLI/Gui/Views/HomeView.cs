@@ -76,9 +76,12 @@ namespace Liviano.CLI.Gui.Views
                 CanFocus = true
             };
 
+            menuItemsListView.OpenSelectedItem += _ => contentFrameView.SetFocus();
+            menuItemsListView.SelectedItemChanged += MenuItemsListView_SelectedItemChanged;
+
             menuFrameView.Add(menuItemsListView);
 
-            contentFrameView = new("Content")
+            contentFrameView = new(menuItemsList[0])
             {
                 X = 25,
                 Y = 1,
@@ -90,6 +93,11 @@ namespace Liviano.CLI.Gui.Views
 
             Add(menuFrameView);
             Add(contentFrameView);
+        }
+
+        void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
+        {
+            contentFrameView.Title = menuItemsList[args.Item];
         }
 
         protected override void Dispose(bool disposing)
