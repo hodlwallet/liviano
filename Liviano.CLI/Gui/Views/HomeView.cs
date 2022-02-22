@@ -30,16 +30,19 @@ using ReactiveUI;
 using Terminal.Gui;
 
 using Liviano.CLI.Gui.ViewModels;
+using Liviano.Services;
 
 namespace Liviano.CLI.Gui.Views
 {
     public class HomeView : Window, IViewFor<HomeViewModel>
     {
         readonly CompositeDisposable disposable = new();
+        public Mempool MempoolService = new Mempool();
 
         FrameView menuFrameView;
         FrameView contentFrameView;
         ListView menuItemsListView;
+        Label mempoolView;
 
         List<string> menuItemsList = new() { "Mempool Info", "Home", "Receive", "Send", "Settings" };
 
@@ -50,6 +53,10 @@ namespace Liviano.CLI.Gui.Views
             ViewModel = viewModel;
 
             ColorScheme = Colors.TopLevel;
+
+            MempoolService.Start();
+
+            mempoolView = new Label("");
 
             SetupMainFrames();
         }
@@ -97,7 +104,14 @@ namespace Liviano.CLI.Gui.Views
 
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
         {
-            contentFrameView.Title = menuItemsList[args.Item];
+            var name = menuItemsList[args.Item];
+            contentFrameView.Title = name;
+
+            contentFrameView.RemoveAll();
+            if (string.Equals("Mempool Info", name))
+            {
+                contentFrameView.Add(mempoolView);
+            }
         }
 
         protected override void Dispose(bool disposing)

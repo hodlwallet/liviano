@@ -50,13 +50,11 @@ namespace Liviano.Services
 
         CancellationTokenSource cts = new();
 
-        List<MempoolStatisticEntity> _stats;
-        readonly ObservableAsPropertyHelper<List<MempoolStatisticEntity>> stats;
-        public List<MempoolStatisticEntity> Stats => stats.Value;
-
-        public Mempool()
+        List<MempoolStatisticEntity> stats;
+        public List<MempoolStatisticEntity> Stats
         {
-            stats = _stats.WhenAnyValue(x => x).Select(x => x).ToProperty(this, nameof(Stats));
+            get => stats;
+            set => this.RaiseAndSetIfChanged(ref stats, value);
         }
 
         public void Start()
@@ -77,10 +75,10 @@ namespace Liviano.Services
 
         async Task SetStats()
         {
-            Debug.WriteLine("[SetStats] Setting the mempool values");
+            //Debug.WriteLine("[SetStats] Setting the mempool values");
 
             // TODO Figure out how to get it to a property that is an obs
-            _stats = await MempoolHttpService.Get2hStatistics();
+            Stats = await MempoolHttpService.Get2hStatistics();
         }
     }
 }
