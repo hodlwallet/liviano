@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Refit;
 
@@ -34,6 +35,6 @@ namespace Liviano.Services
     public interface IMempoolHttpService
     {
         [Get("/statistics/2h")]
-        List<MempoolStatisticEntity> Get2hStatistics();
+        Task<List<MempoolStatisticEntity>> Get2hStatistics();
     }
 }

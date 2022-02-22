@@ -29,72 +29,58 @@ using System.Diagnostics;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
-using Liviano.Services.Models;
+using System.Threading.Tasks;
 
 using ReactiveUI;
-
 using Refit;
+
+using Liviano.Services.Models;
 
 namespace Liviano.Services
 {
     public class Mempool : ReactiveObject, IService
     {
 #if DEBUG
-        const int MEMPOOL_SPACE_2H_STATS_DELAY = 1;
+        const int MEMPOOL_SPACE_2H_STATS_INTERVAL = 1;
 #else
-        const int MEMPOOL_SPACE_2H_STATS_DELAY = 10_000;
+        const int MEMPOOL_SPACE_2H_STATS_INTERVAL = 10_000;
 #endif
 
         public IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
 
         CancellationTokenSource cts = new();
-        IObservable<long> obs;
 
-        public ObservableAsPropertyHelper<List<MempoolStatisticEntity>> stats;
+        List<MempoolStatisticEntity> _stats;
+        readonly ObservableAsPropertyHelper<List<MempoolStatisticEntity>> stats;
         public List<MempoolStatisticEntity> Stats => stats.Value;
+
+        public Mempool()
+        {
+            stats = _stats.WhenAnyValue(x => x).Select(x => x).ToProperty(this, nameof(Stats));
+        }
 
         public void Start()
         {
             Debug.WriteLine("[Start] Started Mempool service.");
 
-            //stats = this
-                //.WhenAnyValue(x => x.Stats)
-                //.Throttle(TimeSpan.FromSeconds(MEMPOOL_SPACE_2H_STATS_DELAY))
-                //.Select(x => x)
-                //.DistinctUntilChanged()
-                //.Where(x => x is not null)
-                //.SelectMany(GetStats)
-                //.ObserveOn(RxApp.MainThreadScheduler)
-                //.ToProperty(this, x => x.Stats);
-
-            obs = Observable.Interval(TimeSpan.FromSeconds(1), Scheduler.Default);
-
-            obs.Subscribe(_ => SetStats());
-
-            //Task.Factory.StartNew(async (options) =>
-            //{
-                //Stats = MempoolHttpService.Get2hStatistics();
-
-                //await Task.Delay(MEMPOOL_SPACE_2H_STATS_DELAY);
-            //}, TaskCreationOptions.LongRunning, cts.Token);
+            Observable
+                .Interval(TimeSpan.FromSeconds(MEMPOOL_SPACE_2H_STATS_INTERVAL), Scheduler.Default)
+                .Subscribe(async _ => await SetStats(), cts.Token);
         }
 
         public void Cancel()
         {
+            Debug.WriteLine("[Cancel] Cancelling Mempool service");
+
             cts.Cancel();
         }
 
-        void SetStats()
+        async Task SetStats()
         {
-            Debug.WriteLine("[SetStats]");
+            Debug.WriteLine("[SetStats] Setting the mempool values");
 
-            //stats = this.ThrownExceptions
-            //return MempoolHttpService.Get2hStatistics();
-        }
-
-        List<MempoolStatisticEntity> GetStats(CancellationToken ct)
-        {
-            return MempoolHttpService.Get2hStatistics();
+            // TODO Figure out how to get it to a property that is an obs
+            _stats = await MempoolHttpService.Get2hStatistics();
         }
     }
 }

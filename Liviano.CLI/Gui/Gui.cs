@@ -23,8 +23,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Reactive.Concurrency;
+
+using ReactiveUI;
+using Terminal.Gui;
+
+using Liviano.CLI.Gui.ViewModels;
+using Liviano.CLI.Gui.Views;
 using Liviano.Services;
-using System;
 
 namespace Liviano.CLI.Gui
 {
@@ -34,17 +40,19 @@ namespace Liviano.CLI.Gui
 
         public static void Run()
         {
-            //Application.Init();
+            Application.Init();
 
-            //RxApp.MainThreadScheduler = TerminalScheduler.Default;
-            //RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
+            RxApp.MainThreadScheduler = TerminalScheduler.Default;
+            RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
 
-            //Application.QuitKey = Key.Esc;
-            MempoolService.Start();
-            //Application.Run(new HomeView(new HomeViewModel()));
-            //Application.Shutdown();
-            Console.WriteLine("Press any key to stop");
-            Console.ReadLine();
+            Application.QuitKey = Key.Esc;
+            Application.Run(new HomeView(new HomeViewModel()));
+            Application.Shutdown();
+
+            //MempoolService.Start();
+            //Console.WriteLine("Press any key to stop");
+            //Console.ReadLine();
+            //MempoolService.Cancel();
         }
     }
 }
