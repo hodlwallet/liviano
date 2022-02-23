@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 
@@ -37,7 +38,7 @@ namespace Liviano.CLI.Gui.Views
     public class HomeView : Window, IViewFor<HomeViewModel>
     {
         readonly CompositeDisposable disposable = new();
-        public Mempool MempoolService = new Mempool();
+        public Mempool MempoolService = new();
 
         FrameView menuFrameView;
         FrameView contentFrameView;
@@ -56,7 +57,12 @@ namespace Liviano.CLI.Gui.Views
 
             MempoolService.Start();
 
-            mempoolView = new Label("");
+            mempoolView = new Label(string.Empty);
+
+            //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().Subscribe(statsStr => mempoolView.Text = statsStr);
+            //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().BindTo(this, x => x.mempoolView.Text);
+            //this.Bind(ViewModel, x => x.ToString(), v => v.mempoolView.Text);
+            this.Bind(ViewModel, x => x.TimeStr, v => v.mempoolView.Text);
 
             SetupMainFrames();
         }

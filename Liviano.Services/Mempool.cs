@@ -33,6 +33,7 @@ using System.Threading.Tasks;
 
 using ReactiveUI;
 using Refit;
+using Newtonsoft.Json;
 
 using Liviano.Services.Models;
 
@@ -46,15 +47,27 @@ namespace Liviano.Services
         const int MEMPOOL_SPACE_2H_STATS_INTERVAL = 10_000;
 #endif
 
-        public IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
+        static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
 
-        CancellationTokenSource cts = new();
+        readonly CancellationTokenSource cts = new();
+
+        readonly ObservableAsPropertyHelper<string> statsStr;
+        public string StatsStr => statsStr.Value;
 
         List<MempoolStatisticEntity> stats;
         public List<MempoolStatisticEntity> Stats
         {
             get => stats;
             set => this.RaiseAndSetIfChanged(ref stats, value);
+        }
+
+        public Mempool()
+        {
+            statsStr = this
+                .WhenAnyValue(x => x.Stats)
+                .WhereNotNull()
+                .Select(x => JsonConvert.SerializeObject(x))
+                .ToProperty(this, x => x.StatsStr);
         }
 
         public void Start()
@@ -78,7 +91,7 @@ namespace Liviano.Services
             //Debug.WriteLine("[SetStats] Setting the mempool values");
 
             // TODO Figure out how to get it to a property that is an obs
-            Stats = await MempoolHttpService.Get2hStatistics();
+            Stats = await Mempool.MempoolHttpService.Get2hStatistics();
         }
     }
 }

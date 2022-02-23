@@ -26,9 +26,11 @@
 //using System;
 //using System.Reactive;
 //using System.Reactive.Linq;
+using System;
+using System.Reactive.Linq;
 using System.Runtime.Serialization;
 //using System.Threading.Tasks;
-//using NStack;
+using NStack;
 using ReactiveUI;
 //using ReactiveUI.Fody.Helpers;
 
@@ -37,6 +39,25 @@ namespace Liviano.CLI.Gui.ViewModels
     [DataContract]
     public class HomeViewModel : ReactiveObject
     {
-        public HomeViewModel() { }
+        DateTimeOffset time;
+        public DateTimeOffset Time
+        {
+            get => time;
+            set => this.RaiseAndSetIfChanged(ref time, value);
+        }
+
+        readonly ObservableAsPropertyHelper<ustring> timeStr;
+        public ustring TimeStr => timeStr.Value;
+
+        public HomeViewModel()
+        {
+            timeStr = this
+                .WhenAnyValue(x => x.Time)
+                .WhereNotNull()
+                .Select(x => (ustring)x.ToString())
+                .ToProperty(this, nameof(TimeStr));
+
+            Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ => Time = DateTime.UtcNow);
+        }
     }
 }
