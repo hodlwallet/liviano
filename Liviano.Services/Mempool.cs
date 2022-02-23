@@ -70,9 +70,11 @@ namespace Liviano.Services
                 .ToProperty(this, x => x.StatsStr);
         }
 
-        public void Start()
+        public async void Start()
         {
             Debug.WriteLine("[Start] Started Mempool service.");
+
+            Stats = await Mempool.MempoolHttpService.Get2hStatistics();
 
             Observable
                 .Interval(TimeSpan.FromSeconds(MEMPOOL_SPACE_2H_STATS_INTERVAL), Scheduler.Default)

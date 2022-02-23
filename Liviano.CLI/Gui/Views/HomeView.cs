@@ -32,6 +32,7 @@ using Terminal.Gui;
 
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.Services;
+using NStack;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -62,7 +63,9 @@ namespace Liviano.CLI.Gui.Views
             //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().Subscribe(statsStr => mempoolView.Text = statsStr);
             //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().BindTo(this, x => x.mempoolView.Text);
             //this.Bind(ViewModel, x => x.ToString(), v => v.mempoolView.Text);
-            this.Bind(ViewModel, x => x.TimeStr, v => v.mempoolView.Text);
+            //this.Bind(ViewModel, x => x.Stats, v => v.mempoolView.Text);
+            //this.OneWayBind(ViewModel, vm => vm.StatsStr, v => v.mempoolView.Text);
+            this.WhenAnyValue(x => x.MempoolService.StatsStr).BindTo(this, v => v.mempoolView.Text);
 
             SetupMainFrames();
         }
