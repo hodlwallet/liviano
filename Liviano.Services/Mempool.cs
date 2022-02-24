@@ -62,11 +62,11 @@ namespace Liviano.Services
         public void Start()
         {
             Debug.WriteLine("[Start] Started Mempool service.");
-            Stats = MempoolHttpService.Get2hStatistics().Result;
+            Stats = MempoolHttpService.GetStatistics2h().Result;
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => Stats = await MempoolHttpService.Get2hStatistics(), cts.Token);
+                .Subscribe(async _ => Stats = await MempoolHttpService.GetStatistics2h(), cts.Token);
         }
 
         public void Cancel()

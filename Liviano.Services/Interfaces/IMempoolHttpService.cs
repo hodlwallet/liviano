@@ -35,6 +35,6 @@ namespace Liviano.Services
     public interface IMempoolHttpService
     {
         [Get("/statistics/2h")]
-        Task<List<MempoolStatisticEntity>> Get2hStatistics();
+        Task<List<MempoolStatisticEntity>> GetStatistics2h();
     }
 }
