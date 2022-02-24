@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Linq;
 
 using ReactiveUI;
 using Terminal.Gui;
@@ -60,7 +61,9 @@ namespace Liviano.CLI.Gui.Views
 
             this
                 .WhenAnyValue(x => x.ViewModel.Stats)
-                .Select(x => (ustring)JsonConvert.SerializeObject(x))
+                .Select(x => x.OrderByDescending(y => y.added))
+                .Select(x => x.First())
+                .Select(x => (ustring)JsonConvert.SerializeObject(x, Formatting.Indented))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(mempoolView, v => v.Text);
 

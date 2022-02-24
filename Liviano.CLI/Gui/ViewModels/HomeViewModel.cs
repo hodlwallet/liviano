@@ -23,7 +23,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using ReactiveUI;
@@ -36,8 +35,8 @@ namespace Liviano.CLI.Gui.ViewModels
     [DataContract]
     public class HomeViewModel : ReactiveObject
     {
-        List<MempoolStatisticEntity> stats;
-        public List<MempoolStatisticEntity> Stats
+        MempoolStatisticEntity[] stats;
+        public MempoolStatisticEntity[] Stats
         {
             get => stats;
             set => this.RaiseAndSetIfChanged(ref stats, value);

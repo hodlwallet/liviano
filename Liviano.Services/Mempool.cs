@@ -24,17 +24,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 using ReactiveUI;
 using Refit;
-using Newtonsoft.Json;
 
 using Liviano.Services.Models;
+using System.Threading.Tasks;
 
 namespace Liviano.Services
 {
@@ -50,8 +48,8 @@ namespace Liviano.Services
 
         readonly CancellationTokenSource cts = new();
 
-        List<MempoolStatisticEntity> stats;
-        public List<MempoolStatisticEntity> Stats
+        MempoolStatisticEntity[] stats;
+        public MempoolStatisticEntity[] Stats
         {
             get => stats;
             set => this.RaiseAndSetIfChanged(ref stats, value);
@@ -66,7 +64,14 @@ namespace Liviano.Services
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => Stats = await MempoolHttpService.GetStatistics2h(), cts.Token);
+                .Subscribe(async _ => await SetStats(), cts.Token);
+        }
+
+        async Task SetStats()
+        {
+            Debug.WriteLine("[SetStats] Setting stats from mempool service");
+
+            Stats = await MempoolHttpService.GetStatistics2h();
         }
 
         public void Cancel()
