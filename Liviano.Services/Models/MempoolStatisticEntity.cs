@@ -32,18 +32,18 @@ namespace Liviano.Services.Models
     public class MempoolStatisticEntity
     {
         [JsonProperty("added")]
-        public long Added;
+        public long Added { get; set; }
 
         [JsonProperty("vbytes_per_second")]
-        public long VBytesPerSeconds;
+        public long VBytesPerSeconds { get; set; }
 
         [JsonProperty("mempool_byte_weight")]
-        public long MempoolByteWeight;
+        public long MempoolByteWeight { get; set; }
 
         [JsonProperty("total_fee")]
-        public long TotalFee;
+        public long TotalFee { get; set; }
 
         [JsonProperty("vsizes")]
-        public List<long> VSizes;
+        public List<long> VSizes { get; set; }
     }
 }
