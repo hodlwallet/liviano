@@ -23,51 +23,52 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 using ReactiveUI;
 using Terminal.Gui;
+using NStack;
+using Newtonsoft.Json;
 
 using Liviano.CLI.Gui.ViewModels;
-using Liviano.Services;
-using NStack;
 
 namespace Liviano.CLI.Gui.Views
 {
     public class HomeView : Window, IViewFor<HomeViewModel>
     {
         readonly CompositeDisposable disposable = new();
-        public Mempool MempoolService = new();
 
         FrameView menuFrameView;
         FrameView contentFrameView;
         ListView menuItemsListView;
         Label mempoolView;
-
-        List<string> menuItemsList = new() { "Mempool Info", "Home", "Receive", "Send", "Settings" };
+        Label clockView;
+        readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Clock" };
 
         public HomeViewModel ViewModel { get; set; }
+
+        public ClockViewModel ClockViewModel { get; set; }
 
         public HomeView(HomeViewModel viewModel) : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
             ViewModel = viewModel;
-
+            ClockViewModel ??= new();
             ColorScheme = Colors.TopLevel;
 
-            MempoolService.Start();
-
-            mempoolView = new Label(string.Empty);
-
-            //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().Subscribe(statsStr => mempoolView.Text = statsStr);
-            //MempoolService.WhenAnyValue(x => x.StatsStr).WhereNotNull().BindTo(this, x => x.mempoolView.Text);
-            //this.Bind(ViewModel, x => x.ToString(), v => v.mempoolView.Text);
-            //this.Bind(ViewModel, x => x.Stats, v => v.mempoolView.Text);
-            //this.OneWayBind(ViewModel, vm => vm.StatsStr, v => v.mempoolView.Text);
-            this.WhenAnyValue(x => x.MempoolService.StatsStr).BindTo(this, v => v.mempoolView.Text);
-
             SetupMainFrames();
+
+            this
+                .WhenAnyValue(x => x.ViewModel.Stats)
+                .Select(x => (ustring)JsonConvert.SerializeObject(x))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .BindTo(mempoolView, v => v.Text);
+
+            this
+                .WhenAnyValue(x => x.ClockViewModel.Time)
+                .Select(x => (ustring)x.ToString())
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .BindTo(clockView, v => v.Text);
         }
 
         void SetupMainFrames()
@@ -109,6 +110,10 @@ namespace Liviano.CLI.Gui.Views
 
             Add(menuFrameView);
             Add(contentFrameView);
+
+            // Main views...
+            mempoolView = new Label("Mempool");
+            clockView = new Label("Clock");
         }
 
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
@@ -117,9 +122,17 @@ namespace Liviano.CLI.Gui.Views
             contentFrameView.Title = name;
 
             contentFrameView.RemoveAll();
-            if (string.Equals("Mempool Info", name))
+
+            switch (name)
             {
-                contentFrameView.Add(mempoolView);
+                case "Mempool Info":
+                    contentFrameView.Add(mempoolView);
+                    break;
+                case "Clock":
+                    contentFrameView.Add(clockView);
+                    break;
+                default:
+                    break;
             }
         }
 

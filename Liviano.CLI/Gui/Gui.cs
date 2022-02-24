@@ -23,7 +23,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
 using System.Reactive.Concurrency;
 
 using ReactiveUI;
@@ -31,14 +30,11 @@ using Terminal.Gui;
 
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.CLI.Gui.Views;
-using Liviano.Services;
 
 namespace Liviano.CLI.Gui
 {
     public static class Gui
     {
-        public static IService MempoolService = new Mempool();
-
         public static void Run()
         {
             Application.Init();
@@ -49,11 +45,6 @@ namespace Liviano.CLI.Gui
             Application.QuitKey = Key.Esc;
             Application.Run(new HomeView(new HomeViewModel()));
             Application.Shutdown();
-
-            //MempoolService.Start();
-            //Console.WriteLine("Press any key to stop");
-            //Console.ReadLine();
-            //MempoolService.Cancel();
         }
     }
 }

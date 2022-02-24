@@ -26,7 +26,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,17 +41,14 @@ namespace Liviano.Services
     public class Mempool : ReactiveObject, IService
     {
 #if DEBUG
-        const int MEMPOOL_SPACE_2H_STATS_INTERVAL = 1;
+        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 1000;
 #else
-        const int MEMPOOL_SPACE_2H_STATS_INTERVAL = 10_000;
+        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
 #endif
 
         static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
 
         readonly CancellationTokenSource cts = new();
-
-        readonly ObservableAsPropertyHelper<string> statsStr;
-        public string StatsStr => statsStr.Value;
 
         List<MempoolStatisticEntity> stats;
         public List<MempoolStatisticEntity> Stats
@@ -61,24 +57,16 @@ namespace Liviano.Services
             set => this.RaiseAndSetIfChanged(ref stats, value);
         }
 
-        public Mempool()
-        {
-            statsStr = this
-                .WhenAnyValue(x => x.Stats)
-                .WhereNotNull()
-                .Select(x => JsonConvert.SerializeObject(x))
-                .ToProperty(this, x => x.StatsStr);
-        }
+        public Mempool() { }
 
-        public async void Start()
+        public void Start()
         {
             Debug.WriteLine("[Start] Started Mempool service.");
-
-            Stats = await Mempool.MempoolHttpService.Get2hStatistics();
+            Stats = MempoolHttpService.Get2hStatistics().Result;
 
             Observable
-                .Interval(TimeSpan.FromSeconds(MEMPOOL_SPACE_2H_STATS_INTERVAL), Scheduler.Default)
-                .Subscribe(async _ => await SetStats(), cts.Token);
+                .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
+                .Subscribe(async _ => Stats = await MempoolHttpService.Get2hStatistics(), cts.Token);
         }
 
         public void Cancel()
@@ -86,14 +74,6 @@ namespace Liviano.Services
             Debug.WriteLine("[Cancel] Cancelling Mempool service");
 
             cts.Cancel();
-        }
-
-        async Task SetStats()
-        {
-            //Debug.WriteLine("[SetStats] Setting the mempool values");
-
-            // TODO Figure out how to get it to a property that is an obs
-            Stats = await Mempool.MempoolHttpService.Get2hStatistics();
         }
     }
 }

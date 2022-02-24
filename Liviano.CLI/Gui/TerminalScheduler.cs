@@ -32,12 +32,13 @@ namespace Liviano.CLI.Gui
 {
     public class TerminalScheduler : LocalScheduler
     {
-        public static readonly TerminalScheduler Default = new TerminalScheduler();
+        public static readonly TerminalScheduler Default = new();
         TerminalScheduler() { }
 
         public override IDisposable Schedule<TState>(
-                TState state, TimeSpan dueTime,
-                Func<IScheduler, TState, IDisposable> action)
+            TState state,
+            TimeSpan dueTime,
+            Func<IScheduler, TState, IDisposable> action)
         {
 
             IDisposable PostOnMainLoop()

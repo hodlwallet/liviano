@@ -23,20 +23,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//using System;
-//using System.Reactive;
-//using System.Reactive.Linq;
-using System;
-using System.Reactive.Linq;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
-//using System.Threading.Tasks;
-using NStack;
+
 using ReactiveUI;
-//using ReactiveUI.Fody.Helpers;
 
 using Liviano.Services;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.ViewModels
@@ -44,16 +36,6 @@ namespace Liviano.CLI.Gui.ViewModels
     [DataContract]
     public class HomeViewModel : ReactiveObject
     {
-        DateTimeOffset time;
-        public DateTimeOffset Time
-        {
-            get => time;
-            set => this.RaiseAndSetIfChanged(ref time, value);
-        }
-
-        readonly ObservableAsPropertyHelper<ustring> timeStr;
-        public ustring TimeStr => timeStr.Value;
-
         List<MempoolStatisticEntity> stats;
         public List<MempoolStatisticEntity> Stats
         {
@@ -61,32 +43,16 @@ namespace Liviano.CLI.Gui.ViewModels
             set => this.RaiseAndSetIfChanged(ref stats, value);
         }
 
-        readonly ObservableAsPropertyHelper<ustring> statsStr;
-        public ustring StatsStr => statsStr.Value;
-
-        Mempool MempoolService = new();
+        readonly Mempool MempoolService = new();
 
         public HomeViewModel()
         {
             MempoolService.Start();
+            Stats = MempoolService.Stats;
 
             MempoolService
                 .WhenAnyValue(x => x.Stats)
                 .BindTo(this, x => x.Stats);
-
-            timeStr = this
-                .WhenAnyValue(x => x.Time)
-                .WhereNotNull()
-                .Select(x => (ustring)x.ToString())
-                .ToProperty(this, nameof(TimeStr));
-
-            statsStr = MempoolService
-                .WhenAnyValue(x => x.Stats)
-                .WhereNotNull()
-                .Select(x => (ustring)JsonConvert.SerializeObject(x))
-                .ToProperty(this, nameof(StatsStr));
-
-            Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ => Time = DateTime.UtcNow);
         }
     }
 }
