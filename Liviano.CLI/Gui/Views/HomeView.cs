@@ -23,14 +23,16 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Linq;
 
+using Newtonsoft.Json;
+using NStack;
 using ReactiveUI;
 using Terminal.Gui;
-using NStack;
-using Newtonsoft.Json;
+using Terminal.Gui.Graphs;
 
 using Liviano.CLI.Gui.ViewModels;
 
@@ -46,7 +48,8 @@ namespace Liviano.CLI.Gui.Views
         Label mempoolView;
         GraphView mempoolGraphView;
         Label clockView;
-        readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
+        //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
+        readonly string[] menuItemsList = { "Mempool Graph", "Mempool Info" };
 
         public HomeViewModel ViewModel { get; set; }
 
@@ -65,6 +68,9 @@ namespace Liviano.CLI.Gui.Views
                 .Select(x => (ustring)JsonConvert.SerializeObject(x, Formatting.Indented))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(mempoolView, v => v.Text);
+
+            //this
+                //.WhenAnyValue(x => x.ViewModel.Stat)
 
             this
                 .WhenAnyValue(x => x.ClockViewModel.Time)
@@ -120,9 +126,85 @@ namespace Liviano.CLI.Gui.Views
             {
                 X = 1,
                 Y = 1,
-                Width = 60,
-                Height = 20,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(1),
             };
+
+            SetGraphView();
+        }
+
+        void SetGraphView()
+        {
+            mempoolGraphView.Reset();
+
+            var fg = Application.Driver.MakeAttribute(this.ColorScheme.Normal.Foreground, Color.Black);
+            var red = Application.Driver.MakeAttribute(Color.Red, Color.Black);
+
+            mempoolGraphView.GraphColor = fg;
+
+            // The "LIGHT SHADE" unicode char
+            var fill = new GraphCellToRender('\u2591');
+            var bars = new List<BarSeries.Bar>()
+            {
+                new BarSeries.Bar("1-2", fill, 0.52f),
+                new BarSeries.Bar("2-3", fill, 0.94f),
+                new BarSeries.Bar("3-4", fill, 0.52f),
+                new BarSeries.Bar("4-5", fill, 0.54f),
+                new BarSeries.Bar("5-6", fill, 0.44f),
+                new BarSeries.Bar("6-8", fill, 0.63f),
+                new BarSeries.Bar("8-10", fill, 0.49f),
+                new BarSeries.Bar("10-12", fill, 0.09f),
+                new BarSeries.Bar("12-15", fill, 0.08f),
+                new BarSeries.Bar("15-20", fill, 0.1f),
+                new BarSeries.Bar("20-30", fill, 0.03f),
+                new BarSeries.Bar("30-40", fill, 0.02f),
+                new BarSeries.Bar("40-50", fill, 0.02f),
+                new BarSeries.Bar("50-60", fill, 0.02f),
+                new BarSeries.Bar("60-70", fill, 0.02f),
+                new BarSeries.Bar("70-80", fill, 0.02f),
+                new BarSeries.Bar("80-90", fill, 0.02f),
+                new BarSeries.Bar("90-100", fill, 0.01f),
+                new BarSeries.Bar("100-125", fill, 0.01f),
+                new BarSeries.Bar("125-150", fill, 0.01f),
+                new BarSeries.Bar("150-175", fill, 0.01f),
+                new BarSeries.Bar("175-200", fill, 0.01f),
+                new BarSeries.Bar("200-250", fill, 0.01f),
+                new BarSeries.Bar("250-300", fill, 0f),
+                new BarSeries.Bar("300-350", fill, 0f),
+                new BarSeries.Bar("350-400", fill, 0f),
+                new BarSeries.Bar("400-500", fill, 0f),
+            };
+            var series = new BarSeries()
+            {
+                Bars = bars
+            };
+
+            mempoolGraphView.Series.Add(series);
+
+            series.Orientation = Orientation.Vertical;
+
+            // How much graph space each cell of the console depicts
+            mempoolGraphView.CellSize = new PointF(0.1f, 0.25f);
+
+            // No axis marks since Bar will add it's own categorical marks
+            mempoolGraphView.AxisX.Increment = 0f;
+            mempoolGraphView.AxisX.Minimum = 0;
+            mempoolGraphView.AxisX.Text = "Fee Rate";
+
+            mempoolGraphView.AxisY.Increment = 0.1f;
+            mempoolGraphView.AxisY.ShowLabelsEvery = 1;
+            mempoolGraphView.AxisY.LabelGetter = v => v.Value.ToString("N2");
+            mempoolGraphView.AxisY.Minimum = 0;
+            mempoolGraphView.AxisY.Text = "MvB";
+
+            // leave space for axis labels and title
+            //mempoolGraphView.MarginBottom = 2;
+            //mempoolGraphView.MarginLeft = 6;
+
+            // Start the graph at 80 years because that is where most of our data is
+            mempoolGraphView.ScrollOffset = new PointF(0, 0);
+
+            mempoolGraphView.SetNeedsDisplay();
         }
 
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
