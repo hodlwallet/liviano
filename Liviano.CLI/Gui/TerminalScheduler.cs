@@ -26,6 +26,7 @@
 using System;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+
 using Terminal.Gui;
 
 namespace Liviano.CLI.Gui

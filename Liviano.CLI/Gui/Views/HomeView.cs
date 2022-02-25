@@ -33,6 +33,7 @@ using NStack;
 using Newtonsoft.Json;
 
 using Liviano.CLI.Gui.ViewModels;
+using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -44,8 +45,9 @@ namespace Liviano.CLI.Gui.Views
         FrameView contentFrameView;
         ListView menuItemsListView;
         Label mempoolView;
+        GraphView mempoolGraphView;
         Label clockView;
-        readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Clock" };
+        readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
 
         public HomeViewModel ViewModel { get; set; }
 
@@ -128,6 +130,9 @@ namespace Liviano.CLI.Gui.Views
             {
                 case "Mempool Info":
                     contentFrameView.Add(mempoolView);
+                    break;
+                case "Mempool Graph":
+                    contentFrameView.Add(mempoolGraphView);
                     break;
                 case "Clock":
                     contentFrameView.Add(clockView);

@@ -38,7 +38,12 @@ run.ubuntu:
 ## Publishes Liviano's client for the Ubuntu platform and executes liviano logging its output to stderr. Usage: args="--help" make run.ubuntu.debug
 run.ubuntu.debug:
 	make ubuntu.debug.build;
-	COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args}
+	@if [ "${args}" = "" ]; then\
+		./liviano-cli;\
+	fi
+	@if [ "${args}" != "" ]; then\
+		COMPlus_DebugWriteToStdErr=1 ./liviano-cli ${args};\
+	fi
 
 ## Publishes Liviano's client for the macOS platform and executes liviano using input arguments. Usage: args="--help" make run.osx
 run.osx:
