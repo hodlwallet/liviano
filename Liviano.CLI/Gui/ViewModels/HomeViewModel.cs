@@ -49,12 +49,11 @@ namespace Liviano.CLI.Gui.ViewModels
         public HomeViewModel()
         {
             MempoolService.Start();
-            Stat = MempoolService.Stats.OrderByDescending(y => y.added).First();
+            Stat = MempoolService.Stats.First();
 
             MempoolService
                 .WhenAnyValue(x => x.Stats)
-                .Select(x => x.OrderByDescending(y => y.added).First())
-                .Where(x => x.added > Stat.added)
+                .Select(x => x.First())
                 .BindTo(this, x => x.Stat);
         }
     }

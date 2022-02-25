@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -35,6 +36,7 @@ using Terminal.Gui;
 using Terminal.Gui.Graphs;
 
 using Liviano.CLI.Gui.ViewModels;
+using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -49,7 +51,7 @@ namespace Liviano.CLI.Gui.Views
         GraphView mempoolGraphView;
         Label clockView;
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
-        readonly string[] menuItemsList = { "Mempool Graph", "Mempool Info" };
+        readonly string[] menuItemsList = { "Mempool Graph" };
 
         public HomeViewModel ViewModel { get; set; }
 
@@ -69,14 +71,30 @@ namespace Liviano.CLI.Gui.Views
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(mempoolView, v => v.Text);
 
-            //this
-                //.WhenAnyValue(x => x.ViewModel.Stat)
+            this
+                .WhenAnyValue(x => x.ViewModel.Stat)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(x => SetStatToBars(x));
 
             this
                 .WhenAnyValue(x => x.ClockViewModel.Time)
                 .Select(x => (ustring)x.ToString())
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(clockView, v => v.Text);
+        }
+
+        void SetStatToBars(MempoolStatisticEntity stat)
+        {
+            var fill = new GraphCellToRender('\u2591');
+
+            for (int i = 0; i < 27; i++)
+            {
+                var barText = (mempoolGraphView.Series[0] as BarSeries).Bars[i].Text;
+
+                (mempoolGraphView.Series[0] as BarSeries).Bars[i] = new BarSeries.Bar(barText, fill, stat.vsizes[i] / 100_000f);
+            }
+
+            mempoolGraphView.SetNeedsDisplay();
         }
 
         void SetGui()
@@ -144,39 +162,38 @@ namespace Liviano.CLI.Gui.Views
 
             // The "LIGHT SHADE" unicode char
             var fill = new GraphCellToRender('\u2591');
-            var bars = new List<BarSeries.Bar>()
-            {
-                new BarSeries.Bar("1-2", fill, 0.52f),
-                new BarSeries.Bar("2-3", fill, 0.94f),
-                new BarSeries.Bar("3-4", fill, 0.52f),
-                new BarSeries.Bar("4-5", fill, 0.54f),
-                new BarSeries.Bar("5-6", fill, 0.44f),
-                new BarSeries.Bar("6-8", fill, 0.63f),
-                new BarSeries.Bar("8-10", fill, 0.49f),
-                new BarSeries.Bar("10-12", fill, 0.09f),
-                new BarSeries.Bar("12-15", fill, 0.08f),
-                new BarSeries.Bar("15-20", fill, 0.1f),
-                new BarSeries.Bar("20-30", fill, 0.03f),
-                new BarSeries.Bar("30-40", fill, 0.02f),
-                new BarSeries.Bar("40-50", fill, 0.02f),
-                new BarSeries.Bar("50-60", fill, 0.02f),
-                new BarSeries.Bar("60-70", fill, 0.02f),
-                new BarSeries.Bar("70-80", fill, 0.02f),
-                new BarSeries.Bar("80-90", fill, 0.02f),
-                new BarSeries.Bar("90-100", fill, 0.01f),
-                new BarSeries.Bar("100-125", fill, 0.01f),
-                new BarSeries.Bar("125-150", fill, 0.01f),
-                new BarSeries.Bar("150-175", fill, 0.01f),
-                new BarSeries.Bar("175-200", fill, 0.01f),
-                new BarSeries.Bar("200-250", fill, 0.01f),
-                new BarSeries.Bar("250-300", fill, 0f),
-                new BarSeries.Bar("300-350", fill, 0f),
-                new BarSeries.Bar("350-400", fill, 0f),
-                new BarSeries.Bar("400-500", fill, 0f),
-            };
             var series = new BarSeries()
             {
-                Bars = bars
+                Bars = new List<BarSeries.Bar>()
+                {
+                    new BarSeries.Bar("1-2", fill, 0f),
+                    new BarSeries.Bar("2-3", fill, 0f),
+                    new BarSeries.Bar("3-4", fill, 0f),
+                    new BarSeries.Bar("4-5", fill, 0f),
+                    new BarSeries.Bar("5-6", fill, 0f),
+                    new BarSeries.Bar("6-8", fill, 0f),
+                    new BarSeries.Bar("8-10", fill, 0f),
+                    new BarSeries.Bar("10-12", fill, 0f),
+                    new BarSeries.Bar("12-15", fill, 0f),
+                    new BarSeries.Bar("15-20", fill, 0f),
+                    new BarSeries.Bar("20-30", fill, 0f),
+                    new BarSeries.Bar("30-40", fill, 0f),
+                    new BarSeries.Bar("40-50", fill, 0f),
+                    new BarSeries.Bar("50-60", fill, 0f),
+                    new BarSeries.Bar("60-70", fill, 0f),
+                    new BarSeries.Bar("70-80", fill, 0f),
+                    new BarSeries.Bar("80-90", fill, 0f),
+                    new BarSeries.Bar("90-100", fill, 0f),
+                    new BarSeries.Bar("100-125", fill, 0f),
+                    new BarSeries.Bar("125-150", fill, 0f),
+                    new BarSeries.Bar("150-175", fill, 0f),
+                    new BarSeries.Bar("175-200", fill, 0f),
+                    new BarSeries.Bar("200-250", fill, 0),
+                    new BarSeries.Bar("250-300", fill, 0f),
+                    new BarSeries.Bar("300-350", fill, 0f),
+                    new BarSeries.Bar("350-400", fill, 0f),
+                    new BarSeries.Bar("400-500", fill, 0f),
+                }
             };
 
             mempoolGraphView.Series.Add(series);
@@ -191,15 +208,15 @@ namespace Liviano.CLI.Gui.Views
             mempoolGraphView.AxisX.Minimum = 0;
             mempoolGraphView.AxisX.Text = "Fee Rate";
 
-            mempoolGraphView.AxisY.Increment = 0.1f;
+            mempoolGraphView.AxisY.Increment = 0.01f;
             mempoolGraphView.AxisY.ShowLabelsEvery = 1;
-            mempoolGraphView.AxisY.LabelGetter = v => v.Value.ToString("N2");
+            mempoolGraphView.AxisY.LabelGetter = v => (v.Value / 10f).ToString("N2");
             mempoolGraphView.AxisY.Minimum = 0;
             mempoolGraphView.AxisY.Text = "MvB";
 
             // leave space for axis labels and title
-            //mempoolGraphView.MarginBottom = 2;
-            //mempoolGraphView.MarginLeft = 6;
+            mempoolGraphView.MarginBottom = 2;
+            mempoolGraphView.MarginLeft = 6;
 
             // Start the graph at 80 years because that is where most of our data is
             mempoolGraphView.ScrollOffset = new PointF(0, 0);

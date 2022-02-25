@@ -39,7 +39,7 @@ namespace Liviano.Services
     public class Mempool : ReactiveObject, IService
     {
 #if DEBUG
-        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 1000;
+        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 5000;
 #else
         const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
 #endif
