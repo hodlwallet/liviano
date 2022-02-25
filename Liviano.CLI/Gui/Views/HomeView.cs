@@ -33,7 +33,6 @@ using NStack;
 using Newtonsoft.Json;
 
 using Liviano.CLI.Gui.ViewModels;
-using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -59,7 +58,7 @@ namespace Liviano.CLI.Gui.Views
             ClockViewModel ??= new();
             ColorScheme = Colors.TopLevel;
 
-            SetupMainFrames();
+            SetGui();
 
             this
                 .WhenAnyValue(x => x.ViewModel.Stat)
@@ -74,7 +73,7 @@ namespace Liviano.CLI.Gui.Views
                 .BindTo(clockView, v => v.Text);
         }
 
-        void SetupMainFrames()
+        void SetGui()
         {
             menuFrameView = new("Menu")
             {
@@ -117,6 +116,13 @@ namespace Liviano.CLI.Gui.Views
             // Main views...
             mempoolView = new Label("Mempool");
             clockView = new Label("Clock");
+            mempoolGraphView = new GraphView()
+            {
+                X = 1,
+                Y = 1,
+                Width = 60,
+                Height = 20,
+            };
         }
 
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
