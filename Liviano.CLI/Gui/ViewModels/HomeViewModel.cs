@@ -54,6 +54,7 @@ namespace Liviano.CLI.Gui.ViewModels
             MempoolService
                 .WhenAnyValue(x => x.Stats)
                 .Select(x => x.OrderByDescending(y => y.added).First())
+                .Where(x => x.added > Stat.added)
                 .BindTo(this, x => x.Stat);
         }
     }
