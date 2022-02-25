@@ -60,9 +60,7 @@ namespace Liviano.CLI.Gui.Views
             SetupMainFrames();
 
             this
-                .WhenAnyValue(x => x.ViewModel.Stats)
-                .Select(x => x.OrderByDescending(y => y.added))
-                .Select(x => x.First())
+                .WhenAnyValue(x => x.ViewModel.Stat)
                 .Select(x => (ustring)JsonConvert.SerializeObject(x, Formatting.Indented))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(mempoolView, v => v.Text);

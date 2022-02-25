@@ -23,6 +23,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.Serialization;
 
 using ReactiveUI;
@@ -35,11 +37,11 @@ namespace Liviano.CLI.Gui.ViewModels
     [DataContract]
     public class HomeViewModel : ReactiveObject
     {
-        MempoolStatisticEntity[] stats;
-        public MempoolStatisticEntity[] Stats
+        MempoolStatisticEntity stat;
+        public MempoolStatisticEntity Stat
         {
-            get => stats;
-            set => this.RaiseAndSetIfChanged(ref stats, value);
+            get => stat;
+            set => this.RaiseAndSetIfChanged(ref stat, value);
         }
 
         readonly Mempool MempoolService = new();
@@ -47,11 +49,12 @@ namespace Liviano.CLI.Gui.ViewModels
         public HomeViewModel()
         {
             MempoolService.Start();
-            Stats = MempoolService.Stats;
+            Stat = MempoolService.Stats.OrderByDescending(y => y.added).First();
 
             MempoolService
                 .WhenAnyValue(x => x.Stats)
-                .BindTo(this, x => x.Stats);
+                .Select(x => x.OrderByDescending(y => y.added).First())
+                .BindTo(this, x => x.Stat);
         }
     }
 }
