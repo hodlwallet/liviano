@@ -48,10 +48,11 @@ namespace Liviano.CLI.Gui.Views
         FrameView contentFrameView;
         ListView menuItemsListView;
         Label mempoolView;
+        Label mempoolGraphTimeLabel;
         GraphView mempoolGraphView;
         Label clockView;
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
-        readonly string[] menuItemsList = { "Mempool Graph" };
+        readonly string[] menuItemsList = { "Mempool Graph", "Clock" };
 
         public HomeViewModel ViewModel { get; set; }
 
@@ -70,6 +71,12 @@ namespace Liviano.CLI.Gui.Views
                 .Select(x => (ustring)JsonConvert.SerializeObject(x, Formatting.Indented))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(mempoolView, v => v.Text);
+
+            this
+                .WhenAnyValue(x => x.ViewModel.Stat)
+                .Select(x => (ustring)DateTimeOffset.FromUnixTimeSeconds(x.added).ToLocalTime().ToString())
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .BindTo(mempoolGraphTimeLabel, v => v.Text);
 
             this
                 .WhenAnyValue(x => x.ViewModel.Stat)
@@ -138,9 +145,9 @@ namespace Liviano.CLI.Gui.Views
             Add(contentFrameView);
 
             // Main views...
-            mempoolView = new Label("Mempool");
-            clockView = new Label("Clock");
-            mempoolGraphView = new GraphView()
+            mempoolView = new("Mempool");
+            clockView = new("Clock");
+            mempoolGraphView = new()
             {
                 X = 1,
                 Y = 1,
@@ -148,6 +155,7 @@ namespace Liviano.CLI.Gui.Views
                 Height = Dim.Fill(1),
             };
 
+            mempoolGraphTimeLabel = new("");
             SetGraphView();
         }
 
@@ -237,6 +245,7 @@ namespace Liviano.CLI.Gui.Views
                     contentFrameView.Add(mempoolView);
                     break;
                 case "Mempool Graph":
+                    contentFrameView.Add(mempoolGraphTimeLabel);
                     contentFrameView.Add(mempoolGraphView);
                     break;
                 case "Clock":
