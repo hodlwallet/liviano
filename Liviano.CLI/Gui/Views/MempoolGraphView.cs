@@ -24,21 +24,116 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System.Collections.Generic;
-using Liviano.CLI.Gui.Interfaces;
+using System.Linq;
+
+using NStack;
 using ReactiveUI;
 using Terminal.Gui;
+using Terminal.Gui.Graphs;
+
+using Liviano.CLI.Gui.Interfaces;
+using Liviano.CLI.Gui.ViewModels;
 
 namespace Liviano.CLI.Gui.Views
 {
     public class MempoolGraphView : IView
     {
         public ReactiveObject ViewModel { get; set; }
-        public IEnumerable<View> Controls { get; set; }
+        List<View> controls = new() { };
+        public IEnumerable<View> Controls { get => controls; set => controls = value.ToList(); }
 
-        public MempoolGraphView(ReactiveObject viewModel)
+        Label time;
+        GraphView graph;
+
+        public MempoolGraphView(MempoolGraphViewModel viewModel)
         {
             ViewModel = viewModel;
-            Controls = new List<View>() { };
+
+            SetGui();
+        }
+
+        void SetGui()
+        {
+            time = new(ustring.Empty);
+
+            controls.Add(time);
+
+            graph = new()
+            {
+                X = 1,
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(1),
+            };
+
+            graph.Reset();
+
+            var fg = Application.Driver.MakeAttribute(Colors.TopLevel.Normal.Foreground, Color.Black);
+            var red = Application.Driver.MakeAttribute(Color.Red, Color.Black);
+
+            graph.GraphColor = fg;
+
+            var fill = new GraphCellToRender('\u2591');
+            var series = new BarSeries()
+            {
+                Bars = new List<BarSeries.Bar>()
+                {
+                    new BarSeries.Bar("1-2", fill, 0f),
+                    new BarSeries.Bar("2-3", fill, 0f),
+                    new BarSeries.Bar("3-4", fill, 0f),
+                    new BarSeries.Bar("4-5", fill, 0f),
+                    new BarSeries.Bar("5-6", fill, 0f),
+                    new BarSeries.Bar("6-8", fill, 0f),
+                    new BarSeries.Bar("8-10", fill, 0f),
+                    new BarSeries.Bar("10-12", fill, 0f),
+                    new BarSeries.Bar("12-15", fill, 0f),
+                    new BarSeries.Bar("15-20", fill, 0f),
+                    new BarSeries.Bar("20-30", fill, 0f),
+                    new BarSeries.Bar("30-40", fill, 0f),
+                    new BarSeries.Bar("40-50", fill, 0f),
+                    new BarSeries.Bar("50-60", fill, 0f),
+                    new BarSeries.Bar("60-70", fill, 0f),
+                    new BarSeries.Bar("70-80", fill, 0f),
+                    new BarSeries.Bar("80-90", fill, 0f),
+                    new BarSeries.Bar("90-100", fill, 0f),
+                    new BarSeries.Bar("100-125", fill, 0f),
+                    new BarSeries.Bar("125-150", fill, 0f),
+                    new BarSeries.Bar("150-175", fill, 0f),
+                    new BarSeries.Bar("175-200", fill, 0f),
+                    new BarSeries.Bar("200-250", fill, 0),
+                    new BarSeries.Bar("250-300", fill, 0f),
+                    new BarSeries.Bar("300-350", fill, 0f),
+                    new BarSeries.Bar("350-400", fill, 0f),
+                    new BarSeries.Bar("400-500", fill, 0f),
+                }
+            };
+
+            graph.Series.Add(series);
+
+            series.Orientation = Orientation.Vertical;
+
+            graph.CellSize = new PointF(0.1f, 0.25f);
+
+            graph.AxisX.Increment = 0f;
+            graph.AxisX.Minimum = 0;
+            graph.AxisX.Text = "Fee Rate";
+
+            graph.AxisY.Increment = 0.01f;
+            graph.AxisY.ShowLabelsEvery = 1;
+            graph.AxisY.LabelGetter = v => (v.Value / 10f).ToString("N2");
+            graph.AxisY.Minimum = 0;
+            graph.AxisY.Text = "MvB";
+
+            // leave space for axis labels and title
+            graph.MarginBottom = 2;
+            graph.MarginLeft = 6;
+
+            // Start the graph at 80 years because that is where most of our data is
+            graph.ScrollOffset = new PointF(0, 0);
+
+            graph.SetNeedsDisplay();
+
+            controls.Add(graph);
         }
     }
 }

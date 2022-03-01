@@ -26,9 +26,10 @@
 using System.Collections.Generic;
 
 using Terminal.Gui;
+using ReactiveUI;
 
 using Liviano.CLI.Gui.Interfaces;
-using ReactiveUI;
+using Liviano.CLI.Gui.ViewModels;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -38,7 +39,7 @@ namespace Liviano.CLI.Gui.Views
         public IEnumerable<View> Controls { get; set; }
         public Label label;
 
-        public HomeView(ReactiveObject viewModel)
+        public HomeView(HomeViewModel viewModel)
         {
             ViewModel = viewModel;
 
