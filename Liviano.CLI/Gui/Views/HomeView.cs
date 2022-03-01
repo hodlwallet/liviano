@@ -24,6 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System.Collections.Generic;
+using System.Linq;
 
 using Terminal.Gui;
 using ReactiveUI;
@@ -33,17 +34,20 @@ using Liviano.CLI.Gui.ViewModels;
 
 namespace Liviano.CLI.Gui.Views
 {
-    public class HomeView : IView
+    public class HomeView : IView, IViewFor<HomeViewModel>
     {
-        public ReactiveObject ViewModel { get; set; }
-        public IEnumerable<View> Controls { get; set; }
-        public Label label;
+        public HomeViewModel ViewModel { get; set; }
+        object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as HomeViewModel; }
+
+        List<View> controls = new() { };
+        public IEnumerable<View> Controls { get => controls; set => controls = value.ToList(); }
+
+        Label label;
 
         public HomeView(HomeViewModel viewModel)
         {
             ViewModel = viewModel;
 
-            Controls = new List<View> () {};
             SetGui();
         }
 
@@ -51,7 +55,7 @@ namespace Liviano.CLI.Gui.Views
         {
             label = new("Hello World!");
 
-            (Controls as List<View>).Add(label);
+            controls.Add(label);
         }
     }
 }
