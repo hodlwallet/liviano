@@ -45,6 +45,7 @@ namespace Liviano.CLI.Gui.Views
 
         ListView transactions;
         Label balance;
+        Label status;
         Label transactionsTitle;
 
         public HomeView(HomeViewModel viewModel)
@@ -81,10 +82,21 @@ namespace Liviano.CLI.Gui.Views
 
                 X = 0,
                 Y = 0,
-                Width = Dim.Fill(0),
+                //Width = Dim.Percent(90, true),
+                CanFocus = true,
             };
 
             controls.Add(balance);
+
+            status = new("[Syncing]")
+            {
+                X = Pos.AnchorEnd(),
+                Y = 0,
+                //Width = Dim.Fill(),
+                CanFocus = true,
+            };
+
+            controls.Add(status);
         }
     }
 }
