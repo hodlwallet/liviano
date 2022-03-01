@@ -1,5 +1,5 @@
 //
-// MempoolGraphView.cs
+// MempoolGraphViewModel.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -23,22 +23,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Collections.Generic;
-using Liviano.CLI.Gui.Interfaces;
 using ReactiveUI;
-using Terminal.Gui;
 
-namespace Liviano.CLI.Gui.Views
+namespace Liviano.CLI.Gui.ViewModels
 {
-    public class MempoolGraphView : IView
+    public class MempoolGraphViewModel : ReactiveObject
     {
-        public ReactiveObject ViewModel { get; set; }
-        public IEnumerable<View> Controls { get; set; }
 
-        public MempoolGraphView(ReactiveObject viewModel)
-        {
-            ViewModel = viewModel;
-            Controls = new List<View>() { };
-        }
     }
 }

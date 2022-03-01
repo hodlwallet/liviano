@@ -28,7 +28,7 @@ using Terminal.Gui;
 
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.CLI.Gui.Views;
-using System.Diagnostics;
+using Liviano.CLI.Gui.Interfaces;
 
 namespace Liviano.CLI.Gui
 {
@@ -249,14 +249,17 @@ namespace Liviano.CLI.Gui
                     //contentFrameView.Add(clockView);
                     break;
                 case "Home":
-                    foreach (var v in homeView.Controls)
-                    {
-                       contentFrameView.Add(v);
-                    }
+                    AddControls(homeView);
                     break;
                 default:
                     break;
             }
+        }
+
+        void AddControls(IView view)
+        {
+            foreach (var control in view.Controls)
+                contentFrameView.Add(control);
         }
 
         protected override void Dispose(bool disposing)
