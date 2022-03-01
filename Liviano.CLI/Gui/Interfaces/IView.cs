@@ -26,13 +26,11 @@
 using System.Collections.Generic;
 
 using Terminal.Gui;
-using ReactiveUI;
 
 namespace Liviano.CLI.Gui.Interfaces
 {
     public interface IView
     {
-        ReactiveObject ViewModel { get; set; }
         IEnumerable<View> Controls { get; set; }
     }
 }

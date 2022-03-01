@@ -23,12 +23,35 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Linq;
+using System.Reactive.Linq;
+
 using ReactiveUI;
+
+using Liviano.Services;
+using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.ViewModels
 {
     public class MempoolGraphViewModel : ReactiveObject
     {
+        MempoolStatisticEntity stat;
+        public MempoolStatisticEntity Stat
+        {
+            get => stat;
+            set => this.RaiseAndSetIfChanged(ref stat, value);
+        }
+        readonly Mempool MempoolService = new();
 
+        public MempoolGraphViewModel()
+        {
+            MempoolService.Start();
+            Stat = MempoolService.Stats.First();
+
+            MempoolService
+                .WhenAnyValue(x => x.Stats)
+                .Select(x => x.First())
+                .BindTo(this, x => x.Stat);
+        }
     }
 }

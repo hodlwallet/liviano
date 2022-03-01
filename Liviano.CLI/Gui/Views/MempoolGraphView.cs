@@ -23,8 +23,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 
 using NStack;
 using ReactiveUI;
@@ -33,14 +35,17 @@ using Terminal.Gui.Graphs;
 
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
+using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.Views
 {
-    public class MempoolGraphView : IView
+    public class MempoolGraphView : IView, IViewFor<MempoolGraphViewModel>
     {
-        public ReactiveObject ViewModel { get; set; }
         List<View> controls = new() { };
         public IEnumerable<View> Controls { get => controls; set => controls = value.ToList(); }
+
+        public MempoolGraphViewModel ViewModel { get; set; }
+        object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as MempoolGraphViewModel; }
 
         Label time;
         GraphView graph;
@@ -50,6 +55,17 @@ namespace Liviano.CLI.Gui.Views
             ViewModel = viewModel;
 
             SetGui();
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Stat)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(stat => SetStatToBars(stat));
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Stat)
+                .Select(stat => ustring.Make(DateTimeOffset.FromUnixTimeSeconds(stat.added).ToLocalTime().ToString()))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .BindTo(time, time => time.Text);
         }
 
         void SetGui()
@@ -134,6 +150,21 @@ namespace Liviano.CLI.Gui.Views
             graph.SetNeedsDisplay();
 
             controls.Add(graph);
+        }
+
+        void SetStatToBars(MempoolStatisticEntity stat)
+        {
+            var fill = new GraphCellToRender('\u2591');
+            var series = graph.Series[0] as BarSeries;
+
+            for (int i = 0; i < 27; i++)
+            {
+                var barText = series.Bars[i].Text;
+
+                series.Bars[i] = new BarSeries.Bar(barText, fill, stat.vsizes[i] / 100_000f);
+            }
+
+            graph.SetNeedsDisplay();
         }
     }
 }

@@ -43,55 +43,19 @@ namespace Liviano.CLI.Gui
         HomeView homeView;
         MempoolGraphView mempoolGraphView;
 
-        //Label mempoolView;
-        //Label mempoolGraphTimeLabel;
-        //GraphView mempoolGraphView;
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
-        //readonly string[] menuItemsList = { "Home", "Mempool Graph" };
-        readonly string[] menuItemsList = { "Home", "Mempool Graph" };
+        readonly string[] menuItemsList = { "Mempool Graph" };
 
         public HomeViewModel ViewModel { get; set; }
 
         public MainWindow() : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
-            //ViewModel = viewModel;
             ColorScheme = Colors.TopLevel;
             homeView = new HomeView(new HomeViewModel());
             mempoolGraphView = new MempoolGraphView(new MempoolGraphViewModel());
 
             SetGui();
-
-            //this
-                //.WhenAnyValue(x => x.ViewModel.Stat)
-                //.Select(x => (ustring)JsonConvert.SerializeObject(x, Formatting.Indented))
-                //.ObserveOn(RxApp.MainThreadScheduler)
-                //.BindTo(mempoolView, v => v.Text);
-
-            //this
-                //.WhenAnyValue(x => x.ViewModel.Stat)
-                //.Select(x => (ustring)DateTimeOffset.FromUnixTimeSeconds(x.added).ToLocalTime().ToString())
-                //.ObserveOn(RxApp.MainThreadScheduler)
-                //.BindTo(mempoolGraphTimeLabel, v => v.Text);
-
-            //this
-                //.WhenAnyValue(x => x.ViewModel.Stat)
-                //.ObserveOn(RxApp.MainThreadScheduler)
-                //.Subscribe(x => SetStatToBars(x));
         }
-
-        //void SetStatToBars(MempoolStatisticEntity stat)
-        //{
-            //var fill = new GraphCellToRender('\u2591');
-
-            //for (int i = 0; i < 27; i++)
-            //{
-                //var barText = (mempoolGraphView.Series[0] as BarSeries).Bars[i].Text;
-
-                //(mempoolGraphView.Series[0] as BarSeries).Bars[i] = new BarSeries.Bar(barText, fill, stat.vsizes[i] / 100_000f);
-            //}
-
-            //mempoolGraphView.SetNeedsDisplay();
-        //}
 
         void SetGui()
         {
@@ -132,19 +96,6 @@ namespace Liviano.CLI.Gui
 
             Add(menuFrameView);
             Add(contentFrameView);
-
-            // Main views...
-            //mempoolView = new("Mempool");
-            //mempoolGraphView = new()
-            //{
-                //X = 1,
-                //Y = 1,
-                //Width = Dim.Fill(),
-                //Height = Dim.Fill(1),
-            //};
-
-            //mempoolGraphTimeLabel = new("");
-            //SetGraphView();
         }
 
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
