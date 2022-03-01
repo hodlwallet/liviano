@@ -74,7 +74,13 @@ namespace Liviano.CLI.Gui.Views
 
         void SetGui()
         {
-            time = new(ustring.Empty);
+            time = new(ustring.Empty)
+            {
+                X = 0,
+                Y = 0,
+                TextAlignment = TextAlignment.Centered,
+                Width = Dim.Fill(),
+            };
 
             controls.Add(time);
 
@@ -144,11 +150,9 @@ namespace Liviano.CLI.Gui.Views
             graph.AxisY.Minimum = 0;
             graph.AxisY.Text = "MvB";
 
-            // leave space for axis labels and title
             graph.MarginBottom = 2;
             graph.MarginLeft = 6;
 
-            // Start the graph at 80 years because that is where most of our data is
             graph.ScrollOffset = new PointF(0, 0);
 
             graph.SetNeedsDisplay();
