@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.Serialization;
 
 using ReactiveUI;
 
@@ -33,6 +34,7 @@ using Liviano.Services.Models;
 
 namespace Liviano.CLI.Gui.ViewModels
 {
+    [DataContract]
     public class MempoolGraphViewModel : ReactiveObject
     {
         MempoolStatisticEntity stat;
