@@ -28,9 +28,6 @@ using System.Reactive.Concurrency;
 using ReactiveUI;
 using Terminal.Gui;
 
-using Liviano.CLI.Gui.ViewModels;
-using Liviano.CLI.Gui.Views;
-
 namespace Liviano.CLI.Gui
 {
     public static class Gui
@@ -43,7 +40,7 @@ namespace Liviano.CLI.Gui
             RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
 
             Application.QuitKey = Key.Esc;
-            Application.Run(new HomeView(new HomeViewModel()));
+            Application.Run(new MainWindow());
             Application.Shutdown();
         }
     }

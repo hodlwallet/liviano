@@ -1,5 +1,5 @@
 //
-// HomeView.cs
+// MainWindow.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -38,9 +38,9 @@ using Terminal.Gui.Graphs;
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.Services.Models;
 
-namespace Liviano.CLI.Gui.Views
+namespace Liviano.CLI.Gui
 {
-    public class HomeView : Window, IViewFor<HomeViewModel>
+    public class MainWindow : Window, IViewFor<HomeViewModel>
     {
         readonly CompositeDisposable disposable = new();
 
@@ -52,15 +52,15 @@ namespace Liviano.CLI.Gui.Views
         GraphView mempoolGraphView;
         Label clockView;
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph", "Clock" };
-        readonly string[] menuItemsList = { "Mempool Graph", "Clock" };
+        readonly string[] menuItemsList = { "Home", "Mempool Graph", "Clock" };
 
         public HomeViewModel ViewModel { get; set; }
 
         public ClockViewModel ClockViewModel { get; set; }
 
-        public HomeView(HomeViewModel viewModel) : base($"{Version.ToString()} ~~~ ESC to close ~~~")
+        public MainWindow() : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
-            ViewModel = viewModel;
+            //ViewModel = viewModel;
             ClockViewModel ??= new();
             ColorScheme = Colors.TopLevel;
 
