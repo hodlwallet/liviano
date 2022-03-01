@@ -102,25 +102,25 @@ namespace Liviano.CLI.Gui
         void MenuItemsListView_SelectedItemChanged(ListViewItemEventArgs args)
         {
             var name = menuItemsList[args.Item];
-            contentFrameView.Title = name;
 
             contentFrameView.RemoveAll();
-
             switch (name)
             {
                 case "Home":
-                    AddControls(homeView);
+                    AddContent(homeView);
                     break;
                 case "Mempool Graph":
-                    AddControls(mempoolGraphView);
+                    AddContent(mempoolGraphView);
                     break;
                 default:
                     break;
             }
         }
 
-        void AddControls(IView view)
+        void AddContent(IView view)
         {
+            contentFrameView.Title = view.Title;
+
             foreach (var control in view.Controls)
                 contentFrameView.Add(control);
         }

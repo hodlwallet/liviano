@@ -41,6 +41,8 @@ namespace Liviano.CLI.Gui.Views
 {
     public class MempoolGraphView : IView, IViewFor<MempoolGraphViewModel>
     {
+        public string Title { get; } = "Mempool by vBytes (sat/vByte)";
+
         List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
 
@@ -63,7 +65,9 @@ namespace Liviano.CLI.Gui.Views
 
             this
                 .WhenAnyValue(view => view.ViewModel.Stat)
-                .Select(stat => ustring.Make(DateTimeOffset.FromUnixTimeSeconds(stat.added).ToLocalTime().ToString()))
+                .Select(
+                    stat => ustring.Make($"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(stat.added).ToLocalTime()}")
+                )
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(time, time => time.Text);
         }

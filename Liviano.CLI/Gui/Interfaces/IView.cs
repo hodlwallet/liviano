@@ -31,6 +31,7 @@ namespace Liviano.CLI.Gui.Interfaces
 {
     public interface IView
     {
+        string Title { get; }
         IEnumerable<View> Controls { get; }
     }
 }

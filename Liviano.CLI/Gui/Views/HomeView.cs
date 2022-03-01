@@ -35,6 +35,8 @@ namespace Liviano.CLI.Gui.Views
 {
     public class HomeView : IView, IViewFor<HomeViewModel>
     {
+        public string Title { get; } = "Home";
+
         public HomeViewModel ViewModel { get; set; }
         object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as HomeViewModel; }
 
