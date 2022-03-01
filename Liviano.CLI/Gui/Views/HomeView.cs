@@ -79,21 +79,17 @@ namespace Liviano.CLI.Gui.Views
 
             balance = new("Balance: 0.0 BTC")
             {
-
                 X = 0,
                 Y = 0,
-                //Width = Dim.Percent(90, true),
-                CanFocus = true,
+                Width = Dim.Percent(95f),
             };
 
             controls.Add(balance);
 
             status = new("[Syncing]")
             {
-                X = Pos.AnchorEnd(),
+                X = Pos.Right(balance),
                 Y = 0,
-                //Width = Dim.Fill(),
-                CanFocus = true,
             };
 
             controls.Add(status);

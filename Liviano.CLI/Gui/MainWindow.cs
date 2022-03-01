@@ -45,7 +45,7 @@ namespace Liviano.CLI.Gui
         MempoolGraphView mempoolGraphView;
 
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
-        readonly string[] menuItemsList = { "Mempool Graph", "Home" };
+        readonly string[] menuItemsList = { "Home", "Mempool Graph" };
 
         public HomeViewModel ViewModel { get; set; }
 
