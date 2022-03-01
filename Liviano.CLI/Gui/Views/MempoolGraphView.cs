@@ -42,7 +42,7 @@ namespace Liviano.CLI.Gui.Views
     public class MempoolGraphView : IView, IViewFor<MempoolGraphViewModel>
     {
         List<View> controls = new() { };
-        public IEnumerable<View> Controls { get => controls; set => controls = value.ToList(); }
+        public IEnumerable<View> Controls => controls;
 
         public MempoolGraphViewModel ViewModel { get; set; }
         object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as MempoolGraphViewModel; }
