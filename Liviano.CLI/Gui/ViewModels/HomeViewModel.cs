@@ -77,7 +77,10 @@ namespace Liviano.CLI.Gui.ViewModels
 
         void SetTransactions()
         {
-            Txs = Account.Txs.OrderByDescending(tx => tx.CreatedAt).ToList();
+            Txs = Account
+                .Txs
+                .Where(tx => tx.ScriptPubKey is not null || tx.SentScriptPubKey is not null) // FIXME there's a bug here with test mnemonic
+                .OrderByDescending(tx => tx.CreatedAt).ToList();
         }
 
         void SetBalance()

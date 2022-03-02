@@ -81,9 +81,6 @@ namespace Liviano.CLI.Gui.Views
 
             foreach (var tx in txs)
             {
-                if (tx.ScriptPubKey is null && tx.SentScriptPubKey is null)
-                    continue;
-
                 var direction = tx.IsReceive ? "Received " : "Sent    ";
                 var amount = tx.IsReceive ? tx.AmountReceived.ToString() : $"-{tx.AmountSent}";
                 var preposition = tx.IsReceive ? "at:  " : "from:";
