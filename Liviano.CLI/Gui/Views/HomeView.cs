@@ -53,6 +53,10 @@ namespace Liviano.CLI.Gui.Views
             ViewModel = viewModel;
 
             SetGui();
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Balance)
+                .BindTo(balance, balance => balance.Text);
         }
 
         void SetGui()

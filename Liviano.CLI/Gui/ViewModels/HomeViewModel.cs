@@ -26,6 +26,7 @@
 using System.Runtime.Serialization;
 
 using ReactiveUI;
+using NStack;
 
 using Liviano.Interfaces;
 
@@ -35,10 +36,20 @@ namespace Liviano.CLI.Gui.ViewModels
     public class HomeViewModel : ReactiveObject
     {
         readonly IWallet wallet;
+        readonly IAccount account;
+
+        ustring balance;
+        public ustring Balance
+        {
+            get => balance;
+            set => this.RaiseAndSetIfChanged(ref balance, value);
+        }
 
         public HomeViewModel(IWallet wallet)
         {
             this.wallet = wallet;
+            account = wallet.CurrentAccount;
+            Balance = ustring.Make($"Balance: {account.GetBalance()} BTC");
         }
     }
 }
