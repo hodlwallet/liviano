@@ -81,7 +81,7 @@ namespace Liviano.CLI.Gui.Views
             {
                 X = 0,
                 Y = 0,
-                Width = Dim.Percent(95f),
+                Width = Dim.Percent(90f),
             };
 
             controls.Add(balance);

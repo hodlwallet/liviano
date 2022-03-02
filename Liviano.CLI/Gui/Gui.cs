@@ -40,7 +40,7 @@ namespace Liviano.CLI.Gui
             RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
 
             Application.QuitKey = Key.Esc;
-            Application.Run(new MainWindow());
+            Application.Run(new MainWindow(Config.Load()));
             Application.Shutdown();
         }
     }

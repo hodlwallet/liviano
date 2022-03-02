@@ -23,13 +23,18 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Diagnostics;
 using System.Reactive.Disposables;
 
 using Terminal.Gui;
 
+using Liviano.Bips;
+using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.CLI.Gui.Views;
-using Liviano.CLI.Gui.Interfaces;
+using Liviano.Exceptions;
+using Liviano.Interfaces;
+using Liviano.Storages;
 
 namespace Liviano.CLI.Gui
 {
@@ -47,12 +52,15 @@ namespace Liviano.CLI.Gui
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
         readonly string[] menuItemsList = { "Home", "Mempool Graph" };
 
+        readonly IWallet wallet;
+
         public HomeViewModel ViewModel { get; set; }
 
-        public MainWindow() : base($"{Version.ToString()} ~~~ ESC to close ~~~")
+        public MainWindow(Config config) : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
             ColorScheme = Colors.TopLevel;
-            homeView = new HomeView(new HomeViewModel());
+            wallet = Load(config);
+            homeView = new HomeView(new HomeViewModel(wallet));
             mempoolGraphView = new MempoolGraphView(new MempoolGraphViewModel());
 
             SetGui();
@@ -123,6 +131,22 @@ namespace Liviano.CLI.Gui
 
             foreach (var control in view.Controls)
                 contentFrameView.Add(control);
+        }
+
+        IWallet Load(Config config, string passphrase = null, bool skipAuth = false)
+        {
+            var network = Hd.GetNetwork(config.Network);
+
+            var storage = new FileSystemWalletStorage(config.WalletId, network);
+
+            if (!storage.Exists())
+            {
+                Debug.WriteLine($"[Load] Wallet {config.WalletId} doesn't exists. Make sure you're on the right network");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            return storage.Load(passphrase, out WalletException _, skipAuth);
         }
 
         protected override void Dispose(bool disposing)
