@@ -24,6 +24,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
 
@@ -31,6 +33,7 @@ using NStack;
 using ReactiveUI;
 
 using Liviano.Interfaces;
+using Liviano.Models;
 
 namespace Liviano.CLI.Gui.ViewModels
 {
@@ -38,7 +41,14 @@ namespace Liviano.CLI.Gui.ViewModels
     public class HomeViewModel : ReactiveObject
     {
         readonly IWallet wallet;
-        readonly IAccount account;
+        public IAccount Account { get; set; }
+
+        List<Tx> txs = new() { };
+        public List<Tx> Txs
+        {
+            get => txs;
+            set => this.RaiseAndSetIfChanged(ref txs, value);
+        }
 
         ustring balance;
         public ustring Balance
@@ -50,19 +60,29 @@ namespace Liviano.CLI.Gui.ViewModels
         public HomeViewModel(IWallet wallet)
         {
             this.wallet = wallet;
-            account = wallet.CurrentAccount;
+            Account = wallet.CurrentAccount;
 
             SetBalance();
+            SetTransactions();
 
             // Bip32 accounts only track this one to change balance
             this
-                .WhenAnyValue(view => view.account.UnspentCoins)
+                .WhenAnyValue(view => view.Account.UnspentCoins)
                 .Subscribe(_ => SetBalance());
+
+            this
+                .WhenAnyValue(view => view.Account.Txs)
+                .Subscribe(_ => SetTransactions());
+        }
+
+        void SetTransactions()
+        {
+            Txs = Account.Txs.OrderByDescending(tx => tx.CreatedAt).ToList();
         }
 
         void SetBalance()
         {
-            Balance = ustring.Make($"Balance: {account.GetBalance()} BTC");
+            Balance = ustring.Make($"Balance: {Account.GetBalance()} BTC");
         }
     }
 }

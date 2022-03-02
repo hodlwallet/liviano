@@ -23,13 +23,17 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 
 using Terminal.Gui;
 using ReactiveUI;
+using NStack;
 
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
+using Liviano.Models;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -57,6 +61,47 @@ namespace Liviano.CLI.Gui.Views
             this
                 .WhenAnyValue(view => view.ViewModel.Balance)
                 .BindTo(balance, balance => balance.Text);
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Txs)
+                .Select(txs => TxsToUString(txs))
+                .Subscribe(serializedTxs => SetTransactionList(serializedTxs));
+
+            SetTransactionList(TxsToUString(ViewModel.Txs));
+        }
+
+        void SetTransactionList(List<ustring> serializedTxs)
+        {
+            transactions.SetSource(serializedTxs);
+        }
+
+        List<ustring> TxsToUString(List<Tx> txs)
+        {
+            List<ustring> res = new() { };
+
+            foreach (var tx in txs)
+            {
+                if (tx.ScriptPubKey is null && tx.SentScriptPubKey is null)
+                    continue;
+
+                var direction = tx.IsReceive ? "Received " : "Sent    ";
+                var amount = tx.IsReceive ? tx.AmountReceived.ToString() : $"-{tx.AmountSent}";
+                var preposition = tx.IsReceive ? "at:  " : "from:";
+
+                string address = string.Empty;
+                if (tx.IsReceive)
+                    address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Account.Network).ToString();
+                else
+                    address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Account.Network).ToString();
+
+                var localTime = tx.CreatedAt.Value.ToString("g");
+
+                res.Add(
+                    ustring.Make($"{direction} {amount} BTC {preposition} {address} {localTime}")
+                );
+            }
+
+            return res;
         }
 
         void SetGui()
