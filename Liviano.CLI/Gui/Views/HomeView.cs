@@ -27,9 +27,9 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 
-using Terminal.Gui;
-using ReactiveUI;
 using NStack;
+using ReactiveUI;
+using Terminal.Gui;
 
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
