@@ -106,7 +106,7 @@ namespace Liviano.CLI.Gui.Views
 
         void SetGui()
         {
-            transactions = new(new string[] { "Received 0.00084420 BTC at:tb1q053ptqlv0ugz8fcc3njw355rdluk4tqnhf0g0j 27/02/22 4:20pm" })
+            transactions = new()
             {
                 X = 0,
                 Y = 4,

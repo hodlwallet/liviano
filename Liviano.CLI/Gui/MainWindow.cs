@@ -58,12 +58,12 @@ namespace Liviano.CLI.Gui
 
         public MainWindow(Config config) : base($"{Version.ToString()} ~~~ ESC to close ~~~")
         {
+            SetGui();
+
             ColorScheme = Colors.TopLevel;
             wallet = Load(config);
             homeView = new HomeView(new HomeViewModel(wallet));
             mempoolGraphView = new MempoolGraphView(new MempoolGraphViewModel());
-
-            SetGui();
         }
 
         void SetGui()
