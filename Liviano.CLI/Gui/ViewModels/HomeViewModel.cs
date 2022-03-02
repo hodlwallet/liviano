@@ -23,10 +23,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
+using System.Reactive.Linq;
 using System.Runtime.Serialization;
 
-using ReactiveUI;
 using NStack;
+using ReactiveUI;
 
 using Liviano.Interfaces;
 
@@ -49,6 +51,17 @@ namespace Liviano.CLI.Gui.ViewModels
         {
             this.wallet = wallet;
             account = wallet.CurrentAccount;
+
+            SetBalance();
+
+            // Bip32 accounts only track this one to change balance
+            this
+                .WhenAnyValue(view => view.account.UnspentCoins)
+                .Subscribe(_ => SetBalance());
+        }
+
+        void SetBalance()
+        {
             Balance = ustring.Make($"Balance: {account.GetBalance()} BTC");
         }
     }

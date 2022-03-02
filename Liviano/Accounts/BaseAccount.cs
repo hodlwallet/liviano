@@ -28,6 +28,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
+using ReactiveUI;
 
 using Liviano.Interfaces;
 using Liviano.Models;
@@ -37,7 +38,7 @@ using Liviano.Extensions;
 
 namespace Liviano.Accounts
 {
-    public abstract class BaseAccount : IAccount
+    public abstract class BaseAccount : ReactiveObject, IAccount
     {
         static readonly object @lock = new();
 
@@ -90,9 +91,15 @@ namespace Liviano.Accounts
 
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
-        public List<Coin> UnspentCoins { get; set; }
-        public List<Coin> SpentCoins { get; set; }
-        public List<Coin> FrozenCoins { get; set; }
+
+        List<Coin> unspentCoins = new() { };
+        public List<Coin> UnspentCoins { get => unspentCoins; set => this.RaiseAndSetIfChanged(ref unspentCoins, value); }
+
+        List<Coin> spentCoins = new() { };
+        public List<Coin> SpentCoins { get => spentCoins; set => this.RaiseAndSetIfChanged(ref spentCoins, value); }
+
+        List<Coin> frozenCoins = new() { };
+        public List<Coin> FrozenCoins { get => frozenCoins; set => this.RaiseAndSetIfChanged(ref frozenCoins, value); }
 
         public long DustMinAmount { get; set; }
 

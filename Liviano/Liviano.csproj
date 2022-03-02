@@ -20,6 +20,7 @@
         <Description>Liviano is a library to build Bitcoin light clients</Description>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="ReactiveUI" Version="17.1.50" />
         <PackageReference Include="NBitcoin" Version="7.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="serilog" Version="2.10.0" />
