@@ -45,13 +45,16 @@ namespace Liviano.CLI.Gui.Views
         public IEnumerable<View> Controls => controls;
 
         Label fastestLabel;
-        Label fastestValue;
+        Label fastestRate;
+        Label fastestTime;
 
         Label normalLabel;
-        Label normalValue;
+        Label normalRate;
+        Label normalTime;
 
         Label slowestLabel;
-        Label slowestValue;
+        Label slowestRate;
+        Label slowestTime;
 
         public FeeEstimatorView(FeeEstimatorViewModel viewModel)
         {
@@ -66,9 +69,14 @@ namespace Liviano.CLI.Gui.Views
 
         void UpdateValues()
         {
-            fastestValue.Text = $"{ViewModel.Fees.fastest_sat_per_kilobyte / 1_000} sats per byte";
-            normalValue.Text = $"{ViewModel.Fees.normal_sat_per_kilobyte / 1_000} sats per byte";
-            slowestValue.Text = $"{ViewModel.Fees.slow_sat_per_kilobyte / 1_000} sats per byte";
+            fastestRate.Text = $"{ViewModel.Fees.fastest_sat_per_kilobyte / 1_000} sats per byte";
+            fastestTime.Text = $"{ViewModel.Fees.fastest_time / 60} hours";
+
+            normalRate.Text = $"{ViewModel.Fees.normal_sat_per_kilobyte / 1_000} sats per byte";
+            normalTime.Text = $"{ViewModel.Fees.normal_time / 60} hours";
+
+            slowestRate.Text = $"{ViewModel.Fees.slow_sat_per_kilobyte / 1_000} sats per byte";
+            slowestTime.Text = $"{ViewModel.Fees.slow_time / 60} hours";
         }
 
         void SetGui()
@@ -76,47 +84,71 @@ namespace Liviano.CLI.Gui.Views
             fastestLabel = new("Fastest fee:")
             {
                 X = 0,
-                Y = 0,
-                Width = Dim.Percent(50f),
+                Y = 1,
+                Width = Dim.Percent(33.33f),
             };
-            fastestValue = new()
+            fastestRate = new()
             {
-                X = Pos.AnchorEnd(),
-                Y = 0,
+                X = Pos.Right(fastestLabel),
+                Y = 1,
+                Width = Dim.Percent(33.33f),
+            };
+            fastestTime = new()
+            {
+                X = Pos.Right(fastestRate),
+                Y = 1,
+                Width = Dim.Percent(33.33f),
             };
 
             controls.Add(fastestLabel);
-            controls.Add(fastestValue);
+            controls.Add(fastestRate);
+            controls.Add(fastestTime);
 
             normalLabel = new("Normal fee:")
             {
                 X = 0,
-                Y = 2,
-                Width = Dim.Percent(50f),
+                Y = 3,
+                Width = Dim.Percent(33.33f),
             };
-            normalValue = new()
+            normalRate = new()
             {
-                X = Pos.AnchorEnd(),
-                Y = 2,
+                X = Pos.Right(normalLabel),
+                Y = 3,
+                Width = Dim.Percent(33.33f),
+            };
+            normalTime = new()
+            {
+                X = Pos.Right(normalRate),
+                Y = 3,
+                Width = Dim.Percent(33.33f),
             };
 
             controls.Add(normalLabel);
-            controls.Add(normalValue);
+            controls.Add(normalRate);
+            controls.Add(normalTime);
 
             slowestLabel = new("Slowest fee:")
             {
                 X = 0,
-                Y = 4,
-                Width = Dim.Percent(50f),
+                Y = 5,
+                Width = Dim.Percent(33.33f),
             };
-            slowestValue = new()
+            slowestRate = new()
             {
-                X = Pos.AnchorEnd(),
-                Y = 4,
+                X = Pos.Right(slowestLabel),
+                Y = 5,
+                Width = Dim.Percent(33.33f),
+            };
+            slowestTime = new()
+            {
+                X = Pos.Right(slowestRate),
+                Y = 5,
+                Width = Dim.Percent(33.33f),
             };
 
             controls.Add(slowestLabel);
-            controls.Add(slowestValue);
+            controls.Add(slowestRate);
+            controls.Add(slowestTime);
         }
     }
 }
