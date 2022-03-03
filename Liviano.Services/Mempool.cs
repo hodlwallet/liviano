@@ -70,7 +70,7 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Start] Started Mempool service.");
 
-            Update().Wait();
+            Stats = MempoolHttpService.GetStatistics2h().Result;
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)

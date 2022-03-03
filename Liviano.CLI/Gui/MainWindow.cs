@@ -65,6 +65,7 @@ namespace Liviano.CLI.Gui
             wallet = Load(config);
             homeView = new HomeView(new HomeViewModel(wallet));
             mempoolGraphView = new MempoolGraphView(new MempoolGraphViewModel());
+            feeEstimatorView = new FeeEstimatorView(new FeeEstimatorViewModel());
         }
 
         void SetGui()

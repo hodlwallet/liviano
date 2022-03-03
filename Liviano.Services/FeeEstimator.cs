@@ -63,7 +63,7 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Start] Started Fee estimator service.");
 
-            Update().Wait();
+            Fees = FeeEstimatorHttpService.GetFeeEstimator().Result;
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.FEE_ESTIMATOR_INTERVAL_MS), RxApp.TaskpoolScheduler)

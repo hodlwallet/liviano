@@ -23,6 +23,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
 using System.Collections.Generic;
 
 using ReactiveUI;
@@ -42,5 +43,80 @@ namespace Liviano.CLI.Gui.Views
 
         List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
+
+        Label fastestLabel;
+        Label fastestValue;
+
+        Label normalLabel;
+        Label normalValue;
+
+        Label slowestLabel;
+        Label slowestValue;
+
+        public FeeEstimatorView(FeeEstimatorViewModel viewModel)
+        {
+            ViewModel = viewModel;
+
+            SetGui();
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Fees)
+                .Subscribe(_ => UpdateValues());
+        }
+
+        void UpdateValues()
+        {
+            fastestValue.Text = $"{ViewModel.Fees.fastest_sat_per_kilobyte / 1_000} sats per byte";
+            normalValue.Text = $"{ViewModel.Fees.normal_sat_per_kilobyte / 1_000} sats per byte";
+            slowestValue.Text = $"{ViewModel.Fees.slow_sat_per_kilobyte / 1_000} sats per byte";
+        }
+
+        void SetGui()
+        {
+            fastestLabel = new("Fastest fee:")
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Percent(50f),
+            };
+            fastestValue = new()
+            {
+                X = Pos.AnchorEnd(),
+                Y = 0,
+            };
+
+            controls.Add(fastestLabel);
+            controls.Add(fastestValue);
+
+            normalLabel = new("Normal fee:")
+            {
+                X = 0,
+                Y = 2,
+                Width = Dim.Percent(50f),
+            };
+            normalValue = new()
+            {
+                X = Pos.AnchorEnd(),
+                Y = 2,
+            };
+
+            controls.Add(normalLabel);
+            controls.Add(normalValue);
+
+            slowestLabel = new("Slowest fee:")
+            {
+                X = 0,
+                Y = 4,
+                Width = Dim.Percent(50f),
+            };
+            slowestValue = new()
+            {
+                X = Pos.AnchorEnd(),
+                Y = 4,
+            };
+
+            controls.Add(slowestLabel);
+            controls.Add(slowestValue);
+        }
     }
 }

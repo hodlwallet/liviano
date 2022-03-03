@@ -23,13 +23,34 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Runtime.Serialization;
 
 using ReactiveUI;
 
+using Liviano.Services;
+using Liviano.Services.Models;
+
 namespace Liviano.CLI.Gui.ViewModels
 {
+    [DataContract]
     public class FeeEstimatorViewModel : ReactiveObject
     {
+        FeeEstimatorEntity fees;
+        public FeeEstimatorEntity Fees
+        {
+            get => fees;
+            set => this.RaiseAndSetIfChanged(ref fees, value);
+        }
 
+        readonly FeeEstimator FeeEstimatorService = new();
+
+        public FeeEstimatorViewModel()
+        {
+            FeeEstimatorService.Start();
+
+            FeeEstimatorService
+                .WhenAnyValue(service => service.Fees)
+                .BindTo(this, vm => vm.Fees);
+        }
     }
 }

@@ -43,6 +43,7 @@ namespace Liviano.CLI.Gui.ViewModels
             get => stat;
             set => this.RaiseAndSetIfChanged(ref stat, value);
         }
+
         readonly Mempool MempoolService = new();
 
         public MempoolGraphViewModel()
@@ -51,9 +52,9 @@ namespace Liviano.CLI.Gui.ViewModels
             Stat = MempoolService.Stats.First();
 
             MempoolService
-                .WhenAnyValue(x => x.Stats)
-                .Select(x => x.First())
-                .BindTo(this, x => x.Stat);
+                .WhenAnyValue(service => service.Stats)
+                .Select(stats => stats.First())
+                .BindTo(this, vm => vm.Stat);
         }
     }
 }
