@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 
 using ReactiveUI;
 using Terminal.Gui;
@@ -43,6 +44,8 @@ namespace Liviano.CLI.Gui.Views
 
         List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
+
+        Label snapshotTime;
 
         Label fastestLabel;
         Label fastestRate;
@@ -64,11 +67,14 @@ namespace Liviano.CLI.Gui.Views
 
             this
                 .WhenAnyValue(view => view.ViewModel.Fees)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => UpdateValues());
         }
 
         void UpdateValues()
         {
+            snapshotTime.Text = $"Snapshot at: {DateTimeOffset.UtcNow.ToLocalTime()}";
+
             fastestRate.Text = $"{ViewModel.Fees.fastest_sat_per_kilobyte / 1_000} sats per byte";
             fastestTime.Text = $"{ViewModel.Fees.fastest_time / 60} hours";
 
@@ -81,22 +87,30 @@ namespace Liviano.CLI.Gui.Views
 
         void SetGui()
         {
+            snapshotTime = new("")
+            {
+                X = Pos.Center(),
+                Y = 0,
+            };
+
+            controls.Add(snapshotTime);
+
             fastestLabel = new("Fastest fee:")
             {
                 X = 0,
-                Y = 1,
+                Y = 2,
                 Width = Dim.Percent(33.33f),
             };
             fastestRate = new()
             {
                 X = Pos.Right(fastestLabel),
-                Y = 1,
+                Y = 2,
                 Width = Dim.Percent(33.33f),
             };
             fastestTime = new()
             {
                 X = Pos.Right(fastestRate),
-                Y = 1,
+                Y = 2,
                 Width = Dim.Percent(33.33f),
             };
 
@@ -107,19 +121,19 @@ namespace Liviano.CLI.Gui.Views
             normalLabel = new("Normal fee:")
             {
                 X = 0,
-                Y = 3,
+                Y = 4,
                 Width = Dim.Percent(33.33f),
             };
             normalRate = new()
             {
                 X = Pos.Right(normalLabel),
-                Y = 3,
+                Y = 4,
                 Width = Dim.Percent(33.33f),
             };
             normalTime = new()
             {
                 X = Pos.Right(normalRate),
-                Y = 3,
+                Y = 4,
                 Width = Dim.Percent(33.33f),
             };
 
@@ -130,19 +144,19 @@ namespace Liviano.CLI.Gui.Views
             slowestLabel = new("Slowest fee:")
             {
                 X = 0,
-                Y = 5,
+                Y = 6,
                 Width = Dim.Percent(33.33f),
             };
             slowestRate = new()
             {
                 X = Pos.Right(slowestLabel),
-                Y = 5,
+                Y = 6,
                 Width = Dim.Percent(33.33f),
             };
             slowestTime = new()
             {
                 X = Pos.Right(slowestRate),
-                Y = 5,
+                Y = 6,
                 Width = Dim.Percent(33.33f),
             };
 
