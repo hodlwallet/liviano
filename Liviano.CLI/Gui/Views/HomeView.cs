@@ -60,11 +60,13 @@ namespace Liviano.CLI.Gui.Views
 
             this
                 .WhenAnyValue(view => view.ViewModel.Balance)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(balance, balance => balance.Text);
 
             this
                 .WhenAnyValue(view => view.ViewModel.Txs)
                 .Select(txs => TxsToUString(txs))
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(serializedTxs => SetTransactionList(serializedTxs));
 
             SetTransactionList(TxsToUString(ViewModel.Txs));
