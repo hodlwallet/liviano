@@ -48,9 +48,10 @@ namespace Liviano.CLI.Gui
 
         HomeView homeView;
         MempoolGraphView mempoolGraphView;
+        FeeEstimatorView feeEstimatorView;
 
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
-        readonly string[] menuItemsList = { "Home", "Mempool Graph" };
+        readonly string[] menuItemsList = { "Home", "Mempool Graph", "Fee Estimator" };
 
         readonly IWallet wallet;
 
@@ -119,6 +120,9 @@ namespace Liviano.CLI.Gui
                     break;
                 case "Mempool Graph":
                     AddContent(mempoolGraphView);
+                    break;
+                case "Fee Estimator":
+                    AddContent(feeEstimatorView);
                     break;
                 default:
                     break;
