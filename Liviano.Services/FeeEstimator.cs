@@ -1,5 +1,5 @@
 //
-// Fee.cs
+// FeeEstimator.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -29,7 +29,7 @@ using Liviano.Services.Interfaces;
 
 namespace Liviano.Services
 {
-    public class Fee : ReactiveObject, IService
+    public class FeeEstimator : ReactiveObject, IService
     {
         public void Cancel()
         {

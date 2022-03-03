@@ -27,5 +27,42 @@ namespace Liviano.Services.Models
 {
     public class FeeEstimatorEntity
     {
+        // Example response:
+        //
+        // {
+        // 	"fastest_blocks": 2,
+        // 	"fastest_btc_per_kilobyte": 0.00022187,
+        // 	"fastest_sat_per_kilobyte": 22187,
+        // 	"fastest_time": 60,
+        // 	"fastest_time_text": "10 - 45 minutes",
+        // 	"normal_blocks": 10,
+        // 	"normal_btc_per_kilobyte": 0.00010699,
+        // 	"normal_sat_per_kilobyte": 10699,
+        // 	"normal_time": 180,
+        // 	"normal_time_text": "1 - 2 hours",
+        // 	"slow_blocks": 45,
+        // 	"slow_btc_per_kilobyte": 1e-05,
+        // 	"slow_sat_per_kilobyte": 1000,
+        // 	"slow_time": 750,
+        // 	"slow_time_text": "3 - 24 hours"
+        // }
+
+        public int fastest_blocks { get; set; }
+        public double fastest_btc_per_kilobyte { get; set; }
+        public int fastest_sat_per_kilobyte { get; set; }
+        public int fastest_time { get; set; }
+        public string fastest_time_text { get; set; }
+
+        public int normal_blocks { get; set; }
+        public double normal_btc_per_kilobyte { get; set; }
+        public int normal_sat_per_kilobyte { get; set; }
+        public int normal_time { get; set; }
+        public string normal_time_text { get; set; }
+
+        public int slow_blocks { get; set; }
+        public double slow_btc_per_kilobyte { get; set; }
+        public int slow_sat_per_kilobyte { get; set; }
+        public int slow_time { get; set; }
+        public string slow_time_text { get; set; }
     }
 }
