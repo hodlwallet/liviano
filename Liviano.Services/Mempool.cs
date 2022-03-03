@@ -58,9 +58,9 @@ namespace Liviano.Services
 
         public Mempool() { }
 
-        async Task SetStats()
+        public async Task Update()
         {
-            Debug.WriteLine("[SetStats] Setting stats from mempool service");
+            Debug.WriteLine("[Update] Update stats from mempool service");
 
             Stats = await MempoolHttpService.GetStatistics2h();
         }
@@ -80,7 +80,7 @@ namespace Liviano.Services
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => await SetStats(), cts.Token);
+                .Subscribe(async _ => await Update(), cts.Token);
         }
 
     }
