@@ -44,7 +44,7 @@ namespace Liviano.Services
         const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
 #endif
 
-        static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_2H_STATS);
+        static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_API);
 
         readonly CancellationTokenSource cts = new();
 
@@ -56,16 +56,6 @@ namespace Liviano.Services
         }
 
         public Mempool() { }
-
-        public void Start()
-        {
-            Debug.WriteLine("[Start] Started Mempool service.");
-            Stats = MempoolHttpService.GetStatistics2h().Result;
-
-            Observable
-                .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => await SetStats(), cts.Token);
-        }
 
         async Task SetStats()
         {
@@ -80,5 +70,17 @@ namespace Liviano.Services
 
             cts.Cancel();
         }
+
+        public void Start()
+        {
+            Debug.WriteLine("[Start] Started Mempool service.");
+
+            Stats = MempoolHttpService.GetStatistics2h().Result;
+
+            Observable
+                .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
+                .Subscribe(async _ => await SetStats(), cts.Token);
+        }
+
     }
 }
