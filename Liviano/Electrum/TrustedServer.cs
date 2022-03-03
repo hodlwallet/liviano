@@ -781,7 +781,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
 
                 for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count - 1; i++)
-                    addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
+                    addressSyncTasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
             await Task.Factory.StartNew(
