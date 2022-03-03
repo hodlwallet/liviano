@@ -1,5 +1,5 @@
 //
-// IService.cs
+// FeeEstimatorEntity.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -23,11 +23,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-namespace Liviano.Services.Interfaces
+namespace Liviano.Services.Models
 {
-    public interface IService
+    public class FeeEstimatorEntity
     {
-        void Start();
-        void Cancel();
     }
 }

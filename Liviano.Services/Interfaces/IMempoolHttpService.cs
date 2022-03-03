@@ -29,7 +29,7 @@ using Refit;
 
 using Liviano.Services.Models;
 
-namespace Liviano.Services
+namespace Liviano.Services.Interfaces
 {
     public interface IMempoolHttpService
     {

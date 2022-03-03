@@ -25,6 +25,8 @@
 // THE SOFTWARE.
 using ReactiveUI;
 
+using Liviano.Services.Interfaces;
+
 namespace Liviano.Services
 {
     public class Fee : ReactiveObject, IService
