@@ -56,26 +56,16 @@ namespace Liviano.Electrum
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
             if (chain.ChainStatus.Length == 0 && sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && certificate.Subject == certificate.Issuer)
-            {
                 return true;
-            }
             else if (chain.ChainStatus.Length == 1)
             {
                 // Self signed certificates have the issuer in the subject field
                 if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors || certificate.Subject == certificate.Issuer)
                 {
                     // If THIS is the cause of of the error then allow the certificate, a static 0 as the index is safe given chain.ChainStatus.Length == 1.
-                    if (chain.ChainStatus[0].Status == X509ChainStatusFlags.UntrustedRoot)
-                    {
-                        Debug.WriteLine("[ValidateServerCertificate] Self-signed ssl certificate");
-
-                        // Self-signed certificates with an untrusted root are valid.
-                        return true;
-                    }
-                    else
-                    {
-                        Debug.WriteLine("[ValidateServerCertificate] Error: Failed to validate ssl certificate");
-                    }
+                    // Self-signed certificates with an untrusted root are valid.
+                    if (chain.ChainStatus[0].Status == X509ChainStatusFlags.UntrustedRoot) return true;
+                    else Debug.WriteLine("[ValidateServerCertificate] Error: Failed to validate ssl certificate");
                 }
             }
 
