@@ -29,5 +29,13 @@ namespace Liviano.Services
     {
         public const string MEMPOOL_SPACE_API = "https://mempool.space/api/v1";
         public const string PRECIO_API = "https://precio.bitstop.co/";
+
+#if DEBUG
+        public const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 5_000;
+        public const int FEE_ESTIMATOR_INTERVAL_MS = 5_000;
+#else
+        public const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
+        public const int FEE_ESTIMATOR_INTERVAL_MS = 30_000;
+#endif
     }
 }

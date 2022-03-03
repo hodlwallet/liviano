@@ -39,12 +39,6 @@ namespace Liviano.Services
 {
     public class Mempool : ReactiveObject, IService
     {
-#if DEBUG
-        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 5000;
-#else
-        const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
-#endif
-
         static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_API);
 
         readonly CancellationTokenSource cts = new();
@@ -76,10 +70,10 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Start] Started Mempool service.");
 
-            Stats = MempoolHttpService.GetStatistics2h().Result;
+            Update().Wait();
 
             Observable
-                .Interval(TimeSpan.FromMilliseconds(MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
+                .Interval(TimeSpan.FromMilliseconds(Constants.MEMPOOL_SPACE_2H_STATS_INTERVAL_MS), RxApp.TaskpoolScheduler)
                 .Subscribe(async _ => await Update(), cts.Token);
         }
 

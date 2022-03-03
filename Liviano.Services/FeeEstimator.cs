@@ -23,29 +23,58 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
+using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ReactiveUI;
+using Refit;
 
 using Liviano.Services.Interfaces;
+using Liviano.Services.Models;
 
 namespace Liviano.Services
 {
     public class FeeEstimator : ReactiveObject, IService
     {
+        static IFeeEstimatorHttpService FeeEstimatorHttpService => RestService.For<IFeeEstimatorHttpService>(Constants.PRECIO_API);
+
+        readonly CancellationTokenSource cts = new();
+
+        FeeEstimatorEntity fees;
+        public FeeEstimatorEntity Fees
+        {
+            get => fees;
+            set => this.RaiseAndSetIfChanged(ref fees, value);
+        }
+
+        public FeeEstimator() { }
+
         public void Cancel()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Cancel] Cancelling fee estimator service");
+
+            cts.Cancel();
         }
 
         public void Start()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Start] Started Fee estimator service.");
+
+            Update().Wait();
+
+            Observable
+                .Interval(TimeSpan.FromMilliseconds(Constants.FEE_ESTIMATOR_INTERVAL_MS), RxApp.TaskpoolScheduler)
+                .Subscribe(async _ => await Update(), cts.Token);
         }
 
-        public Task Update()
+        public async Task Update()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Update] Update fees from fee estimator service");
+
+            Fees = await FeeEstimatorHttpService.GetFeeEstimator();
         }
     }
 }
