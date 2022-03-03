@@ -205,7 +205,7 @@ namespace Liviano.Extensions
             {
                 string error = string.Join<string>(", ", errors.Select(o => o.Message));
 
-                Debug.WriteLine($"[CreateTransaction] Error: {error}");
+                Debug.WriteLine($"[BumpFee] Error: {error}");
 
                 throw new WalletException(error);
             }
