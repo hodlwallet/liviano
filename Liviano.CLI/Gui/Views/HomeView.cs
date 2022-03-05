@@ -148,7 +148,8 @@ namespace Liviano.CLI.Gui.Views
 
         void Transactions_KeyUp(View.KeyEventEventArgs args)
         {
-            if (args.KeyEvent.Key == Key.Enter) OpenTransactionDetails();
+            var key = args.KeyEvent.Key;
+            if (key == Key.Enter || key == Key.Space) OpenTransactionDetails();
         }
 
         void OpenTransactionDetails()
