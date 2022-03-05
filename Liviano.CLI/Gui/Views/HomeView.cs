@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 using NStack;
@@ -105,26 +106,6 @@ namespace Liviano.CLI.Gui.Views
 
         void SetGui()
         {
-            transactions = new()
-            {
-                X = 0,
-                Y = 4,
-                Width = Dim.Fill(0),
-                Height = Dim.Fill(0),
-                CanFocus = true,
-            };
-
-            controls.Add(transactions);
-
-            transactionsTitle = new("Transactions:")
-            {
-                X = 0,
-                Y = 2,
-                Width = Dim.Fill(0),
-            };
-
-            controls.Add(transactionsTitle);
-
             balance = new("Balance: 0.0 BTC")
             {
                 X = 0,
@@ -141,6 +122,61 @@ namespace Liviano.CLI.Gui.Views
             };
 
             controls.Add(status);
+
+            transactionsTitle = new("Transactions:")
+            {
+                X = 0,
+                Y = 2,
+                Width = Dim.Fill(0),
+            };
+
+            controls.Add(transactionsTitle);
+
+            transactions = new()
+            {
+                X = 0,
+                Y = 4,
+                Width = Dim.Fill(0),
+                Height = Dim.Fill(0),
+                CanFocus = true,
+            };
+
+            transactions.KeyUp += Transactions_KeyUp;
+
+            controls.Add(transactions);
+        }
+
+        void Transactions_KeyUp(View.KeyEventEventArgs args)
+        {
+            if (args.KeyEvent.Key == Key.Enter) OpenTransactionDetails();
+        }
+
+        void OpenTransactionDetails()
+        {
+            Debug.WriteLine("[OpenTransactionDetails] Opening transaction details");
+
+            var tx = ViewModel.Txs[transactions.SelectedItem];
+
+            var okButton = new Button("Ok", true);
+            var dialog = new Dialog("Transaction Detail", 85, 20, okButton);
+
+            okButton.Clicked += () =>
+            {
+                Application.RequestStop();
+            };
+
+            dialog.Add(new Label($"Id:           {tx.Id}") { X = 0, Y = 0 });
+            dialog.Add(new Label($"Created At:   {tx.CreatedAt.Value}") { X = 0, Y = 1 });
+            dialog.Add(new Label($"Block Height: {tx.BlockHeight}") { X = 0, Y = 2 });
+
+            if (tx.IsReceive)
+                dialog.Add(new Label($"At:           {tx.ScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
+            else
+                dialog.Add(new Label($"From:         {tx.SentScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
+
+            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 4 });
+
+            Application.Run(dialog);
         }
     }
 }
