@@ -158,39 +158,62 @@ namespace Liviano.CLI.Gui.Views
             Debug.WriteLine("[OpenTransactionDetails] Opening transaction details");
 
             var tx = ViewModel.Txs[transactions.SelectedItem];
+            var baseUrl = $"https://blockstream.info/{tx.Network.ToString().ToLower()}";
 
-            var okButton = new Button("Ok", true);
-            var openButton = new Button("Open", true);
-            var dialog = new Dialog("Transaction Detail", 85, 10, okButton, openButton);
+            var closeButton = new Button("Close");
+            var openButton = new Button("Open In Browser");
+            var dialog = new Dialog("Transaction Detail", 85, 11, closeButton, openButton);
 
-            okButton.Clicked += () =>
+            closeButton.Clicked += () => Application.RequestStop();
+            openButton.Clicked += () => OpenUrl($"{baseUrl}/tx/{tx.Id}");
+
+            var idLabel = new Label($"Id:           {tx.Id}") { X = 0, Y = 1, CanFocus = true };
+            idLabel.KeyUp += (args) =>
             {
-                Application.RequestStop();
+                if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
+                    OpenUrl($"{baseUrl}/tx/{tx.Id}");
             };
 
-            openButton.Clicked += () =>
+            dialog.Add(idLabel);
+
+            dialog.Add(new Label($"Created At:   {tx.CreatedAt.Value}") { X = 0, Y = 2 });
+
+            var blockHeightLabel = new Label($"Block Height: {tx.BlockHeight}") { X = 0, Y = 3, CanFocus = true };
+            blockHeightLabel.KeyUp += (args) =>
             {
-                var baseUrl = "https://blockstream.info/testnet/tx/{0}";
-
-                OpenUrl(string.Format(baseUrl, tx.Id));
+                if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
+                    OpenUrl($"{baseUrl}/block/{tx.Blockhash}");
             };
+            dialog.Add(blockHeightLabel);
 
-            dialog.Add(new Label($"Id:           {tx.Id}") { X = 0, Y = 0 });
-            dialog.Add(new Label($"Created At:   {tx.CreatedAt.Value}") { X = 0, Y = 1 });
-            dialog.Add(new Label($"Block Height: {tx.BlockHeight}") { X = 0, Y = 2 });
+            var address = string.Empty;
+            var addressText = string.Empty;
+            var amount = string.Empty;
 
             if (tx.IsReceive)
             {
-                dialog.Add(new Label($"At:           {tx.ScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
-                dialog.Add(new Label($"Amount:       {tx.AmountReceived}") { X = 0, Y = 4 });
+                address = tx.ScriptPubKey.GetDestinationAddress(tx.Network).ToString();
+                addressText = $"At:           {address}";
+                amount = $"Amount:       {tx.AmountReceived}";
             }
             else
             {
-                dialog.Add(new Label($"From:         {tx.SentScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
-                dialog.Add(new Label($"Amount:       {tx.AmountSent}") { X = 0, Y = 4 });
+                address = tx.SentScriptPubKey.GetDestinationAddress(tx.Network).ToString();
+                addressText = $"From:         {address}";
+                amount = $"Amount:       {tx.AmountSent}";
             }
 
-            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 5 });
+            var addressLabel = new Label(addressText) { X =0, Y = 4, CanFocus = true };
+            addressLabel.KeyUp += (args) =>
+            {
+                if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
+                    OpenUrl($"{baseUrl}/address/{address}");
+            };
+
+            dialog.Add(addressLabel);
+            dialog.Add(new Label(amount) { X =0, Y = 5 });
+
+            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 6 });
 
             Application.Run(dialog);
         }
