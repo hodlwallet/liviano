@@ -35,6 +35,7 @@ using Terminal.Gui;
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.Models;
+using System.Runtime.InteropServices;
 
 namespace Liviano.CLI.Gui.Views
 {
@@ -159,11 +160,19 @@ namespace Liviano.CLI.Gui.Views
             var tx = ViewModel.Txs[transactions.SelectedItem];
 
             var okButton = new Button("Ok", true);
-            var dialog = new Dialog("Transaction Detail", 85, 20, okButton);
+            var openButton = new Button("Open", true);
+            var dialog = new Dialog("Transaction Detail", 85, 10, okButton, openButton);
 
             okButton.Clicked += () =>
             {
                 Application.RequestStop();
+            };
+
+            openButton.Clicked += () =>
+            {
+                var baseUrl = "https://blockstream.info/testnet/tx/{0}";
+
+                OpenUrl(string.Format(baseUrl, tx.Id));
             };
 
             dialog.Add(new Label($"Id:           {tx.Id}") { X = 0, Y = 0 });
@@ -171,13 +180,57 @@ namespace Liviano.CLI.Gui.Views
             dialog.Add(new Label($"Block Height: {tx.BlockHeight}") { X = 0, Y = 2 });
 
             if (tx.IsReceive)
+            {
                 dialog.Add(new Label($"At:           {tx.ScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
+                dialog.Add(new Label($"Amount:       {tx.AmountReceived}") { X = 0, Y = 4 });
+            }
             else
+            {
                 dialog.Add(new Label($"From:         {tx.SentScriptPubKey.GetDestinationAddress(tx.Network)}") { X = 0, Y = 3 });
+                dialog.Add(new Label($"Amount:       {tx.AmountSent}") { X = 0, Y = 4 });
+            }
 
-            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 4 });
+            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 5 });
 
             Application.Run(dialog);
+        }
+
+        static void OpenUrl(string url)
+        {
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    using (var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "xdg-open",
+                            Arguments = url,
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true,
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        }
+                    })
+                    {
+                        process.Start();
+                    }
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }
