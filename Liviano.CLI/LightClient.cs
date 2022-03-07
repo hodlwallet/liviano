@@ -41,6 +41,8 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Storages;
 using Liviano.Utilities;
+using System.Reactive.Linq;
+using ReactiveUI;
 
 namespace Liviano.CLI
 {
@@ -55,28 +57,22 @@ namespace Liviano.CLI
         /// <summary>
         /// Saves the wallet every <see cref="PERIODIC_SAVE_DELAY"/>
         /// </summary>
-        static async Task PeriodicSave()
+        static void PeriodicSave()
         {
-            while (true)
-            {
-                await Save();
-
-                await Task.Delay(PERIODIC_SAVE_DELAY);
-            }
+            Observable
+                .Interval(TimeSpan.FromMilliseconds(PERIODIC_SAVE_DELAY), RxApp.TaskpoolScheduler)
+                .Subscribe(_ => Save());
         }
 
         /// <summary>
         /// Saves the wallet
         /// </summary>
-        static async Task Save()
+        static void Save()
         {
-            await Task.Factory.StartNew(() =>
+            lock (@lock)
             {
-                lock (@lock)
-                {
-                    wallet.Storage.Save();
-                }
-            });
+                wallet.Storage.Save();
+            }
         }
 
         /// <summary>
@@ -594,15 +590,15 @@ namespace Liviano.CLI
             switch (action)
             {
                 case "sync":
-                    Task.Run(async () => await wallet.Sync());
+                    Observable.Start(async () => await wallet.Sync());
                     break;
 
                 case "resync":
-                    Task.Run(async () => await wallet.Resync());
+                    Observable.Start(async () => await wallet.Resync());
                     break;
             }
 
-            _ = PeriodicSave();
+            PeriodicSave();
 
             WaitUntilEscapeIsPressed(exitCallback: () =>
             {
@@ -632,7 +628,7 @@ namespace Liviano.CLI
             );
 
 
-            _ = PeriodicSave();
+            PeriodicSave();
 
             WaitUntilEscapeIsPressed();
         }
@@ -660,7 +656,7 @@ namespace Liviano.CLI
                 logger.Information("New header found height: {height} time: {time}", o.Height, DateTimeOffset.UtcNow);
             };
 
-            _ = PeriodicSave();
+            PeriodicSave();
 
             WaitUntilEscapeIsPressed();
         }
@@ -851,7 +847,7 @@ namespace Liviano.CLI
             {
                 wallet.Watch();
 
-                _ = PeriodicSave();
+                PeriodicSave();
 
                 WaitUntilEscapeIsPressed();
 
@@ -860,7 +856,7 @@ namespace Liviano.CLI
 
             wallet.Sync();
 
-            _ = PeriodicSave();
+            PeriodicSave();
 
             WaitUntilEscapeIsPressed();
         }
@@ -1011,7 +1007,7 @@ namespace Liviano.CLI
         static void Quit(int retVal = 0)
         {
             logger.Information("Saving...");
-            Save().Wait();
+            Save();
 
             var process = Process.GetCurrentProcess();
 
