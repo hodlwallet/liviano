@@ -28,10 +28,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
+using ReactiveUI;
 using Serilog;
 
 using Liviano.Bips;
@@ -41,8 +43,6 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Storages;
 using Liviano.Utilities;
-using System.Reactive.Linq;
-using ReactiveUI;
 
 namespace Liviano.CLI
 {

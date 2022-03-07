@@ -24,23 +24,24 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using System.IO;
 
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ReactiveUI;
 
-using Liviano.Models;
-using Liviano.Interfaces;
-using Liviano.Extensions;
-using Liviano.Exceptions;
 using Liviano.Events;
+using Liviano.Exceptions;
+using Liviano.Extensions;
+using Liviano.Interfaces;
+using Liviano.Models;
 
 using static Liviano.Electrum.ElectrumClient;
 
@@ -290,11 +291,7 @@ namespace Liviano.Electrum
             foreach (var addr in addresses)
                 addressWatchTasks.Add(WatchAddress(acc, addr, ct));
 
-            await Task.Factory.StartNew(
-                o => Task.WaitAll(addressWatchTasks.ToArray(), ct),
-                TaskCreationOptions.LongRunning,
-                ct
-            );
+            await Observable.Start(() => Task.WaitAll(addressWatchTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
 
             acc.FindAndRemoveDuplicateUtxo();
         }
@@ -706,11 +703,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
-            await Task.Factory.StartNew(
-                o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.LongRunning,
-                ct
-            );
+            await Observable.Start(() => Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
 
             acc.FindAndRemoveDuplicateUtxo();
 
@@ -784,11 +777,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            await Task.Factory.StartNew(
-                o => Task.WaitAll(addressSyncTasks.ToArray(), ct),
-                TaskCreationOptions.LongRunning,
-                ct
-            );
+            await Observable.Start(() =>Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
 
             var endTxCount = acc.Txs.Count;
 
