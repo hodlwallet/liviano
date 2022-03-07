@@ -21,21 +21,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Net.Security;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
-using System.Net.NetworkInformation;
-using System.Threading;
-
-using Liviano.Models;
-using Liviano.Exceptions;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Reactive.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ReactiveUI;
+
+using Liviano.Exceptions;
+using Liviano.Models;
 
 namespace Liviano.Electrum
 {
@@ -69,17 +72,11 @@ namespace Liviano.Electrum
         int port;
         public string Host { get; private set; }
 
-        public CancellationTokenSource Cts;
-
-        public Task PollSslClientTask;
-        public Task ConsumeMessagesTask;
-        public Task ConsumeRequestsTask;
+        public CancellationTokenSource Cts = new();
 
         public JsonRpcClient(Server server)
         {
             this.server = server;
-
-            Cts ??= new();
 
             InitQueue();
         }
@@ -300,10 +297,10 @@ namespace Liviano.Electrum
                 return;
             }
 
-            await Task.Run(
+            Observable.Start(
                 () => CallbackOnResult(requestId, notificationCallback),
-                Cts.Token
-            );
+                RxApp.TaskpoolScheduler
+            ).Subscribe(Cts.Token);
 
             Debug.WriteLine("[Subscribe] Subscription failed.");
             OnSubscriptionFailed?.Invoke(this, requestId);
@@ -315,71 +312,51 @@ namespace Liviano.Electrum
 
             isSslPolling = true;
 
-            PollSslClientTask = Task.Run(async () =>
+            Observable.Start(() =>
             {
                 var ping = new Ping();
-                var pingOptions = new PingOptions(64, true)
-                {
-                    DontFragment = true
-                };
+                var pingOptions = new PingOptions(64, true);
                 var pingData = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
                 var pingTimeout = TCP_CLIENT_POLL_TIME_TO_WAIT;
                 var pingBuffer = Encoding.ASCII.GetBytes(pingData);
 
                 bool isConnected = false;
-                while (true)
+
+                Observable
+                    .Interval(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT), RxApp.TaskpoolScheduler)
+                    .Subscribe(_ =>
                 {
                     bool initialIsConnected = isConnected;
 
-                    if (NetworkInterface.GetIsNetworkAvailable())
+                    if (!NetworkInterface.GetIsNetworkAvailable())
                     {
-                        // Ping the hostname first
-                        var pingTask = Task.Run(() =>
-                        {
-                            var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
+                        isConnected = false;
 
-                            if (pingReply.Status != IPStatus.Success)
-                            {
-                                Debug.WriteLine("[PollSslClient] Ping failed.");
-                                isConnected = false;
-                            }
-                        }, Cts.Token);
+                        if (initialIsConnected) OnDisconnected?.Invoke(this, null);
 
-                        if (await Task.WhenAny(pingTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != pingTask)
-                        {
-                            Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
-                            isConnected = false;
-                        }
-                        else
-                        {
-                            var tcpPollTask = Task.Run(() =>
-                            {
-                                // Now we test if the tcpclient can connect
-                                using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
-                                {
-                                    SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
-                                    ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
-                                };
-
-                                isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
-                                if (!isConnected)
-                                {
-                                    Debug.WriteLine("[PollSslClient] Stream is disconnected.");
-                                }
-                            }, Cts.Token);
-
-                            if (await Task.WhenAny(tcpPollTask, Task.Delay(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT))) != tcpPollTask)
-                            {
-                                Debug.WriteLine("[PollSslClient] Disconnected, ping task timeout!");
-                                isConnected = false;
-                            }
-                        }
+                        return;
                     }
-                    else
+
+                    var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
+
+                    if (pingReply.Status != IPStatus.Success)
                     {
-                        Debug.WriteLine("[PollSslClient] Network not available");
+                        Debug.WriteLine("[PollSslClient] Ping failed.");
 
                         isConnected = false;
+                    }
+
+                    // Now we test if the tcpclient can connect
+                    using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                    {
+                        SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
+                        ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
+                    };
+
+                    isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
+                    if (!isConnected)
+                    {
+                        Debug.WriteLine("[PollSslClient] Stream is disconnected.");
                     }
 
                     if (isConnected)
@@ -392,10 +369,8 @@ namespace Liviano.Electrum
 
                         if (initialIsConnected) OnDisconnected?.Invoke(this, null);
                     }
-
-                    await Task.Delay(TCP_CLIENT_POLL_TIME_TO_WAIT);
-                }
-            }, Cts.Token);
+                }, Cts.Token);
+            }).Subscribe(Cts.Token);
         }
 
         async Task<string> GetResult(string requestId)
@@ -429,7 +404,7 @@ namespace Liviano.Electrum
 
             consumingQueue = true;
 
-            ConsumeRequestsTask = Task.Run(async () =>
+            Observable.Start(async () =>
             {
                 var loopDelay = 3000;
                 try
@@ -458,7 +433,7 @@ namespace Liviano.Electrum
 
                 consumingQueue = false;
                 ConsumeRequests();
-            }, Cts.Token);
+            }).Subscribe(Cts.Token);
         }
 
         void EnqueueMessage(string requestId, string request)
@@ -478,7 +453,7 @@ namespace Liviano.Electrum
 
             readingStream = true;
 
-            ConsumeMessagesTask = Task.Run(async () =>
+            Observable.Start(async () =>
             {
                 try
                 {
@@ -562,7 +537,7 @@ namespace Liviano.Electrum
 
                     ConsumeMessages();
                 }
-            }, Cts.Token);
+            }).Subscribe(Cts.Token);
         }
 
         // FIXME: This is a hack, this method is to fix the problem of a msg not being parsed correctly due to an error

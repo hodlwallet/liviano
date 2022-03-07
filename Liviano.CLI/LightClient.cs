@@ -34,12 +34,12 @@ using System.Threading.Tasks;
 using NBitcoin;
 using Serilog;
 
-using Liviano.Exceptions;
-using Liviano.Models;
-using Liviano.Interfaces;
 using Liviano.Bips;
-using Liviano.Storages;
+using Liviano.Exceptions;
 using Liviano.Extensions;
+using Liviano.Interfaces;
+using Liviano.Models;
+using Liviano.Storages;
 using Liviano.Utilities;
 
 namespace Liviano.CLI
@@ -954,11 +954,11 @@ namespace Liviano.CLI
             if (quitHandledByIDE)
             {
                 Console.ReadLine();
-                exitCallback();
+                if (exitCallback is not null) exitCallback();
             }
             else
             {
-                exitCallback();
+                if (exitCallback is not null) exitCallback();
                 Quit();
             }
         }
