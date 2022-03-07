@@ -93,12 +93,9 @@ namespace Liviano.Electrum
             );
 #pragma warning restore IDE0068 // Use recommended dispose pattern
 
-            Debug.WriteLine("[GetSslStream] Client connected via ssl.");
-
             // The server name must match the name on the server certificate.
             try
             {
-                // TODO move this somewhere else
                 sslStream.AuthenticateAsClient(serverName);
             }
             catch (AuthenticationException e)
