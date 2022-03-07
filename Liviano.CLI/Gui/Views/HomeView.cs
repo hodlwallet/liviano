@@ -95,6 +95,8 @@ namespace Liviano.CLI.Gui.Views
                 else
                     address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Account.Network).ToString();
 
+                address = address.PadRight(62);
+
                 var localTime = tx.CreatedAt.Value.ToString("g");
 
                 res.Add(
