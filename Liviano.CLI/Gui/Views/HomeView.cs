@@ -71,6 +71,11 @@ namespace Liviano.CLI.Gui.Views
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(serializedTxs => SetTransactionList(serializedTxs));
 
+            this
+                .WhenAnyValue(view => view.ViewModel.Status)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .BindTo(status, status => status.Text);
+
             SetTransactionList(TxsToUString(ViewModel.Txs));
         }
 
@@ -91,9 +96,9 @@ namespace Liviano.CLI.Gui.Views
 
                 string address = string.Empty;
                 if (tx.IsReceive)
-                    address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Account.Network).ToString();
+                    address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
                 else
-                    address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Account.Network).ToString();
+                    address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
 
                 address = address.PadRight(62);
 
@@ -151,6 +156,8 @@ namespace Liviano.CLI.Gui.Views
 
         void Transactions_KeyUp(View.KeyEventEventArgs args)
         {
+            if (transactions.Source.Count == 0) return;
+
             var key = args.KeyEvent.Key;
             if (key == Key.Enter || key == Key.Space) OpenTransactionDetails();
         }

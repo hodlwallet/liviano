@@ -28,8 +28,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 using NStack;
+using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
 
 using Liviano.Interfaces;
@@ -40,8 +42,7 @@ namespace Liviano.CLI.Gui.ViewModels
     [DataContract]
     public class HomeViewModel : ReactiveObject
     {
-        readonly IWallet wallet;
-        public IAccount Account { get; set; }
+        public IWallet Wallet { get; set; }
 
         List<Tx> txs = new() { };
         public List<Tx> Txs
@@ -50,34 +51,55 @@ namespace Liviano.CLI.Gui.ViewModels
             set => this.RaiseAndSetIfChanged(ref txs, value);
         }
 
-        ustring balance;
+        ustring balance = ustring.Empty;
         public ustring Balance
         {
             get => balance;
             set => this.RaiseAndSetIfChanged(ref balance, value);
         }
 
+        ustring status = ustring.Empty;
+        public ustring Status
+        {
+            get => status;
+            set => this.RaiseAndSetIfChanged(ref status, value);
+        }
+
         public HomeViewModel(IWallet wallet)
         {
-            this.wallet = wallet;
-            Account = wallet.CurrentAccount;
+            Wallet = wallet;
 
             SetBalance();
             SetTransactions();
 
+            // Sync to complete the syncing then start watching
+            Observable.Start(async () =>
+            {
+                await wallet.Sync();
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                await wallet.Watch();
+            }, RxApp.TaskpoolScheduler);
+
+            Wallet.Events().OnSyncStarted.Subscribe(_ => Status = ustring.Make("[  Syncing  ]"));
+            Wallet.Events().OnSyncFinished.Subscribe(_ => Status = ustring.Make("[  Synced!  ]"));
+            Wallet.Events().OnWatchStarted.Subscribe(_ => Status = ustring.Make("[ Watching! ]"));
+
+            Wallet.Events().OnNewTransaction.Subscribe(_ => SetTransactions());
+
             // Bip32 accounts only track this one to change balance
             this
-                .WhenAnyValue(view => view.Account.UnspentCoins)
+                .WhenAnyValue(view => view.Wallet.CurrentAccount.UnspentCoins)
                 .Subscribe(_ => SetBalance());
 
             this
-                .WhenAnyValue(view => view.Account.Txs)
+                .WhenAnyValue(view => view.Wallet.CurrentAccount.Txs)
                 .Subscribe(_ => SetTransactions());
         }
 
         void SetTransactions()
         {
-            Txs = Account
+            Txs = Wallet
+                .CurrentAccount
                 .Txs
                 .Where(tx => tx.ScriptPubKey is not null || tx.SentScriptPubKey is not null) // FIXME there's a bug here with test mnemonic
                 .OrderByDescending(tx => tx.CreatedAt).ToList();
@@ -85,7 +107,7 @@ namespace Liviano.CLI.Gui.ViewModels
 
         void SetBalance()
         {
-            Balance = ustring.Make($"Balance: {Account.GetBalance()} BTC");
+            Balance = ustring.Make($"Balance: {Wallet.CurrentAccount.GetBalance()} BTC");
         }
     }
 }
