@@ -71,6 +71,8 @@ namespace Liviano
 
         public byte[] ChainCode { get; set; }
 
+        public SyncStatus SyncStatus { get; set; }
+
         public BlockHeader LastBlockHeader { get; set; }
 
         public string LastBlockHeaderHex { get; set; }
@@ -111,6 +113,8 @@ namespace Liviano
         public event EventHandler OnSyncStarted;
         public event EventHandler OnSyncFinished;
         public event EventHandler OnWatchStarted;
+
+        public event EventHandler OnSyncStatusChanged;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -170,13 +174,15 @@ namespace Liviano
 
             Storage ??= storage ?? new FileSystemWalletStorage(Id, Network);
 
-            AccountIds ??= new List<string>();
-            Accounts ??= new List<IAccount>();
+            AccountIds ??= new();
+            Accounts ??= new();
 
             CurrentAccountId ??= null;
             currentAccount ??= null;
 
-            Cts ??= new CancellationTokenSource();
+            Cts ??= new();
+
+            SyncStatus ??= new();
 
             Seed = mnemonic;
 
@@ -508,6 +514,9 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncStarted] Sync started at {DateTime.Now}");
 
+            SyncStatus = new(SyncStatusTypes.Syncing, string.Empty);
+
+            this.OnSyncStatusChanged?.Invoke(this, null);
             this.OnSyncStarted?.Invoke(this, null);
         }
 
@@ -525,6 +534,9 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnWatchStarted] Watch started at {DateTime.Now}");
 
+            SyncStatus = new(SyncStatusTypes.Watching, string.Empty);
+
+            this.OnSyncStatusChanged?.Invoke(this, null);
             this.OnWatchStarted?.Invoke(this, null);
         }
 
@@ -532,6 +544,9 @@ namespace Liviano
         {
             Debug.WriteLine($"[ElectrumPool_OnSyncFinished] Sync finished at {DateTime.Now}");
 
+            SyncStatus = new(SyncStatusTypes.SyncFinished, string.Empty);
+
+            this.OnSyncStatusChanged?.Invoke(this, null);
             this.OnSyncFinished?.Invoke(this, args);
         }
 

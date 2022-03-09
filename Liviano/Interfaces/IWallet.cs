@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using NBitcoin;
@@ -32,7 +33,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 
 using Liviano.Events;
-using System.Threading;
+using Liviano.Models;
 
 namespace Liviano.Interfaces
 {
@@ -99,6 +100,12 @@ namespace Liviano.Interfaces
         /// </summary>
         [JsonIgnore]
         byte[] ChainCode { get; set; }
+
+        /// <summary>
+        /// The Sync status
+        /// </summary>
+        [JsonProperty(PropertyName = "syncStatus", NullValueHandling = NullValueHandling.Ignore)]
+        SyncStatus SyncStatus { get; set; }
 
         /// <summary>
         /// The last block header
@@ -262,6 +269,8 @@ namespace Liviano.Interfaces
         event EventHandler OnSyncStarted;
         event EventHandler OnSyncFinished;
         event EventHandler OnWatchStarted;
+
+        event EventHandler OnSyncStatusChanged;
 
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
