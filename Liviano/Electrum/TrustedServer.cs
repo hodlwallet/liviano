@@ -265,8 +265,6 @@ namespace Liviano.Electrum
         {
             if (ct.IsCancellationRequested) return;
 
-            OnWatchStarted?.Invoke(this, null);
-
             foreach (var acc in wallet.Accounts) await WatchAccount(acc, ct);
         }
 
@@ -278,6 +276,8 @@ namespace Liviano.Electrum
         public async Task WatchAccount(IAccount acc, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
+
+            OnWatchStarted?.Invoke(this, null);
 
             var changeAddresses = acc.GetChangeAddressesToWatch();
             var receiveAddresses = acc.GetReceiveAddressesToWatch();
