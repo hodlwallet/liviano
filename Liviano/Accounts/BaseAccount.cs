@@ -28,7 +28,6 @@ using System.Linq;
 using System.Collections.Generic;
 
 using NBitcoin;
-using ReactiveUI;
 
 using Liviano.Interfaces;
 using Liviano.Models;
