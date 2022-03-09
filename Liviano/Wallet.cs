@@ -240,10 +240,7 @@ namespace Liviano
             AccountsIndex = new Dictionary<string, int>();
             var types = new string[] { "bip44", "bip49", "bip84", "bip141", "paper" };
 
-            foreach (var t in types)
-            {
-                AccountsIndex.Add(t, -1);
-            }
+            foreach (var t in types) AccountsIndex.Add(t, -1);
         }
 
         /// <summary>
