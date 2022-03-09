@@ -28,6 +28,8 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
 
 using NBitcoin;
 using NBitcoin.JsonConverters;
@@ -39,7 +41,6 @@ using Liviano.Utilities;
 using Liviano.Models;
 using Liviano.Accounts;
 using Liviano.Exceptions;
-using System.Threading;
 
 namespace Liviano.Storages
 {
@@ -120,8 +121,8 @@ namespace Liviano.Storages
 
             foreach (var account in Wallet.Accounts)
             {
-                account.Txs = GetTxs(account);
-                account.TxIds = account.Txs.Select((tx) => tx.Id.ToString()).ToList();
+                account.Txs = new ObservableCollection<Tx>(GetTxs(account));
+                account.TxIds = new ObservableCollection<string>(account.Txs.Select((tx) => tx.Id.ToString()).ToList());
             }
 
             if (string.IsNullOrEmpty(Wallet.CurrentAccountId) && Wallet.Accounts.Count > 0)

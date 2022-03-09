@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 using Newtonsoft.Json;
@@ -153,13 +154,13 @@ namespace Liviano.Interfaces
         /// Transactions ids sent to this account
         /// </summary>
         [JsonProperty(PropertyName = "txIds", NullValueHandling = NullValueHandling.Ignore)]
-        List<string> TxIds { get; set; }
+        ObservableCollection<string> TxIds { get; set; }
 
         /// <summary>
         /// The transactions sent to this account
         /// </summary>
         [JsonIgnore]
-        List<Tx> Txs { get; set; }
+        ObservableCollection<Tx> Txs { get; set; }
 
         /// <summary>
         /// The UTXO list from the account

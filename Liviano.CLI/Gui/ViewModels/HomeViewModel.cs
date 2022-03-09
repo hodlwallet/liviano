@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
@@ -74,7 +75,7 @@ namespace Liviano.CLI.Gui.ViewModels
             // Sync to complete the syncing then start watching
             Observable.Start(async () =>
             {
-                await wallet.Sync();
+                await wallet.Resync();
                 await Task.Delay(TimeSpan.FromSeconds(5));
                 await wallet.Watch();
             }, RxApp.TaskpoolScheduler);
@@ -83,7 +84,12 @@ namespace Liviano.CLI.Gui.ViewModels
             Wallet.Events().OnSyncFinished.Subscribe(_ => Status = ustring.Make("[  Synced!  ]"));
             Wallet.Events().OnWatchStarted.Subscribe(_ => Status = ustring.Make("[ Watching! ]"));
 
-            Wallet.Events().OnNewTransaction.Subscribe(_ => Update());
+            Wallet.CurrentAccount.Txs.CollectionChanged += Txs_CollectionChanged;
+        }
+
+        void Txs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
+        {
+            Update();
         }
 
         void Update()

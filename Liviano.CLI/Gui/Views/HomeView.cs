@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 
 using NStack;
 using ReactiveUI;
@@ -35,7 +36,6 @@ using Terminal.Gui;
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
 using Liviano.Models;
-using System.Runtime.InteropServices;
 
 namespace Liviano.CLI.Gui.Views
 {

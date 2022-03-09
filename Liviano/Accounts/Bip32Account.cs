@@ -48,8 +48,8 @@ namespace Liviano.Accounts
         {
             Id = Guid.NewGuid().ToString();
 
-            TxIds ??= new List<string>();
-            Txs ??= new List<Tx>();
+            TxIds ??= new();
+            Txs ??= new();
 
             UsedExternalAddresses ??= new List<BitcoinAddress>();
             UsedInternalAddresses ??= new List<BitcoinAddress>();

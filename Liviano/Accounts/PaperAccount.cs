@@ -85,8 +85,8 @@ namespace Liviano.Accounts
 
             var scriptPubKeyType = DEFAULT_SCRIPT_PUB_KEY_TYPE;
 
-            TxIds ??= new List<string>();
-            Txs ??= new List<Tx>();
+            TxIds ??= new();
+            Txs ??= new();
 
             UsedExternalAddresses ??= new List<BitcoinAddress>();
             UsedInternalAddresses ??= new List<BitcoinAddress>();

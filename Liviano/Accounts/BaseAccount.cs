@@ -26,6 +26,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 using NBitcoin;
 
@@ -72,8 +73,8 @@ namespace Liviano.Accounts
         public Network Network { get; set; }
         public string Name { get; set; }
 
-        public List<string> TxIds { get; set; }
-        public List<Tx> Txs { get; set; }
+        public ObservableCollection<string> TxIds { get; set; }
+        public ObservableCollection<Tx> Txs { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress(int typeIndex = 0);
         public abstract BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0);

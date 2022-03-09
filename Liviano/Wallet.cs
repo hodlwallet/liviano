@@ -422,8 +422,8 @@ namespace Liviano
                     account.SpentCoins = new List<Coin> { };
                     account.FrozenCoins = new List<Coin> { };
 
-                    account.TxIds = new List<string> { };
-                    account.Txs = new List<Tx> { };
+                    account.TxIds = new() { };
+                    account.Txs = new() { };
                 }
             }
         }
@@ -643,7 +643,7 @@ namespace Liviano
 
         public List<IAccount> FindAccounts()
         {
-            var accounts = new List<IAccount> {};
+            var accounts = new List<IAccount> { };
             var bip32AccountTypes = new List<string>
             {
                 //"bip44",
