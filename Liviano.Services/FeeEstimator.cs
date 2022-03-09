@@ -63,7 +63,14 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Start] Started Fee estimator service.");
 
-            Fees = FeeEstimatorHttpService.GetFeeEstimator().Result;
+            try
+            {
+                Fees = FeeEstimatorHttpService.GetFeeEstimator().Result;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Start] Failed to grab the fees initially. Error: {e}");
+            }
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.FEE_ESTIMATOR_INTERVAL_MS), RxApp.TaskpoolScheduler)
@@ -74,7 +81,14 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Update] Update fees from fee estimator service");
 
-            Fees = await FeeEstimatorHttpService.GetFeeEstimator();
+            try
+            {
+                Fees = await FeeEstimatorHttpService.GetFeeEstimator();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Start] Failed to grab the fees. Error: {e}");
+            }
         }
     }
 }

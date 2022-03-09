@@ -56,7 +56,14 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Update] Update stats from mempool service");
 
-            Stats = await MempoolHttpService.GetStatistics2h();
+            try
+            {
+                Stats = await MempoolHttpService.GetStatistics2h();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Update] Error: {e}");
+            }
         }
 
         public void Cancel()
