@@ -29,7 +29,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 using NStack;
 using ReactiveMarbles.ObservableEvents;
@@ -75,8 +74,7 @@ namespace Liviano.CLI.Gui.ViewModels
             // Sync to complete the syncing then start watching
             Observable.Start(async () =>
             {
-                await wallet.Resync();
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await wallet.Sync();
                 await wallet.Watch();
             }, RxApp.TaskpoolScheduler);
 
