@@ -69,8 +69,7 @@ namespace Liviano.CLI.Gui.ViewModels
         {
             Wallet = wallet;
 
-            SetBalance();
-            SetTransactions();
+            Update();
 
             // Sync to complete the syncing then start watching
             Observable.Start(async () =>
@@ -84,16 +83,13 @@ namespace Liviano.CLI.Gui.ViewModels
             Wallet.Events().OnSyncFinished.Subscribe(_ => Status = ustring.Make("[  Synced!  ]"));
             Wallet.Events().OnWatchStarted.Subscribe(_ => Status = ustring.Make("[ Watching! ]"));
 
-            Wallet.Events().OnNewTransaction.Subscribe(_ => SetTransactions());
+            Wallet.Events().OnNewTransaction.Subscribe(_ => Update());
+        }
 
-            // Bip32 accounts only track this one to change balance
-            this
-                .WhenAnyValue(view => view.Wallet.CurrentAccount.UnspentCoins)
-                .Subscribe(_ => SetBalance());
-
-            this
-                .WhenAnyValue(view => view.Wallet.CurrentAccount.Txs)
-                .Subscribe(_ => SetTransactions());
+        void Update()
+        {
+            SetTransactions();
+            SetBalance();
         }
 
         void SetTransactions()

@@ -38,7 +38,7 @@ using Liviano.Extensions;
 
 namespace Liviano.Accounts
 {
-    public abstract class BaseAccount : ReactiveObject, IAccount
+    public abstract class BaseAccount : IAccount
     {
         static readonly object @lock = new();
 
@@ -73,11 +73,8 @@ namespace Liviano.Accounts
         public Network Network { get; set; }
         public string Name { get; set; }
 
-        List<string> txIds = new() { };
-        public List<string> TxIds { get => txIds; set => this.RaiseAndSetIfChanged(ref txIds, value); }
-
-        List<Tx> txs= new() { };
-        public List<Tx> Txs { get => txs; set => this.RaiseAndSetIfChanged(ref txs, value); }
+        public List<string> TxIds { get; set; }
+        public List<Tx> Txs { get; set; }
 
         public abstract BitcoinAddress GetReceiveAddress(int typeIndex = 0);
         public abstract BitcoinAddress[] GetReceiveAddress(int n, int typeIndex = 0);
@@ -96,14 +93,9 @@ namespace Liviano.Accounts
         public List<BitcoinAddress> UsedExternalAddresses { get; set; }
         public List<BitcoinAddress> UsedInternalAddresses { get; set; }
 
-        List<Coin> unspentCoins = new() { };
-        public List<Coin> UnspentCoins { get => unspentCoins; set => this.RaiseAndSetIfChanged(ref unspentCoins, value); }
-
-        List<Coin> spentCoins = new() { };
-        public List<Coin> SpentCoins { get => spentCoins; set => this.RaiseAndSetIfChanged(ref spentCoins, value); }
-
-        List<Coin> frozenCoins = new() { };
-        public List<Coin> FrozenCoins { get => frozenCoins; set => this.RaiseAndSetIfChanged(ref frozenCoins, value); }
+        public List<Coin> UnspentCoins { get; set; }
+        public List<Coin> SpentCoins { get; set; }
+        public List<Coin> FrozenCoins { get; set; }
 
         public long DustMinAmount { get; set; }
 
