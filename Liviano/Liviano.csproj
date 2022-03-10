@@ -20,7 +20,6 @@
         <Description>Liviano is a library to build Bitcoin light clients</Description>
     </PropertyGroup>
     <ItemGroup>
-		<ProjectReference Include="..\Liviano.Services\Liviano.Services.csproj" />
 		<PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.1.4">
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
