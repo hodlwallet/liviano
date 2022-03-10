@@ -176,50 +176,58 @@ namespace Liviano.CLI.Gui.Views
             closeButton.Clicked += () => Application.RequestStop();
             openButton.Clicked += () => OpenUrl($"{baseUrl}/tx/{tx.Id}");
 
-            var idLabel = new Label($"Id:           {tx.Id}") { X = 0, Y = 1, CanFocus = true };
-            idLabel.KeyUp += (args) =>
+            var idLabel = new Label("Id:           ") { X = 0, Y = 1 };
+            var txId = new Label(tx.Id.ToString()) { X = Pos.Right(idLabel), Y = 1, CanFocus = true };
+            txId.KeyUp += (args) =>
             {
                 if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
                     OpenUrl($"{baseUrl}/tx/{tx.Id}");
             };
 
             dialog.Add(idLabel);
+            dialog.Add(txId);
 
             dialog.Add(new Label($"Created At:   {tx.CreatedAt.Value}") { X = 0, Y = 2 });
 
-            var blockHeightLabel = new Label($"Block Height: {tx.BlockHeight}") { X = 0, Y = 3, CanFocus = true };
-            blockHeightLabel.KeyUp += (args) =>
+            var blockHeightLabel = new Label("Block Height: ") { X = 0, Y = 3 };
+            var blockHeight = new Label(tx.BlockHeight.ToString()) { X = Pos.Right(blockHeightLabel), Y = 3, CanFocus = true };
+            blockHeight.KeyUp += (args) =>
             {
                 if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
                     OpenUrl($"{baseUrl}/block/{tx.Blockhash}");
             };
+
             dialog.Add(blockHeightLabel);
+            dialog.Add(blockHeight);
 
             var address = string.Empty;
-            var addressText = string.Empty;
+            var addressPreposition = string.Empty;
             var amount = string.Empty;
 
             if (tx.IsReceive)
             {
                 address = tx.ScriptPubKey.GetDestinationAddress(tx.Network).ToString();
-                addressText = $"At:           {address}";
+                addressPreposition = "At:           ";
                 amount = $"Amount:       {tx.AmountReceived}";
             }
             else
             {
                 address = tx.SentScriptPubKey.GetDestinationAddress(tx.Network).ToString();
-                addressText = $"From:         {address}";
+                addressPreposition = $"From:         ";
                 amount = $"Amount:       {tx.AmountSent}";
             }
 
-            var addressLabel = new Label(addressText) { X =0, Y = 4, CanFocus = true };
+            var addressPrepositionLabel = new Label(addressPreposition) { X = 0, Y = 4 };
+            var addressLabel = new Label(address) { X = Pos.Right(addressPrepositionLabel), Y = 4, CanFocus = true };
             addressLabel.KeyUp += (args) =>
             {
                 if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
                     OpenUrl($"{baseUrl}/address/{address}");
             };
 
+            dialog.Add(addressPrepositionLabel);
             dialog.Add(addressLabel);
+
             dialog.Add(new Label(amount) { X =0, Y = 5 });
 
             dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 6 });
