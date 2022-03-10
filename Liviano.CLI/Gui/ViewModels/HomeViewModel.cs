@@ -29,6 +29,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 using NStack;
 using ReactiveMarbles.ObservableEvents;
@@ -75,13 +76,11 @@ namespace Liviano.CLI.Gui.ViewModels
             Observable.Start(async () =>
             {
                 await wallet.Sync();
+                await Task.Delay(TimeSpan.FromSeconds(2));
                 await wallet.Watch();
             }, RxApp.TaskpoolScheduler);
 
-            Wallet.Events().OnSyncStarted.Subscribe(_ => Status = ustring.Make("[  Syncing  ]"));
-            Wallet.Events().OnSyncFinished.Subscribe(_ => Status = ustring.Make("[  Synced!  ]"));
-            Wallet.Events().OnWatchStarted.Subscribe(_ => Status = ustring.Make("[ Watching! ]"));
-
+            Wallet.Events().OnSyncStatusChanged.Subscribe(_ => UpdateStatus());
             Wallet.CurrentAccount.Txs.CollectionChanged += Txs_CollectionChanged;
         }
 
@@ -94,6 +93,28 @@ namespace Liviano.CLI.Gui.ViewModels
         {
             SetTransactions();
             SetBalance();
+        }
+
+        void UpdateStatus()
+        {
+            switch (Wallet.SyncStatus.StatusType)
+            {
+                case SyncStatusTypes.NotSyncing:
+                    Status = ustring.Make($"[Not Syncing]");
+                    break;
+                case SyncStatusTypes.Syncing:
+                    Status = ustring.Make($"[Syncing]");
+                    break;
+                case SyncStatusTypes.SyncFinished:
+                    Status = ustring.Make($"[Sync Finished]");
+                    break;
+                case SyncStatusTypes.Watching:
+                    Status = ustring.Make($"[Watching]");
+                    break;
+                default:
+                    Status = ustring.Make($"[Not Syncing]");
+                    break;
+            }
         }
 
         void SetTransactions()
