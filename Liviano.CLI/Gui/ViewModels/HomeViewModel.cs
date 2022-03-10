@@ -97,24 +97,14 @@ namespace Liviano.CLI.Gui.ViewModels
 
         void UpdateStatus()
         {
-            switch (Wallet.SyncStatus.StatusType)
+            Status = Wallet.SyncStatus.StatusType switch
             {
-                case SyncStatusTypes.NotSyncing:
-                    Status = ustring.Make($"[Not Syncing]");
-                    break;
-                case SyncStatusTypes.Syncing:
-                    Status = ustring.Make($"[Syncing]");
-                    break;
-                case SyncStatusTypes.SyncFinished:
-                    Status = ustring.Make($"[Sync Finished]");
-                    break;
-                case SyncStatusTypes.Watching:
-                    Status = ustring.Make($"[Watching]");
-                    break;
-                default:
-                    Status = ustring.Make($"[Not Syncing]");
-                    break;
-            }
+                SyncStatusTypes.NotSyncing => ustring.Make($"[Not Syncing]"),
+                SyncStatusTypes.Syncing => ustring.Make($"[Syncing]"),
+                SyncStatusTypes.SyncFinished => ustring.Make($"[Sync Finished]"),
+                SyncStatusTypes.Watching => ustring.Make($"[Watching]"),
+                _ => ustring.Make($"[Not Syncing]"),
+            };
         }
 
         void SetTransactions()

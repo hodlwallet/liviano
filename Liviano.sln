@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2016
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano", "Liviano\Liviano.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano", "Liviano\Liviano.csproj", "{80C6FDB0-CB3F-47C7-AB10-3E08563B2929}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB38604C-12E8-413D-99C1-F1B933146341}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,11 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.CLI", "Liviano.CLI\Liviano.CLI.csproj", "{7EBF3E93-B297-471E-AD3D-3881FBA84A53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.CLI", "Liviano.CLI\Liviano.CLI.csproj", "{7EBF3E93-B297-471E-AD3D-3881FBA84A53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{DEFBEE88-242E-4047-9C79-E726AB41EC4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Tests", "Liviano.Tests\Liviano.Tests.csproj", "{DEFBEE88-242E-4047-9C79-E726AB41EC4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liviano.Services", "Liviano.Services\Liviano.Services.csproj", "{6967C912-D8AB-45C6-BF81-5743C763ECB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Liviano.Services", "Liviano.Services\Liviano.Services.csproj", "{6967C912-D8AB-45C6-BF81-5743C763ECB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

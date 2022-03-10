@@ -46,7 +46,7 @@ namespace Liviano.CLI.Gui.Views
         public HomeViewModel ViewModel { get; set; }
         object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as HomeViewModel; }
 
-        List<View> controls = new() { };
+        readonly List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
 
         ListView transactions;
@@ -94,7 +94,7 @@ namespace Liviano.CLI.Gui.Views
                 var amount = tx.IsReceive ? tx.AmountReceived.ToString() : $"-{tx.AmountSent}";
                 var preposition = tx.IsReceive ? "at:  " : "from:";
 
-                string address = string.Empty;
+                string address;
                 if (tx.IsReceive)
                     address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
                 else
@@ -246,7 +246,7 @@ namespace Liviano.CLI.Gui.Views
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    using (var process = new Process
+                    using var process = new Process
                     {
                         StartInfo = new ProcessStartInfo
                         {
@@ -257,10 +257,8 @@ namespace Liviano.CLI.Gui.Views
                             CreateNoWindow = true,
                             UseShellExecute = false
                         }
-                    })
-                    {
-                        process.Start();
-                    }
+                    };
+                    process.Start();
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {

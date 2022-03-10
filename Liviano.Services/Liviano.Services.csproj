@@ -22,6 +22,6 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="ReactiveUI" Version="17.1.50" />
-    <PackageReference Include="refit" Version="6.2.16" />
+    <PackageReference Include="refit" Version="6.3.2" />
   </ItemGroup>
 </Project>
