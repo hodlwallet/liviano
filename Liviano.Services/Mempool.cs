@@ -39,7 +39,7 @@ namespace Liviano.Services
 {
     public class Mempool : ReactiveObject, IService
     {
-        static IMempoolHttpService MempoolHttpService => RestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_API);
+        static IMempoolHttpService MempoolHttpService => CustomRestService.For<IMempoolHttpService>(Constants.MEMPOOL_SPACE_API);
 
         readonly CancellationTokenSource cts = new();
 

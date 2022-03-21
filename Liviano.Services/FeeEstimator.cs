@@ -30,7 +30,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ReactiveUI;
-using Refit;
 
 using Liviano.Services.Interfaces;
 using Liviano.Services.Models;
@@ -39,7 +38,7 @@ namespace Liviano.Services
 {
     public class FeeEstimator : ReactiveObject, IService
     {
-        static IFeeEstimatorHttpService FeeEstimatorHttpService => RestService.For<IFeeEstimatorHttpService>(Constants.PRECIO_API);
+        static IFeeEstimatorHttpService FeeEstimatorHttpService => CustomRestService.For<IFeeEstimatorHttpService>(Constants.PRECIO_API);
 
         readonly CancellationTokenSource cts = new();
 
@@ -49,8 +48,6 @@ namespace Liviano.Services
             get => fees;
             set => this.RaiseAndSetIfChanged(ref fees, value);
         }
-
-        public FeeEstimator() { }
 
         public void Cancel()
         {
