@@ -75,14 +75,14 @@ namespace Liviano.CLI.Gui.Views
         {
             snapshotTime.Text = $"Snapshot at: {DateTimeOffset.UtcNow.ToLocalTime()}";
 
-            fastestRate.Text = $"{ViewModel.Fees.fastest_sat_per_kilobyte / 1_000} sats per byte";
-            fastestTime.Text = $"{ViewModel.Fees.fastest_time / 60} hours";
+            fastestRate.Text = $"{ViewModel.Fees.FastestSatPerKilobyte / 1_000} sats per byte";
+            fastestTime.Text = $"{ViewModel.Fees.FastestTime / 60} hours";
 
-            normalRate.Text = $"{ViewModel.Fees.normal_sat_per_kilobyte / 1_000} sats per byte";
-            normalTime.Text = $"{ViewModel.Fees.normal_time / 60} hours";
+            normalRate.Text = $"{ViewModel.Fees.NormalSatPerKilobyte / 1_000} sats per byte";
+            normalTime.Text = $"{ViewModel.Fees.NormalTime / 60} hours";
 
-            slowestRate.Text = $"{ViewModel.Fees.slow_sat_per_kilobyte / 1_000} sats per byte";
-            slowestTime.Text = $"{ViewModel.Fees.slow_time / 60} hours";
+            slowestRate.Text = $"{ViewModel.Fees.SlowSatPerKilobyte / 1_000} sats per byte";
+            slowestTime.Text = $"{ViewModel.Fees.SlowTime / 60} hours";
         }
 
         void SetGui()

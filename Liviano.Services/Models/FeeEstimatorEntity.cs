@@ -23,6 +23,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using Newtonsoft.Json;
+
 namespace Liviano.Services.Models
 {
     public class FeeEstimatorEntity
@@ -47,22 +49,49 @@ namespace Liviano.Services.Models
         // 	"slow_time_text": "3 - 24 hours"
         // }
 
-        public int fastest_blocks { get; set; }
-        public double fastest_btc_per_kilobyte { get; set; }
-        public int fastest_sat_per_kilobyte { get; set; }
-        public int fastest_time { get; set; }
-        public string fastest_time_text { get; set; }
+        [JsonProperty("fastest_blocks")]
+        public int FastestBlocks { get; set; }
 
-        public int normal_blocks { get; set; }
-        public double normal_btc_per_kilobyte { get; set; }
-        public int normal_sat_per_kilobyte { get; set; }
-        public int normal_time { get; set; }
-        public string normal_time_text { get; set; }
+        [JsonProperty("fastest_btc_per_kilobyte")]
+        public double FastestBtcPerKilobyte { get; set; }
 
-        public int slow_blocks { get; set; }
-        public double slow_btc_per_kilobyte { get; set; }
-        public int slow_sat_per_kilobyte { get; set; }
-        public int slow_time { get; set; }
-        public string slow_time_text { get; set; }
+        [JsonProperty("fastest_sat_per_kilobyte")]
+        public int FastestSatPerKilobyte { get; set; }
+
+        [JsonProperty("fastest_time")]
+        public int FastestTime { get; set; }
+
+        [JsonProperty("fastest_time_text")]
+        public string FastestTimeText { get; set; }
+
+        [JsonProperty("normal_blocks")]
+        public int NormalBlocks { get; set; }
+
+        [JsonProperty("normal_btc_per_kilobyte")]
+        public double NormalBtcPerKilobyte { get; set; }
+
+        [JsonProperty("normal_sat_per_kilobyte")]
+        public int NormalSatPerKilobyte { get; set; }
+
+        [JsonProperty("normal_time")]
+        public int NormalTime { get; set; }
+
+        [JsonProperty("normal_time_text")]
+        public string NormalTimeText { get; set; }
+
+        [JsonProperty("slow_blocks")]
+        public int SlowBlocks { get; set; }
+
+        [JsonProperty("slow_btc_per_kilobyte")]
+        public double SlowBtcPerKilobyte { get; set; }
+
+        [JsonProperty("slow_sat_per_kilobyte")]
+        public int SlowSatPerKilobyte { get; set; }
+
+        [JsonProperty("slow_time")]
+        public int SlowTime { get; set; }
+
+        [JsonProperty("slow_time_text")]
+        public string SlowTimeText { get; set; }
     }
 }

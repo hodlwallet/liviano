@@ -66,7 +66,7 @@ namespace Liviano.CLI.Gui.Views
             this
                 .WhenAnyValue(view => view.ViewModel.Stat)
                 .Select(
-                    stat => ustring.Make($"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(stat.added).ToLocalTime()}")
+                    stat => ustring.Make($"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(stat.Added).ToLocalTime()}")
                 )
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .BindTo(time, time => time.Text);
@@ -169,7 +169,7 @@ namespace Liviano.CLI.Gui.Views
             {
                 var barText = series.Bars[i].Text;
 
-                series.Bars[i] = new BarSeries.Bar(barText, fill, stat.vsizes[i] / 100_000f);
+                series.Bars[i] = new BarSeries.Bar(barText, fill, stat.VSizes[i] / 100_000f);
             }
 
             graph.SetNeedsDisplay();

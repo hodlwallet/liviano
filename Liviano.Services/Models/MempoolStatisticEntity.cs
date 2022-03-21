@@ -23,18 +23,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using Newtonsoft.Json;
+
 namespace Liviano.Services.Models
 {
     public class MempoolStatisticEntity
     {
-        public long added { get; set; }
+        [JsonProperty("added")]
+        public long Added { get; set; }
 
-        public int vbytes_per_second { get; set; }
+        [JsonProperty("vbytes_per_second")]
+        public int VBytesPerSecond { get; set; }
 
-        public int mempool_byte_weight { get; set; }
+        [JsonProperty("mempool_byte_weight")]
+        public int MempoolByteWeight { get; set; }
 
-        public int total_fee { get; set; }
+        [JsonProperty("total_fee")]
+        public int TotalFee { get; set; }
 
-        public long[] vsizes { get; set; }
+        [JsonProperty("vsizes")]
+        public long[] VSizes { get; set; }
     }
 }
