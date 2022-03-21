@@ -42,7 +42,7 @@ namespace Liviano.CLI.Gui.Views
         public FeeEstimatorViewModel ViewModel { get; set; }
         object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as FeeEstimatorViewModel; }
 
-        List<View> controls = new() { };
+        readonly List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
 
         Label snapshotTime;

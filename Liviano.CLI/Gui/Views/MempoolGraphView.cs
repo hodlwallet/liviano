@@ -43,7 +43,7 @@ namespace Liviano.CLI.Gui.Views
     {
         public string Title { get; } = "Mempool by vBytes (sat/vByte)";
 
-        List<View> controls = new() { };
+        readonly List<View> controls = new() { };
         public IEnumerable<View> Controls => controls;
 
         public MempoolGraphViewModel ViewModel { get; set; }

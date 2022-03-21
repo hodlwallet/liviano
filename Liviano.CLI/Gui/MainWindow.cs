@@ -46,12 +46,13 @@ namespace Liviano.CLI.Gui
         FrameView contentFrameView;
         ListView menuItemsListView;
 
-        HomeView homeView;
-        MempoolGraphView mempoolGraphView;
-        FeeEstimatorView feeEstimatorView;
+        readonly HomeView homeView;
+        readonly MempoolGraphView mempoolGraphView;
+        readonly FeeEstimatorView feeEstimatorView;
+        readonly PriceView priceView;
 
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
-        readonly string[] menuItemsList = { "Home", "Mempool Graph", "Fee Estimator" };
+        readonly string[] menuItemsList = { "Home", "Mempool Graph", "Fee Estimator", "Price" };
 
         readonly IWallet wallet;
 
@@ -66,6 +67,7 @@ namespace Liviano.CLI.Gui
             homeView = new HomeView(new HomeViewModel(wallet));
             mempoolGraphView = new MempoolGraphView(new MempoolGraphViewModel());
             feeEstimatorView = new FeeEstimatorView(new FeeEstimatorViewModel());
+            priceView = new PriceView(new PriceViewModel());
         }
 
         void SetGui()
@@ -125,6 +127,9 @@ namespace Liviano.CLI.Gui
                 case "Fee Estimator":
                     AddContent(feeEstimatorView);
                     break;
+                case "Price":
+                    AddContent(priceView);
+                    break;
                 default:
                     break;
             }
@@ -138,7 +143,7 @@ namespace Liviano.CLI.Gui
                 contentFrameView.Add(control);
         }
 
-        IWallet Load(Config config, string passphrase = null, bool skipAuth = false)
+        static IWallet Load(Config config, string passphrase = null, bool skipAuth = false)
         {
             var network = Hd.GetNetwork(config.Network);
 

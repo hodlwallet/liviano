@@ -23,10 +23,29 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Threading.Tasks;
+
+using ReactiveUI;
+
+using Liviano.Services.Interfaces;
+
 namespace Liviano.Services
 {
-    public class Price
+    public class Price : ReactiveObject, IService
     {
-        
+        public void Cancel()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Start()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task Update()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
