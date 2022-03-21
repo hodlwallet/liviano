@@ -38,7 +38,7 @@ namespace Liviano.Services
             var handler = new HttpClientHandler
             {
                 // On DEBUG disable ssl
-                ServerCertificateCustomValidationCallback = (message, cert, chain, sslErrors) => true
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 #else
             var handler = new HttpClientHandler();
