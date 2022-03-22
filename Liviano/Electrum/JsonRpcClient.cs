@@ -302,6 +302,8 @@ namespace Liviano.Electrum
                 try
                 {
                     await CallbackOnResult(requestId, notificationCallback);
+
+                    Debug.WriteLine($"[Subscribe] Subscription finished, but shouldn't");
                 }
                 catch (Exception e)
                 {
