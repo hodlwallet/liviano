@@ -41,8 +41,8 @@ namespace Liviano.CLI.Gui.ViewModels
             set => this.RaiseAndSetIfChanged(ref precio, value);
         }
 
-        CurrencyEntity rates;
-        public CurrencyEntity Rates
+        CurrencyEntity[] rates;
+        public CurrencyEntity[] Rates
         {
             get => rates;
             set => this.RaiseAndSetIfChanged(ref rates, value);
@@ -57,6 +57,10 @@ namespace Liviano.CLI.Gui.ViewModels
             PriceService
                 .WhenAnyValue(service => service.Precio)
                 .BindTo(this, vm => vm.Precio);
+
+            PriceService
+                .WhenAnyValue(service => service.Rates)
+                .BindTo(this, vm => vm.Rates);
         }
     }
 }

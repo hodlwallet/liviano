@@ -24,11 +24,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 
 using ReactiveUI;
 using Terminal.Gui;
+using NStack;
 
 using Liviano.CLI.Gui.Interfaces;
 using Liviano.CLI.Gui.ViewModels;
@@ -47,8 +49,7 @@ namespace Liviano.CLI.Gui.Views
 
         Label price;
         Label snapshotTime;
-
-        FrameView ratesFrame;
+        Label rates;
 
         public PriceView(PriceViewModel viewModel)
         {
@@ -81,18 +82,29 @@ namespace Liviano.CLI.Gui.Views
             {
                 Text = "1 BTC ~= $...",
                 X = Pos.Center(),
-                Y = Pos.Center(),
+                Y = Pos.Bottom(snapshotTime) + 1,
                 TextAlignment = TextAlignment.Centered,
             };
 
             (Controls as List<View>).Add(price);
 
-            ratesFrame = new()
+            (Controls as List<View>).Add(
+                new Label("World Currencies: ")
+                {
+                    X = Pos.Center(),
+                    Y = Pos.Bottom(price) + 1,
+                }
+            );
+
+            rates = new("")
             {
-                X = Pos.Center(),
-                Y = Pos.Bottom(price),
+                X = 0,
+                Y = Pos.Bottom(price) + 3,
+                Width = Dim.Fill(0),
+                Height = Dim.Fill(0),
             };
-            (Controls as List<View>).Add(ratesFrame);
+
+            (Controls as List<View>).Add(rates);
         }
 
         void UpdatePrecioValues()
@@ -104,7 +116,10 @@ namespace Liviano.CLI.Gui.Views
         void UpdateRatesValues()
         {
             snapshotTime.Text = $"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(ViewModel.Precio.T).ToLocalTime()}";
-            //price.Text = GetPriceStr();
+
+            var ratesFormattedText = string.Join("::", ViewModel.Rates.Select(rate => ustring.Make($"{rate.Code}:{rate.Name}:{rate.Rate:n}")));
+
+            rates.Text = ratesFormattedText;
         }
 
         string GetPriceStr()
