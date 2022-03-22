@@ -299,10 +299,18 @@ namespace Liviano.Electrum
 
             Observable.Start(async () =>
             {
-                await CallbackOnResult(requestId, notificationCallback);
-
-                Debug.WriteLine("[Subscribe] Subscription failed.");
-                OnSubscriptionFailed?.Invoke(this, requestId);
+                try
+                {
+                    await CallbackOnResult(requestId, notificationCallback);
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"[Subscribe] Subscription failed. Error: {e}");
+                }
+                finally
+                {
+                    OnSubscriptionFailed?.Invoke(this, requestId);
+                }
             }, RxApp.TaskpoolScheduler).Subscribe(Cts.Token);
         }
 
