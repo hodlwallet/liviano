@@ -33,11 +33,11 @@ namespace Liviano.Services
 #if DEBUG
         public const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 5_000;
         public const int FEE_ESTIMATOR_INTERVAL_MS = 5_000;
-        public const int PRECIO_INTERVAL_MS = 500;
+        public const int PRECIO_INTERVAL_MS = 5_000;
 #else
         public const int MEMPOOL_SPACE_2H_STATS_INTERVAL_MS = 10_000;
         public const int FEE_ESTIMATOR_INTERVAL_MS = 30_000;
-        public const int PRECIO_INTERVAL_MS = 5_000;
+        public const int PRECIO_INTERVAL_MS = 10_000;
 #endif
     }
 }

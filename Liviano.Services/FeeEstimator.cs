@@ -33,6 +33,7 @@ using ReactiveUI;
 
 using Liviano.Services.Interfaces;
 using Liviano.Services.Models;
+using Newtonsoft.Json;
 
 namespace Liviano.Services
 {
@@ -76,11 +77,16 @@ namespace Liviano.Services
 
         public async Task Update()
         {
-            Debug.WriteLine("[Update] Update fees from fee estimator service");
-
             try
             {
-                Fees = await FeeEstimatorHttpService.GetFeeEstimator();
+                var res = await FeeEstimatorHttpService.GetFeeEstimator();
+
+                if (!JsonConvert.SerializeObject(res).Equals(JsonConvert.SerializeObject(Fees)))
+                {
+                    Debug.WriteLine("[Update] Update fees from fee estimator service");
+
+                    Fees = res;
+                }
             }
             catch (Exception e)
             {

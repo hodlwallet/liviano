@@ -41,6 +41,13 @@ namespace Liviano.CLI.Gui.ViewModels
             set => this.RaiseAndSetIfChanged(ref precio, value);
         }
 
+        CurrencyEntity rates;
+        public CurrencyEntity Rates
+        {
+            get => rates;
+            set => this.RaiseAndSetIfChanged(ref rates, value);
+        }
+
         readonly Price PriceService = new();
 
         public PriceViewModel()

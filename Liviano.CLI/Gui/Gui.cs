@@ -23,10 +23,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Reactive.Concurrency;
+using System;
 
 using ReactiveUI;
-using Terminal.Gui;
+
+using Liviano.Services;
+using Newtonsoft.Json;
 
 namespace Liviano.CLI.Gui
 {
@@ -34,14 +36,22 @@ namespace Liviano.CLI.Gui
     {
         public static void Run()
         {
-            Application.Init();
+            //Application.Init();
 
-            RxApp.MainThreadScheduler = TerminalScheduler.Default;
-            RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
+            //RxApp.MainThreadScheduler = TerminalScheduler.Default;
+            //RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
 
-            Application.QuitKey = Key.Esc;
-            Application.Run(new MainWindow(Config.Load()));
-            Application.Shutdown();
+            //Application.QuitKey = Key.Esc;
+            //Application.Run(new MainWindow(Config.Load()));
+            //Application.Shutdown();
+
+            var service = new Price();
+            service.Start();
+
+            service.WhenAnyValue(s => s.Rates).Subscribe(x => Console.WriteLine(JsonConvert.SerializeObject(x, Formatting.Indented)));
+
+            Console.WriteLine("Waiting for messages...");
+            Console.ReadLine();
         }
     }
 }

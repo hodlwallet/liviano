@@ -48,6 +48,8 @@ namespace Liviano.CLI.Gui.Views
         Label price;
         Label snapshotTime;
 
+        FrameView ratesFrame;
+
         public PriceView(PriceViewModel viewModel)
         {
             ViewModel = viewModel;
@@ -57,7 +59,12 @@ namespace Liviano.CLI.Gui.Views
             this
                 .WhenAnyValue(view => view.ViewModel.Precio)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(_ => UpdateValues());
+                .Subscribe(_ => UpdatePrecioValues());
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Rates)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => UpdateRatesValues());
         }
 
         void SetGui()
@@ -79,12 +86,25 @@ namespace Liviano.CLI.Gui.Views
             };
 
             (Controls as List<View>).Add(price);
+
+            ratesFrame = new()
+            {
+                X = Pos.Center(),
+                Y = Pos.Bottom(price),
+            };
+            (Controls as List<View>).Add(ratesFrame);
         }
 
-        void UpdateValues()
+        void UpdatePrecioValues()
         {
             snapshotTime.Text = $"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(ViewModel.Precio.T).ToLocalTime()}";
             price.Text = GetPriceStr();
+        }
+
+        void UpdateRatesValues()
+        {
+            snapshotTime.Text = $"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(ViewModel.Precio.T).ToLocalTime()}";
+            //price.Text = GetPriceStr();
         }
 
         string GetPriceStr()

@@ -53,6 +53,7 @@ namespace Liviano.CLI.Gui
 
         //readonly string[] menuItemsList = { "Home", "Receive", "Send", "Settings", "Mempool Info", "Mempool Graph" };
         readonly string[] menuItemsList = { "Home", "Mempool Graph", "Fee Estimator", "Price" };
+        //readonly string[] menuItemsList = { "Mempool Graph", "Fee Estimator", "Price" };
 
         readonly IWallet wallet;
 

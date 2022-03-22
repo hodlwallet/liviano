@@ -33,6 +33,7 @@ using ReactiveUI;
 
 using Liviano.Services.Interfaces;
 using Liviano.Services.Models;
+using Newtonsoft.Json;
 
 namespace Liviano.Services
 {
@@ -49,6 +50,13 @@ namespace Liviano.Services
             set => this.RaiseAndSetIfChanged(ref precio, value);
         }
 
+        CurrencyEntity[] rates;
+        public CurrencyEntity[] Rates
+        {
+            get => rates;
+            set => this.RaiseAndSetIfChanged(ref rates, value);
+        }
+
         public void Cancel()
         {
             Debug.WriteLine("[Cancel] Price service cancelled.");
@@ -61,6 +69,7 @@ namespace Liviano.Services
             Debug.WriteLine("[Start] Started Price service.");
 
             Precio = PrecioHttpService.GetPrecio().Result;
+            Rates = PrecioHttpService.GetRates().Result.ToArray();
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.PRECIO_INTERVAL_MS), RxApp.TaskpoolScheduler)
@@ -69,17 +78,27 @@ namespace Liviano.Services
 
         public async Task Update()
         {
-            Debug.WriteLine("[Update] Update precio from price service");
-
             try
             {
-                Precio = await PrecioHttpService.GetPrecio();
+                var resPrecio = await PrecioHttpService.GetPrecio();
+                if (resPrecio.T != Precio.T)
+                {
+                    Debug.WriteLine("[Update] Update precio from price service");
 
-                //if (res.T != Precio.T) Precio = res;
+                    Precio = resPrecio;
+                }
+
+                var resRates = await PrecioHttpService.GetRates();
+                if (!JsonConvert.SerializeObject(resRates).Equals(JsonConvert.SerializeObject(Rates)))
+                {
+                    Debug.WriteLine("[Update] Update rates from price service");
+
+                    Rates = resRates.ToArray();
+                }
             }
             catch (Exception e)
             {
-                Debug.WriteLine($"[Update] Failed to get precio, error: {e}");
+                Debug.WriteLine($"[Update] Failed to get precio or rates, error: {e}");
             }
         }
     }

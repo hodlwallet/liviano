@@ -54,11 +54,16 @@ namespace Liviano.Services
 
         public async Task Update()
         {
-            Debug.WriteLine("[Update] Update stats from mempool service");
-
             try
             {
-                Stats = await MempoolHttpService.GetStatistics2h();
+                var res = await MempoolHttpService.GetStatistics2h();
+
+                if (res[0].Added != Stats[0].Added)
+                {
+                    Debug.WriteLine("[Update] Update stats from mempool service");
+
+                    Stats = res;
+                }
             }
             catch (Exception e)
             {
