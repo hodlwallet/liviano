@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 
 using ReactiveUI;
 using Terminal.Gui;
@@ -45,25 +46,52 @@ namespace Liviano.CLI.Gui.Views
         object IViewFor.ViewModel { get => ViewModel; set => ViewModel = value as PriceViewModel; }
 
         Label price;
+        Label snapshotTime;
 
         public PriceView(PriceViewModel viewModel)
         {
             ViewModel = viewModel;
 
             SetGui();
+
+            this
+                .WhenAnyValue(view => view.ViewModel.Precio)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => UpdateValues());
         }
 
         void SetGui()
         {
+            snapshotTime = new("")
+            {
+                X = Pos.Center(),
+                Y = 0,
+            };
+
+            (Controls as List<View>).Add(snapshotTime);
+
             price = new()
             {
-                Text = "1 BTC ~= $41,320",
+                Text = "1 BTC ~= $...",
                 X = Pos.Center(),
                 Y = Pos.Center(),
                 TextAlignment = TextAlignment.Centered,
             };
 
             (Controls as List<View>).Add(price);
+        }
+
+        void UpdateValues()
+        {
+            snapshotTime.Text = $"Snapshot at: {DateTimeOffset.FromUnixTimeSeconds(ViewModel.Precio.T).ToLocalTime()}";
+            price.Text = GetPriceStr();
+        }
+
+        string GetPriceStr()
+        {
+            if (ViewModel.Precio is null) return $"1 BTC ~= $...";
+
+            return $"1 BTC ~= ${ViewModel.Precio.CRaw:c}";
         }
     }
 }

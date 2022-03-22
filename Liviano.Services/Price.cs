@@ -23,29 +23,64 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System;
+using System.Diagnostics;
+using System.Threading;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using ReactiveUI;
 
 using Liviano.Services.Interfaces;
+using Liviano.Services.Models;
 
 namespace Liviano.Services
 {
     public class Price : ReactiveObject, IService
     {
+        static IPrecioHttpService PrecioHttpService => CustomRestService.For<IPrecioHttpService>(Constants.PRECIO_API);
+
+        readonly CancellationTokenSource cts = new();
+
+        PrecioEntity precio;
+        public PrecioEntity Precio
+        {
+            get => precio;
+            set => this.RaiseAndSetIfChanged(ref precio, value);
+        }
+
         public void Cancel()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Cancel] Price service cancelled.");
+
+            cts.Cancel();
         }
 
         public void Start()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Start] Started Price service.");
+
+            Precio = PrecioHttpService.GetPrecio().Result;
+
+            Observable
+                .Interval(TimeSpan.FromMilliseconds(Constants.PRECIO_INTERVAL_MS), RxApp.TaskpoolScheduler)
+                .Subscribe(async _ => await Update(), cts.Token);
         }
 
-        public Task Update()
+        public async Task Update()
         {
-            throw new System.NotImplementedException();
+            Debug.WriteLine("[Update] Update precio from price service");
+
+            try
+            {
+                Precio = await PrecioHttpService.GetPrecio();
+
+                //if (res.T != Precio.T) Precio = res;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"[Update] Failed to get precio, error: {e}");
+            }
         }
     }
 }

@@ -1,8 +1,5 @@
 ﻿//
-// PriceViewModel.cs
-//
-// Author:
-//       igor <igorgue@protonmail.com>
+// CurrencyEntity.cs
 //
 // Copyright (c) 2022 HODL Wallet
 //
@@ -23,33 +20,19 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Runtime.Serialization;
-using Liviano.Services.Models;
-using ReactiveUI;
+using Newtonsoft.Json;
 
-using Liviano.Services;
-
-namespace Liviano.CLI.Gui.ViewModels
+namespace Liviano.Services.Models
 {
-    [DataContract]
-    public class PriceViewModel : ReactiveObject
+    public class CurrencyEntity
     {
-        PrecioEntity precio;
-        public PrecioEntity Precio
-        {
-            get => precio;
-            set => this.RaiseAndSetIfChanged(ref precio, value);
-        }
+        [JsonProperty("code")]
+        public string Code { get; set; }
 
-        readonly Price PriceService = new();
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
-        public PriceViewModel()
-        {
-            PriceService.Start();
-
-            PriceService
-                .WhenAnyValue(service => service.Precio)
-                .BindTo(this, vm => vm.Precio);
-        }
+        [JsonProperty("rate")]
+        public float Rate { get; set; }
     }
 }

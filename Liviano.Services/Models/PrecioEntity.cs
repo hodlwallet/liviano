@@ -1,8 +1,8 @@
 ﻿//
-// PriceViewModel.cs
+// BtcPriceEntity.cs
 //
 // Author:
-//       igor <igorgue@protonmail.com>
+//       Igor Guerrero <igorgue@protonmail.com>
 //
 // Copyright (c) 2022 HODL Wallet
 //
@@ -23,33 +23,38 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Runtime.Serialization;
-using Liviano.Services.Models;
-using ReactiveUI;
+using Newtonsoft.Json;
 
-using Liviano.Services;
-
-namespace Liviano.CLI.Gui.ViewModels
+namespace Liviano.Services.Models
 {
-    [DataContract]
-    public class PriceViewModel : ReactiveObject
+    public class PrecioEntity
     {
-        PrecioEntity precio;
-        public PrecioEntity Precio
-        {
-            get => precio;
-            set => this.RaiseAndSetIfChanged(ref precio, value);
-        }
+        // Lowest price in interval
+        [JsonProperty("L")]
+        public string L { get; set; }
 
-        readonly Price PriceService = new();
+        // Open price in interval
+        [JsonProperty("O")]
+        public string O { get; set; }
 
-        public PriceViewModel()
-        {
-            PriceService.Start();
+        // Last price time
+        [JsonProperty("T")]
+        public int T { get; set; }
 
-            PriceService
-                .WhenAnyValue(service => service.Precio)
-                .BindTo(this, vm => vm.Precio);
-        }
+        // Highest price in interval
+        [JsonProperty("H")]
+        public string H { get; set; }
+
+        // Current price unformatted
+        [JsonProperty("C_RAW")]
+        public string CRaw { get; set; }
+
+        // Current price formatted
+        [JsonProperty("C")]
+        public string C { get; set; }
+
+        // Bitcoin Exchange of the price source
+        [JsonProperty("EX")]
+        public string Ex { get; set; }
     }
 }

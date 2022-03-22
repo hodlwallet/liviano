@@ -1,8 +1,8 @@
 ﻿//
-// PriceViewModel.cs
+// PricesEntity.cs
 //
 // Author:
-//       igor <igorgue@protonmail.com>
+//       Igor Guerrero <igorgue@protonmail.com>
 //
 // Copyright (c) 2022 HODL Wallet
 //
@@ -23,33 +23,40 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System.Runtime.Serialization;
-using Liviano.Services.Models;
-using ReactiveUI;
+using System;
+using System.Collections.Generic;
 
-using Liviano.Services;
+using Newtonsoft.Json;
 
-namespace Liviano.CLI.Gui.ViewModels
+namespace Liviano.Services.Models
 {
-    [DataContract]
-    public class PriceViewModel : ReactiveObject
+    public class MetaEntity
     {
-        PrecioEntity precio;
-        public PrecioEntity Precio
-        {
-            get => precio;
-            set => this.RaiseAndSetIfChanged(ref precio, value);
-        }
+        [JsonProperty("high")]
+        public HighEntity High { get; set; }
 
-        readonly Price PriceService = new();
+        [JsonProperty("low")]
+        public LowEntity Low { get; set; }
+    }
 
-        public PriceViewModel()
-        {
-            PriceService.Start();
+    public class PriceEntity
+    {
+        [JsonProperty("price")]
+        public double Price { get; set; }
 
-            PriceService
-                .WhenAnyValue(service => service.Precio)
-                .BindTo(this, vm => vm.Precio);
-        }
+        [JsonProperty("time")]
+        public DateTime Time { get; set; }
+    }
+
+    public class LowEntity : PriceEntity { }
+    public class HighEntity : PriceEntity { }
+
+    public class PricesEntity
+    {
+        [JsonProperty("meta")]
+        public MetaEntity Meta { get; set; }
+
+        [JsonProperty("prices")]
+        public List<PriceEntity> Prices { get; set; }
     }
 }

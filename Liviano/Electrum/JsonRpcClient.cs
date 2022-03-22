@@ -297,13 +297,13 @@ namespace Liviano.Electrum
                 return;
             }
 
-            Observable.Start(
-                () => CallbackOnResult(requestId, notificationCallback),
-                RxApp.TaskpoolScheduler
-            ).Subscribe(Cts.Token);
+            Observable.Start(async () =>
+            {
+                await CallbackOnResult(requestId, notificationCallback);
 
-            Debug.WriteLine("[Subscribe] Subscription failed.");
-            OnSubscriptionFailed?.Invoke(this, requestId);
+                Debug.WriteLine("[Subscribe] Subscription failed.");
+                OnSubscriptionFailed?.Invoke(this, requestId);
+            }, RxApp.TaskpoolScheduler).Subscribe(Cts.Token);
         }
 
         void PollSslClient()
