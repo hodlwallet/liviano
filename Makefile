@@ -146,7 +146,7 @@ ubuntu.release.build:
 
 ## Publishes Liviano using Debug configuration mode for macOS system.
 osx.debug.build:
-	dotnet publish --framework net5.0 --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true --self-contained
+	dotnet publish $(USING_NET_VERSION) --configuration Debug --runtime osx-x64 -property:GenerateFullPaths=true --self-contained
 	mkdir -p bin/osx_debug_build
 	cp -R Liviano.CLI/bin/Debug/$(BIN_DIR_NET_VERSION)/osx-x64/publish bin/osx_debug_build
 	rm -rf ./liviano-cli
