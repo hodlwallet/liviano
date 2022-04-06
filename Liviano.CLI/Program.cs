@@ -97,8 +97,9 @@ namespace Liviano.CLI
         static bool refreshAddress = false;
         static bool detectAccount = false;
         static bool saveAccounts = false;
-        static bool testStuff = false;
+        static bool doctor = false;
         static bool gui = false;
+        static bool testStuff = false;
 
         // Parse extra options arguments
         static List<string> extra;
@@ -163,6 +164,7 @@ namespace Liviano.CLI
                 {"png|ping", "Ping electrum server", (string v) => ping = v is not null},
                 {"hdr|headers", "Subscribe to new headers", (string v) => headers = v is not null},
                 {"raddr|refresh-address", "Refresh address", v => refreshAddress = v is not null},
+                {"doc|doctor", "Doctor and diagnostic of the Current Account", v => doctor = v is not null },
 
                 // Default & help
                 {"h|help", "Liviano help", v => showHelp = v is not null}
@@ -711,6 +713,13 @@ namespace Liviano.CLI
             if (gui)
             {
                 LightClient.ShowGui(config);
+
+                return 0;
+            }
+
+            if (doctor)
+            {
+                LightClient.Doctor(config);
 
                 return 0;
             }

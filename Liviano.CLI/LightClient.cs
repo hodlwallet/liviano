@@ -43,6 +43,7 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Storages;
 using Liviano.Utilities;
+using Newtonsoft.Json;
 
 namespace Liviano.CLI
 {
@@ -990,6 +991,85 @@ namespace Liviano.CLI
 
             // Now a electrumx call and try to monitor it
             WaitUntilEscapeIsPressed();
+        }
+
+        /// <summary>
+        /// Shows a diagnostic of the current account
+        /// </summary>
+        /// <param name="config"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        public static void Doctor(Config config)
+        {
+            Load(config);
+            var acc = wallet.CurrentAccount;
+
+            Console.WriteLine("Wallet Doctor");
+            Console.WriteLine("~~~~~~~~~~~~~");
+
+            Console.WriteLine($"Network = {acc.Network}");
+            Console.WriteLine($"Mnemonic = {wallet.Seed}");
+            Console.WriteLine($"HdPath = {acc.HdPath}");
+            Console.WriteLine($"Total Txs = {acc.Txs.Count}");
+
+            Console.Write("Adress types = ");
+            foreach (var spkt in acc.ScriptPubKeyTypes)
+            {
+                Console.Write($"{spkt} ");
+            }
+            Console.WriteLine("\n");
+
+            var noScriptPubKeyAtAll = new List<Tx> { };
+            var isSendAndReceive = new List<Tx> { };
+            var isNotSendAndNotReceive = new List<Tx> { };
+            var sendNullScriptPubKey = new List<Tx> { };
+            var receiveNullScriptPubKey = new List<Tx> { };
+            for (int i = 0; i < acc.Txs.Count; i++)
+            {
+                var tx = acc.Txs[i];
+
+                if (tx.ScriptPubKey == null && tx.SentScriptPubKey == null)
+                    noScriptPubKeyAtAll.Add(tx);
+
+                if (tx.IsSend && tx.IsReceive)
+                    isSendAndReceive.Add(tx);
+
+                if (!tx.IsSend && !tx.IsReceive)
+                    isNotSendAndNotReceive.Add(tx);
+
+                if (tx.IsSend && tx.SentScriptPubKey is null)
+                    sendNullScriptPubKey.Add(tx);
+                
+                if (tx.IsReceive && tx.ScriptPubKey is null)
+                    receiveNullScriptPubKey.Add(tx);
+            }
+
+            PrintDoctorReport(noScriptPubKeyAtAll, "tx.ScriptPubKey == null && tx.SentScriptPubKey == null");
+            PrintDoctorReport(isSendAndReceive, "tx.IsSend && tx.IsReceive");
+            PrintDoctorReport(isNotSendAndNotReceive, "!tx.IsSend && !tx.IsReceive");
+            PrintDoctorReport(sendNullScriptPubKey, "tx.IsSend && tx.SentScriptPubKey is null");
+            PrintDoctorReport(receiveNullScriptPubKey, "tx.IsReceive && tx.ScriptPubKey is null");
+        }
+
+        static void PrintDoctorReport(List<Tx> transactions, string condition)
+        {
+            if (!transactions.Any()) return;
+
+            Console.WriteLine(condition);
+            Console.WriteLine($"{new string('x', condition.Length)}\n");
+
+            foreach (var tx in transactions)
+            {
+                Console.WriteLine($"Id = {tx.Id}");
+                Console.WriteLine($"IsSend = {tx.IsSend}");
+                Console.WriteLine($"IsReceive = {tx.IsReceive}");
+                Console.WriteLine($"ScriptPubKey = {tx.ScriptPubKey}");
+                Console.WriteLine($"SentScriptPubKey = {tx.SentScriptPubKey}");
+
+                Console.WriteLine($"{new string('=', tx.Id.ToString().Length)}");
+            }
+
+            Console.WriteLine("Press enter to continue . . .");
+            Console.ReadLine();
         }
 
         /// <summary>
