@@ -94,11 +94,15 @@ namespace Liviano.CLI.Gui.Views
                 var amount = tx.IsReceive ? tx.AmountReceived.ToString() : $"-{tx.AmountSent}";
                 var preposition = tx.IsReceive ? "at:  " : "from:";
 
-                string address;
-                if (tx.IsReceive)
+                string address = "NOT_FOUND";
+                if (tx.IsReceive && tx.ScriptPubKey is not null)
+                {
                     address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
-                else
+                }
+                else if (tx.IsSend && tx.SentScriptPubKey is not null)
+                {
                     address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
+                }
 
                 address = address.PadRight(62);
 

@@ -112,7 +112,7 @@ namespace Liviano.CLI.Gui.ViewModels
             Txs = Wallet
                 .CurrentAccount
                 .Txs
-                .Where(tx => tx.ScriptPubKey is not null || tx.SentScriptPubKey is not null) // FIXME there's a bug here with test mnemonic
+                //.Where(tx => tx.ScriptPubKey is not null || tx.SentScriptPubKey is not null) // FIXME there's a bug here with test mnemonic
                 .OrderByDescending(tx => tx.CreatedAt).ToList();
         }
 
