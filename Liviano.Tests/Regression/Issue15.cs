@@ -1,5 +1,5 @@
 ﻿//
-// Case15.cs
+// Issue15.cs
 //
 // Author:
 //       igor <igorgue@protonmail.com>
@@ -50,13 +50,13 @@ namespace Liviano.Tests.Regression
     /// 
     /// All data coming from http://tapi.qbit.ninja/tx/{txId}
     /// </summary>
-    public class Case15
+    public class Issue15
     {
         // This is the wallet on file for the tests
         const string WALLET_ID = "62d50d77-a430-4177-a3ec-d548db3261a7";
         readonly IWallet wallet;
 
-        public Case15()
+        public Issue15()
         {
             wallet = Load(WALLET_ID, Network.TestNet);
         }
@@ -105,6 +105,8 @@ namespace Liviano.Tests.Regression
             {
                 Assert.False(!tx.IsReceive && !tx.IsSend);
             }
+
+            // TODO add missing conditions from --doctor
         }
 
         static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
