@@ -1,0 +1,25 @@
+{
+  "id": "62d50d77-a430-4177-a3ec-d548db3261a7",
+  "name": "Wallet",
+  "createdAt": 1648160830,
+  "network": "TestNet",
+  "seed": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+  "masterExtPubKey": "tpubD6NzVbkrYhZ4XYa9MoLt4BiMZ4gkt2faZ4BcmKu2a9te4LDpQmvEz2L2yDERivHxFPnxXXhqDRkUNnQCpZggCyEZLBktV7VaSmwayqMJy1s",
+  "syncStatus": {
+    "statusType": 1,
+    "text": ""
+  },
+  "lastBlockHeader": "00000020269a96da8d2d7cfcfa84bc4600b30c30e077c67539576a7cc00000000000000016d0e2b600a6382d98bb95a2f9c95db50acf0cf03784c4f67249f510eed6b72266254e621ec8001a3f903146",
+  "height": 2193780,
+  "currentAccountId": "c5a8db54-9050-455d-8ce5-63f9acd54f2d",
+  "accountIds": [
+    "c5a8db54-9050-455d-8ce5-63f9acd54f2d"
+  ],
+  "accountsIndex": {
+    "bip44": -1,
+    "bip49": -1,
+    "bip84": 0,
+    "bip141": -1,
+    "paper": -1
+  }
+}
