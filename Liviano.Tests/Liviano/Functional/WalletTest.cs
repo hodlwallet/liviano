@@ -30,7 +30,7 @@ using NBitcoin.JsonConverters;
 
 using Newtonsoft.Json;
 
-namespace Liviano.Tests.Liviano
+namespace Liviano.Tests.Funcional
 {
     public class WalletTest
     {

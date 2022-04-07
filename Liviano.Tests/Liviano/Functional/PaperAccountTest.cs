@@ -31,7 +31,7 @@ using NBitcoin;
 
 using Liviano.Accounts;
 
-namespace Liviano.Tests.Liviano.Accounts
+namespace Liviano.Tests.Funcional
 {
     public class PaperAccountTest
     {
