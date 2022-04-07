@@ -27,6 +27,12 @@ using NBitcoin;
 using Xunit;
 
 using Liviano.Models;
+using Liviano.Interfaces;
+using Liviano.Storages;
+using System.Diagnostics;
+using Liviano.Exceptions;
+using System.Reflection;
+using System.IO;
 
 namespace Liviano.Tests.Regression
 {
@@ -45,23 +51,36 @@ namespace Liviano.Tests.Regression
     /// </summary>
     public class Case15
     {
-        const string MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        // This is the wallet on file for the tests
+        const string WALLET_ID = "62d50d77-a430-4177-a3ec-d548db3261a7";
+        IWallet @wallet;
+
+        [Fact]
+        public void Tx_9fca06b2a6469d401f33ef86d29ea4cdd832c35e6384f5df663e9fd4a95df3ac()
+        {
+            // A tx that was working already
+            RunTest(
+                hex: "01000000000101b5561450458314097d23e48ce2ef6eefe2581ed226a03ee27f843929d8a090440000000000fdffffff0240420f0000000000160014d0c4a3ef09e997b6e99e397e518fe3e41a118ca1d8bb6f01000000001600141eb17d4dcc40dcc15091597e5367438ef3e6eec1024730440220391911c8bc0e59ac10d339a0e299f9477857a9e86fc2beb9c68a40ed6bc325c202203571b8e169f53e8b949786164b5fb80dc3e42ddad78d1b9f0777695a3ea23efc0121024ea4015948ecb68ff3ff4b5092ecc77188f2f63766a5c45db7f1822c88cb1b1606391300",
+                height: 1259783,
+                headerHex: "00000020b2af82b123da13087ef087ee541413c87513e48c589739784049f960000000000ab56ceb5c2884c461d3c349cc212ee23c357939f4d7c43e65f8105a8331d8e8fd6c645affff001d2cbead41"
+            );
+        }
 
         [Fact]
         public void Tx_3e610a6f94ad1b0f0799e196678cd580696628fc3aef7b73f26818cda6bb5ac4()
         {
-            var hex = "020000000001014f56343b252f32a922481a7f40c24e29c9f305b1aa9230f32c8752f9e7961cec0100000000fdffffff019395680000000000160014e0dd6c1d3b99a5fc7a9da4b648ce4a7ac7f01031024730440220752e94aaccc3aaafe0eae36f2f7e62148f589adc38f8d320e780ca96d19baa3502202b35f883b1baec68acd6e0ed6e063f25865c99ecd0991ac469e153b5ab5b9f78012103b858ef5d6e074c4738b37feabb74db46d80403e3e560694890a9a5e0bc22693c05022100";
-            var height = 2163206;
-            var headerHex = "00000020b8cb584d5883ee386fa27549a3518e8ae64980145ba257159ab9c876000000001649e2c98d8460ecce2d983c8354b598747234314450c3f41b4ea6734ab7b6429fd01362ffff001d046a500c";
+            RunTest(
+                hex: "020000000001014f56343b252f32a922481a7f40c24e29c9f305b1aa9230f32c8752f9e7961cec0100000000fdffffff019395680000000000160014e0dd6c1d3b99a5fc7a9da4b648ce4a7ac7f01031024730440220752e94aaccc3aaafe0eae36f2f7e62148f589adc38f8d320e780ca96d19baa3502202b35f883b1baec68acd6e0ed6e063f25865c99ecd0991ac469e153b5ab5b9f78012103b858ef5d6e074c4738b37feabb74db46d80403e3e560694890a9a5e0bc22693c05022100",
+                height: 2163206,
+                headerHex: "00000020b8cb584d5883ee386fa27549a3518e8ae64980145ba257159ab9c876000000001649e2c98d8460ecce2d983c8354b598747234314450c3f41b4ea6734ab7b6429fd01362ffff001d046a500c"
+            );
+        }
+
+        void RunTest(string hex, int height, string headerHex)
+        {
             var network = Network.TestNet;
 
-            var wallet = new Wallet()
-            {
-                Name = "abandon...about Wallet"
-            };
-
-            wallet.Init(MNEMONIC);
-            wallet.AddAccount("bip84", "Test Account");
+            var wallet = GetWallet();
 
             var account = wallet.CurrentAccount;
             var header = BlockHeader.Parse(headerHex, network);
@@ -69,6 +88,45 @@ namespace Liviano.Tests.Regression
             var tx = Tx.CreateFromHex(hex, height, header, account, network);
 
             Assert.NotNull(tx);
+
+            if (tx.IsReceive)
+            {
+                Assert.Null(tx.SentScriptPubKey);
+                Assert.NotNull(tx.ScriptPubKey);
+            }
+            else if (tx.IsSend)
+            {
+                Assert.Null(tx.ScriptPubKey);
+                Assert.NotNull(tx.SentScriptPubKey);
+            }
+            else
+            {
+                Assert.False(!tx.IsReceive && !tx.IsSend);
+            }
+        }
+
+        IWallet GetWallet()
+        {
+            @wallet ??= Load(WALLET_ID, Network.TestNet);
+
+            return @wallet;
+        }
+
+        static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
+        {
+            var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var directory = Path.Combine(baseDirectory, "Regression", "Files", "Wallets");
+
+            var storage = new FileSystemWalletStorage(walletId, network, directory);
+
+            if (!storage.Exists())
+            {
+                Debug.WriteLine($"[Load] Wallet {walletId} doesn't exists. Make sure you're on the right network");
+
+                throw new WalletException("Invalid wallet id");
+            }
+
+            return storage.Load(passphrase, out WalletException _, skipAuth);
         }
     }
 }

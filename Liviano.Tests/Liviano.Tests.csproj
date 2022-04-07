@@ -23,409 +23,409 @@
         <ProjectReference Include="..\Liviano\Liviano.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\accounts\c5a8db54-9050-455d-8ce5-63f9acd54f2d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\accounts\c5a8db54-9050-455d-8ce5-63f9acd54f2d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\0ada6fe8491ccb96a9533a50a69a67472f7c0e996ba51e645516bed8bf11e48e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\0ada6fe8491ccb96a9533a50a69a67472f7c0e996ba51e645516bed8bf11e48e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\0bc6daa762d6c6e2c436acc3d22efb4dc6e9dd62e279695e5f10225de4f02c2d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\0bc6daa762d6c6e2c436acc3d22efb4dc6e9dd62e279695e5f10225de4f02c2d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\0def9ffb62cc31353fd5b8df2421872d2f348409943daa6bd0fae8c84d673867.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\0def9ffb62cc31353fd5b8df2421872d2f348409943daa6bd0fae8c84d673867.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\101d6d29a22043907181f7c3b32d06b6408ee5898b8e5c83ccc5efbed47375cb.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\101d6d29a22043907181f7c3b32d06b6408ee5898b8e5c83ccc5efbed47375cb.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\10a65135fe5635234be7e5286aa541199328357b45fe13e63ba7d9a3d1cf1290.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\10a65135fe5635234be7e5286aa541199328357b45fe13e63ba7d9a3d1cf1290.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\116af2717e9a2959f4e947b58408d8ed32ee6d8762932879589588d6d2e067fa.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\116af2717e9a2959f4e947b58408d8ed32ee6d8762932879589588d6d2e067fa.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1204fb4785c2e31d5851036fe2684d198f8c5809143740a997f29ca23f2e472d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1204fb4785c2e31d5851036fe2684d198f8c5809143740a997f29ca23f2e472d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1274c176fa6c2e369207a09daa863f24429937d2905f1febadd4c4746fc48c46.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1274c176fa6c2e369207a09daa863f24429937d2905f1febadd4c4746fc48c46.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1376ed649c25fe667c1ae756d39afa1511b0ce2911245c299be352754be05172.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1376ed649c25fe667c1ae756d39afa1511b0ce2911245c299be352754be05172.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\14d5e5f1a1fc98bc35046271ca57ba71274084c30bad22196d09ecef6b5f3a95.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\14d5e5f1a1fc98bc35046271ca57ba71274084c30bad22196d09ecef6b5f3a95.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\15320c1a5b8d56e112c6f9a4eba53a57bc7c95700b2381caa3c7cf8c887f5467.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\15320c1a5b8d56e112c6f9a4eba53a57bc7c95700b2381caa3c7cf8c887f5467.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\15573079d54ad2b6fe96cea13b48af03b2f67472049e0de4d412641cd464dc4a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\15573079d54ad2b6fe96cea13b48af03b2f67472049e0de4d412641cd464dc4a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\164e9ed18c1797ca0fadb25a464455481657e39287b2c882737d72853364b26c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\164e9ed18c1797ca0fadb25a464455481657e39287b2c882737d72853364b26c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1d1944e3c59d4d54837e8c93c53f491c2bf1b0fc6bfdd2b500d64578252e9cb8.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1d1944e3c59d4d54837e8c93c53f491c2bf1b0fc6bfdd2b500d64578252e9cb8.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1d7cf0b154d526c6de70fad85c02e66b2dffc98a93c39ab59eab34fe96e36db6.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1d7cf0b154d526c6de70fad85c02e66b2dffc98a93c39ab59eab34fe96e36db6.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1e7bca42a751f5b0045da13a45ecd14962a246ca50d180736d5671861e5b3d7e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1e7bca42a751f5b0045da13a45ecd14962a246ca50d180736d5671861e5b3d7e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\1fd43bb332e28ccb2a5220a7cee579b9b38d54f7cd3d48aa4cee7133a707b0f1.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\1fd43bb332e28ccb2a5220a7cee579b9b38d54f7cd3d48aa4cee7133a707b0f1.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\21e10637c786337363a79a7c5e27cedd369a39b86295bbda75d1c92a4bf0fcc0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\21e10637c786337363a79a7c5e27cedd369a39b86295bbda75d1c92a4bf0fcc0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\2315f265b331f74189bf62331e4fa555f169b89df1e92a954ed7de5a0e393cb8.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\2315f265b331f74189bf62331e4fa555f169b89df1e92a954ed7de5a0e393cb8.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\23ee48735d6db2534983475d79bf6066450445be9db850f780357350ab09eb32.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\23ee48735d6db2534983475d79bf6066450445be9db850f780357350ab09eb32.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\240f8ef8e931a4582e74864e1e1aa1eabc0041876337943dde83b0ca9f168f96.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\240f8ef8e931a4582e74864e1e1aa1eabc0041876337943dde83b0ca9f168f96.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\2612204d655b95bf03d1cfea411efbf7de5fde45a4ffb039c0d49caa675ac2ba.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\2612204d655b95bf03d1cfea411efbf7de5fde45a4ffb039c0d49caa675ac2ba.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\26301cf85c0ac24a3364cf82eb0b353209941769a280b46f9816649f51d699d6.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\26301cf85c0ac24a3364cf82eb0b353209941769a280b46f9816649f51d699d6.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\28269d0841e3c0824d04659780e1cb1dbe8e806619eec1bfcba80e3fb1c726c2.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\28269d0841e3c0824d04659780e1cb1dbe8e806619eec1bfcba80e3fb1c726c2.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\287e1643e61a9ea4a2046b4a09164041b80570e7213068398043268d266ab63e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\287e1643e61a9ea4a2046b4a09164041b80570e7213068398043268d266ab63e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\29c7c4777c6133c0647b84291263ea921a91e6ff34b4498a788cd4c2eb1d9de3.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\29c7c4777c6133c0647b84291263ea921a91e6ff34b4498a788cd4c2eb1d9de3.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\3040f47998fa939cbefe78e5023d03d6c6eb0a2a16eecad4b692147f5b45617f.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\3040f47998fa939cbefe78e5023d03d6c6eb0a2a16eecad4b692147f5b45617f.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\37db190307b1cf9f8208e9d655a088d5399e827b6445b6398abd3a2eb27b90ad.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\37db190307b1cf9f8208e9d655a088d5399e827b6445b6398abd3a2eb27b90ad.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\3866aee5e9b4719066af763f95e67b75f3e84023aec218700899c6af967f6544.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\3866aee5e9b4719066af763f95e67b75f3e84023aec218700899c6af967f6544.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\39dfedaa6969f9d283657930a4086c2f5b0fda0b9a8257b6a8a741cf9371758c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\39dfedaa6969f9d283657930a4086c2f5b0fda0b9a8257b6a8a741cf9371758c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\3e610a6f94ad1b0f0799e196678cd580696628fc3aef7b73f26818cda6bb5ac4.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\3e610a6f94ad1b0f0799e196678cd580696628fc3aef7b73f26818cda6bb5ac4.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\406c193d5fb0416194496fb4663274c2d21ee0705154be8510be33870c0f2e90.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\406c193d5fb0416194496fb4663274c2d21ee0705154be8510be33870c0f2e90.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\426769de85ed8f75fba5c6dc3487002e89c1ed0cd7ca72655ee79d2ecfa94068.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\426769de85ed8f75fba5c6dc3487002e89c1ed0cd7ca72655ee79d2ecfa94068.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\43c4feef736380d62485eec8485c8f15245b83aa7e17c109cbd4dfd31489a58b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\43c4feef736380d62485eec8485c8f15245b83aa7e17c109cbd4dfd31489a58b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\472666da6748c0c9fcdef10e813ea31c45fdcd87b9e8ea3e27e65ec55ee45234.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\472666da6748c0c9fcdef10e813ea31c45fdcd87b9e8ea3e27e65ec55ee45234.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\48dcf94daf0dcce9d0cf3cdf9f7260865a660fa9379228d8237a3b81cce0162c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\48dcf94daf0dcce9d0cf3cdf9f7260865a660fa9379228d8237a3b81cce0162c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\4a596b4c52ec3b8fc0ceaaa1b49d15413f4bdad15974c2efa1806c3223f03732.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\4a596b4c52ec3b8fc0ceaaa1b49d15413f4bdad15974c2efa1806c3223f03732.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\4a9d32dbfb37e95c4a48b84c14bda3189ab5cc493c1dee8568fbed1a529a7544.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\4a9d32dbfb37e95c4a48b84c14bda3189ab5cc493c1dee8568fbed1a529a7544.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\4acbc3c017c338b4639c41b96d2176955e3d7bf77624b04994235db1b02f28b2.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\4acbc3c017c338b4639c41b96d2176955e3d7bf77624b04994235db1b02f28b2.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\4d358609ec4e6c5a19a6f94ac1702596af068b4a962532d498a68eb0cc37964c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\4d358609ec4e6c5a19a6f94ac1702596af068b4a962532d498a68eb0cc37964c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5167da508c44a62a44ef0b33867ce215135f8320c5d285e316d35abef2771469.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5167da508c44a62a44ef0b33867ce215135f8320c5d285e316d35abef2771469.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\541217db39a00d3e26fa96e38dcd9511e4a61097bf87b4807040cefd684dd3b8.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\541217db39a00d3e26fa96e38dcd9511e4a61097bf87b4807040cefd684dd3b8.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\542f29395c03a41fcd31eda51474b1e64ccf5b280cd765f699da5816e9239321.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\542f29395c03a41fcd31eda51474b1e64ccf5b280cd765f699da5816e9239321.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5785b267298ea7b1216fdbdbfa55db6808ad0ac07d49e3bcdfd1badbc1ee4b06.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5785b267298ea7b1216fdbdbfa55db6808ad0ac07d49e3bcdfd1badbc1ee4b06.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5a8728620189c46c713a717a180baee554509d32b0f1651c4501a1405e2b9c6f.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5a8728620189c46c713a717a180baee554509d32b0f1651c4501a1405e2b9c6f.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5b0ef462c8713ca40c6b03cb7dc8d60affae86edc0653f8b135fe667478c4141.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5b0ef462c8713ca40c6b03cb7dc8d60affae86edc0653f8b135fe667478c4141.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5d3613d0a4e9f713f32a676188b8bc22b0cd10ebe6893fa65cb1d27695286880.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5d3613d0a4e9f713f32a676188b8bc22b0cd10ebe6893fa65cb1d27695286880.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\5fa3cffef5beec913e700b1315b1940d079410898cf9ce672dbb65b138fd275b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\5fa3cffef5beec913e700b1315b1940d079410898cf9ce672dbb65b138fd275b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\60701b07dd433839e8184bf4fbf0391dc5d774c61195116e9487b7178129afa7.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\60701b07dd433839e8184bf4fbf0391dc5d774c61195116e9487b7178129afa7.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\6781cabe260f493201ba1c9f4c6ea901a0cd5d3bfb17b3b317f4fb61ae1b0ef0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\6781cabe260f493201ba1c9f4c6ea901a0cd5d3bfb17b3b317f4fb61ae1b0ef0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\6d7668dabd3eb618c43fb5e2ce92c3f20ff8d72875d48230cf0d23fa4ff53def.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\6d7668dabd3eb618c43fb5e2ce92c3f20ff8d72875d48230cf0d23fa4ff53def.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\7129cc62c3a76b6fc45513d80e4c8fa991cdd682d5c03d8100a447c8a4f97be9.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\7129cc62c3a76b6fc45513d80e4c8fa991cdd682d5c03d8100a447c8a4f97be9.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\725c85a0e5426a4ff853b995b19dcbef683ac048f869d0d897ffcf85f77b41ef.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\725c85a0e5426a4ff853b995b19dcbef683ac048f869d0d897ffcf85f77b41ef.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\73f564f045283d01d8a7ab6c4ea3b2f387c2f161ec725bfb20628b3e6063e09b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\73f564f045283d01d8a7ab6c4ea3b2f387c2f161ec725bfb20628b3e6063e09b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\77777451889f5653b24405c49be4d13bc6d53957adef53313e0311589f3c5ce0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\77777451889f5653b24405c49be4d13bc6d53957adef53313e0311589f3c5ce0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\77a23cb89608930af1e4e24d1087703ed64e53ade350642b7c0e28c6cd544b1a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\77a23cb89608930af1e4e24d1087703ed64e53ade350642b7c0e28c6cd544b1a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\786113d96eb52d5921d919e51c1d0054d3028a7ba8c589d1eca13fc0df73d512.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\786113d96eb52d5921d919e51c1d0054d3028a7ba8c589d1eca13fc0df73d512.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\78d61552ef0535404c0cd7740b64c9fc24678a525ecc9ff8a6e2ec36f778ba80.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\78d61552ef0535404c0cd7740b64c9fc24678a525ecc9ff8a6e2ec36f778ba80.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\7caa0859e221d289d16ede182b1ebbb0563770d6a6f01df476ecfeb148c903f0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\7caa0859e221d289d16ede182b1ebbb0563770d6a6f01df476ecfeb148c903f0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\7f587ca420c848244d76438bbdfe4a5d8d6c3bbf28952c415ad7fe768620bca1.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\7f587ca420c848244d76438bbdfe4a5d8d6c3bbf28952c415ad7fe768620bca1.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\806c68d770ad03fcbcb4e94851ec7cc3f697d8d865a7d3cf33b4015a04ad5880.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\806c68d770ad03fcbcb4e94851ec7cc3f697d8d865a7d3cf33b4015a04ad5880.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\808f51472a76688dfd5c6b8e2507482d2129daa3b76ab2bb873ed6cee74d399a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\808f51472a76688dfd5c6b8e2507482d2129daa3b76ab2bb873ed6cee74d399a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\8152ccc1bd33e8c7ec4611e01c41f527cde537cf0d02330873af1b0b48977c56.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\8152ccc1bd33e8c7ec4611e01c41f527cde537cf0d02330873af1b0b48977c56.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\819d34b6fbc6fe42e6d78b584dc27da6b760de970af0ac90e6bf88fce8e604a4.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\819d34b6fbc6fe42e6d78b584dc27da6b760de970af0ac90e6bf88fce8e604a4.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\81f6c715b13b864aaa27c243e61b1b79203d96c4c6960b34b205eb4e153150fd.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\81f6c715b13b864aaa27c243e61b1b79203d96c4c6960b34b205eb4e153150fd.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\8289b0d8563b4887aca76884073c1f7d10b4b8629a8ed2e802b793a038c34110.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\8289b0d8563b4887aca76884073c1f7d10b4b8629a8ed2e802b793a038c34110.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\84499da0b994d18cf30f975f9426a00d5562b0bf6c05b6a388b850ba90e1e4fc.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\84499da0b994d18cf30f975f9426a00d5562b0bf6c05b6a388b850ba90e1e4fc.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\84f597716a859188954d0f7b0113ec9949174cb6135abfd1881c27889d78c001.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\84f597716a859188954d0f7b0113ec9949174cb6135abfd1881c27889d78c001.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\87ff85161e42516285ea0b11b96e361ab8c095ad0482a1631c5a8fa4a30a90f7.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\87ff85161e42516285ea0b11b96e361ab8c095ad0482a1631c5a8fa4a30a90f7.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\8858c6fbc6816a8893f2e8efa23d5f1096d4f7cc674038777b5d673b82c9861b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\8858c6fbc6816a8893f2e8efa23d5f1096d4f7cc674038777b5d673b82c9861b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\8e0c62dd7541e4c6fd8520499eb2f4f148dabdef310d8eb5a82daf845b024d01.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\8e0c62dd7541e4c6fd8520499eb2f4f148dabdef310d8eb5a82daf845b024d01.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\90d4e91968eb49144628a7609e19d9b40a0f890da7d008c23b7493a5357e5bad.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\90d4e91968eb49144628a7609e19d9b40a0f890da7d008c23b7493a5357e5bad.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\943c8d3fb1e1cdd88f6f609134348df376e5871fd32fb3343c0d69cddf2e97f4.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\943c8d3fb1e1cdd88f6f609134348df376e5871fd32fb3343c0d69cddf2e97f4.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\94537129750b3531e7585252e59a9c20cd2c1f48398848be75c77966e5230e76.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\94537129750b3531e7585252e59a9c20cd2c1f48398848be75c77966e5230e76.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\96e05e41ed10e907a64ea589de8d0f9d7fb2aaf859e9418cfff6c2277c4a209a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\96e05e41ed10e907a64ea589de8d0f9d7fb2aaf859e9418cfff6c2277c4a209a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\977b4ba28fbf1a2e5876d1daa040400bff57a5e37cecacbe87c593c35186781f.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\977b4ba28fbf1a2e5876d1daa040400bff57a5e37cecacbe87c593c35186781f.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\97ffe27197b435b4d80f260038f2622275813595be13533d5ca3c3415301f4a2.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\97ffe27197b435b4d80f260038f2622275813595be13533d5ca3c3415301f4a2.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9846a0ff071dcd1c74cbb84d5065f9beb1b85f5c875b77c071bec4ddbe543b8f.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9846a0ff071dcd1c74cbb84d5065f9beb1b85f5c875b77c071bec4ddbe543b8f.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9a44ab92728456c857faf8445f6599225f0321fb26893cfb02182d658c37d97e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9a44ab92728456c857faf8445f6599225f0321fb26893cfb02182d658c37d97e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9a721346546e4022ae9cfe534ef6c32916cc2830f1635e3b68edc16ca5b9e944.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9a721346546e4022ae9cfe534ef6c32916cc2830f1635e3b68edc16ca5b9e944.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9b04f8ded9956365e01acaeba97eb2921fa150561d7028b2421e959d22345463.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9b04f8ded9956365e01acaeba97eb2921fa150561d7028b2421e959d22345463.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9b073f92ee6009a160cf21cec9929df4186e53b2b0f0cd919ab99a18e4f9a88e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9b073f92ee6009a160cf21cec9929df4186e53b2b0f0cd919ab99a18e4f9a88e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9d96dc8fdefcc70adc5c1e1b0ff434a8cf1c14075e640703ed2f3fe583b5760f.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9d96dc8fdefcc70adc5c1e1b0ff434a8cf1c14075e640703ed2f3fe583b5760f.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\9fca06b2a6469d401f33ef86d29ea4cdd832c35e6384f5df663e9fd4a95df3ac.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\9fca06b2a6469d401f33ef86d29ea4cdd832c35e6384f5df663e9fd4a95df3ac.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\a224afecc55a4eb4fa631c72c4c2573e28c53782fc04e720366da157f8ef7e28.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\a224afecc55a4eb4fa631c72c4c2573e28c53782fc04e720366da157f8ef7e28.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\a24d6fe335549e92ffd20ed15d21dc8c8adae7101eec59f42d3a2963850aede0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\a24d6fe335549e92ffd20ed15d21dc8c8adae7101eec59f42d3a2963850aede0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\a2b83ee25b0cbdd032b3b6a3b2ef7b3ebeba7b55f1b0f50a9b8f7e7e4d7cf43d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\a2b83ee25b0cbdd032b3b6a3b2ef7b3ebeba7b55f1b0f50a9b8f7e7e4d7cf43d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\a4b70b4409d1c76bf0fef7c5e684ee0e54d3aa4b2afbea7e62fb57300413f8dc.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\a4b70b4409d1c76bf0fef7c5e684ee0e54d3aa4b2afbea7e62fb57300413f8dc.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\a6ec7c0f3e325e714df562df23710c97d7c734d6b868a69a1d68d674cb282745.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\a6ec7c0f3e325e714df562df23710c97d7c734d6b868a69a1d68d674cb282745.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ac64aa5dff95bd94267a7ecaeac8ce1d8255c7ad456de85c1841bc659d14d3ca.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ac64aa5dff95bd94267a7ecaeac8ce1d8255c7ad456de85c1841bc659d14d3ca.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ae94a6933e5e002999b7e654dfdc068c02d854f28fa4e43d318cf45b92d9a64a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ae94a6933e5e002999b7e654dfdc068c02d854f28fa4e43d318cf45b92d9a64a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\afb3b9fae475224ff5c4ee28d3eb8e74cd5b83d40d87046d305e0510b30a8ade.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\afb3b9fae475224ff5c4ee28d3eb8e74cd5b83d40d87046d305e0510b30a8ade.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b47f0c02a9da4b0b6394f89501b91d89f1dca1233832b67d75d629805d47172c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b47f0c02a9da4b0b6394f89501b91d89f1dca1233832b67d75d629805d47172c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b4a5c9edf528ab3c0b5aa54b53f405ec4447332961294c390947dcf7ec40943a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b4a5c9edf528ab3c0b5aa54b53f405ec4447332961294c390947dcf7ec40943a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b4cbc080f6c0b8bbe977b814400d5358ee6e63ad7874f04e2c0f1622bb065a5d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b4cbc080f6c0b8bbe977b814400d5358ee6e63ad7874f04e2c0f1622bb065a5d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b4f5327bdef40eae63bc477d18bea121742866d419a7585ec40e2d324a013ad3.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b4f5327bdef40eae63bc477d18bea121742866d419a7585ec40e2d324a013ad3.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b64a9ffbad740252a03de48d4d7f7f1c35df2a599cfbc68e1494efb111d67ed2.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b64a9ffbad740252a03de48d4d7f7f1c35df2a599cfbc68e1494efb111d67ed2.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b92d171dc8e0203aba4e8657c8b561172d92501afcea23a74b39c068cedfd3a8.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b92d171dc8e0203aba4e8657c8b561172d92501afcea23a74b39c068cedfd3a8.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\b950b1f85c9b79890baecde0f47bc82d5d39fd3e2a4a0dc08826247bf1006d51.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\b950b1f85c9b79890baecde0f47bc82d5d39fd3e2a4a0dc08826247bf1006d51.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\bfb5703b543e5f3695cfa5b16d32cb1c7bbed0fec2d4cdf3de6395771d98427b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\bfb5703b543e5f3695cfa5b16d32cb1c7bbed0fec2d4cdf3de6395771d98427b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\c04c8e73b72e149265e8d49c1904a88c958e168cd47316833bbf3f9b5ffa0088.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\c04c8e73b72e149265e8d49c1904a88c958e168cd47316833bbf3f9b5ffa0088.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\c174f2502bf06728a94e85158a455393efb54c455a6f83838ff83a16107dfbd2.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\c174f2502bf06728a94e85158a455393efb54c455a6f83838ff83a16107dfbd2.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\c343a397ab2008da025143b176391b639b378ba385f297572679f2ba91730119.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\c343a397ab2008da025143b176391b639b378ba385f297572679f2ba91730119.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\c45dd5cdbbe626a5ace161d986ba5796b372ecec2ce3da1d9ce03d5ea8ce0b98.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\c45dd5cdbbe626a5ace161d986ba5796b372ecec2ce3da1d9ce03d5ea8ce0b98.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\c9ff43df8b26d8648a2c104437550152b6067519dba0c83f7d2ec9b2ce37938e.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\c9ff43df8b26d8648a2c104437550152b6067519dba0c83f7d2ec9b2ce37938e.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ca4104ac8cf9df5fcc0f2ce6d23b0f3fffa80ff6db03771c95b725a71c3724cc.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ca4104ac8cf9df5fcc0f2ce6d23b0f3fffa80ff6db03771c95b725a71c3724cc.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\caf3a3b07e673cfdb4d0fbf60445069d39155459e556267c7734adfb04ee78f0.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\caf3a3b07e673cfdb4d0fbf60445069d39155459e556267c7734adfb04ee78f0.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\cbb1f39da6015584b6c3df0c7325faf91eb67ddf263e73da8b8fe2f90935ffde.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\cbb1f39da6015584b6c3df0c7325faf91eb67ddf263e73da8b8fe2f90935ffde.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ce4c8f0a2aa63256bd144aaebf30837a9232d57dc20cad9f0da5b2bb7090d699.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ce4c8f0a2aa63256bd144aaebf30837a9232d57dc20cad9f0da5b2bb7090d699.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ce682dc18d65c40e9fe420e47416a8989cd2a890abba442a172e9daf3feb7d20.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ce682dc18d65c40e9fe420e47416a8989cd2a890abba442a172e9daf3feb7d20.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d3d2a552f0cb79bced50ae8f2b9010e98159224420e70d9d2b726fed0ea0e85d.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d3d2a552f0cb79bced50ae8f2b9010e98159224420e70d9d2b726fed0ea0e85d.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d60415e14c99025aa278219e63f28be5b24115b341496d6ddad321def9f1a0fb.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d60415e14c99025aa278219e63f28be5b24115b341496d6ddad321def9f1a0fb.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d6192f12d3aea99d13337303b2742fefdc078c8cf49636892d0bf0f373a7995b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d6192f12d3aea99d13337303b2742fefdc078c8cf49636892d0bf0f373a7995b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d653e99ce67bc561966ea44f58f6ac56dabb801163cbbf36cacd819c06b5f28b.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d653e99ce67bc561966ea44f58f6ac56dabb801163cbbf36cacd819c06b5f28b.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d74d5aed39d64421f7ed25843e8820eef84c17d8c9de9a418e0df9990d8f54cf.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d74d5aed39d64421f7ed25843e8820eef84c17d8c9de9a418e0df9990d8f54cf.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\d85cab6a19a5d2a3f48e4ff9de1c6eb1c710f3b4adca8f5dc60e50924f99f09a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\d85cab6a19a5d2a3f48e4ff9de1c6eb1c710f3b4adca8f5dc60e50924f99f09a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\da01bf840950635061cb730850da2811e5816650a278594047dd2b2ff06ee461.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\da01bf840950635061cb730850da2811e5816650a278594047dd2b2ff06ee461.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\dd427760c6ed41b1f0f44c280747ae9294aefcf7779d722f8e5bfb3f600bb457.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\dd427760c6ed41b1f0f44c280747ae9294aefcf7779d722f8e5bfb3f600bb457.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\e2e53d42709caf997f76778081b7c63e321c98fa1111532f3db87194ae8ac1d4.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\e2e53d42709caf997f76778081b7c63e321c98fa1111532f3db87194ae8ac1d4.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\e6ab3facf0bb6563247862c7debfffcbbbbb93b7e479b830a1de97f702006746.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\e6ab3facf0bb6563247862c7debfffcbbbbb93b7e479b830a1de97f702006746.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\eb3586a89d17ef42e86cf6ce4b6df6ccce8a9fc8197ddd209f79ebf9da3388ef.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\eb3586a89d17ef42e86cf6ce4b6df6ccce8a9fc8197ddd209f79ebf9da3388ef.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ebc97304a88f56a02b826403331fb56af9474eccffec9f96871a6c26d3dd548c.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ebc97304a88f56a02b826403331fb56af9474eccffec9f96871a6c26d3dd548c.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ee02505af7fb59961f74f2dadb4358fb218439a346559d37e3f3610d831f8acf.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ee02505af7fb59961f74f2dadb4358fb218439a346559d37e3f3610d831f8acf.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\f022b123e9d8d473e752ff86c9bdf70f81e14e3d388534aa66bd087bb0e627ae.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\f022b123e9d8d473e752ff86c9bdf70f81e14e3d388534aa66bd087bb0e627ae.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\f11300091da89f2a7e740c8c4f47d9a2163f3bd8cf829482bc180beacf0755c1.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\f11300091da89f2a7e740c8c4f47d9a2163f3bd8cf829482bc180beacf0755c1.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\f3fa2567bca6f5ed705d04ed3709fdaf579aa94316bcc352d1f986b3e58b9fb9.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\f3fa2567bca6f5ed705d04ed3709fdaf579aa94316bcc352d1f986b3e58b9fb9.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\f58fe0973b9981727aa143e4b362e12fd50c80d89200bd4acc6399eaeff8ddb3.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\f58fe0973b9981727aa143e4b362e12fd50c80d89200bd4acc6399eaeff8ddb3.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\fbe1447e16ca92f65eea9414a2531df9ca9e3b5765904424b3abab78165533ff.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\fbe1447e16ca92f65eea9414a2531df9ca9e3b5765904424b3abab78165533ff.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\fc599c336bbf28bb5627904b8816c2c29b83c16794a0203fa84ac2647e394f5a.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\fc599c336bbf28bb5627904b8816c2c29b83c16794a0203fa84ac2647e394f5a.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\fd373e04572e9f87f8faf8b43000987df4b5629a2a92b90f5df25d01a77d4300.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\fd373e04572e9f87f8faf8b43000987df4b5629a2a92b90f5df25d01a77d4300.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\fe4d7fe8f83f17c9470ad1b4b3794fbf75868a2f5aa20c9947867e1fe9986b63.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\fe4d7fe8f83f17c9470ad1b4b3794fbf75868a2f5aa20c9947867e1fe9986b63.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\ffddd3fd5b3f2208a6effd5020983f46bccf9cc9248677196417c290f0ca5efd.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\ffddd3fd5b3f2208a6effd5020983f46bccf9cc9248677196417c290f0ca5efd.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\transactions\fff79ac3151917124a6239a0bba3088f1498ba6e9eee275bccd28b0ebdeb7200.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\transactions\fff79ac3151917124a6239a0bba3088f1498ba6e9eee275bccd28b0ebdeb7200.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Regression\Files\Wallets\AbandonTestNet\wallet.json">
+      <None Update="Regression\Files\Wallets\testnet\62d50d77-a430-4177-a3ec-d548db3261a7\wallet.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
