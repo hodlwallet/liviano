@@ -23,21 +23,22 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+
 using NBitcoin;
 using Xunit;
 
-using Liviano.Models;
-using Liviano.Interfaces;
-using Liviano.Storages;
-using System.Diagnostics;
 using Liviano.Exceptions;
-using System.Reflection;
-using System.IO;
+using Liviano.Interfaces;
+using Liviano.Models;
+using Liviano.Storages;
 
 namespace Liviano.Tests.Regression
 {
     /// <summary>
-    /// Issues #15 https://github.com/hodlwallet/liviano/issues/15
+    /// Regression #15 https://github.com/hodlwallet/liviano/issues/15
     /// 
     /// Network = TestNet
     /// Mnemonic = abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
