@@ -53,7 +53,12 @@ namespace Liviano.Tests.Regression
     {
         // This is the wallet on file for the tests
         const string WALLET_ID = "62d50d77-a430-4177-a3ec-d548db3261a7";
-        IWallet @wallet;
+        readonly IWallet wallet;
+
+        public Case15()
+        {
+            wallet = Load(WALLET_ID, Network.TestNet);
+        }
 
         [Fact]
         public void Tx_9fca06b2a6469d401f33ef86d29ea4cdd832c35e6384f5df663e9fd4a95df3ac()
@@ -79,12 +84,8 @@ namespace Liviano.Tests.Regression
         void RunTest(string hex, int height, string headerHex)
         {
             var network = Network.TestNet;
-
-            var wallet = GetWallet();
-
             var account = wallet.CurrentAccount;
             var header = BlockHeader.Parse(headerHex, network);
-
             var tx = Tx.CreateFromHex(hex, height, header, account, network);
 
             Assert.NotNull(tx);
@@ -103,13 +104,6 @@ namespace Liviano.Tests.Regression
             {
                 Assert.False(!tx.IsReceive && !tx.IsSend);
             }
-        }
-
-        IWallet GetWallet()
-        {
-            @wallet ??= Load(WALLET_ID, Network.TestNet);
-
-            return @wallet;
         }
 
         static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
