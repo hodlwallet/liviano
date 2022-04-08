@@ -120,7 +120,15 @@ namespace Liviano.Tests.Regression
                 headerHex: "00000020b875618bf87e2d707c7c2d7ab2ec8c2e17a78085b6166ff8cd00000000000000be6188fcca9156cbdab9b062a5e08b2cade9397c5ab376a2a95d7e178011a41389ecb961ffff001d11dd819b"
             );
         }
-
+        [Fact]
+        public void Tx_786113d96eb52d5921d919e51c1d0054d3028a7ba8c589d1eca13fc0df73d512()
+        {
+            RunTest(
+                hex: "010000000001019012cfd1a3d9a73be613fe457b3528931941a56a28e5e74b233556fe3551a6100000000000ffffffff013006000000000000160014269a7224acf8a31f7be59efe7db8d9ba3a204ff60247304402205a40788dcfcd2043bd3cda7021e5fd6ac3fea9734bdc3bbec5bf3a803f782f2302202b21e72f15e1da7049054435e423ccbd223d481d8793d8d21904c936136a84150121038d963a72ae8c5c2ca5a63f7fe39b2227216ed74bc4ac6b841dc6886817fb89c000000000",
+                height: 1970112,
+                headerHex: "0000002030acaf5f2928b222f951c0d69aabd1912b9c1e32576182020600000000000000257982657368f8fe845f5af59fa958bf56faad6b34061ad29a36c40f6934fb241e316b60f7f21f19dd559cab"
+            );
+        }
         void RunTest(string hex, int height, string headerHex)
         {
             var network = Network.TestNet;
