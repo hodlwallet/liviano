@@ -91,6 +91,16 @@ namespace Liviano.Tests.Regression
             );
         }
 
+        [Fact]
+        public void Tx_5fa3cffef5beec913e700b1315b1940d079410898cf9ce672dbb65b138fd275b()
+        {
+            RunTest(
+                hex: "010000000001013a9440ecf7dc4709394c296129334744ec05f4534ba55a0b3cab28f5edc9a5b40000000000ffffffff01c074000000000000160014269a7224acf8a31f7be59efe7db8d9ba3a204ff60247304402202f796dee11b6b86c79e8b85ba541706039d7f208f52d31b7c9d35f56081e662802207021f009d6d95382d3d3b3108d43c1f823cf0579b48e9c49d0dec6dc556c6c23012103610008903596be72b0be7ed0dc9c2165fa6c82677ad77c706641a771a9bea2fd00000000",
+                height: 1933360,
+                headerHex: "00000020701b602f78e36d534a40fcb957d876c7f677b9f847d0420f300000000000000026e6446261a8fab13a8c2986171a1b490d224d564815553ee5f501c9b2b50994ec971b60c0f13419010d591d"
+            );
+        }
+
         void RunTest(string hex, int height, string headerHex)
         {
             var network = Network.TestNet;
