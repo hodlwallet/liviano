@@ -388,8 +388,6 @@ namespace Liviano.Tests.Regression
             {
                 Assert.False(!tx.IsReceive && !tx.IsSend);
             }
-
-            // TODO add missing conditions from --doctor
         }
 
         static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
