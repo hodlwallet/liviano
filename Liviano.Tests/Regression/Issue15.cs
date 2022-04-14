@@ -370,6 +370,9 @@ namespace Liviano.Tests.Regression
             var tx = Tx.CreateFromHex(hex, height, header, account, network);
 
             Assert.NotNull(tx);
+            Assert.Equal(tx.IsSend, tx.IsReceive);
+            Assert.False(tx.ScriptPubKey is null && tx.SentScriptPubKey is null);
+            Assert.False(tx.IsSend == tx.IsReceive);
 
             if (tx.IsReceive)
             {
