@@ -70,18 +70,18 @@ run.win.debug:
 ## Excutes all unit tests.
 test:
 	@if [ "${test}${t}" = "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests;\
+		dotnet test --logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests;\
 	fi
 	@if [ "${test}" != "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${test}";\
+		dotnet test--logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${test}";\
 	fi
 	@if [ "${t}" != "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${t}";\
+		dotnet test --logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${t}";\
 	fi
 
 # Executes all unit tests by generating coverage report.
 test.with.coverage:
-	dotnet test Liviano.Tests /p:CollectCoverage=true
+	dotnet test --logger "console;verbosity=detailed" Liviano.Tests /p:CollectCoverage=true
 
 ## Executes all unit tests and generates code coverage report.
 test.watch.helper:
