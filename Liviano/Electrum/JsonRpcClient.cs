@@ -222,8 +222,8 @@ namespace Liviano.Electrum
 
         public async Task<string> Request(string request)
         {
-            Host = server.Domain;
-            ipAddress = ResolveHost(server.Domain).Result;
+            Host ??= server.Domain;
+            ipAddress ??= ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
 
             Debug.WriteLine(
