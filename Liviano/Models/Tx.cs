@@ -276,6 +276,12 @@ namespace Liviano.Models
                 }
             }
 
+            if (!tx.IsSend && !tx.IsReceive)
+            {
+                tx.IsSend = true;
+                tx.IsReceive = false;
+            }
+
             // Amounts.
             tx.TotalAmount = transaction.TotalOut;
 
