@@ -277,6 +277,26 @@ namespace Liviano.Accounts
             }
         }
 
+        public bool ContainInputs(TxInList inputs)
+        {
+            foreach (var input in inputs)
+            {
+                foreach (var coin in UnspentCoins.ToList())
+                    if (input.PrevOut.Hash == coin.Outpoint.Hash && input.PrevOut.N == coin.Outpoint.N)
+                        return true;
+
+                foreach (var coin in SpentCoins.ToList())
+                    if (input.PrevOut.Hash == coin.Outpoint.Hash && input.PrevOut.N == coin.Outpoint.N)
+                        return true;
+
+                foreach (var coin in FrozenCoins.ToList())
+                    if (input.PrevOut.Hash == coin.Outpoint.Hash && input.PrevOut.N == coin.Outpoint.N)
+                        return true;
+            }
+
+            return false;
+        }
+
         public void UpdateConfirmations(long height)
         {
             foreach (var tx in Txs)

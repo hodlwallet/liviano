@@ -267,10 +267,19 @@ namespace Liviano.Models
 
                 if (account.IsChange(addr))
                 {
-                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is send), address: {addr}");
+                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is likely send), address: {addr}");
 
-                    tx.IsSend = true;
-                    tx.IsReceive = false;
+                    // This is due to the case where the user shared a internal address as external address
+                    if (account.ContainInputs(transaction.Inputs))
+                    {
+                        tx.IsSend = true;
+                        tx.IsReceive = false;
+                    }
+                    else
+                    {
+                        tx.IsSend = false;
+                        tx.IsReceive = true;
+                    }
 
                     break;
                 }
@@ -293,7 +302,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (account.IsReceive(outAddr))
+                    if (account.IsReceive(outAddr) || account.IsChange(outAddr))
                     {
                         tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
@@ -309,7 +318,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (!account.IsChange(outAddr))
+                    if (!account.IsChange(outAddr) && !account.IsReceive(outAddr))
                     {
                         tx.SentScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
