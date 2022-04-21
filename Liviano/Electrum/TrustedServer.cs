@@ -56,7 +56,7 @@ namespace Liviano.Electrum
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
         Server currentServer;
-        static readonly object @lock = new();
+        readonly object @lock = new();
 
         [JsonIgnore]
         public bool IsPinging { get; set; }
@@ -703,7 +703,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
-            await Observable.Start(() => Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
+            await Task.WhenAll(addressSyncTasks);
 
             acc.FindAndRemoveDuplicateUtxo();
 
@@ -840,94 +840,98 @@ namespace Liviano.Electrum
                 CancellationToken ct)
         {
             var txs = acc.Txs.ToList();
+            var tasks = new List<Task> {};
+
             foreach (var r in result.Result)
+                tasks.Add(DoInsertTransactionFromHistory(result, r, txs, acc, addr, ct));
+
+            await Task.WhenAll(tasks);
+        }
+
+        async Task DoInsertTransactionFromHistory(BlockchainScriptHashGetHistoryResult result, BlockchainScriptHashGetHistoryTxsResult r, List<Tx> txs, IAccount acc, BitcoinAddress addr, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+
+            string txHex = string.Empty;
+            try
             {
-                if (ct.IsCancellationRequested) return;
+                var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
 
-                Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                if (currentTx is not null)
+                    txHex = currentTx.Hex;
+                else
+                    txHex = (await ElectrumClient.BlockchainTransactionGet(r.TxHash)).Result;
+            }
+            catch (ElectrumException e)
+            {
+                Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
-                string txHex = string.Empty;
-                try
-                {
-                    var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
+                await DoInsertTransactionFromHistory(result, r, txs, acc, addr, ct);
+                return;
+            }
 
-                    if (currentTx is not null)
-                        txHex = currentTx.Hex;
-                    else
-                        txHex = (await ElectrumClient.BlockchainTransactionGet(r.TxHash)).Result;
-                }
-                catch (ElectrumException e)
-                {
-                    Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
-
-                    await InsertTransactionsFromHistory(acc, addr, result, ct);
-                    return;
-                }
-
-                uint256 blockHash = null;
-                BlockHeader header = null;
-                if (r.Height > 0)
-                {
-                    var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
-                    header = BlockHeader.Parse(
-                        headerHex,
-                        acc.Network
-                    );
-
-                    blockHash = header.GetHash();
-                }
-
-                var tx = Tx.CreateFromHex(
-                    txHex,
-                    r.Height,
-                    header,
-                    acc,
-                    Network
+            uint256 blockHash = null;
+            BlockHeader header = null;
+            if (r.Height > 0)
+            {
+                var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
+                header = BlockHeader.Parse(
+                    headerHex,
+                    acc.Network
                 );
 
-                var transaction = Transaction.Parse(tx.Hex, Network);
-                var txAddresses = transaction.Outputs.Select(
-                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                );
+                blockHash = header.GetHash();
+            }
 
-                lock (@lock)
+            var tx = Tx.CreateFromHex(
+                txHex,
+                r.Height,
+                header,
+                acc,
+                Network
+            );
+
+            var transaction = tx.GetTransaction();
+            var txAddresses = transaction.Outputs.Select(
+                (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+            );
+
+            foreach (var txAddr in txAddresses)
+            {
+                if (acc.IsReceive(txAddr))
                 {
-                    foreach (var txAddr in txAddresses)
-                    {
-                        if (acc.IsReceive(txAddr))
-                        {
-                            if (acc.UsedExternalAddresses.Contains(txAddr))
-                                continue;
+                    if (acc.UsedExternalAddresses.Contains(txAddr))
+                        continue;
 
-                            acc.UsedExternalAddresses.Add(txAddr);
-                        }
+                    acc.UsedExternalAddresses.Add(txAddr);
+                }
 
-                        if (acc.IsChange(txAddr))
-                        {
-                            if (acc.UsedInternalAddresses.Contains(txAddr))
-                                continue;
+                if (acc.IsChange(txAddr))
+                {
+                    if (acc.UsedInternalAddresses.Contains(txAddr))
+                        continue;
 
-                            acc.UsedInternalAddresses.Add(txAddr);
-                        }
-                    }
-
-                    var currentTx = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
-                    if (currentTx is null)
-                    {
-                        acc.AddTx(tx);
-
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                    }
-                    else if (currentTx.BlockHeight < r.Height)
-                    {
-                        acc.UpdateTx(tx);
-
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                    }
-
-                    acc.UpdateUtxoListWithTransaction(transaction);
+                    acc.UsedInternalAddresses.Add(txAddr);
                 }
             }
+
+            var currentTxFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
+            if (currentTxFinal is null)
+            {
+                acc.AddTx(tx);
+
+                OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+            }
+            else if (currentTxFinal.BlockHeight < r.Height)
+            {
+                acc.UpdateTx(tx);
+
+                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+            }
+
+            acc.UpdateUtxoListWithTransaction(transaction);
         }
     }
 }

@@ -473,7 +473,7 @@ namespace Liviano
             _ = ElectrumPool.PeriodicPing(ElectrumServer_PingSuccessCallback, ElectrumServer_PingFailedCallback, null);
             _ = ElectrumPool.SubscribeToHeaders(this, ct);
 
-            await ElectrumPool.SyncAccountParallel(CurrentAccount, ct);
+            await ElectrumPool.SyncAccount(CurrentAccount, ct);
         }
 
         async Task ElectrumPool_OnConnectedToWatch(object sender, Server server, CancellationToken ct)
