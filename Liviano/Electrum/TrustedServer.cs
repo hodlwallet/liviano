@@ -777,7 +777,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            await Observable.Start(() =>Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
+            await Task.WhenAll(addressSyncTasks);
 
             var endTxCount = acc.Txs.Count;
 
@@ -843,17 +843,18 @@ namespace Liviano.Electrum
             var tasks = new List<Task> {};
 
             foreach (var r in result.Result)
-                tasks.Add(DoInsertTransactionFromHistory(result, r, txs, acc, addr, ct));
+                tasks.Add(DoInsertTransactionFromHistory(r, acc, addr, ct));
 
             await Task.WhenAll(tasks);
         }
 
-        async Task DoInsertTransactionFromHistory(BlockchainScriptHashGetHistoryResult result, BlockchainScriptHashGetHistoryTxsResult r, List<Tx> txs, IAccount acc, BitcoinAddress addr, CancellationToken ct)
+        async Task DoInsertTransactionFromHistory(BlockchainScriptHashGetHistoryTxsResult r, IAccount acc, BitcoinAddress addr, CancellationToken ct)
         {
             if (ct.IsCancellationRequested) return;
 
             Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
 
+            var txs = acc.Txs.ToList();
             string txHex = string.Empty;
             try
             {
@@ -868,7 +869,7 @@ namespace Liviano.Electrum
             {
                 Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
-                await DoInsertTransactionFromHistory(result, r, txs, acc, addr, ct);
+                await DoInsertTransactionFromHistory(r, acc, addr, ct);
                 return;
             }
 
