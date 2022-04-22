@@ -42,6 +42,8 @@ using Liviano.Electrum;
 using Liviano.Extensions;
 using Liviano.Exceptions;
 using Liviano.Events;
+using System.Reactive.Linq;
+using ReactiveUI;
 
 namespace Liviano
 {
@@ -125,6 +127,7 @@ namespace Liviano
         public event EventHandler<FoundAccountEventArgs> OnFoundAccount;
 
         IWalletStorage storage;
+
         public IWalletStorage Storage
         {
             get => storage;
@@ -572,7 +575,7 @@ namespace Liviano
 
             OnNewTransaction?.Invoke(this, txArgs);
 
-            Storage.Save();
+            Observable.Start(() => Storage.Save(), RxApp.TaskpoolScheduler);
         }
 
         void ElectrumPool_OnUpdateTransaction(object sender, TxEventArgs txArgs)

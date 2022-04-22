@@ -526,9 +526,11 @@ namespace Liviano.CLI
                 null
             );
 
+            var txCount = 0;
             wallet.OnNewTransaction += (s, e) =>
             {
-                logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
+                txCount++;
+                logger.Information("#{count} Transaction found at height: {height}!", txCount, e.Tx.BlockHeight);
             };
 
             wallet.OnUpdateTransaction += (s, e) =>
