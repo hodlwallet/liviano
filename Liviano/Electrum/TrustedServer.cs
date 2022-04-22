@@ -44,6 +44,7 @@ using Liviano.Interfaces;
 using Liviano.Models;
 
 using static Liviano.Electrum.ElectrumClient;
+using System.Collections.Concurrent;
 
 namespace Liviano.Electrum
 {
@@ -863,7 +864,7 @@ namespace Liviano.Electrum
                 if (currentTx is not null)
                     txHex = currentTx.Hex;
                 else
-                    txHex = (await ElectrumClient.BlockchainTransactionGet(r.TxHash)).Result;
+                    txHex = await GetTransactionHex(r.TxHash);
             }
             catch (ElectrumException e)
             {
@@ -877,7 +878,7 @@ namespace Liviano.Electrum
             BlockHeader header = null;
             if (r.Height > 0)
             {
-                var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
+                var headerHex = await GetBlockHeader(r.Height);
                 header = BlockHeader.Parse(
                     headerHex,
                     acc.Network
@@ -933,6 +934,26 @@ namespace Liviano.Electrum
             }
 
             acc.UpdateUtxoListWithTransaction(transaction);
+        }
+
+        ConcurrentDictionary<string, string> TxHexCache { get; set; } = new();
+        async Task<string> GetTransactionHex(string txHash)
+        {
+            if (TxHexCache.ContainsKey(txHash)) return TxHexCache[txHash];
+
+            TxHexCache[txHash] = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+
+            return TxHexCache[txHash];
+        }
+
+        ConcurrentDictionary<long, string> BlockHeaderCache { get; set; } = new();
+        async Task<string> GetBlockHeader(long height)
+        {
+            if (BlockHeaderCache.ContainsKey(height)) return BlockHeaderCache[height];
+
+            BlockHeaderCache[height] = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
+
+            return BlockHeaderCache[height];
         }
     }
 }
