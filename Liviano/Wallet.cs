@@ -466,6 +466,8 @@ namespace Liviano
 
         async Task ElectrumPool_OnConnectedToSync(object sender, Server server, CancellationToken ct)
         {
+            this.OnSyncStarted?.Invoke(this, null);
+
             Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Sent from {sender}");
 
             Debug.WriteLine($"[ElectrumPool_OnConnectedToSync] Connected to {server.Domain}, recently connected server.");
@@ -507,7 +509,7 @@ namespace Liviano
         async void ElectrumServer_PingFailedCallback(DateTimeOffset? pingFailedAt)
         {
             Debug.WriteLine($"[Connect] Ping failed at {pingFailedAt}. Reconnecting...");
-            ElectrumPool.CurrentServer.OnConnectedEvent = null;
+            ElectrumPool.CurrentServer.OnConnected = null;
 
             await Task.Delay(TrustedServer.RECONNECT_DELAY);
             await ElectrumPool.Connect(MAX_CONNECT_RETRIES, Cts);
@@ -520,7 +522,6 @@ namespace Liviano
             SyncStatus = new(SyncStatusTypes.Syncing, string.Empty);
 
             this.OnSyncStatusChanged?.Invoke(this, null);
-            this.OnSyncStarted?.Invoke(this, null);
         }
 
         void ElectrumPool_OnNewHeaderNotified(object sender, NewHeaderEventArgs args)

@@ -74,8 +74,8 @@ namespace Liviano.Electrum
 
                 if (CurrentServer != null)
                 {
-                    if (Connected) CurrentServer.OnConnectedEvent?.Invoke(this, null);
-                    else CurrentServer.OnDisconnectedEvent?.Invoke(this, null);
+                    if (Connected) CurrentServer.OnConnected?.Invoke(this, null);
+                    else CurrentServer.OnDisconnected?.Invoke(this, null);
                 }
             }
         }
@@ -89,33 +89,31 @@ namespace Liviano.Electrum
                 if (currentServer is null && !Connected)
                 {
                     Connected = true;
-
-                    OnConnected?.Invoke(this, value);
                 }
 
                 if (value is null && currentServer is not null)
                 {
                     Connected = false;
 
-                    OnDisconnectedEvent?.Invoke(this, currentServer);
+                    OnDisconnected?.Invoke(this, currentServer);
                 }
 
                 currentServer = value;
                 ElectrumClient = new ElectrumClient(new JsonRpcClient(currentServer));
 
-                OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+                OnCurrentServerChanged?.Invoke(this, CurrentServer);
             }
         }
 
         public ElectrumClient ElectrumClient { get; set; }
         public Network Network { get; private set; }
 
-        public event EventHandler<Server> OnCurrentServerChangedEvent;
+        public event EventHandler<Server> OnCurrentServerChanged;
         public event EventHandler<Server> OnConnected;
-        public event EventHandler<Server> OnDisconnectedEvent;
+        public event EventHandler<Server> OnDisconnected;
 
-        public event EventHandler OnDoneFindingPeersEvent;
-        public event EventHandler OnCancelFindingPeersEvent;
+        public event EventHandler OnDoneFindingPeers;
+        public event EventHandler OnCancelFindingPeers;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -179,11 +177,12 @@ namespace Liviano.Electrum
             var cancellationToken = cts.Token;
 
             CurrentServer.CancellationToken = cancellationToken;
-            CurrentServer.OnConnectedEvent += (_, e) => HandleConnectedServers(CurrentServer, e);
+            CurrentServer.OnConnected += (_, e) => HandleConnectedServers(CurrentServer, e);
 
-            OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+            OnCurrentServerChanged?.Invoke(this, CurrentServer);
 
             ElectrumClient.OnConnected += (s, e) => OnConnected?.Invoke(this, CurrentServer);
+            ElectrumClient.OnDisconnected +=  (s, e) => OnDisconnected?.Invoke(this, CurrentServer);
 
             Debug.WriteLine($"[Connect] Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
@@ -243,18 +242,16 @@ namespace Liviano.Electrum
             {
                 Debug.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
-                // TODO check if this is needed
-                //CurrentServer.ElectrumClient = null;
-                CurrentServer.OnConnectedEvent = null;
+                CurrentServer.OnConnected = null;
 
                 await Task.Delay(RECONNECT_DELAY);
                 await Connect(0, cts);
             });
 
             if (cancellationToken.IsCancellationRequested)
-                OnCancelFindingPeersEvent?.Invoke(this, null);
+                OnCancelFindingPeers?.Invoke(this, null);
             else
-                OnDoneFindingPeersEvent?.Invoke(this, null);
+                OnDoneFindingPeers?.Invoke(this, null);
         }
 
         public void HandleConnectedServers(object sender, EventArgs e)
@@ -840,6 +837,12 @@ namespace Liviano.Electrum
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
+            foreach (var r in result.Result)
+            {
+                Debug.WriteLine(r.TxHash);
+            }
+
+            return;
             var txs = acc.Txs.ToList();
             var tasks = new List<Task> {};
 

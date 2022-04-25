@@ -43,7 +43,6 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Storages;
 using Liviano.Utilities;
-using Newtonsoft.Json;
 
 namespace Liviano.CLI
 {
@@ -509,6 +508,7 @@ namespace Liviano.CLI
 
             wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
             {
+                startTime = DateTimeOffset.UtcNow;
                 logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
             };
 
@@ -537,7 +537,6 @@ namespace Liviano.CLI
 
             wallet.OnSyncStarted += (s, e) =>
             {
-                startTime = DateTimeOffset.UtcNow;
                 logger.Information("Sync started at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
             };
 

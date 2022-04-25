@@ -57,10 +57,10 @@ namespace Liviano.Models
         public string Version { get; set; }
 
         [JsonIgnore]
-        public EventHandler OnConnectedEvent;
+        public EventHandler OnConnected;
 
         [JsonIgnore]
-        public EventHandler OnDisconnectedEvent;
+        public EventHandler OnDisconnected;
 
         public static Server FromPeersSubscribeResultItem(List<object> item)
         {

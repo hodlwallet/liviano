@@ -42,12 +42,12 @@ namespace Liviano.Interfaces
         Server CurrentServer { get; set; }
         ElectrumClient ElectrumClient { get; set; }
 
-        event EventHandler<Server> OnCurrentServerChangedEvent;
+        event EventHandler<Server> OnCurrentServerChanged;
         event EventHandler<Server> OnConnected;
-        event EventHandler<Server> OnDisconnectedEvent;
+        event EventHandler<Server> OnDisconnected;
 
-        event EventHandler OnDoneFindingPeersEvent;
-        event EventHandler OnCancelFindingPeersEvent;
+        event EventHandler OnDoneFindingPeers;
+        event EventHandler OnCancelFindingPeers;
 
         event EventHandler<TxEventArgs> OnNewTransaction;
         event EventHandler<TxEventArgs> OnUpdateTransaction;
