@@ -406,9 +406,7 @@ namespace Liviano.CLI
             else
                 account = wallet.Accounts.FirstOrDefault();
 
-            var txs = new List<Tx> { };
-            foreach (var tx in account.Txs)
-                txs.Add(tx);
+            var txs = account.Txs.ToList();
 
             if (txs.Count == 0) return;
 
@@ -424,7 +422,6 @@ namespace Liviano.CLI
                     tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                 );
             }
-
         }
 
         public static void AllAccountsSummaries(Config config)
@@ -562,12 +559,11 @@ namespace Liviano.CLI
                 {
                     logger.Information("No transactions found {sadFace}", ":(");
 
+                    wallet.Disconnect();
+
                     Quit();
                 }
                 else
-                    logger.Information("Transactions:");
-
-                if (txs.Count != 0)
                 {
                     foreach (var tx in txs)
                     {
@@ -579,6 +575,9 @@ namespace Liviano.CLI
 
                     logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
                 }
+
+                logger.Information("Transactions:");
+                
 
                 wallet.Disconnect();
 
