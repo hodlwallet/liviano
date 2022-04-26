@@ -712,7 +712,7 @@ namespace Liviano.CLI
 
             if (gui)
             {
-                LightClient.ShowGui(config);
+                LightClient.ShowGui();
 
                 return 0;
             }
@@ -757,7 +757,7 @@ namespace Liviano.CLI
         /// </summary>
         static int DefaultCommand()
         {
-            LightClient.ShowGui(config);
+            LightClient.ShowGui();
 
             return 0;
         }
