@@ -692,17 +692,17 @@ namespace Liviano.Electrum
 
             var currentTxCount = acc.Txs.ToList().Count;
 
-            var addressSyncTasks = new List<Task>();
+            var tasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
                 foreach (var addressData in acc.ExternalAddresses[scriptPubKeyType].ToList())
-                    addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
+                    tasks.Add(SyncAddress(acc, addressData.Address, ct));
 
                 foreach (var addressData in acc.InternalAddresses[scriptPubKeyType].ToList())
-                    addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
+                    tasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
-            await Task.WhenAll(addressSyncTasks);
+            await Task.WhenAll(tasks);
 
             acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
@@ -768,17 +768,20 @@ namespace Liviano.Electrum
             var externalStartIndex = acc.GetExternalLastIndex() + 1;
             var internalStartIndex = acc.GetInternalLastIndex() + 1;
 
-            var addressSyncTasks = new List<Task>();
+            var tasks = new List<Task>();
             foreach (var scriptPubKeyType in acc.ScriptPubKeyTypes)
             {
                 for (int i = externalStartIndex; i < acc.ExternalAddresses[scriptPubKeyType].Count - 1; i++)
-                    addressSyncTasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
+                    tasks.Add(SyncAddress(acc, acc.ExternalAddresses[scriptPubKeyType][i].Address, ct));
 
                 for (int i = internalStartIndex; i < acc.InternalAddresses[scriptPubKeyType].Count - 1; i++)
-                    addressSyncTasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
+                    tasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            await Task.WhenAll(addressSyncTasks);
+            await Task.WhenAll(tasks);
+
+            acc.FindUtxosInTransactions();
+            acc.FindAndRemoveDuplicateUtxo();
 
             var endTxCount = acc.Txs.Count;
 
@@ -919,21 +922,24 @@ namespace Liviano.Electrum
                 }
             }
 
-            var currentTxFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
-            if (currentTxFinal is null)
+            lock (@lock)
             {
-                acc.AddTx(tx);
+                var currentTxFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
+                if (currentTxFinal is null)
+                {
+                    acc.AddTx(tx);
 
-                OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+                else if (currentTxFinal.BlockHeight < r.Height)
+                {
+                    acc.UpdateTx(tx);
+
+                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
+
+                acc.UpdateUtxoListWithTransaction(transaction);
             }
-            else if (currentTxFinal.BlockHeight < r.Height)
-            {
-                acc.UpdateTx(tx);
-
-                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-            }
-
-            acc.UpdateUtxoListWithTransaction(transaction);
         }
 
         ConcurrentDictionary<string, string> TxHexCache { get; set; } = new();

@@ -264,10 +264,19 @@ namespace Liviano.Accounts
         {
             var txs = Txs.ToList().Select(tx => tx.GetTransaction());
 
+            bool CoinExist(ICoin coin)
+            {
+                return UnspentCoins.Contains(coin)
+                    || SpentCoins.Contains(coin)
+                    || FrozenCoins.Contains(coin);
+            }
+
             Task FindUtxos(Transaction tx)
             {
                 foreach (var coin in tx.Outputs.AsCoins())
                 {
+                    if (CoinExist(coin)) break;
+
                     var address = coin.ScriptPubKey.GetDestinationAddress(Network);
 
                     if (IsReceive(address) || IsChange(address)) AddUtxo(coin);
