@@ -2,6 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
         <PackageId>Liviano.CLI</PackageId>
         <PackageIcon>icon.png</PackageIcon>
