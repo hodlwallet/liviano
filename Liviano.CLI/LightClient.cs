@@ -265,6 +265,18 @@ namespace Liviano.CLI
 
             // In the end is important to add the tx even though we don't know certain things
             // from it so we have the tx in our store already.
+            var amountSent = bumpedTx.Outputs.Sum((@out) =>
+            {
+                var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+
+                if (!wallet.CurrentAccount.IsChange(outAddr))
+                {
+                    tx.SentScriptPubKey = @out.ScriptPubKey;
+                    return @out.Value;
+                }
+
+                return Money.Zero;
+            });
             var bumpedTxModel = new Tx
             {
                 Id = bumpedTx.GetHash(),
@@ -279,20 +291,9 @@ namespace Liviano.CLI
                 ScriptPubKey = destinationAddress.ScriptPubKey,
                 IsReceive = false,
                 IsSend = true,
-                TotalAmount = bumpedTx.TotalOut
+                TotalAmount = bumpedTx.TotalOut,
+                AmountSent = amountSent
             };
-            bumpedTxModel.AmountSent = bumpedTx.Outputs.Sum((@out) =>
-            {
-                var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
-
-                if (!wallet.CurrentAccount.IsChange(outAddr))
-                {
-                    tx.SentScriptPubKey = @out.ScriptPubKey;
-                    return @out.Value;
-                }
-
-                return Money.Zero;
-            });
 
             wallet.CurrentAccount.AddTx(bumpedTxModel);
             foreach (var coin in bumpedTx.Outputs.AsCoins())
@@ -1077,7 +1078,7 @@ namespace Liviano.CLI
         /// <summary>
         /// Shows the terminal UI
         /// </summary>
-        public static void ShowGui(Config config)
+        public static void ShowGui()
         {
             Liviano.CLI.Gui.Gui.Run();
         }

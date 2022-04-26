@@ -843,7 +843,6 @@ namespace Liviano.Electrum
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
-            var txs = acc.Txs.ToList();
             var tasks = new List<Task> {};
 
             foreach (var r in result.Result)

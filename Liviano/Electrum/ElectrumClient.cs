@@ -628,7 +628,7 @@ namespace Liviano.Electrum
             return await RequestInternal<BlockchainTransactionBroadcastResult>(json);
         }
 
-        System.Version CreateVersion(string versionStr)
+        static System.Version CreateVersion(string versionStr)
         {
             string correctedVersion = versionStr;
 
