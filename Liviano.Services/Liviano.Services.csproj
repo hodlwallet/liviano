@@ -12,10 +12,10 @@
     <Authors>HODL Wallet</Authors>
     <Company>HODL Wallet</Company>
     <Copyright>Copyright ©  HODL Wallet 2022</Copyright>
-    <Version>0.1.10</Version>
-    <ReleaseVersion>0.1.10</ReleaseVersion>
-    <AssemblyVersion>0.1.10</AssemblyVersion>
-    <FileVersion>0.1.10</FileVersion>
+    <Version>0.1.11</Version>
+    <ReleaseVersion>0.1.11</ReleaseVersion>
+    <AssemblyVersion>0.1.11</AssemblyVersion>
+    <FileVersion>0.1.11</FileVersion>
     <LangVersion>latest</LangVersion>
     <Description>Liviano is a library to build Bitcoin light clients</Description>
   </PropertyGroup>
