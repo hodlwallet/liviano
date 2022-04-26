@@ -35,6 +35,9 @@ using Liviano.Bips;
 using Liviano.Exceptions;
 using Liviano.Interfaces;
 using Liviano.Models;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Extensions
 {
@@ -330,12 +333,8 @@ namespace Liviano.Extensions
                 }
 
                 // Tx is not found locally we resource to the electrum pool to find it.
-
                 // Get the transaction from the input
-                var task = account.Wallet.ElectrumPool.ElectrumClient.BlockchainTransactionGet(outHash);
-                task.Wait();
-
-                var hex = task.Result.Result;
+                var hex = GetTransactionHex(account, outHash);
                 var transaction = Transaction.Parse(hex, account.Network);
                 var txOut = transaction.Outputs[outIndex];
 
@@ -343,6 +342,30 @@ namespace Liviano.Extensions
             }
 
             return total;
+        }
+
+        static readonly ConcurrentDictionary<string, string> TxHexCache = new();
+        static string GetTransactionHex(IAccount account, string outHash)
+        {
+            if (TxHexCache.ContainsKey(outHash)) return TxHexCache[outHash];
+
+            Task<BlockchainTransactionGetResult> task;
+            try
+            {
+                task = account.Wallet.ElectrumPool.ElectrumClient.BlockchainTransactionGet(outHash);
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[GetTransactionHex] Error: {}", ex);
+
+                Task.Delay(250).Wait();
+
+                return GetTransactionHex(account, outHash);
+            }
+
+            TxHexCache[outHash] = task.Result.Result;
+            return TxHexCache[outHash];
         }
 
         public static Tx FindReplacedTx(this IAccount account, Transaction transaction)

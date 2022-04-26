@@ -1,0 +1,20 @@
+{
+  "id": "a224afecc55a4eb4fa631c72c4c2573e28c53782fc04e720366da157f8ef7e28",
+  "accountId": "c5a8db54-9050-455d-8ce5-63f9acd54f2d",
+  "network": "TestNet",
+  "amountReceived": 10000,
+  "amountSent": 0,
+  "totalAmount": 44990,
+  "totalFees": 4068,
+  "isSend": false,
+  "isReceive": true,
+  "blockHeight": 2164435,
+  "blockhash": "000000000000672eb00b0bea4b65bc0ab7599d0e9bf15cddfb22d9b3a803134f",
+  "createdAt": 1646199534,
+  "scriptPubKey": "0014d0c4a3ef09e997b6e99e397e518fe3e41a118ca1",
+  "isRBF": false,
+  "hex": "01000000000101cf548f0d99f90d8e419adec9d8174cf8ee20883e8425edf72144d639ed5a4dd70000000000ffffffff02ae880000000000001600147b55875d4b0e1b329d7f196e8bb20ccb6827ccef1027000000000000160014d0c4a3ef09e997b6e99e397e518fe3e41a118ca102483045022100b1a9de7557ac0831a46cf218d6e54c3243ed9639c42ec39582d0f96917c90480022029437545dd852e57192ba540b9a02a47dc1651bbc5f16ba36d73b61452d73d1b8121027dd8bc1aa7c502db343011f952ebc280cf2bdd90be198ab7fa009d48a3d293fb00000000",
+  "memo": "",
+  "confirmations": 29345,
+  "hasAproxCreatedAt": false
+}

@@ -1,4 +1,4 @@
-.PHONY: help build build.ubuntu liviano run run.ubuntu run.ubuntu.debug run.osx run.osx.debug run.win run.win.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release  ubuntu.debug.build osx.debug.build clean clean.local
+.PHONY: help build build.ubuntu liviano run run.ubuntu run.ubuntu.debug run.osx run.osx.debug run.win run.win.debug test test.with.coverage test.watch.helper test.watch publish.debug publish.release ubuntu.debug.build osx.debug.build clean clean.local
 
 # Set default goal to help target
 .DEFAULT_GOAL := build
@@ -70,18 +70,18 @@ run.win.debug:
 ## Excutes all unit tests.
 test:
 	@if [ "${test}${t}" = "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests;\
+		dotnet test --logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests;\
 	fi
 	@if [ "${test}" != "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${test}";\
+		dotnet test--logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${test}";\
 	fi
 	@if [ "${t}" != "" ]; then\
-		dotnet test $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${t}";\
+		dotnet test --logger "console;verbosity=detailed" $(USING_NET_VERSION) Liviano.Tests --filter "FullyQualifiedName~${t}";\
 	fi
 
 # Executes all unit tests by generating coverage report.
 test.with.coverage:
-	dotnet test Liviano.Tests /p:CollectCoverage=true
+	dotnet test --logger "console;verbosity=detailed" Liviano.Tests /p:CollectCoverage=true
 
 ## Executes all unit tests and generates code coverage report.
 test.watch.helper:

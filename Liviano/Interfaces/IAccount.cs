@@ -248,6 +248,18 @@ namespace Liviano.Interfaces
         void FindAndRemoveDuplicateUtxo();
 
         /// <summary>
+        /// Find UTXOs in transactions
+        /// </summary>
+        void FindUtxosInTransactions();
+
+        /// <summary>
+        /// Check if the account constains any of the inputs
+        /// </summary>
+        /// <param name="inputs">Inputs to check if it contains them</param>
+        /// <returns></returns>
+        bool ContainInputs(TxInList inputs);
+
+        /// <summary>
         /// Gets 1 receiving address
         /// </summary>
         /// <param name="typeIndex">A index of the scriptPubKeyTypes</param>

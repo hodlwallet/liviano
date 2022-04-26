@@ -43,7 +43,6 @@ using Liviano.Interfaces;
 using Liviano.Models;
 using Liviano.Storages;
 using Liviano.Utilities;
-using Newtonsoft.Json;
 
 namespace Liviano.CLI
 {
@@ -406,13 +405,12 @@ namespace Liviano.CLI
             else
                 account = wallet.Accounts.FirstOrDefault();
 
-            var txs = new List<Tx> { };
-            foreach (var tx in account.Txs)
-                txs.Add(tx);
+            var txs = account.Txs.ToList();
 
             if (txs.Count == 0) return;
 
             logger.Information("Account: Name: '{name}' Index: '{index}'", account.Name, account.Index);
+            logger.Information("Txs Count: {count}", txs.Count);
             logger.Information("Balance: {balance} BTC", account.GetBalance());
 
             Console.WriteLine("");
@@ -424,7 +422,6 @@ namespace Liviano.CLI
                     tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
                 );
             }
-
         }
 
         public static void AllAccountsSummaries(Config config)
@@ -512,6 +509,7 @@ namespace Liviano.CLI
 
             wallet.ElectrumPool.ElectrumClient.OnConnected += (s, o) =>
             {
+                startTime = DateTimeOffset.UtcNow;
                 logger.Information("Connected at {at}!", DateTimeOffset.UtcNow);
             };
 
@@ -526,9 +524,11 @@ namespace Liviano.CLI
                 null
             );
 
+            var txCount = 0;
             wallet.OnNewTransaction += (s, e) =>
             {
-                logger.Information("Transaction found at height: {height}!", e.Tx.BlockHeight);
+                txCount++;
+                logger.Information("#{count} Transaction found at height: {height}!", txCount, e.Tx.BlockHeight);
             };
 
             wallet.OnUpdateTransaction += (s, e) =>
@@ -538,7 +538,6 @@ namespace Liviano.CLI
 
             wallet.OnSyncStarted += (s, e) =>
             {
-                startTime = DateTimeOffset.UtcNow;
                 logger.Information("Sync started at {time}!", DateTime.Now.ToString(@"yyyy/MM/dd hh:mm:ss tt", CultureInfo.InvariantCulture));
             };
 
@@ -560,12 +559,11 @@ namespace Liviano.CLI
                 {
                     logger.Information("No transactions found {sadFace}", ":(");
 
+                    wallet.Disconnect();
+
                     Quit();
                 }
                 else
-                    logger.Information("Transactions:");
-
-                if (txs.Count != 0)
                 {
                     foreach (var tx in txs)
                     {
@@ -575,8 +573,12 @@ namespace Liviano.CLI
                         );
                     }
 
+                    logger.Information("Txs: {txCount}", wallet.CurrentAccount.Txs.Count);
                     logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
                 }
+
+                logger.Information("Transactions:");
+                
 
                 wallet.Disconnect();
 

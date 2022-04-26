@@ -182,32 +182,7 @@ namespace Liviano.Electrum
             // connection so we don't mix the big responses on these
             // big hex responses
             if (string.Equals(requestMethod, "blockchain.transaction.get"))
-            {
-                using var tcpClientLocal = Connect();
-                using var stream = SslTcpClient.GetSslStream(tcpClientLocal, Host);
-                var data = Encoding.UTF8.GetBytes(request + "\n");
-
-                await stream.WriteAsync(data.AsMemory(0, data.Length));
-                await stream.FlushAsync();
-
-                byte[] buffer = new byte[2048];
-                StringBuilder messageData = new();
-
-                while (true)
-                {
-                    int bytes = await stream.ReadAsync(buffer);
-
-                    Decoder decoder = Encoding.UTF8.GetDecoder();
-                    char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
-
-                    decoder.GetChars(buffer, 0, bytes, chars, 0);
-                    messageData.Append(chars);
-
-                    if (bytes < 2048) break;
-                }
-
-                return messageData.ToString();
-            }
+                return await DoGetTransactionHex(request);
 
             PollSslClient();
 
@@ -220,10 +195,43 @@ namespace Liviano.Electrum
             return await GetResult(requestId);
         }
 
+        ConcurrentDictionary<string, string> TransactionHexCache { get; set; } = new();
+        async Task<string> DoGetTransactionHex(string request)
+        {
+            if (TransactionHexCache.ContainsKey(request)) return TransactionHexCache[request];
+
+            using var tcpClientLocal = Connect();
+            using var stream = SslTcpClient.GetSslStream(tcpClientLocal, Host);
+            var data = Encoding.UTF8.GetBytes(request + "\n");
+
+            await stream.WriteAsync(data.AsMemory(0, data.Length));
+            await stream.FlushAsync();
+
+            byte[] buffer = new byte[2048];
+            StringBuilder messageData = new();
+
+            while (true)
+            {
+                int bytes = await stream.ReadAsync(buffer);
+
+                Decoder decoder = Encoding.UTF8.GetDecoder();
+                char[] chars = new char[decoder.GetCharCount(buffer, 0, bytes)];
+
+                decoder.GetChars(buffer, 0, bytes, chars, 0);
+                messageData.Append(chars);
+
+                if (bytes < 2048) break;
+            }
+
+            TransactionHexCache[request] = messageData.ToString();
+
+            return TransactionHexCache[request];
+        }
+
         public async Task<string> Request(string request)
         {
-            Host = server.Domain;
-            ipAddress = ResolveHost(server.Domain).Result;
+            Host ??= server.Domain;
+            ipAddress ??= ResolveHost(server.Domain).Result;
             port = server.PrivatePort.Value;
 
             Debug.WriteLine(

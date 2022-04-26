@@ -44,6 +44,7 @@ using Liviano.Interfaces;
 using Liviano.Models;
 
 using static Liviano.Electrum.ElectrumClient;
+using System.Collections.Concurrent;
 
 namespace Liviano.Electrum
 {
@@ -56,7 +57,7 @@ namespace Liviano.Electrum
         public const int VERSION_REQUEST_MAX_RETRIES = 3;
 
         Server currentServer;
-        static readonly object @lock = new();
+        readonly object @lock = new();
 
         [JsonIgnore]
         public bool IsPinging { get; set; }
@@ -73,8 +74,8 @@ namespace Liviano.Electrum
 
                 if (CurrentServer != null)
                 {
-                    if (Connected) CurrentServer.OnConnectedEvent?.Invoke(this, null);
-                    else CurrentServer.OnDisconnectedEvent?.Invoke(this, null);
+                    if (Connected) CurrentServer.OnConnected?.Invoke(this, null);
+                    else CurrentServer.OnDisconnected?.Invoke(this, null);
                 }
             }
         }
@@ -88,33 +89,31 @@ namespace Liviano.Electrum
                 if (currentServer is null && !Connected)
                 {
                     Connected = true;
-
-                    OnConnected?.Invoke(this, value);
                 }
 
                 if (value is null && currentServer is not null)
                 {
                     Connected = false;
 
-                    OnDisconnectedEvent?.Invoke(this, currentServer);
+                    OnDisconnected?.Invoke(this, currentServer);
                 }
 
                 currentServer = value;
                 ElectrumClient = new ElectrumClient(new JsonRpcClient(currentServer));
 
-                OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+                OnCurrentServerChanged?.Invoke(this, CurrentServer);
             }
         }
 
         public ElectrumClient ElectrumClient { get; set; }
         public Network Network { get; private set; }
 
-        public event EventHandler<Server> OnCurrentServerChangedEvent;
+        public event EventHandler<Server> OnCurrentServerChanged;
         public event EventHandler<Server> OnConnected;
-        public event EventHandler<Server> OnDisconnectedEvent;
+        public event EventHandler<Server> OnDisconnected;
 
-        public event EventHandler OnDoneFindingPeersEvent;
-        public event EventHandler OnCancelFindingPeersEvent;
+        public event EventHandler OnDoneFindingPeers;
+        public event EventHandler OnCancelFindingPeers;
 
         public event EventHandler<TxEventArgs> OnNewTransaction;
         public event EventHandler<TxEventArgs> OnUpdateTransaction;
@@ -178,11 +177,12 @@ namespace Liviano.Electrum
             var cancellationToken = cts.Token;
 
             CurrentServer.CancellationToken = cancellationToken;
-            CurrentServer.OnConnectedEvent += (_, e) => HandleConnectedServers(CurrentServer, e);
+            CurrentServer.OnConnected += (_, e) => HandleConnectedServers(CurrentServer, e);
 
-            OnCurrentServerChangedEvent?.Invoke(this, CurrentServer);
+            OnCurrentServerChanged?.Invoke(this, CurrentServer);
 
             ElectrumClient.OnConnected += (s, e) => OnConnected?.Invoke(this, CurrentServer);
+            ElectrumClient.OnDisconnected +=  (s, e) => OnDisconnected?.Invoke(this, CurrentServer);
 
             Debug.WriteLine($"[Connect] Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
@@ -242,18 +242,16 @@ namespace Liviano.Electrum
             {
                 Debug.WriteLine($"[Connect] Ping failed at {dt}. Reconnecting...");
 
-                // TODO check if this is needed
-                //CurrentServer.ElectrumClient = null;
-                CurrentServer.OnConnectedEvent = null;
+                CurrentServer.OnConnected = null;
 
                 await Task.Delay(RECONNECT_DELAY);
                 await Connect(0, cts);
             });
 
             if (cancellationToken.IsCancellationRequested)
-                OnCancelFindingPeersEvent?.Invoke(this, null);
+                OnCancelFindingPeers?.Invoke(this, null);
             else
-                OnDoneFindingPeersEvent?.Invoke(this, null);
+                OnDoneFindingPeers?.Invoke(this, null);
         }
 
         public void HandleConnectedServers(object sender, EventArgs e)
@@ -293,6 +291,7 @@ namespace Liviano.Electrum
 
             await Observable.Start(() => Task.WaitAll(addressWatchTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
         }
 
@@ -703,8 +702,9 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, addressData.Address, ct));
             }
 
-            await Observable.Start(() => Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
+            await Task.WhenAll(addressSyncTasks);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
 
             var endTxCount = acc.Txs.ToList().Count;
@@ -747,6 +747,7 @@ namespace Liviano.Electrum
             if (currentTxCount < endTxCount)
                 await SyncAccountUntilGapLimit(acc, ct);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
 
             OnSyncFinished?.Invoke(this, null);
@@ -777,7 +778,7 @@ namespace Liviano.Electrum
                     addressSyncTasks.Add(SyncAddress(acc, acc.InternalAddresses[scriptPubKeyType][i].Address, ct));
             }
 
-            await Observable.Start(() =>Task.WaitAll(addressSyncTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
+            await Task.WhenAll(addressSyncTasks);
 
             var endTxCount = acc.Txs.Count;
 
@@ -840,94 +841,119 @@ namespace Liviano.Electrum
                 CancellationToken ct)
         {
             var txs = acc.Txs.ToList();
+            var tasks = new List<Task> {};
+
             foreach (var r in result.Result)
+                tasks.Add(DoInsertTransactionFromHistory(r, acc, addr, ct));
+
+            await Task.WhenAll(tasks);
+        }
+
+        async Task DoInsertTransactionFromHistory(BlockchainScriptHashGetHistoryTxsResult r, IAccount acc, BitcoinAddress addr, CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+
+            var txs = acc.Txs.ToList();
+            string txHex = string.Empty;
+            try
             {
-                if (ct.IsCancellationRequested) return;
+                var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
 
-                Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
+                if (currentTx is not null)
+                    txHex = currentTx.Hex;
+                else
+                    txHex = await GetTransactionHex(r.TxHash);
+            }
+            catch (ElectrumException e)
+            {
+                Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
 
-                string txHex = string.Empty;
-                try
-                {
-                    var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
+                await DoInsertTransactionFromHistory(r, acc, addr, ct);
+                return;
+            }
 
-                    if (currentTx is not null)
-                        txHex = currentTx.Hex;
-                    else
-                        txHex = (await ElectrumClient.BlockchainTransactionGet(r.TxHash)).Result;
-                }
-                catch (ElectrumException e)
-                {
-                    Debug.WriteLine($"[InsertTransactionsFromHistory] Error: {e.Message}");
-
-                    await InsertTransactionsFromHistory(acc, addr, result, ct);
-                    return;
-                }
-
-                uint256 blockHash = null;
-                BlockHeader header = null;
-                if (r.Height > 0)
-                {
-                    var headerHex = (await ElectrumClient.BlockchainBlockHeader(r.Height)).Result;
-                    header = BlockHeader.Parse(
-                        headerHex,
-                        acc.Network
-                    );
-
-                    blockHash = header.GetHash();
-                }
-
-                var tx = Tx.CreateFromHex(
-                    txHex,
-                    r.Height,
-                    header,
-                    acc,
-                    Network
+            uint256 blockHash = null;
+            BlockHeader header = null;
+            if (r.Height > 0)
+            {
+                var headerHex = await GetBlockHeader(r.Height);
+                header = BlockHeader.Parse(
+                    headerHex,
+                    acc.Network
                 );
 
-                var transaction = Transaction.Parse(tx.Hex, Network);
-                var txAddresses = transaction.Outputs.Select(
-                    (o) => o.ScriptPubKey.GetDestinationAddress(Network)
-                );
+                blockHash = header.GetHash();
+            }
 
-                lock (@lock)
+            var tx = Tx.CreateFromHex(
+                txHex,
+                r.Height,
+                header,
+                acc,
+                Network
+            );
+
+            var transaction = tx.GetTransaction();
+            var txAddresses = transaction.Outputs.Select(
+                (o) => o.ScriptPubKey.GetDestinationAddress(Network)
+            );
+
+            foreach (var txAddr in txAddresses)
+            {
+                if (acc.IsReceive(txAddr))
                 {
-                    foreach (var txAddr in txAddresses)
-                    {
-                        if (acc.IsReceive(txAddr))
-                        {
-                            if (acc.UsedExternalAddresses.Contains(txAddr))
-                                continue;
+                    if (acc.UsedExternalAddresses.Contains(txAddr))
+                        continue;
 
-                            acc.UsedExternalAddresses.Add(txAddr);
-                        }
+                    acc.UsedExternalAddresses.Add(txAddr);
+                }
 
-                        if (acc.IsChange(txAddr))
-                        {
-                            if (acc.UsedInternalAddresses.Contains(txAddr))
-                                continue;
+                if (acc.IsChange(txAddr))
+                {
+                    if (acc.UsedInternalAddresses.Contains(txAddr))
+                        continue;
 
-                            acc.UsedInternalAddresses.Add(txAddr);
-                        }
-                    }
-
-                    var currentTx = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
-                    if (currentTx is null)
-                    {
-                        acc.AddTx(tx);
-
-                        OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                    }
-                    else if (currentTx.BlockHeight < r.Height)
-                    {
-                        acc.UpdateTx(tx);
-
-                        OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
-                    }
-
-                    acc.UpdateUtxoListWithTransaction(transaction);
+                    acc.UsedInternalAddresses.Add(txAddr);
                 }
             }
+
+            var currentTxFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
+            if (currentTxFinal is null)
+            {
+                acc.AddTx(tx);
+
+                OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+            }
+            else if (currentTxFinal.BlockHeight < r.Height)
+            {
+                acc.UpdateTx(tx);
+
+                OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+            }
+
+            acc.UpdateUtxoListWithTransaction(transaction);
+        }
+
+        ConcurrentDictionary<string, string> TxHexCache { get; set; } = new();
+        async Task<string> GetTransactionHex(string txHash)
+        {
+            if (TxHexCache.ContainsKey(txHash)) return TxHexCache[txHash];
+
+            TxHexCache[txHash] = (await ElectrumClient.BlockchainTransactionGet(txHash)).Result;
+
+            return TxHexCache[txHash];
+        }
+
+        ConcurrentDictionary<long, string> BlockHeaderCache { get; set; } = new();
+        async Task<string> GetBlockHeader(long height)
+        {
+            if (BlockHeaderCache.ContainsKey(height)) return BlockHeaderCache[height];
+
+            BlockHeaderCache[height] = (await ElectrumClient.BlockchainBlockHeader(height)).Result;
+
+            return BlockHeaderCache[height];
         }
     }
 }

@@ -140,12 +140,6 @@ namespace Liviano.Models
         public string Hex { get; set; }
 
         /// <summary>
-        /// Memo of the transaction to persist it locally
-        /// </summary>
-        [JsonProperty(PropertyName = "memo", NullValueHandling = NullValueHandling.Ignore)]
-        public string Memo { get; set; }
-
-        /// <summary>
         /// Number of confirmations
         /// </summary>
         [JsonProperty(PropertyName = "confirmations", NullValueHandling = NullValueHandling.Ignore)]
@@ -215,7 +209,6 @@ namespace Liviano.Models
             Id = copy.Id;
             IsReceive = copy.IsReceive;
             IsSend = copy.IsSend;
-            Memo = copy.Memo;
             Network = copy.Network;
             ScriptPubKey = copy.ScriptPubKey;
             SentScriptPubKey = copy.SentScriptPubKey;
@@ -245,8 +238,7 @@ namespace Liviano.Models
                 Network = network,
                 Hex = hex,
                 IsRBF = transaction.RBF,
-                BlockHeight = height,
-                Memo = ""
+                BlockHeight = height
             };
 
             if (height > 0 && header is not null)
@@ -275,13 +267,28 @@ namespace Liviano.Models
 
                 if (account.IsChange(addr))
                 {
-                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is send), address: {addr}");
+                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is likely send), address: {addr}");
 
-                    tx.IsSend = true;
-                    tx.IsReceive = false;
+                    // This is due to the case where the user shared a internal address as external address
+                    if (account.ContainInputs(transaction.Inputs))
+                    {
+                        tx.IsSend = true;
+                        tx.IsReceive = false;
+                    }
+                    else
+                    {
+                        tx.IsSend = false;
+                        tx.IsReceive = true;
+                    }
 
                     break;
                 }
+            }
+
+            if (!tx.IsSend && !tx.IsReceive)
+            {
+                tx.IsSend = true;
+                tx.IsReceive = false;
             }
 
             // Amounts.
@@ -295,7 +302,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (account.IsReceive(outAddr))
+                    if (account.IsReceive(outAddr) || account.IsChange(outAddr))
                     {
                         tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
@@ -311,7 +318,7 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
-                    if (!account.IsChange(outAddr))
+                    if (!account.IsChange(outAddr) && !account.IsReceive(outAddr))
                     {
                         tx.SentScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
