@@ -317,8 +317,6 @@ namespace Liviano.Electrum
             jsonRpcClient.OnSubscriptionFailed += (s, o) => OnSubscriptionFailed?.Invoke(s, o);
             jsonRpcClient.OnConnected += (s, o) => OnConnected?.Invoke(s, o);
             jsonRpcClient.OnDisconnected += (s, o) => OnDisconnected?.Invoke(s, o);
-
-            jsonRpcClient.StartTasks();
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver
