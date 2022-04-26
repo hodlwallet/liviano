@@ -60,8 +60,8 @@ namespace Liviano.Electrum
         bool readingStream = false;
         bool consumingQueue = false;
 
-        ConcurrentDictionary<string, string> results;
-        ConcurrentQueue<string> queue;
+        ConcurrentDictionary<string, string> results = new(101, Environment.ProcessorCount * 10);
+        ConcurrentQueue<string> queue = new ();
 
         public event EventHandler OnConnected;
         public event EventHandler OnDisconnected;
@@ -77,8 +77,6 @@ namespace Liviano.Electrum
         public JsonRpcClient(Server server)
         {
             this.server = server;
-
-            InitQueue();
         }
 
         public void StartTasks()
@@ -90,16 +88,6 @@ namespace Liviano.Electrum
                     ConsumeRequests();
                     PollSslClient();
                 }, RxApp.TaskpoolScheduler);
-        }
-
-        void InitQueue()
-        {
-            var initialCapacity = 101;
-            var numProcs = Environment.ProcessorCount;
-            var concurrencyLevel = numProcs * 2;
-
-            results = new ConcurrentDictionary<string, string>(initialCapacity, concurrencyLevel);
-            queue = new ConcurrentQueue<string>();
         }
 
         static async Task<IPAddress> ResolveAsync(string hostName)
@@ -202,7 +190,7 @@ namespace Liviano.Electrum
             return await GetResult(requestId);
         }
 
-        ConcurrentDictionary<string, string> TransactionHexCache { get; set; } = new();
+        ConcurrentDictionary<string, string> TransactionHexCache { get; set; } = new(101, Environment.ProcessorCount * 10);
         async Task<string> DoGetTransactionHex(string request)
         {
             if (TransactionHexCache.ContainsKey(request)) return TransactionHexCache[request];

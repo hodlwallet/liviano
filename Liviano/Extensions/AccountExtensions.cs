@@ -344,7 +344,7 @@ namespace Liviano.Extensions
             return total;
         }
 
-        static readonly ConcurrentDictionary<string, string> TxHexCache = new();
+        static readonly ConcurrentDictionary<string, string> TxHexCache = new(101, Environment.ProcessorCount * 10);
         static string GetTransactionHex(IAccount account, string outHash)
         {
             if (TxHexCache.ContainsKey(outHash)) return TxHexCache[outHash];

@@ -941,7 +941,7 @@ namespace Liviano.Electrum
             }
         }
 
-        ConcurrentDictionary<string, string> TxHexCache { get; set; } = new();
+        ConcurrentDictionary<string, string> TxHexCache { get; set; } = new(101, Environment.ProcessorCount * 10);
         async Task<string> GetTransactionHex(string txHash)
         {
             if (TxHexCache.ContainsKey(txHash)) return TxHexCache[txHash];
