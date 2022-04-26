@@ -93,7 +93,8 @@ namespace Liviano.Electrum
         static async Task<IPAddress> ResolveAsync(string hostName)
         {
             var hostEntry = await Dns.GetHostEntryAsync(hostName);
-            return hostEntry.AddressList.ToArray().First();
+
+            return hostEntry.AddressList.First();
         }
 
         async Task<IPAddress> ResolveHost(string hostName)
@@ -101,7 +102,7 @@ namespace Liviano.Electrum
             try
             {
                 var ipAddress = await ResolveAsync(hostName);
-                if (ipAddress == null) throw new TimeoutException($"Timed out connecting to {hostName}:{port}");
+                if (ipAddress == null) throw new ElectrumException($"Timed out connecting to {hostName}:{port}");
 
                 return ipAddress;
             }
@@ -113,7 +114,7 @@ namespace Liviano.Electrum
             }
         }
 
-        TcpClient Connect()
+        public TcpClient Connect()
         {
             var tcpClient = new TcpClient(ipAddress.AddressFamily)
             {
@@ -123,10 +124,7 @@ namespace Liviano.Electrum
 
             var isConnected = tcpClient.ConnectAsync(ipAddress, port).Wait(DEFAULT_NETWORK_TIMEOUT);
 
-            if (!isConnected)
-            {
-                throw new ElectrumException("Server is unresponsive.");
-            }
+            if (!isConnected) throw new ElectrumException("Server is unresponsive.");
 
             return tcpClient;
         }
@@ -174,11 +172,11 @@ namespace Liviano.Electrum
             tcpClient ??= Connect();
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
+            StartTasks();
+
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
             var requestMethod = (string)json.GetValue("method");
-
-            StartTasks();
 
             // Since transactions get fetched many times,
             // we do this method that catches the hexes we get
@@ -264,11 +262,12 @@ namespace Liviano.Electrum
             tcpClient ??= Connect();
             sslStream ??= SslTcpClient.GetSslStream(tcpClient, Host);
 
+            StartTasks();
+
             var json = JObject.Parse(request);
             var requestId = (string)json.GetValue("id");
             var method = (string)json.GetValue("method");
 
-            StartTasks();
             EnqueueMessage(requestId, request);
 
             resultCallback(await GetResult(requestId));
@@ -499,7 +498,7 @@ namespace Liviano.Electrum
 
                                     // FIXME We need to wait for empty result,
                                     // it should be empty but sometimes this fails
-                                    //await WaitForEmptyResult(scripthash);
+                                    // await WaitForEmptyResult(scripthash);
 
                                     results[scripthash] = status;
                                 }
@@ -508,7 +507,7 @@ namespace Liviano.Electrum
                                     var newHeader = (JObject)@params[0];
 
                                     // See above
-                                    //await WaitForEmptyResult("blockchain.headers.subscribe");
+                                    // await WaitForEmptyResult("blockchain.headers.subscribe");
 
                                     results["blockchain.headers.subscribe"] = newHeader.ToString(Formatting.None);
                                 }
@@ -518,7 +517,7 @@ namespace Liviano.Electrum
                                 var requestId = (string)json.GetValue("id");
 
                                 // See above
-                                //await WaitForEmptyResult(requestId);
+                                // await WaitForEmptyResult(requestId);
 
                                 results[requestId] = saneMsg;
                             }
