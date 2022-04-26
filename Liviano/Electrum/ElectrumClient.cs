@@ -309,14 +309,16 @@ namespace Liviano.Electrum
             public string[] Params { get; set; }
         }
 
-        public ElectrumClient(JsonRpcClient jsonRpcClient)
+        public ElectrumClient(JsonRpcClient client)
         {
-            this.jsonRpcClient = jsonRpcClient;
+            jsonRpcClient = client;
 
-            this.jsonRpcClient.OnRequestFailed += (s, o) => OnRequestFailed?.Invoke(s, o);
-            this.jsonRpcClient.OnSubscriptionFailed += (s, o) => OnSubscriptionFailed?.Invoke(s, o);
-            this.jsonRpcClient.OnConnected += (s, o) => OnConnected?.Invoke(s, o);
-            this.jsonRpcClient.OnDisconnected += (s, o) => OnDisconnected?.Invoke(s, o);
+            jsonRpcClient.OnRequestFailed += (s, o) => OnRequestFailed?.Invoke(s, o);
+            jsonRpcClient.OnSubscriptionFailed += (s, o) => OnSubscriptionFailed?.Invoke(s, o);
+            jsonRpcClient.OnConnected += (s, o) => OnConnected?.Invoke(s, o);
+            jsonRpcClient.OnDisconnected += (s, o) => OnDisconnected?.Invoke(s, o);
+
+            jsonRpcClient.StartTasks();
         }
 
         public class PascalCase2LowercasePlusUnderscoreContractResolver : DefaultContractResolver

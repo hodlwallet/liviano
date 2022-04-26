@@ -81,6 +81,17 @@ namespace Liviano.Electrum
             InitQueue();
         }
 
+        public void StartTasks()
+        {
+            Observable
+                .Start(() =>
+                {
+                    ConsumeMessages();
+                    ConsumeRequests();
+                    PollSslClient();
+                }, RxApp.TaskpoolScheduler);
+        }
+
         void InitQueue()
         {
             var initialCapacity = 101;
@@ -164,7 +175,8 @@ namespace Liviano.Electrum
         {
             Debug.WriteLine($"[RequestInternal] Sending request: {request}");
 
-            // TODO add usecured tcp streams (http) support back
+            // TODO add usecured tcp streams (http) support back,
+            // this will always be ssl for now
 
             return await RequestInternalSsl(request);
         }
@@ -178,19 +190,14 @@ namespace Liviano.Electrum
             var requestId = (string)json.GetValue("id");
             var requestMethod = (string)json.GetValue("method");
 
-            // FIXME we do a special case here, we create a new stream and
-            // connection so we don't mix the big responses on these
-            // big hex responses
+            StartTasks();
+
+            // Since transactions get fetched many times,
+            // we do this method that catches the hexes we get
             if (string.Equals(requestMethod, "blockchain.transaction.get"))
                 return await DoGetTransactionHex(request);
 
-            PollSslClient();
-
-            ConsumeMessages();
-
             EnqueueMessage(requestId, request);
-
-            ConsumeRequests();
 
             return await GetResult(requestId);
         }
@@ -273,13 +280,8 @@ namespace Liviano.Electrum
             var requestId = (string)json.GetValue("id");
             var method = (string)json.GetValue("method");
 
-            PollSslClient();
-
-            ConsumeMessages();
-
+            StartTasks();
             EnqueueMessage(requestId, request);
-
-            ConsumeRequests();
 
             resultCallback(await GetResult(requestId));
 
