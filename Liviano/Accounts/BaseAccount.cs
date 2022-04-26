@@ -27,6 +27,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 using NBitcoin;
 
@@ -257,6 +258,45 @@ namespace Liviano.Accounts
                         if (unspentCoin.Outpoint.Hash == input.PrevOut.Hash && unspentCoin.Outpoint.N == input.PrevOut.N)
                             RemoveUtxo(unspentCoin);
             }
+        }
+
+        public async void FindUtxosInTransactions()
+        {
+            var txs = Txs.ToList().Select(tx => tx.GetTransaction());
+
+            Task FindUtxos(Transaction tx)
+            {
+                foreach (var coin in tx.Outputs.AsCoins())
+                {
+                    var address = coin.ScriptPubKey.GetDestinationAddress(Network);
+
+                    if (IsReceive(address) || IsChange(address)) AddUtxo(coin);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            var addTasks = new List<Task> { };
+            foreach (var tx in txs) addTasks.Add(FindUtxos(tx));
+
+            await Task.WhenAll(addTasks);
+
+            var utxos = UnspentCoins.ToList();
+
+            Task FindSpents(Transaction tx)
+            {
+                foreach (var input in tx.Inputs)
+                    foreach (var utxo in utxos)
+                        if (input.PrevOut.Hash == utxo.Outpoint.Hash && input.PrevOut.N == utxo.Outpoint.N)
+                            RemoveUtxo(utxo);
+
+                return Task.CompletedTask;
+            }
+
+            var remTasks = new List<Task> { };
+            foreach (var tx in txs) remTasks.Add(FindSpents(tx));
+
+            await Task.WhenAll(remTasks);
         }
 
         public void FindAndRemoveDuplicateUtxo()

@@ -291,6 +291,7 @@ namespace Liviano.Electrum
 
             await Observable.Start(() => Task.WaitAll(addressWatchTasks.ToArray(), ct), RxApp.TaskpoolScheduler);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
         }
 
@@ -703,6 +704,7 @@ namespace Liviano.Electrum
 
             await Task.WhenAll(addressSyncTasks);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
 
             var endTxCount = acc.Txs.ToList().Count;
@@ -745,6 +747,7 @@ namespace Liviano.Electrum
             if (currentTxCount < endTxCount)
                 await SyncAccountUntilGapLimit(acc, ct);
 
+            acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
 
             OnSyncFinished?.Invoke(this, null);
@@ -837,12 +840,6 @@ namespace Liviano.Electrum
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
-            foreach (var r in result.Result)
-            {
-                Debug.WriteLine(r.TxHash);
-            }
-
-            return;
             var txs = acc.Txs.ToList();
             var tasks = new List<Task> {};
 

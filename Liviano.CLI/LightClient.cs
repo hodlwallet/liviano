@@ -410,6 +410,7 @@ namespace Liviano.CLI
             if (txs.Count == 0) return;
 
             logger.Information("Account: Name: '{name}' Index: '{index}'", account.Name, account.Index);
+            logger.Information("Txs Count: {count}", txs.Count);
             logger.Information("Balance: {balance} BTC", account.GetBalance());
 
             Console.WriteLine("");
@@ -572,6 +573,7 @@ namespace Liviano.CLI
                         );
                     }
 
+                    logger.Information("Txs: {txCount}", wallet.CurrentAccount.Txs.Count);
                     logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
                 }
 

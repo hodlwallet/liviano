@@ -574,6 +574,16 @@ namespace Liviano
                 if (tx.Account.IsReceive(destinationAddress) || tx.Account.IsChange(destinationAddress)) acc.AddUtxo(coin);
             }
 
+            var utxos = tx.Account.UnspentCoins.ToList();
+            foreach (var input in transaction.Inputs.ToList())
+            {
+                foreach (var utxo in utxos)
+                {
+                    if (input.PrevOut.Hash == utxo.Outpoint.Hash && input.PrevOut.N == utxo.Outpoint.N)
+                        tx.Account.RemoveUtxo(utxo);
+                }
+            }
+
             OnNewTransaction?.Invoke(this, txArgs);
 
             Observable.Start(() => Storage.Save(), RxApp.TaskpoolScheduler);
@@ -598,6 +608,16 @@ namespace Liviano
                 var destinationAddress = coin.TxOut.ScriptPubKey.GetDestinationAddress(acc.Network);
 
                 if (tx.Account.IsReceive(destinationAddress) || tx.Account.IsChange(destinationAddress)) acc.AddUtxo(coin);
+            }
+
+            var utxos = tx.Account.UnspentCoins.ToList();
+            foreach (var input in transaction.Inputs.ToList())
+            {
+                foreach (var utxo in utxos)
+                {
+                    if (input.PrevOut.Hash == utxo.Outpoint.Hash && input.PrevOut.N == utxo.Outpoint.N)
+                        tx.Account.RemoveUtxo(utxo);
+                }
             }
 
             OnUpdateTransaction?.Invoke(this, txArgs);
