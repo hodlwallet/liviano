@@ -370,7 +370,7 @@ namespace Liviano.Tests.Regression
             var tx = Tx.CreateFrom(hex, height, header, account);
 
             Assert.NotNull(tx);
-            Assert.NotEqual(tx.Type, TxType.Partial);
+            Assert.NotEqual(TxType.Partial, tx.Type);
         }
 
         static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
