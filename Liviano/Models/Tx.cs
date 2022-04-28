@@ -27,9 +27,9 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-using Newtonsoft.Json;
-
 using NBitcoin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using Liviano.Interfaces;
 using Liviano.Extensions;
@@ -38,6 +38,13 @@ using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Models
 {
+    public enum TxType
+    {
+        Partial,
+        Send,
+        Receive
+    }
+
     public class Tx
     {
         /// <summary>
@@ -47,61 +54,40 @@ namespace Liviano.Models
         public uint256 Id { get; set; }
 
         /// <summary>
-        /// Account id the tx belongs to
-        /// </summary>
-        [JsonProperty(PropertyName = "accountId", NullValueHandling = NullValueHandling.Ignore)]
-        public string AccountId { get; set; }
-
-        [JsonIgnore]
-        public IAccount Account { get; set; }
-
-        /// <summary>
         /// The network this tx belongs to.
         /// </summary>
         [JsonProperty(PropertyName = "network")]
         public Network Network { get; set; }
 
         /// <summary>
-        /// The transaction amount.
+        /// The account the tx belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "amountReceived", DefaultValueHandling = (long)0)]
-        public Money AmountReceived { get; set; }
+        [JsonIgnore]
+        public IAccount Account { get; set; }
 
         /// <summary>
-        /// The transaction amount.
+        /// The transaction amount sent or received by us.
         /// </summary>
-        [JsonProperty(PropertyName = "amountSent", DefaultValueHandling = (long)0)]
-        public Money AmountSent { get; set; }
+        [JsonProperty(PropertyName = "amount", DefaultValueHandling = (long)0)]
+        public Money Amount { get; set; }
 
         /// <summary>
-        /// The transaction total amount, sent and received by you.
+        /// The transaction fees sent by us, 0 for a receive
         /// </summary>
-        [JsonProperty(PropertyName = "totalAmount", DefaultValueHandling = (long)0)]
-        public Money TotalAmount { get; set; }
+        [JsonProperty(PropertyName = "fees", DefaultValueHandling = (long)0)]
+        public Money Fees { get; set; }
 
         /// <summary>
-        /// The transaction total fees sent on this tx.
+        /// The type of the tx, <see cref="TxType" /> for mode details
         /// </summary>
-        [JsonProperty(PropertyName = "totalFees", DefaultValueHandling = (long)0)]
-        public Money TotalFees { get; set; }
-
-        /// <summary>
-        /// This means is a send, the output that belongs to you was sent to a change (internal) address
-        /// </summary>
-        [JsonProperty(PropertyName = "isSend", NullValueHandling = NullValueHandling.Ignore)]
-        public bool IsSend { get; set; }
-
-        /// <summary>
-        /// This means is receive, the output that is to a receive (external) address
-        /// </summary>
-        [JsonProperty(PropertyName = "isReceive", NullValueHandling = NullValueHandling.Ignore)]
-        public bool IsReceive { get; set; }
+        [JsonProperty(PropertyName = "txType", ItemConverterType = typeof(StringEnumConverter))]
+        public TxType Type { get; set; } = TxType.Partial;
 
         /// <summary>
         /// The height of the block including this transaction.
         /// </summary>
-        [JsonProperty(PropertyName = "blockHeight", NullValueHandling = NullValueHandling.Ignore)]
-        public long? BlockHeight { get; set; }
+        [JsonProperty(PropertyName = "height", DefaultValueHandling = (long)0)]
+        public long Height { get; set; }
 
         /// <summary>
         /// The hash of the block including this transaction.
@@ -112,13 +98,13 @@ namespace Liviano.Models
         /// <summary>
         /// Gets or sets the creation time.
         /// </summary>
-        [JsonProperty(PropertyName = "createdAt")]
-        public DateTimeOffset? CreatedAt { get; set; }
+        [JsonProperty(PropertyName = "createdAt", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
         /// The script pub key for this address.
         /// </summary>
-        [JsonProperty(PropertyName = "scriptPubKey")]
+        [JsonProperty(PropertyName = "scriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
         public Script ScriptPubKey { get; set; }
 
         /// <summary>
@@ -128,28 +114,10 @@ namespace Liviano.Models
         public bool IsRBF { get; set; }
 
         /// <summary>
-        /// The script pub key for the address we sent to
-        /// </summary>
-        [JsonProperty(PropertyName = "sentScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
-        public Script SentScriptPubKey { get; set; }
-
-        /// <summary>
         /// Hexadecimal representation of this transaction.
         /// </summary>
         [JsonProperty(PropertyName = "hex", NullValueHandling = NullValueHandling.Ignore)]
         public string Hex { get; set; }
-
-        /// <summary>
-        /// Number of confirmations
-        /// </summary>
-        [JsonProperty(PropertyName = "confirmations", NullValueHandling = NullValueHandling.Ignore)]
-        public long Confirmations { get; set; }
-
-        /// <summary>
-        /// Number of confirmations
-        /// </summary>
-        [JsonProperty(PropertyName = "hasAproxCreatedAt")]
-        public bool HasAproxCreatedAt { get; set; }
 
         /// <summary>
         /// Replaced id
@@ -158,87 +126,52 @@ namespace Liviano.Models
         public uint256 ReplacedId { get; set; }
 
         /// <summary>
-        /// Determines whether this transaction is confirmed.
+        /// The NBitcoin transaction
         /// </summary>
-        public bool IsConfirmed()
-        {
-            return Confirmations >= 1;
-        }
-
-        /// <summary>
-        /// Indicates an output is spendable.
-        /// </summary>
-        public bool IsSpendable()
-        {
-            return IsSend == false;
-        }
+        [JsonIgnore]
+        public Transaction Transaction { get; set; }
 
         public Transaction GetTransaction()
         {
             return Transaction.Parse(Hex, Network);
         }
 
-        public Money SpendableAmount(bool confirmedOnly)
+        public static Tx CreateFrom(string id, long height, long fees, IAccount account)
         {
-            // This method only returns a UTXO that has no spending output.
-            // If a spending output exists (even if its not confirmed) this will return as zero balance.
-            if (IsSpendable())
+            var tx = new Tx()
             {
-                // If the 'confirmedOnly' flag is set check that the UTXO is confirmed.
-                if (confirmedOnly && !IsConfirmed())
-                {
-                    return Money.Zero;
-                }
+                Id = uint256.Parse(id),
+                Type = TxType.Partial,
+                Account = account,
+                Network = account.Network,
+                Height = height,
+                Fees = new Money(fees)
+            };
 
-                return AmountReceived;
-            }
-
-            return Money.Zero;
+            return tx;
         }
 
-        public Tx(Tx copy)
-        {
-            Account = copy.Account;
-            AccountId = copy.AccountId;
-            AmountReceived = copy.AmountReceived;
-            AmountSent = copy.AmountSent;
-            Blockhash = copy.Blockhash;
-            BlockHeight = copy.BlockHeight;
-            CreatedAt = copy.CreatedAt;
-            Hex = copy.Hex;
-            Id = copy.Id;
-            IsReceive = copy.IsReceive;
-            IsSend = copy.IsSend;
-            Network = copy.Network;
-            ScriptPubKey = copy.ScriptPubKey;
-            SentScriptPubKey = copy.SentScriptPubKey;
-            TotalAmount = copy.TotalAmount;
-            TotalFees = copy.TotalFees;
-        }
-
-        public Tx() { }
-
-        public static Tx CreateFromHex(
+        public static Tx CreateFrom(
                 string hex,
                 long height,
                 BlockHeader header,
-                IAccount account,
-                Network network)
+                IAccount account)
         {
             Debug.WriteLine($"[CreateFromHex] Creating tx from hex: {hex}!");
 
             // NBitcoin Transaction object
-            var transaction = Transaction.Parse(hex, network);
+            var transaction = Transaction.Parse(hex, account.Network);
 
             var tx = new Tx
             {
                 Id = transaction.GetHash(),
                 Account = account,
-                AccountId = account.Id,
-                Network = network,
+                Network = account.Network,
                 Hex = hex,
+                Transaction = transaction,
                 IsRBF = transaction.RBF,
-                BlockHeight = height
+                Height = height,
+                Type = TxType.Partial
             };
 
             if (height > 0 && header is not null)
@@ -247,20 +180,15 @@ namespace Liviano.Models
                 tx.CreatedAt = header.BlockTime;
             }
 
-            // Add confirmations on creation
-            if (height > 0 && height < account.Wallet.Height)
-                tx.Confirmations = account.Wallet.Height - height;
-
             // Decide if the tx is a send tx or a receive tx
-            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(network));
+            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(account.Network));
             foreach (var addr in addresses)
             {
                 if (account.IsReceive(addr))
                 {
                     Debug.WriteLine($"[CreateFromHex] Tx's address was found in external addresses (tx is receive), address: {addr}");
 
-                    tx.IsReceive = true;
-                    tx.IsSend = false;
+                    tx.Type = TxType.Receive;
 
                     break;
                 }
@@ -272,35 +200,26 @@ namespace Liviano.Models
                     // This is due to the case where the user shared a internal address as external address
                     if (account.ContainInputs(transaction.Inputs))
                     {
-                        tx.IsSend = true;
-                        tx.IsReceive = false;
+                        tx.Type = TxType.Send;
                     }
                     else
                     {
-                        tx.IsSend = false;
-                        tx.IsReceive = true;
+                        tx.Type = TxType.Receive;
                     }
 
                     break;
                 }
             }
 
-            if (!tx.IsSend && !tx.IsReceive)
+            if (tx.Type == TxType.Partial)
+                tx.Type = TxType.Send;
+
+            // Amount
+            if (tx.Type == TxType.Receive)
             {
-                tx.IsSend = true;
-                tx.IsReceive = false;
-            }
-
-            // Amounts.
-            tx.TotalAmount = transaction.TotalOut;
-
-            Debug.WriteLine($"[CreateFromHex] Total amount in tx: {tx.TotalAmount}");
-
-            if (tx.IsReceive)
-            {
-                tx.AmountReceived = transaction.Outputs.Sum((@out) =>
+                tx.Amount = transaction.Outputs.Sum((@out) =>
                 {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
 
                     if (account.IsReceive(outAddr) || account.IsChange(outAddr))
                     {
@@ -310,27 +229,24 @@ namespace Liviano.Models
 
                     return Money.Zero;
                 });
-                tx.AmountSent = Money.Zero;
             }
             else
             {
-                tx.AmountSent = transaction.Outputs.Sum((@out) =>
+                tx.Amount = transaction.Outputs.Sum((@out) =>
                 {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
 
                     if (!account.IsChange(outAddr) && !account.IsReceive(outAddr))
                     {
-                        tx.SentScriptPubKey = @out.ScriptPubKey;
+                        tx.ScriptPubKey = @out.ScriptPubKey;
                         return @out.Value;
                     }
 
                     return Money.Zero;
                 });
-
-                tx.AmountReceived = Money.Zero;
             }
 
-            tx.TotalFees = account.GetOutValueFromTxInputs(transaction.Inputs) - tx.TotalAmount;
+            tx.Fees = account.GetOutValueFromTxInputs(transaction.Inputs) - transaction.TotalOut;
 
             return tx;
         }
@@ -341,7 +257,6 @@ namespace Liviano.Models
             {
                 Id = uint256.Parse(result.Result.Txid),
                 Account = account,
-                AccountId = account.Id,
                 Network = network,
                 Hex = result.Result.Hex
             };

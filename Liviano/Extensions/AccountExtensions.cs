@@ -119,7 +119,7 @@ namespace Liviano.Extensions
             var output = transaction.Outputs[coin.Outpoint.N];
             var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
 
-            int change = tx.IsSend ? 1 : 0;
+            int change = tx.TxType == TxType.Send;
             int index;
             if (change == 0)
                 index = account.GetExternalIndex(addr);

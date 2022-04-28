@@ -367,27 +367,10 @@ namespace Liviano.Tests.Regression
             var network = Network.TestNet;
             var account = wallet.CurrentAccount;
             var header = BlockHeader.Parse(headerHex, network);
-            var tx = Tx.CreateFromHex(hex, height, header, account, network);
+            var tx = Tx.CreateFrom(hex, height, header, account);
 
             Assert.NotNull(tx);
-            Assert.NotEqual(tx.IsSend, tx.IsReceive);
-            Assert.False(tx.ScriptPubKey is null && tx.SentScriptPubKey is null);
-            Assert.False(tx.IsSend == tx.IsReceive);
-
-            if (tx.IsReceive)
-            {
-                Assert.Null(tx.SentScriptPubKey);
-                Assert.NotNull(tx.ScriptPubKey);
-            }
-            else if (tx.IsSend)
-            {
-                Assert.Null(tx.ScriptPubKey);
-                Assert.NotNull(tx.SentScriptPubKey);
-            }
-            else
-            {
-                Assert.False(!tx.IsReceive && !tx.IsSend);
-            }
+            Assert.NotEqual(tx.Type, TxType.Partial);
         }
 
         static IWallet Load(string walletId, Network network, string passphrase = null, bool skipAuth = false)
