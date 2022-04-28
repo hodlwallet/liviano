@@ -185,10 +185,10 @@ namespace Liviano.CLI.Gui.Views
             dialog.Add(idLabel);
             dialog.Add(txId);
 
-            dialog.Add(new Label($"Created At:   {tx.CreatedAt.Value}") { X = 0, Y = 2 });
+            dialog.Add(new Label($"Created At:   {tx.CreatedAt}") { X = 0, Y = 2 });
 
             var blockHeightLabel = new Label("Block Height: ") { X = 0, Y = 3 };
-            var blockHeight = new Label(tx.BlockHeight.ToString()) { X = Pos.Right(blockHeightLabel), Y = 3, CanFocus = true };
+            var blockHeight = new Label(tx.Height.ToString()) { X = Pos.Right(blockHeightLabel), Y = 3, CanFocus = true };
             blockHeight.KeyUp += (args) =>
             {
                 if (args.KeyEvent.Key == Key.Space || args.KeyEvent.Key == Key.Enter)
@@ -202,18 +202,12 @@ namespace Liviano.CLI.Gui.Views
             var addressPreposition = string.Empty;
             var amount = string.Empty;
 
-            if (tx.IsReceive)
-            {
-                address = tx.ScriptPubKey.GetDestinationAddress(tx.Network).ToString();
+            if (tx.Type == TxType.Receive)
                 addressPreposition = "At:           ";
-                amount = $"Amount:       {tx.AmountReceived}";
-            }
             else
-            {
-                address = tx.SentScriptPubKey.GetDestinationAddress(tx.Network).ToString();
                 addressPreposition = $"From:         ";
-                amount = $"Amount:       {tx.AmountSent}";
-            }
+            address = tx.ScriptPubKey.GetDestinationAddress(tx.Network).ToString();
+            amount = $"Amount:       {tx.Amount}";
 
             var addressPrepositionLabel = new Label(addressPreposition) { X = 0, Y = 4 };
             var addressLabel = new Label(address) { X = Pos.Right(addressPrepositionLabel), Y = 4, CanFocus = true };
@@ -228,7 +222,7 @@ namespace Liviano.CLI.Gui.Views
 
             dialog.Add(new Label(amount) { X =0, Y = 5 });
 
-            dialog.Add(new Label($"Fees:         {tx.TotalFees}") { X = 0, Y = 6 });
+            dialog.Add(new Label($"Fees:         {tx.Fees}") { X = 0, Y = 6 });
 
             Application.Run(dialog);
         }

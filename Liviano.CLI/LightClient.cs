@@ -172,25 +172,22 @@ namespace Liviano.CLI
             {
                 Id = transaction.GetHash(),
                 Account = wallet.CurrentAccount,
-                AccountId = wallet.CurrentAccount.Id,
                 Network = network,
+                Transaction = transaction,
                 Hex = transaction.ToHex(),
                 IsRBF = transaction.RBF,
                 CreatedAt = DateTimeOffset.UtcNow,
-                AmountReceived = Money.Zero,
-                TotalFees = transaction.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(transaction)),
+                Fees = transaction.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(transaction)),
                 ScriptPubKey = bitcoinAddress.ScriptPubKey,
-                IsReceive = false,
-                IsSend = true,
-                TotalAmount = transaction.TotalOut
+                Type = TxType.Send
             };
-            tx.AmountSent = transaction.Outputs.Sum((@out) =>
+            tx.Amount = transaction.Outputs.Sum((@out) =>
             {
                 var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                 if (!wallet.CurrentAccount.IsChange(outAddr))
                 {
-                    tx.SentScriptPubKey = @out.ScriptPubKey;
+                    tx.ScriptPubKey = @out.ScriptPubKey;
                     return @out.Value;
                 }
 
@@ -265,13 +262,13 @@ namespace Liviano.CLI
 
             // In the end is important to add the tx even though we don't know certain things
             // from it so we have the tx in our store already.
-            var amountSent = bumpedTx.Outputs.Sum((@out) =>
+            var amount = bumpedTx.Outputs.Sum((@out) =>
             {
                 var outAddr = @out.ScriptPubKey.GetDestinationAddress(network);
 
                 if (!wallet.CurrentAccount.IsChange(outAddr))
                 {
-                    tx.SentScriptPubKey = @out.ScriptPubKey;
+                    tx.ScriptPubKey = @out.ScriptPubKey;
                     return @out.Value;
                 }
 
@@ -281,18 +278,15 @@ namespace Liviano.CLI
             {
                 Id = bumpedTx.GetHash(),
                 Account = wallet.CurrentAccount,
-                AccountId = wallet.CurrentAccount.Id,
                 Network = network,
+                Transaction = bumpedTx,
                 Hex = bumpedTx.ToHex(),
                 IsRBF = bumpedTx.RBF,
                 CreatedAt = DateTimeOffset.UtcNow,
-                AmountReceived = Money.Zero,
-                TotalFees = bumpedTx.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(bumpedTx)),
+                Fees = bumpedTx.GetFee(wallet.CurrentAccount.GetCoinsFromTransaction(bumpedTx)),
                 ScriptPubKey = destinationAddress.ScriptPubKey,
-                IsReceive = false,
-                IsSend = true,
-                TotalAmount = bumpedTx.TotalOut,
-                AmountSent = amountSent
+                Type = TxType.Send,
+                Amount = amount
             };
 
             wallet.CurrentAccount.AddTx(bumpedTxModel);
@@ -418,9 +412,10 @@ namespace Liviano.CLI
 
             foreach (var tx in txs.OrderByDescending(o => o.CreatedAt))
             {
+                var sign = tx.Type == TxType.Receive ? string.Empty : "-";
                 logger.Information(
-                    "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                    tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                    "Id: {txId} Amount: {amount} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                    tx.Id, $"{sign}{tx.Amount}", tx.Fees, tx.Height, wallet.Height - tx.Height, tx.CreatedAt
                 );
             }
         }
@@ -529,12 +524,12 @@ namespace Liviano.CLI
             wallet.OnNewTransaction += (s, e) =>
             {
                 txCount++;
-                logger.Information("#{count} Transaction found at height: {height}!", txCount, e.Tx.BlockHeight);
+                logger.Information("#{count} Transaction found at height: {height}!", txCount, e.Tx.Height);
             };
 
             wallet.OnUpdateTransaction += (s, e) =>
             {
-                logger.Information("Updated transaction at height: {height}!", e.Tx.BlockHeight);
+                logger.Information("Updated transaction at height: {height}!", e.Tx.Height);
             };
 
             wallet.OnSyncStarted += (s, e) =>
@@ -568,9 +563,10 @@ namespace Liviano.CLI
                 {
                     foreach (var tx in txs)
                     {
+                        var sign = tx.Type == TxType.Receive ? string.Empty : "-";
                         logger.Information(
-                            "Id: {txId} Amount: {txAmountSent}{txAmountReceived} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
-                            tx.Id, tx.AmountReceived > Money.Zero ? $"+{tx.AmountReceived}" : "", tx.AmountSent > Money.Zero ? $"-{tx.AmountSent}" : "", tx.TotalFees, tx.BlockHeight, tx.Confirmations, tx.CreatedAt
+                            "Id: {txId} Amount: {amount} Fees: {txFees} Height: {txBlockHeight} Confirmations: {txConfirmations} Time: {txCreatedAt}",
+                            tx.Id, $"{sign}{tx.Amount}", tx.Fees, tx.Height, wallet.Height - tx.Height, tx.CreatedAt
                         );
                     }
 
@@ -579,7 +575,6 @@ namespace Liviano.CLI
                 }
 
                 logger.Information("Transactions:");
-                
 
                 wallet.Disconnect();
 
@@ -837,9 +832,7 @@ namespace Liviano.CLI
                     logger.Information("Transactions:");
 
                     foreach (var tx in txs)
-                    {
-                        logger.Information($"Id: {tx.Id} Amount: {(tx.IsReceive ? tx.AmountReceived : tx.AmountSent)} Fees: {tx.TotalFees}");
-                    }
+                        logger.Information($"Id: {tx.Id} Amount: {tx.Amount} Fees: {tx.Fees}");
 
                     logger.Information($"Total: {wallet.CurrentAccount.GetBalance()}");
                 }
@@ -1021,7 +1014,7 @@ namespace Liviano.CLI
             }
             Console.WriteLine("\n");
 
-            var noScriptPubKeyAtAll = new List<Tx> { };
+            var noScriptPubKey = new List<Tx> { };
             var isSendAndReceive = new List<Tx> { };
             var isNotSendAndNotReceive = new List<Tx> { };
             var sendNullScriptPubKey = new List<Tx> { };
@@ -1030,27 +1023,12 @@ namespace Liviano.CLI
             {
                 var tx = acc.Txs[i];
 
-                if (tx.ScriptPubKey == null && tx.SentScriptPubKey == null)
-                    noScriptPubKeyAtAll.Add(tx);
+                if (tx.ScriptPubKey == null)
+                    noScriptPubKey.Add(tx);
 
-                if (tx.IsSend && tx.IsReceive)
-                    isSendAndReceive.Add(tx);
-
-                if (!tx.IsSend && !tx.IsReceive)
-                    isNotSendAndNotReceive.Add(tx);
-
-                if (tx.IsSend && tx.SentScriptPubKey is null)
-                    sendNullScriptPubKey.Add(tx);
-                
-                if (tx.IsReceive && tx.ScriptPubKey is null)
-                    receiveNullScriptPubKey.Add(tx);
             }
 
-            PrintDoctorReport(noScriptPubKeyAtAll, "tx.ScriptPubKey == null && tx.SentScriptPubKey == null");
-            PrintDoctorReport(isSendAndReceive, "tx.IsSend && tx.IsReceive");
-            PrintDoctorReport(isNotSendAndNotReceive, "!tx.IsSend && !tx.IsReceive");
-            PrintDoctorReport(sendNullScriptPubKey, "tx.IsSend && tx.SentScriptPubKey is null");
-            PrintDoctorReport(receiveNullScriptPubKey, "tx.IsReceive && tx.ScriptPubKey is null");
+            PrintDoctorReport(noScriptPubKey, "tx.ScriptPubKey == null");
         }
 
         static void PrintDoctorReport(List<Tx> transactions, string condition)
@@ -1063,10 +1041,8 @@ namespace Liviano.CLI
             foreach (var tx in transactions)
             {
                 Console.WriteLine($"Id = {tx.Id}");
-                Console.WriteLine($"IsSend = {tx.IsSend}");
-                Console.WriteLine($"IsReceive = {tx.IsReceive}");
+                Console.WriteLine($"TxType = {tx.Type}");
                 Console.WriteLine($"ScriptPubKey = {tx.ScriptPubKey}");
-                Console.WriteLine($"SentScriptPubKey = {tx.SentScriptPubKey}");
 
                 Console.WriteLine($"{new string('=', tx.Id.ToString().Length)}");
             }
