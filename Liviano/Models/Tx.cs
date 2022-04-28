@@ -35,6 +35,7 @@ using Liviano.Interfaces;
 using Liviano.Extensions;
 
 using static Liviano.Electrum.ElectrumClient;
+using System.Collections.Generic;
 
 namespace Liviano.Models
 {
@@ -108,6 +109,12 @@ namespace Liviano.Models
         public Script ScriptPubKey { get; set; }
 
         /// <summary>
+        /// Other script pub keys
+        /// </summary>
+        [JsonProperty(PropertyName = "otherScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
+        public List<Script> OtherScriptPubKey { get; set; }
+
+        /// <summary>
         /// Check if the tx is rbf
         /// </summary>
         [JsonProperty(PropertyName = "isRBF", NullValueHandling = NullValueHandling.Ignore)]
@@ -133,7 +140,11 @@ namespace Liviano.Models
 
         public Transaction GetTransaction()
         {
-            return Transaction.Parse(Hex, Network);
+            var tx = Transaction.Parse(Hex, Network);
+
+            Transaction = tx;
+
+            return Transaction;
         }
 
         public static Tx CreateFrom(string id, long height, long fees, IAccount account)
@@ -217,33 +228,21 @@ namespace Liviano.Models
             // Amount
             if (tx.Type == TxType.Receive)
             {
-                tx.Amount = transaction.Outputs.Sum((@out) =>
+                tx.Amount = new Money(transaction.Outputs.Where((@out) =>
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
 
-                    if (account.IsReceive(outAddr) || account.IsChange(outAddr))
-                    {
-                        tx.ScriptPubKey = @out.ScriptPubKey;
-                        return @out.Value;
-                    }
-
-                    return Money.Zero;
-                });
+                    return account.IsReceive(outAddr) || account.IsChange(outAddr);
+                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
             }
             else
             {
-                tx.Amount = transaction.Outputs.Sum((@out) =>
+                tx.Amount = new Money(transaction.Outputs.Where((@out) =>
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
 
-                    if (!account.IsChange(outAddr) && !account.IsReceive(outAddr))
-                    {
-                        tx.ScriptPubKey = @out.ScriptPubKey;
-                        return @out.Value;
-                    }
-
-                    return Money.Zero;
-                });
+                    return !account.IsChange(outAddr) && !account.IsReceive(outAddr);
+                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
             }
 
             tx.Fees = account.GetOutValueFromTxInputs(transaction.Inputs) - transaction.TotalOut;

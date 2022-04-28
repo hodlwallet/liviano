@@ -197,6 +197,7 @@ namespace Liviano.Storages
                 var contents = File.ReadAllText(txFilePath);
                 var tx = JsonConvert.DeserializeObject<Tx>(contents, serializerSettings);
                 tx.Account = account;
+                tx.Transaction = tx.GetTransaction();
 
                 txs.Add(tx);
             }

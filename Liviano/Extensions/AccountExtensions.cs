@@ -24,9 +24,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NBitcoin;
 
@@ -35,8 +37,7 @@ using Liviano.Bips;
 using Liviano.Exceptions;
 using Liviano.Interfaces;
 using Liviano.Models;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
+
 using static Liviano.Electrum.ElectrumClient;
 
 namespace Liviano.Extensions
@@ -324,7 +325,10 @@ namespace Liviano.Extensions
                 {
                     var accountTx = txs.FirstOrDefault(o => o.Id.ToString().Equals(accountTxId));
 
-                    var accountTransaction = Transaction.Parse(accountTx.Hex, account.Network);
+                    if (accountTx.Type == TxType.Partial)
+                        continue;
+
+                    var accountTransaction = accountTx.Transaction;
                     var accountTxOut = accountTransaction.Outputs[outIndex];
 
                     total += accountTxOut.Value;
@@ -375,7 +379,7 @@ namespace Liviano.Extensions
 
             foreach (var tx in unconfirmedRBFTransactions)
             {
-                var parsedTransaction = Transaction.Parse(tx.Hex, tx.Network);
+                var parsedTransaction = tx.Transaction;
 
                 if (transaction.Inputs.Count != parsedTransaction.Inputs.Count)
                     continue;

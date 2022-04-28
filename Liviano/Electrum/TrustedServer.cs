@@ -182,7 +182,7 @@ namespace Liviano.Electrum
             OnCurrentServerChanged?.Invoke(this, CurrentServer);
 
             ElectrumClient.OnConnected += (s, e) => OnConnected?.Invoke(this, CurrentServer);
-            ElectrumClient.OnDisconnected +=  (s, e) => OnDisconnected?.Invoke(this, CurrentServer);
+            ElectrumClient.OnDisconnected += (s, e) => OnDisconnected?.Invoke(this, CurrentServer);
 
             Debug.WriteLine($"[Connect] Connecting to {CurrentServer.Domain}:{CurrentServer.PrivatePort} at {DateTime.UtcNow}");
 
@@ -717,7 +717,7 @@ namespace Liviano.Electrum
         {
             OnSyncStarted?.Invoke(this, null);
 
-            var addresses = new List<BitcoinAddress> {};
+            var addresses = new List<BitcoinAddress> { };
             var currentTxCount = acc.Txs.ToList().Count;
 
             foreach (var spkt in acc.ScriptPubKeyTypes)
@@ -841,10 +841,12 @@ namespace Liviano.Electrum
                 BlockchainScriptHashGetHistoryResult result,
                 CancellationToken ct)
         {
-            var tasks = new List<Task> {};
+            var tasks = new List<Task> { };
 
             foreach (var r in result.Result)
+            {
                 tasks.Add(DoInsertTransactionFromHistory(r, acc, addr, ct));
+            }
 
             await Task.WhenAll(tasks);
         }
@@ -855,16 +857,26 @@ namespace Liviano.Electrum
 
             Debug.WriteLine($"[InsertTransactionsFromHistory] Found tx with hash: {r.TxHash}, height: {r.Height}, fee: {r.Fee}");
 
-            var txs = acc.Txs.ToList();
+            List<Tx> txs = new() { };
+            lock (@lock)
+            {
+                var partialTx = Tx.CreateFrom(r.TxHash, r.Height, (long)r.Fee, acc);
+                acc.AddTx(partialTx);
+
+                OnNewTransaction?.Invoke(this, new TxEventArgs(partialTx, acc, addr));
+
+                txs = acc.Txs.ToList();
+            }
+
             string txHex = string.Empty;
             try
             {
                 var currentTx = txs.FirstOrDefault((i) => i.Id.ToString() == r.TxHash);
 
-                if (currentTx is not null)
-                    txHex = currentTx.Hex;
-                else
+                if (currentTx.Type == TxType.Partial)
                     txHex = await GetTransactionHex(r.TxHash);
+                else
+                    txHex = currentTx.Hex;
             }
             catch (ElectrumException e)
             {
@@ -894,7 +906,7 @@ namespace Liviano.Electrum
                 acc
             );
 
-            var transaction = tx.GetTransaction();
+            var transaction = tx.Transaction;
             var txAddresses = transaction.Outputs.Select(
                 (o) => o.ScriptPubKey.GetDestinationAddress(Network)
             );
@@ -902,32 +914,21 @@ namespace Liviano.Electrum
             foreach (var txAddr in txAddresses)
             {
                 if (acc.IsReceive(txAddr))
-                {
-                    if (acc.UsedExternalAddresses.Contains(txAddr))
-                        continue;
-
-                    acc.UsedExternalAddresses.Add(txAddr);
-                }
-
-                if (acc.IsChange(txAddr))
-                {
-                    if (acc.UsedInternalAddresses.Contains(txAddr))
-                        continue;
-
-                    acc.UsedInternalAddresses.Add(txAddr);
-                }
+                    if (!acc.UsedExternalAddresses.Contains(txAddr)) acc.UsedExternalAddresses.Add(txAddr);
+                    else if (acc.IsChange(txAddr))
+                        if (!acc.UsedInternalAddresses.Contains(txAddr)) acc.UsedInternalAddresses.Add(txAddr);
             }
 
             lock (@lock)
             {
-                var currentTxFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
-                if (currentTxFinal is null)
+                var txFinal = acc.Txs.ToList().FirstOrDefault(o => o.Id == tx.Id);
+                if (txFinal.Type == TxType.Partial)
                 {
-                    acc.AddTx(tx);
+                    acc.UpdateTx(tx);
 
-                    OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
+                    OnUpdateTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
-                else if (currentTxFinal.Height < r.Height)
+                else if (txFinal.Height < r.Height)
                 {
                     acc.UpdateTx(tx);
 

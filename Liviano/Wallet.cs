@@ -565,7 +565,16 @@ namespace Liviano
             Debug.WriteLine($"[ElectrumPool_OnNewTransaction] Found a tx! tx_id: {tx.Id}");
             Debug.WriteLine($"[ElectrumPool_OnNewTransaction]             addr:  {addr}");
 
-            var transaction = Transaction.Parse(tx.Hex, acc.Network);
+            if (tx.Type == TxType.Partial)
+            {
+                Debug.WriteLine($"[ElectrumPool_OnNewTransaction] New partial tx!");
+
+                OnNewTransaction?.Invoke(this, txArgs);
+
+                return;
+            }
+
+            var transaction = tx.Transaction;
 
             foreach (var coin in transaction.Outputs.AsCoins())
             {
