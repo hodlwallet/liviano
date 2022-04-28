@@ -106,7 +106,6 @@ namespace Liviano.Accounts
 
         public abstract Money GetBalance();
 
-        public event EventHandler<UpdatedTxConfirmationsArgs> OnUpdatedTxConfirmations;
         public event EventHandler<UpdatedTxCreatedAtArgs> OnUpdatedTxCreatedAt;
 
         public object Clone()
@@ -346,49 +345,22 @@ namespace Liviano.Accounts
             return false;
         }
 
-        public void UpdateConfirmations(long height)
-        {
-            foreach (var tx in Txs)
-            {
-                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
-
-                if (txBlockHeight <= 0) continue;
-                if (txBlockHeight >= height) continue;
-
-                tx.Confirmations = height - txBlockHeight;
-
-                OnUpdatedTxConfirmations?.Invoke(this, new UpdatedTxConfirmationsArgs(tx, tx.Confirmations));
-            }
-        }
-
         public void UpdateCreatedAtWithHeader(BlockHeader header, long height)
         {
             foreach (var tx in Txs)
             {
-                var txCreatedAt = tx.CreatedAt.GetValueOrDefault();
+                if (tx.Height <= 0) continue;
+                if (tx.Height > height) continue;
 
-                if (
-                    !DateTimeOffset.Equals(txCreatedAt, default) ||
-                    !tx.HasAproxCreatedAt
-                ) continue;
-
-                var txBlockHeight = tx.BlockHeight.GetValueOrDefault(0);
-
-                if (txBlockHeight <= 0) continue;
-                if (txBlockHeight > height) continue;
-
-                if (txBlockHeight == height)
+                if (tx.Height == height)
                 {
                     tx.CreatedAt = header.BlockTime;
-                    tx.HasAproxCreatedAt = false;
 
                     OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
                     continue;
                 }
 
-                tx.CreatedAt = GetAproxTime(height, txBlockHeight, header);
-                tx.HasAproxCreatedAt = true;
-
+                tx.CreatedAt = GetAproxTime(height, tx.Height, header);
                 OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
             }
 

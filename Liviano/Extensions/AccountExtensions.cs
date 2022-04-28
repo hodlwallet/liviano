@@ -119,7 +119,7 @@ namespace Liviano.Extensions
             var output = transaction.Outputs[coin.Outpoint.N];
             var addr = output.ScriptPubKey.GetDestinationAddress(account.Network);
 
-            int change = tx.TxType == TxType.Send;
+            int change = tx.Type == TxType.Send ? 1 : 0;
             int index;
             if (change == 0)
                 index = account.GetExternalIndex(addr);
@@ -157,7 +157,7 @@ namespace Liviano.Extensions
                 Tx tx,
                 decimal satsPerByte)
         {
-            if (tx.IsReceive) throw new WalletException("[BumpFee] Bump fee failed because transaction was not sent by yourself");
+            if (tx.Type == TxType.Receive) throw new WalletException("[BumpFee] Bump fee failed because transaction was not sent by yourself");
 
             var builder = account.Network.CreateTransactionBuilder();
             var parentTransaction = Transaction.Parse(tx.Hex, account.Network);
@@ -371,7 +371,7 @@ namespace Liviano.Extensions
         public static Tx FindReplacedTx(this IAccount account, Transaction transaction)
         {
             Tx replacedTx = null;
-            var unconfirmedRBFTransactions = account.Txs.Where(o => o.IsRBF && o.Confirmations == 0).ToList();
+            var unconfirmedRBFTransactions = account.Txs.Where(o => o.IsRBF && (o.Height == 0 || o.Height == -1)).ToList();
 
             foreach (var tx in unconfirmedRBFTransactions)
             {

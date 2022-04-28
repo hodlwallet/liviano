@@ -316,7 +316,6 @@ namespace Liviano.Electrum
                     wallet.Height = height;
                     wallet.LastBlockHeader = BlockHeader.Parse(hex, wallet.Network);
 
-                    wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
                     wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, height);
 
                     wallet.Storage.Save();
@@ -366,7 +365,6 @@ namespace Liviano.Electrum
                         return;
                     }
 
-                    wallet.CurrentAccount.UpdateConfirmations(wallet.Height);
                     wallet.CurrentAccount.UpdateCreatedAtWithHeader(wallet.LastBlockHeader, wallet.Height);
 
                     wallet.Storage.Save();
@@ -650,17 +648,17 @@ namespace Liviano.Electrum
                             // Tx is new
                             if (currentTx is null)
                             {
-                                var tx = Tx.CreateFromHex(
-                                    txHex, height, header, acc, Network
+                                var tx = Tx.CreateFrom(
+                                    txHex, height, header, acc
                                 );
 
                                 acc.AddTx(tx);
                                 OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                             }
-                            else if (currentTx.BlockHeight != height) // A potential update if tx heights are different
+                            else if (currentTx.Height != height) // A potential update if tx heights are different
                             {
-                                var tx = Tx.CreateFromHex(
-                                    txHex, height, header, acc, Network
+                                var tx = Tx.CreateFrom(
+                                    txHex, height, header, acc
                                 );
 
                                 acc.UpdateTx(tx);
@@ -889,12 +887,11 @@ namespace Liviano.Electrum
                 blockHash = header.GetHash();
             }
 
-            var tx = Tx.CreateFromHex(
+            var tx = Tx.CreateFrom(
                 txHex,
                 r.Height,
                 header,
-                acc,
-                Network
+                acc
             );
 
             var transaction = tx.GetTransaction();
@@ -930,7 +927,7 @@ namespace Liviano.Electrum
 
                     OnNewTransaction?.Invoke(this, new TxEventArgs(tx, acc, addr));
                 }
-                else if (currentTxFinal.BlockHeight < r.Height)
+                else if (currentTxFinal.Height < r.Height)
                 {
                     acc.UpdateTx(tx);
 

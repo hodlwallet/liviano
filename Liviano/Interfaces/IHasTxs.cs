@@ -34,11 +34,6 @@ namespace Liviano.Interfaces
     public interface IHasTxs
     {
         /// <summary>
-        /// Trigger when confirmations are updated
-        /// </summary>
-        event EventHandler<UpdatedTxConfirmationsArgs> OnUpdatedTxConfirmations;
-
-        /// <summary>
         /// Trigger when transaction's CreatedAt is updated
         /// </summary>
         event EventHandler<UpdatedTxCreatedAtArgs> OnUpdatedTxCreatedAt;
@@ -61,12 +56,6 @@ namespace Liviano.Interfaces
         /// </summary>
         /// <param name="tx">A <see cref="Tx"/> †o remove</param>
         void RemoveTx(Tx tx);
-
-        /// <summary>
-        /// Update transactions confirmations with height
-        /// </summary>
-        /// <param name="height">Height of the block</param>
-        void UpdateConfirmations(long height);
 
         /// <summary>
         /// Update transactions CreatedAt attributes with the new header if needed

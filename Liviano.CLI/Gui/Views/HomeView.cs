@@ -90,23 +90,17 @@ namespace Liviano.CLI.Gui.Views
 
             foreach (var tx in txs)
             {
-                var direction = tx.IsReceive ? "Received " : "Sent    ";
-                var amount = tx.IsReceive ? tx.AmountReceived.ToString() : $"-{tx.AmountSent}";
-                var preposition = tx.IsReceive ? "at:  " : "from:";
+                var direction = tx.Type == TxType.Receive ? "Received " : "Sent    ";
+                var amount = tx.Amount;
+                var preposition = tx.Type == TxType.Receive ? "at:  " : "from:";
 
                 string address = "NOT_FOUND";
-                if (tx.IsReceive && tx.ScriptPubKey is not null)
-                {
+                if (tx.ScriptPubKey is not null)
                     address = tx.ScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
-                }
-                else if (tx.IsSend && tx.SentScriptPubKey is not null)
-                {
-                    address = tx.SentScriptPubKey.GetDestinationAddress(ViewModel.Wallet.Network).ToString();
-                }
 
                 address = address.PadRight(62);
 
-                var localTime = tx.CreatedAt.Value.ToString("g");
+                var localTime = tx.CreatedAt.ToString("g");
 
                 res.Add(
                     ustring.Make($"{direction} {amount} BTC {preposition} {address} {localTime}")
