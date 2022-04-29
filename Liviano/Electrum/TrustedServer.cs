@@ -704,6 +704,7 @@ namespace Liviano.Electrum
 
             acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
+            AdjustTransactions(acc);
 
             var endTxCount = acc.Txs.ToList().Count;
 
@@ -747,6 +748,7 @@ namespace Liviano.Electrum
 
             acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
+            AdjustTransactions(acc);
 
             OnSyncFinished?.Invoke(this, null);
         }
@@ -780,6 +782,7 @@ namespace Liviano.Electrum
 
             acc.FindUtxosInTransactions();
             acc.FindAndRemoveDuplicateUtxo();
+            AdjustTransactions(acc);
 
             var endTxCount = acc.Txs.Count;
 
@@ -788,6 +791,33 @@ namespace Liviano.Electrum
                 Debug.WriteLine("[SyncAccountUntilGapLimit] Found more transactions in the gap, try again");
 
                 await SyncAccountUntilGapLimit(acc, ct);
+            }
+        }
+
+        void AdjustTransactions(IAccount acc)
+        {
+            var txs = acc.Txs.Where(tx => tx.Type != TxType.Partial).ToList();
+            var count = txs.Count;
+
+            Debug.WriteLine($"[AdjustTransactions] Adjusting {count} transactions");
+
+            for (int i = 0; i < count; i++)
+            {
+                var res = acc.Txs[i].UpdateTx();
+
+                if (res)
+                {
+                    var tx = acc.Txs[i];
+
+                    // FIXME why does this is null???
+
+                    if (tx.ScriptPubKey is null) continue;
+
+                    var addr = tx.ScriptPubKey.GetDestinationAddress(acc.Network);
+
+                    acc.UpdateTx(tx);
+                    OnUpdateTransaction.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
             }
         }
 
@@ -820,12 +850,8 @@ namespace Liviano.Electrum
                 await SyncAddress(acc, addr, ct);
             };
 
-            await InsertTransactionsFromHistory(
-                acc,
-                addr,
-                await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr),
-                ct
-            );
+            var res = await ElectrumClient.BlockchainScriptHashGetHistory(scriptHashStr);
+            await InsertTransactionsFromHistory(acc, addr, res, ct);
         }
 
         /// <summary>
@@ -844,9 +870,7 @@ namespace Liviano.Electrum
             var tasks = new List<Task> { };
 
             foreach (var r in result.Result)
-            {
                 tasks.Add(DoInsertTransactionFromHistory(r, acc, addr, ct));
-            }
 
             await Task.WhenAll(tasks);
         }

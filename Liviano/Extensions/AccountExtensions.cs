@@ -320,24 +320,9 @@ namespace Liviano.Extensions
                 var txs = account.Txs.ToList();
 
                 // Try to find the tx locally to avoid performance issues
-                var accountTxId = txIds.FirstOrDefault(o => o.Equals(outHash));
-                if (!string.IsNullOrEmpty(accountTxId))
-                {
-                    var accountTx = txs.FirstOrDefault(o => o.Id.ToString().Equals(accountTxId));
+                var accountTxId = txIds.FirstOrDefault(hash => hash.Equals(outHash));
+                var accountTx = txs.FirstOrDefault(tx => tx.Id.ToString().Equals(accountTxId));
 
-                    if (accountTx.Type == TxType.Partial)
-                        continue;
-
-                    var accountTransaction = accountTx.Transaction;
-                    var accountTxOut = accountTransaction.Outputs[outIndex];
-
-                    total += accountTxOut.Value;
-
-                    continue;
-                }
-
-                // Tx is not found locally we resource to the electrum pool to find it.
-                // Get the transaction from the input
                 var hex = GetTransactionHex(account, outHash);
                 var transaction = Transaction.Parse(hex, account.Network);
                 var txOut = transaction.Outputs[outIndex];

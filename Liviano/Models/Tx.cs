@@ -111,8 +111,8 @@ namespace Liviano.Models
         /// <summary>
         /// Other script pub keys
         /// </summary>
-        [JsonProperty(PropertyName = "otherScriptPubKey", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Script> OtherScriptPubKey { get; set; }
+        [JsonProperty(PropertyName = "otherScriptPubKeys", NullValueHandling = NullValueHandling.Ignore)]
+        public List<Script> OtherScriptPubKeys { get; set; }
 
         /// <summary>
         /// Check if the tx is rbf
@@ -140,6 +140,8 @@ namespace Liviano.Models
 
         public Transaction GetTransaction()
         {
+            if (string.IsNullOrEmpty(Hex)) return null;
+
             var tx = Transaction.Parse(Hex, Network);
 
             Transaction = tx;
@@ -185,45 +187,14 @@ namespace Liviano.Models
                 Type = TxType.Partial
             };
 
-            if (height > 0 && header is not null)
+            if (header is not null)
             {
                 tx.Blockhash = header.GetHash();
                 tx.CreatedAt = header.BlockTime;
             }
 
-            // Decide if the tx is a send tx or a receive tx
-            var addresses = transaction.Outputs.Select((txOut) => txOut.ScriptPubKey.GetDestinationAddress(account.Network));
-            foreach (var addr in addresses)
-            {
-                if (account.IsReceive(addr))
-                {
-                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in external addresses (tx is receive), address: {addr}");
-
-                    tx.Type = TxType.Receive;
-
-                    break;
-                }
-
-                if (account.IsChange(addr))
-                {
-                    Debug.WriteLine($"[CreateFromHex] Tx's address was found in internal addresses (tx is likely send), address: {addr}");
-
-                    // This is due to the case where the user shared a internal address as external address
-                    if (account.ContainInputs(transaction.Inputs))
-                    {
-                        tx.Type = TxType.Send;
-                    }
-                    else
-                    {
-                        tx.Type = TxType.Receive;
-                    }
-
-                    break;
-                }
-            }
-
-            if (tx.Type == TxType.Partial)
-                tx.Type = TxType.Send;
+            if (account.ContainInputs(transaction.Inputs)) tx.Type = TxType.Send;
+            else tx.Type = TxType.Receive;
 
             // Amount
             if (tx.Type == TxType.Receive)
@@ -248,6 +219,40 @@ namespace Liviano.Models
             tx.Fees = account.GetOutValueFromTxInputs(transaction.Inputs) - transaction.TotalOut;
 
             return tx;
+        }
+
+        public bool UpdateTx()
+        {
+            var prevType = Type;
+            var prevAmount = Amount;
+            var prevFees = Fees;
+
+            if (Account.ContainInputs(Transaction.Inputs)) Type = TxType.Send;
+            else Type = TxType.Receive;
+
+            // Amount
+            if (Type == TxType.Receive)
+            {
+                Amount = new Money(Transaction.Outputs.Where((@out) =>
+                {
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
+
+                    return Account.IsReceive(outAddr) || Account.IsChange(outAddr);
+                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
+            }
+            else
+            {
+                Amount = new Money(Transaction.Outputs.Where((@out) =>
+                {
+                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
+
+                    return !Account.IsChange(outAddr) && !Account.IsReceive(outAddr);
+                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
+            }
+
+            Fees = Account.GetOutValueFromTxInputs(Transaction.Inputs) - Transaction.TotalOut;
+
+            return !(prevFees == Fees && prevAmount == Amount && prevType == Type);
         }
 
         public static Tx CreateFromElectrumResult(BlockchainTransactionGetVerboseResult result, IAccount account, Network network)
