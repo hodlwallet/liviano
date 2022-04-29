@@ -320,8 +320,14 @@ namespace Liviano.Extensions
                 var txs = account.Txs.ToList();
 
                 // Try to find the tx locally to avoid performance issues
-                var accountTxId = txIds.FirstOrDefault(hash => hash.Equals(outHash));
-                var accountTx = txs.FirstOrDefault(tx => tx.Id.ToString().Equals(accountTxId));
+                var accountTx = txs.FirstOrDefault(tx => tx.Id.ToString().Equals(outHash));
+
+                // if (accountTx is not null)
+                // {
+                    // total += accountTx.Transaction.Outputs[outIndex].Value;
+
+                    // continue;
+                // }
 
                 var hex = GetTransactionHex(account, outHash);
                 var transaction = Transaction.Parse(hex, account.Network);

@@ -193,30 +193,7 @@ namespace Liviano.Models
                 tx.CreatedAt = header.BlockTime;
             }
 
-            if (account.ContainInputs(transaction.Inputs)) tx.Type = TxType.Send;
-            else tx.Type = TxType.Receive;
-
-            // Amount
-            if (tx.Type == TxType.Receive)
-            {
-                tx.Amount = new Money(transaction.Outputs.Where((@out) =>
-                {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
-
-                    return account.IsReceive(outAddr) || account.IsChange(outAddr);
-                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
-            }
-            else
-            {
-                tx.Amount = new Money(transaction.Outputs.Where((@out) =>
-                {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(account.Network);
-
-                    return !account.IsChange(outAddr) && !account.IsReceive(outAddr);
-                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
-            }
-
-            tx.Fees = account.GetOutValueFromTxInputs(transaction.Inputs) - transaction.TotalOut;
+            tx.UpdateTx();
 
             return tx;
         }
@@ -246,11 +223,12 @@ namespace Liviano.Models
                 {
                     var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
 
-                    return !Account.IsChange(outAddr) && !Account.IsReceive(outAddr);
+                    return !Account.IsChange(outAddr) || !Account.IsReceive(outAddr);
                 }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
             }
 
             Fees = Account.GetOutValueFromTxInputs(Transaction.Inputs) - Transaction.TotalOut;
+            if (Type == TxType.Send) Amount += Fees;
 
             return !(prevFees == Fees && prevAmount == Amount && prevType == Type);
         }

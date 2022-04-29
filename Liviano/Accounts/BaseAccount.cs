@@ -372,8 +372,9 @@ namespace Liviano.Accounts
         {
             lock (@lock)
             {
+                var addrs = ExternalAddresses[spkt].ToList();
                 foreach (var spkt in ScriptPubKeyTypes)
-                    if (ExternalAddresses[spkt].ToList().Any(addrWithData => address == addrWithData.Address))
+                    if (addrs.Any(addrWithData => address == addrWithData.Address))
                         return true;
 
                 return false;
@@ -384,8 +385,9 @@ namespace Liviano.Accounts
         {
             lock (@lock)
             {
+                var addrs = InternalAddresses[spkt].ToList();
                 foreach (var spkt in ScriptPubKeyTypes)
-                    if (InternalAddresses[spkt].ToList().Any(addrWithData => address == addrWithData.Address))
+                    if (addrs.Any(addrWithData => address == addrWithData.Address))
                         return true;
 
                 return false;
