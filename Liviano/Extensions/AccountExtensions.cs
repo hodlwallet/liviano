@@ -352,7 +352,7 @@ namespace Liviano.Extensions
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[GetTransactionHex] Error: {}", ex);
+                Debug.WriteLine("[GetTransactionHex] Error: {}", ex.Message);
 
                 Task.Delay(250).Wait();
 

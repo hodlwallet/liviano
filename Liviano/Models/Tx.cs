@@ -81,7 +81,7 @@ namespace Liviano.Models
         /// <summary>
         /// The type of the tx, <see cref="TxType" /> for mode details
         /// </summary>
-        [JsonProperty(PropertyName = "txType", ItemConverterType = typeof(StringEnumConverter))]
+        [JsonProperty(PropertyName = "txType"), JsonConverter(typeof(StringEnumConverter))]
         public TxType Type { get; set; } = TxType.Partial;
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace Liviano.Models
         /// Other script pub keys
         /// </summary>
         [JsonProperty(PropertyName = "otherScriptPubKeys", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Script> OtherScriptPubKeys { get; set; }
+        public List<Script> OtherScriptPubKeys { get; set; } = new List<Script>();
 
         /// <summary>
         /// Check if the tx is rbf
@@ -208,23 +208,25 @@ namespace Liviano.Models
             else Type = TxType.Receive;
 
             // Amount
-            if (Type == TxType.Receive)
+            Amount = Money.Zero;
+            foreach (var @out in Transaction.Outputs)
             {
-                Amount = new Money(Transaction.Outputs.Where((@out) =>
-                {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
+                var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
 
-                    return Account.IsReceive(outAddr) || Account.IsChange(outAddr);
-                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
-            }
-            else
-            {
-                Amount = new Money(Transaction.Outputs.Where((@out) =>
+                if (Type == TxType.Receive && (Account.IsReceive(outAddr) || Account.IsChange(outAddr)))
                 {
-                    var outAddr = @out.ScriptPubKey.GetDestinationAddress(Account.Network);
+                    if (ScriptPubKey is null) ScriptPubKey = @out.ScriptPubKey;
+                    else if (@out.ScriptPubKey != ScriptPubKey) OtherScriptPubKeys.Add(@out.ScriptPubKey);
 
-                    return !Account.IsChange(outAddr) || !Account.IsReceive(outAddr);
-                }).Select((@out) => @out.Value.ToDecimal(MoneyUnit.BTC)).Sum(), MoneyUnit.BTC);
+                    Amount += @out.Value;
+                }
+                else if (Type == TxType.Send && (!Account.IsChange(outAddr) && !Account.IsReceive(outAddr)))
+                {
+                    if (ScriptPubKey is null) ScriptPubKey = @out.ScriptPubKey;
+                    else if (@out.ScriptPubKey != ScriptPubKey) OtherScriptPubKeys.Add(@out.ScriptPubKey);
+
+                    Amount += @out.Value;
+                }
             }
 
             Fees = Account.GetOutValueFromTxInputs(Transaction.Inputs) - Transaction.TotalOut;

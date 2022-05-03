@@ -804,21 +804,18 @@ namespace Liviano.Electrum
             for (int i = 0; i < count; i++)
             {
                 // var res = acc.Txs[i].UpdateTx();
-                acc.Txs[i].UpdateTx();
+                var tx = acc.Txs[i];
+                var res = tx.UpdateTx();
 
-                // if (res)
-                // {
-                    // var tx = acc.Txs[i];
+                acc.Txs[i] = tx;
 
-                    // // FIXME why does this is null???
+                if (res)
+                {
+                    var addr = tx.ScriptPubKey.GetDestinationAddress(acc.Network);
 
-                    // if (tx.ScriptPubKey is null) continue;
-
-                    // var addr = tx.ScriptPubKey.GetDestinationAddress(acc.Network);
-
-                    // acc.UpdateTx(tx);
-                    // OnUpdateTransaction.Invoke(this, new TxEventArgs(tx, acc, addr));
-                // }
+                    acc.UpdateTx(tx);
+                    OnUpdateTransaction.Invoke(this, new TxEventArgs(tx, acc, addr));
+                }
             }
         }
 
@@ -939,9 +936,15 @@ namespace Liviano.Electrum
             foreach (var txAddr in txAddresses)
             {
                 if (acc.IsReceive(txAddr))
-                    if (!acc.UsedExternalAddresses.Contains(txAddr)) acc.UsedExternalAddresses.Add(txAddr);
-                    else if (acc.IsChange(txAddr))
-                        if (!acc.UsedInternalAddresses.Contains(txAddr)) acc.UsedInternalAddresses.Add(txAddr);
+                {
+                    if (!acc.UsedExternalAddresses.Contains(txAddr))
+                        acc.UsedExternalAddresses.Add(txAddr);
+                }
+                else if (acc.IsChange(txAddr))
+                {
+                    if (!acc.UsedInternalAddresses.Contains(txAddr))
+                        acc.UsedInternalAddresses.Add(txAddr);
+                }
             }
 
             lock (@lock)
