@@ -561,6 +561,9 @@ namespace Liviano.CLI
                 }
                 else
                 {
+                    logger.Information("Transactions:");
+                    logger.Information("Txs: {txCount}", wallet.CurrentAccount.Txs.Count);
+
                     foreach (var tx in txs)
                     {
                         var sign = tx.Type == TxType.Receive ? string.Empty : "-";
@@ -570,11 +573,8 @@ namespace Liviano.CLI
                         );
                     }
 
-                    logger.Information("Txs: {txCount}", wallet.CurrentAccount.Txs.Count);
                     logger.Information("Total: {total}", wallet.CurrentAccount.GetBalance());
                 }
-
-                logger.Information("Transactions:");
 
                 wallet.Disconnect();
 
@@ -830,6 +830,7 @@ namespace Liviano.CLI
                 if (txs.Count > 0)
                 {
                     logger.Information("Transactions:");
+                    logger.Information("Txs: {txCount}", wallet.CurrentAccount.Txs.Count);
 
                     foreach (var tx in txs)
                         logger.Information($"Id: {tx.Id} Amount: {tx.Amount} Fees: {tx.Fees}");
