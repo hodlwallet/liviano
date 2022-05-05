@@ -344,6 +344,35 @@ namespace Liviano.Electrum
                         return;
                     }
 
+                    if (ipAddress is not null)
+                    {
+                        // Now we test if the tcpclient can connect
+                        using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
+                        {
+                            SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
+                            ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
+                        };
+
+                        isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
+                        if (!isConnected)
+                        {
+                            Debug.WriteLine("[PollSslClient] Stream is disconnected.");
+                        }
+
+                        if (isConnected)
+                        {
+                            if (!initialIsConnected) OnConnected?.Invoke(this, null);
+                        }
+                        else
+                        {
+                            Debug.WriteLine("[PollSslClient] Disconnected!");
+
+                            if (initialIsConnected) OnDisconnected?.Invoke(this, null);
+                        }
+
+                        return;
+                    }
+
                     var pingReply = ping.Send(Host, pingTimeout, pingBuffer, pingOptions);
 
                     if (pingReply.Status != IPStatus.Success)
@@ -351,30 +380,6 @@ namespace Liviano.Electrum
                         Debug.WriteLine("[PollSslClient] Ping failed.");
 
                         isConnected = false;
-                    }
-
-                    // Now we test if the tcpclient can connect
-                    using var pollTcpClient = new TcpClient(ipAddress.AddressFamily)
-                    {
-                        SendTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT),
-                        ReceiveTimeout = Convert.ToInt32(TCP_CLIENT_POLL_TIME_TO_WAIT)
-                    };
-
-                    isConnected = pollTcpClient.ConnectAsync(ipAddress, port).Wait(TimeSpan.FromMilliseconds(TCP_CLIENT_POLL_TIME_TO_WAIT));
-                    if (!isConnected)
-                    {
-                        Debug.WriteLine("[PollSslClient] Stream is disconnected.");
-                    }
-
-                    if (isConnected)
-                    {
-                        if (!initialIsConnected) OnConnected?.Invoke(this, null);
-                    }
-                    else
-                    {
-                        Debug.WriteLine("[PollSslClient] Disconnected!");
-
-                        if (initialIsConnected) OnDisconnected?.Invoke(this, null);
                     }
                 }, Cts.Token);
             }).Subscribe(Cts.Token);
