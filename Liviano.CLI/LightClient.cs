@@ -626,7 +626,6 @@ namespace Liviano.CLI
                 5000
             );
 
-
             PeriodicSave();
 
             WaitUntilEscapeIsPressed();
