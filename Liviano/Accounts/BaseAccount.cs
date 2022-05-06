@@ -362,8 +362,8 @@ namespace Liviano.Accounts
                     continue;
                 }
 
-                tx.CreatedAt = GetAproxTime(height, tx.Height, header);
-                OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
+                //tx.CreatedAt = GetAproxTime(height, tx.Height, header);
+                //OnUpdatedTxCreatedAt?.Invoke(this, new UpdatedTxCreatedAtArgs(tx, tx.CreatedAt));
             }
 
         }
