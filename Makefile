@@ -4,7 +4,6 @@
 .DEFAULT_GOAL := build
 
 # Set Net framework version to use with dotnet
-# USING_NET_VERSION = --framework netappcore3.1
 USING_NET_VERSION = --framework net6.0
 
 # BIN_DIR_NET_VERSION = netcoreapp3.1
@@ -23,11 +22,12 @@ liviano.release:
 
 ## Runs Liviano's client from source code using a particular Net framework version. Usage: args="--help" make run
 run:
+	dotnet build --configuration Debug -property:GenerateFullPaths=true -consoleloggerparameters:NoSummary
 	@if [ "${args}" = "" ]; then\
-		dotnet run $(USING_NET_VERSION) --project Liviano.CLI -- --help;\
+		dotnet run $(USING_NET_VERSION) --project Liviano.CLI;\
 	fi
 	@if [ "${args}" != "" ]; then\
-		dotnet run $(USING_NET_VERSION) --project Liviano.CLI -- ${args};\
+		COMPlus_DebugWriteToStdErr=1 dotnet run $(USING_NET_VERSION) --project Liviano.CLI -- ${args};\
 	fi
 
 ## Publishes Liviano's client for the Ubuntu platform and executes liviano using input arguments. Usage: args="--help" make run.ubuntu
