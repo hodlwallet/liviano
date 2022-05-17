@@ -41,7 +41,7 @@ namespace Liviano.Services
     {
         static IFeeEstimatorHttpService FeeEstimatorHttpService => CustomRestService.For<IFeeEstimatorHttpService>(Constants.PRECIO_API);
 
-        readonly CancellationTokenSource cts = new();
+        public CancellationTokenSource Cts { get; } = new();
 
         FeeEstimatorEntity fees;
         public FeeEstimatorEntity Fees
@@ -54,7 +54,7 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Cancel] Cancelling fee estimator service");
 
-            cts.Cancel();
+            Cts.Cancel();
         }
 
         public void Start()
@@ -72,7 +72,7 @@ namespace Liviano.Services
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.FEE_ESTIMATOR_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => await Update(), cts.Token);
+                .Subscribe(async _ => await Update(), Cts.Token);
         }
 
         public async Task Update()

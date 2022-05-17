@@ -41,7 +41,7 @@ namespace Liviano.Services
     {
         static IPrecioHttpService PrecioHttpService => CustomRestService.For<IPrecioHttpService>(Constants.PRECIO_API);
 
-        readonly CancellationTokenSource cts = new();
+        public CancellationTokenSource Cts { get; } = new();
 
         PrecioEntity precio;
         public PrecioEntity Precio
@@ -61,7 +61,7 @@ namespace Liviano.Services
         {
             Debug.WriteLine("[Cancel] Price service cancelled.");
 
-            cts.Cancel();
+            Cts.Cancel();
         }
 
         public void Start()
@@ -73,7 +73,7 @@ namespace Liviano.Services
 
             Observable
                 .Interval(TimeSpan.FromMilliseconds(Constants.PRECIO_INTERVAL_MS), RxApp.TaskpoolScheduler)
-                .Subscribe(async _ => await Update(), cts.Token);
+                .Subscribe(async _ => await Update(), Cts.Token);
         }
 
         public async Task Update()
