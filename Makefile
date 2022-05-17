@@ -5,8 +5,6 @@
 
 # Set Net framework version to use with dotnet
 USING_NET_VERSION = --framework net6.0
-
-# BIN_DIR_NET_VERSION = netcoreapp3.1
 BIN_DIR_NET_VERSION = net6.0
 
 ## Builds Liviano project and its dependencies on Debug configuration mode for all Net target frameworks supported.
